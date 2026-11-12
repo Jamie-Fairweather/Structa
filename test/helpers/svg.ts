@@ -84,6 +84,68 @@ export function distanceToOutline(p: Point, box: Box): number {
   return Math.min(p.x - box.x, box.x + box.width - p.x, p.y - box.y, box.y + box.height - p.y);
 }
 
+/**
+ * Every way the SVG breaks the spec's passive-SVG list or uses a feature the
+ * rasteriser can't draw. Empty means it passes.
+ */
+export function passiveSvgViolations(svg: string): string[] {
+  const doc = parseSvg(svg);
+  const found: string[] = [];
+  const ids = new Set(allElements(doc).map((el) => el.getAttribute("id")).filter((id) => id !== null));
+
+  for (const el of allElements(doc)) {
+    if (["a", "script", "foreignObject", "image", "use", "iframe", "object", "embed"].includes(el.localName!)) {
+      found.push(`forbidden element <${el.localName}>`);
+    }
+    for (const attr of Array.from(el.attributes)) {
+      const name = attr.name.toLowerCase();
+      if (name === "href" || name.endsWith(":href")) found.push(`forbidden attribute ${attr.name}`);
+      if (name.startsWith("on")) found.push(`forbidden event attribute ${attr.name}`);
+    }
+  }
+
+  for (const [, inner] of svg.matchAll(/url\(\s*([^)]*?)\s*\)/g)) {
+    const target = inner!.replace(/^["']|["']$/g, "");
+    if (target.startsWith("#")) {
+      if (!ids.has(target.slice(1))) found.push(`url(${target}) points at no id in the document`);
+    } else if (!target.startsWith("data:font/ttf;base64,")) {
+      found.push(`url(${target.slice(0, 40)}) is not a same-document id or an embedded font`);
+    }
+  }
+  for (const style of allElements(doc).filter((el) => el.localName === "style")) {
+    const css = style.textContent ?? "";
+    const outsideFontFace = css.replace(/@font-face\s*\{[^}]*\}/g, "");
+    if (outsideFontFace.includes("url(")) found.push("url() in CSS outside @font-face");
+  }
+
+  for (const banned of ["@import", "var(", "color-mix", "font-synthesis", "white-space"]) {
+    if (svg.includes(banned)) found.push(`uses ${banned}`);
+  }
+  return found;
+}
+
+const NUMERIC_ATTRIBUTES = new Set([
+  "x", "y", "width", "height", "rx", "ry", "cx", "cy", "r", "x1", "y1", "x2", "y2", "d", "points", "viewBox",
+  "stroke-width", "font-size", "font-weight", "dx", "dy", "stdDeviation", "opacity", "fill-opacity",
+  "stroke-opacity", "flood-opacity",
+]);
+
+/** Numbers that don't look like the one formatter's output: at most 2 decimals, no -0, no exponent. */
+export function badlyFormattedNumbers(svg: string): string[] {
+  const found: string[] = [];
+  for (const el of allElements(parseSvg(svg))) {
+    for (const attr of Array.from(el.attributes)) {
+      if (!NUMERIC_ATTRIBUTES.has(attr.name)) continue;
+      for (const [token] of attr.value.matchAll(/-?[\d.]+(?:e[+-]?\d+)?/gi)) {
+        if (!/^-?(0|[1-9]\d*)(\.\d?[1-9])?$/.test(token) || token === "-0") {
+          found.push(`${el.localName} ${attr.name}="${attr.value.slice(0, 60)}" has ${token}`);
+        }
+      }
+    }
+  }
+  return found;
+}
+
 export function cardById(doc: Document, id: string): Element {
   const card = cards(doc).find((c) => c.getAttribute("data-id") === id);
   if (!card) throw new Error(`no card with data-id ${id}`);
