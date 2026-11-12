@@ -13,8 +13,12 @@ export interface FlowEdge {
   readonly to: string;
 }
 
+/** Which way the diagram flows. */
+export type Direction = "down" | "right";
+
 export interface FlowDiagram {
   readonly type: "flow";
+  readonly direction: Direction;
   readonly nodes: readonly FlowStep[];
   readonly edges: readonly FlowEdge[];
 }
@@ -47,6 +51,8 @@ export function parseDiagram(input: unknown): ParseResult {
     return { ok: false, problems };
   }
   if (value.type !== "flow") problem("type", 'only "flow" is supported so far');
+  const direction = value.direction ?? "down";
+  if (direction !== "down" && direction !== "right") problem("direction", 'must be "down" or "right"');
 
   const nodes: FlowStep[] = [];
   // Every node with a usable id, even one with other problems, so edges to it aren't reported as dangling.
@@ -85,7 +91,7 @@ export function parseDiagram(input: unknown): ParseResult {
   }
 
   if (problems.length > 0) return { ok: false, problems };
-  return { ok: true, diagram: { type: "flow", nodes, edges } };
+  return { ok: true, diagram: { type: "flow", direction: direction as Direction, nodes, edges } };
 }
 
 function isObject(value: unknown): value is Json {

@@ -2,8 +2,9 @@ import type { LayoutOptions } from "elkjs/lib/elk-api";
 
 /**
  * A fixed ELK option profile for one diagram type, passed whole as global
- * layout options. Bump `version` whenever an option changes: every snapshot
- * of that type must then be re-reviewed.
+ * layout options. The direction isn't part of it: it comes from the input.
+ * Bump `version` whenever an option changes: every snapshot of that type must
+ * then be re-reviewed.
  */
 export interface LayoutProfile {
   readonly name: string;
@@ -16,7 +17,6 @@ export const FLOW_PROFILE: LayoutProfile = {
   version: 1,
   options: {
     "elk.algorithm": "layered",
-    "elk.direction": "DOWN",
     "elk.edgeRouting": "ORTHOGONAL",
     "elk.randomSeed": "1",
     "elk.spacing.nodeNode": "40",

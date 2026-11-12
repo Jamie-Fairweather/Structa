@@ -1,5 +1,6 @@
 import type { ElkExtendedEdge, ElkNode, ElkPoint } from "elkjs/lib/elk-api";
 import { StructaError, type Problem } from "../errors";
+import type { Direction } from "../input";
 import { createElk } from "./elk";
 import type { LayoutProfile } from "./profiles";
 
@@ -44,10 +45,20 @@ export interface Scene<C, L> {
   readonly lines: readonly RoutedLine<L>[];
 }
 
-/** Lays the cards and lines out with ELK. Only generated ids (n0, e0, …) reach ELK. */
+/** The direction is the one layout setting agents choose. */
+const ELK_DIRECTION = new Map<Direction, string>([
+  ["down", "DOWN"],
+  ["right", "RIGHT"],
+]);
+
+/**
+ * Lays the cards and lines out with ELK. Only generated ids (n0, e0, …) reach
+ * ELK. The whole profile goes in as global options, plus the direction.
+ */
 export async function layout<C extends LayoutCard, L extends LayoutLine>(
   graph: { readonly cards: readonly C[]; readonly lines: readonly L[] },
   profile: LayoutProfile,
+  direction: Direction,
 ): Promise<Scene<C, L>> {
   const elkGraph: ElkNode = {
     id: "root",
@@ -58,7 +69,8 @@ export async function layout<C extends LayoutCard, L extends LayoutLine>(
   const elk = createElk();
   let result: ElkNode;
   try {
-    result = await elk.layout(elkGraph, { layoutOptions: { ...profile.options } });
+    const layoutOptions = { ...profile.options, "elk.direction": ELK_DIRECTION.get(direction)! };
+    result = await elk.layout(elkGraph, { layoutOptions });
   } catch (error) {
     throw layoutFailed([{ path: "$", message: `the layout engine failed: ${(error as Error)?.message ?? error}` }]);
   }

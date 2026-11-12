@@ -39,7 +39,7 @@ export async function render<F extends Format = "svg">(
     const line = buildLine(edge, diagram.nodes[source]!.label, diagram.nodes[target]!.label);
     return { ...line, source, target, path: `edges[${i}]` };
   });
-  const scene = await layout({ cards, lines }, FLOW_PROFILE);
+  const scene = await layout({ cards, lines }, FLOW_PROFILE, diagram.direction);
   const outputs: Outputs = { svg: paint(scene, theme) };
 
   const result: Partial<Outputs> = {};
