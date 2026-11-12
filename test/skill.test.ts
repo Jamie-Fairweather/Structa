@@ -1,6 +1,7 @@
 import { appendFileSync, cpSync, existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { brotliDecompressSync } from "node:zlib";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { readTtf, type TtfFont } from "../scripts/lib/ttf";
 import { render } from "../src/index";
@@ -333,7 +334,51 @@ describe("input encodings", () => {
   });
 });
 
+describe("resvg inside structa.mjs", () => {
+  const resvgPackage = fileURLToPath(new URL("../node_modules/@resvg/resvg-wasm/", import.meta.url));
+  const module = () => readFileSync(join(skill.dir, "structa.mjs"), "utf8");
+
+  it("carries the package's own wasm, unmodified, brotli-compressed and base64-encoded", () => {
+    // The one long base64 string literal; the fonts are data: URLs.
+    const embedded = [...module().matchAll(/"([A-Za-z0-9+/]{100000,}={0,2})"/g)].map(([, base64]) => base64!);
+
+    expect(embedded).toHaveLength(1);
+    const wasm = brotliDecompressSync(Buffer.from(embedded[0]!, "base64"));
+    expect(wasm.equals(readFileSync(join(resvgPackage, "index_bg.wasm")))).toBe(true);
+  });
+
+  it("bundles the JavaScript glue unminified, straight after a legal comment naming its package, version, licence and source", () => {
+    const { version } = JSON.parse(readFileSync(join(resvgPackage, "package.json"), "utf8")) as { version: string };
+    const text = module();
+    const legal = `/*! @resvg/resvg-wasm ${version} | MPL-2.0 | https://github.com/thx/resvg-js/tree/v${version} */`;
+
+    expect(version).toBe("2.6.2");
+    expect(text.split(legal)).toHaveLength(2);
+    // The glue's own first lines follow, as the package wrote them.
+    const glue = text.slice(text.indexOf(legal) + legal.length).trimStart();
+    expect(glue.startsWith("var wasm;\nvar heap = new Array(128).fill(void 0);\nheap.push(void 0, null, true, false);\n")).toBe(true);
+  });
+});
+
 describe("import { render } from structa.mjs", () => {
+  it("draws the same PNG as render() in this process", async () => {
+    const { png } = await render(flowJson, { formats: ["png"] });
+    const url = pathToFileURL(join(skill.dir, "structa.mjs")).href;
+    const script = [
+      `import { render } from ${JSON.stringify(url)};`,
+      'let json = "";',
+      "for await (const chunk of process.stdin) json += chunk;",
+      'const { png } = await render(json, { formats: ["png"] });',
+      'process.stdout.write(Buffer.from(png).toString("base64"));',
+    ].join("\n");
+
+    const result = skill.node(["--input-type=module", "-e", script], { stdin: flowJson });
+
+    expect(result.stderr).toBe("");
+    expect(result.status).toBe(0);
+    expect(Buffer.from(result.stdout, "base64").equals(Buffer.from(png))).toBe(true);
+  });
+
   it("gives the same SVG as render() in this process, and importing doesn't start the command line", async () => {
     const { svg } = await render(flowJson);
     const url = pathToFileURL(join(skill.dir, "structa.mjs")).href;

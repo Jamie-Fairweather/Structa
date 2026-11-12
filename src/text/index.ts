@@ -41,6 +41,12 @@ export function fontDataUrl(face: FaceId): string {
   return url;
 }
 
+/** The face's font file itself, the bytes inside fontDataUrl(), for the rasteriser. */
+export function fontFile(face: FaceId): Uint8Array {
+  const url = fontDataUrl(face);
+  return Buffer.from(url.slice(url.indexOf(",") + 1), "base64");
+}
+
 /** A text field may use only characters every face it is drawn in has in its width table. */
 function drawnByAll(codePoint: number, faces: readonly FaceId[]): boolean {
   return faces.every((face) => table(face).widths.has(codePoint));
