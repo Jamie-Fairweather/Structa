@@ -1,8 +1,9 @@
-import { readFile, rename, rm, writeFile } from "node:fs/promises";
+import { constants, type Stats } from "node:fs";
+import { access, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
 import { basename, extname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { DIAGRAM_TYPES, jsonSchema } from "./input";
-import { SCALES, type Scale } from "./raster";
+import { DEFAULT_SCALE, SCALES, type Scale } from "./raster";
 import { render, type Format } from "./render";
 import { THEME_NAMES, type ThemeName } from "./theme";
 
@@ -57,7 +58,7 @@ Diagram types: ${DIAGRAM_TYPES.join(", ")}
 Options:
   -o <file>           write a .svg or .png file, not stdout; repeat for more
   --theme ${THEME_NAMES.join("|")}  draw in this theme; wins over the JSON's "theme"
-  --scale ${SCALE_RANGE}         PNG pixels per SVG pixel (default 2)
+  --scale ${SCALE_RANGE}         PNG pixels per SVG pixel (default ${DEFAULT_SCALE})
   --no-embed-fonts    leave the fonts out of the SVG, for a smaller file
   -h, --help          print this help
 
@@ -147,11 +148,19 @@ async function renderDiagram(command: Extract<Command, { kind: "render" }>): Pro
 }
 
 /**
- * Writes every file, or none: each goes to a temporary file beside it first,
- * and only once all of those are written do they take their real names. A
- * file already there stays as it was when any write fails.
+ * Writes every file, in three steps. First each is checked: a folder, or a
+ * file that can't be replaced (a read-only one, say), stops the run before
+ * anything is written. Then each goes to a temporary file beside it, and only
+ * once all of those are written do they take their real names, so a missing
+ * folder or a full disk also leaves every file as it was. Only a rename that
+ * fails partway, which the checks make rare (another program locking the
+ * file, say), leaves the files renamed before it already replaced.
  */
 async function writeAll(files: readonly { file: string; data: string | Uint8Array }[]): Promise<number> {
+  for (const { file } of files) {
+    const problem = await cannotReplace(file);
+    if (problem !== undefined) return fail(`can't write ${file}: ${problem}`);
+  }
   const temporary = (file: string) => `${file}.${process.pid}.tmp`;
   // The temporary files that may exist, removed on the way out.
   const pending = new Set<string>();
@@ -161,15 +170,14 @@ async function writeAll(files: readonly { file: string; data: string | Uint8Arra
       try {
         await writeFile(temporary(file), data);
       } catch (error) {
-        // Name the file that was asked for, not the temporary one.
-        return fail(`can't write ${file}: ${(error as Error).message.replaceAll(temporary(file), file)}`);
+        return fail(`can't write ${file}: ${reason(error)}`);
       }
     }
     for (const { file } of files) {
       try {
         await rename(temporary(file), file);
       } catch (error) {
-        return fail(`can't write ${file}: ${(error as Error).message}`);
+        return fail(`can't write ${file}: ${reason(error)}`);
       }
       pending.delete(temporary(file));
     }
@@ -177,6 +185,35 @@ async function writeAll(files: readonly { file: string; data: string | Uint8Arra
   } finally {
     await Promise.all([...pending].map((file) => rm(file, { force: true })));
   }
+}
+
+/** Why `file` can't be replaced, or undefined when it can or isn't there yet. */
+async function cannotReplace(file: string): Promise<string | undefined> {
+  let stats: Stats;
+  try {
+    stats = await stat(file);
+  } catch (error) {
+    // Nothing there yet. A missing folder shows up when the temporary file is written.
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return undefined;
+    return reason(error);
+  }
+  if (stats.isDirectory()) return "it is a folder";
+  if (!stats.isFile()) return "it isn't a regular file";
+  try {
+    await access(file, constants.W_OK);
+  } catch (error) {
+    return reason(error);
+  }
+  return undefined;
+}
+
+/**
+ * A file error's reason, such as "EPERM: operation not permitted", without
+ * the paths Node adds after it: they would show the temporary file's name.
+ */
+function reason(error: unknown): string {
+  const { message, syscall } = error as NodeJS.ErrnoException;
+  return syscall === undefined ? message : message.split(`, ${syscall}`)[0]!;
 }
 
 /**
@@ -249,10 +286,13 @@ function readOutput(file: string, before: readonly Output[]): Output | string {
     if (EXTENSIONS.has(bare)) return `-o ${JSON.stringify(file)}: give it a name before ${bare}`;
     return `-o ${JSON.stringify(file)}: the output file must end in ${[...EXTENSIONS.keys()].join(" or ")}`;
   }
-  const same = before.find((output) => resolve(output.file) === resolve(file));
-  if (same?.file === file) return `give each -o its own file (${JSON.stringify(file)} is given twice)`;
-  if (same) return `give each -o its own file (${JSON.stringify(same.file)} and ${JSON.stringify(file)} are the same file)`;
-  return { file, format };
+  // Compared in any letter case everywhere, so a run that works on Linux also works on Windows and macOS.
+  const same = before.find((output) => resolve(output.file).toLowerCase() === resolve(file).toLowerCase());
+  if (same === undefined) return { file, format };
+  const pair = `${JSON.stringify(same.file)} and ${JSON.stringify(file)}`;
+  if (same.file === file) return `give each -o its own file (${JSON.stringify(file)} is given twice)`;
+  if (resolve(same.file) === resolve(file)) return `give each -o its own file (${pair} are the same file)`;
+  return `give each -o its own file (${pair} are the same file on Windows and macOS)`;
 }
 
 async function readStdin(): Promise<Buffer> {

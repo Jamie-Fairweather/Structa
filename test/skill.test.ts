@@ -1,4 +1,4 @@
-import { appendFileSync, cpSync, existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { appendFileSync, chmodSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { brotliDecompressSync } from "node:zlib";
@@ -484,10 +484,41 @@ describe("exit code 1: bad input or a failed render", () => {
 
     expect(result.status).toBe(1);
     expect(result.stdout).toBe("");
-    expect(result.stderr).toMatch(/^can't write no-such-folder[\\/]lost\.png: ENOENT: .+\n$/);
+    expect(result.stderr).toMatch(/^can't write no-such-folder[\\/]lost\.png: ENOENT: no such file or directory\n$/);
     expect(result.stderr).not.toMatch(/\.tmp/);
     expect(readFileSync(join(skill.elsewhere, "kept.svg"), "utf8")).toBe("the old picture");
     expect(readdirSync(skill.elsewhere).filter((name) => /kept|fresh|lost/.test(name))).toEqual(["kept.svg"]);
+  });
+
+  it("writes nothing when an -o names a folder, and leaves files already there as they were", () => {
+    writeFileSync(join(skill.elsewhere, "older.svg"), "the old picture");
+    mkdirSync(join(skill.elsewhere, "shelf.png"));
+
+    const result = skill.run([flowPath, "-o", "older.svg", "-o", "shelf.png"]);
+
+    expect(result).toEqual({ status: 1, stdout: "", stderr: "can't write shelf.png: it is a folder\n" });
+    expect(readFileSync(join(skill.elsewhere, "older.svg"), "utf8")).toBe("the old picture");
+    expect(readdirSync(skill.elsewhere).filter((name) => /older|shelf/.test(name)).sort()).toEqual(["older.svg", "shelf.png"]);
+    expect(readdirSync(join(skill.elsewhere, "shelf.png"))).toEqual([]);
+  });
+
+  // Root can write any file, so the check has nothing to catch.
+  it.skipIf(process.getuid?.() === 0)("writes nothing when an -o names a read-only file, and names only that file", () => {
+    const locked = join(skill.elsewhere, "locked.png");
+    writeFileSync(locked, "the old picture");
+    chmodSync(locked, 0o444);
+    try {
+      const result = skill.run([flowPath, "-o", "unlocked.svg", "-o", "locked.png"]);
+
+      expect(result.status).toBe(1);
+      expect(result.stdout).toBe("");
+      // EPERM on Windows, EACCES elsewhere; no paths after it.
+      expect(result.stderr).toMatch(/^can't write locked\.png: E(PERM|ACCES): [^,\n]+\n$/);
+      expect(readFileSync(locked, "utf8")).toBe("the old picture");
+      expect(readdirSync(skill.elsewhere).filter((name) => /locked/.test(name))).toEqual(["locked.png"]);
+    } finally {
+      chmodSync(locked, 0o644);
+    }
   });
 
   it("reports a JSON syntax error at $ with its line and column", () => {
@@ -702,6 +733,16 @@ describe("exit code 2: bad usage", () => {
     ["-o with no file", ["IN", "-o"], "-o needs a file name"],
     ["the same -o twice", ["IN", "-o", "a.png", "-o", "b.svg", "-o", "a.png"], 'give each -o its own file ("a.png" is given twice)'],
     ["two spellings of one -o", ["IN", "-o", "a.svg", "-o", "./a.svg"], 'give each -o its own file ("a.svg" and "./a.svg" are the same file)'],
+    [
+      "two -o that differ only in letter case",
+      ["IN", "-o", "a.png", "-o", "A.PNG"],
+      'give each -o its own file ("a.png" and "A.PNG" are the same file on Windows and macOS)',
+    ],
+    [
+      "two spellings of one -o in different letter case",
+      ["IN", "-o", "./a.svg", "-o", "A.svg"],
+      'give each -o its own file ("./a.svg" and "A.svg" are the same file on Windows and macOS)',
+    ],
     ["a .txt output", ["IN", "-o", "chart.txt"], '-o "chart.txt": the output file must end in .svg or .png'],
     ["a .jpg output", ["IN", "-o", "chart.jpg"], '-o "chart.jpg": the output file must end in .svg or .png'],
     ["an output with no extension", ["IN", "-o", "chart"], '-o "chart": the output file must end in .svg or .png'],
