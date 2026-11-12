@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { render, schema, StructaError, type Problem } from "../src/index";
+import { render, StructaError, type Problem } from "../src/index";
+// The schema isn't public library API. Until `structa schema` (#6) can be run
+// from the built folder, these tests read it from the input module directly.
+import { jsonSchema as schema } from "../src/input";
 
 // The schema is a plain JSON value; these tests walk it loosely.
 type Node = { [key: string]: any };
