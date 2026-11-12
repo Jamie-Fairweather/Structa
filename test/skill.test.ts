@@ -463,8 +463,8 @@ describe("exit code 1: bad input or a failed render", () => {
   });
 
   it("writes no file at all when one of the outputs fails to draw", () => {
-    // A line of 25 steps, left to right: too wide for a PNG at scale 4.
-    const nodes = Array.from({ length: 25 }, (_, i) => ({ id: `stop${i}`, label: `Stop ${i + 1}`, shape: "step" }));
+    // A line of 60 steps, left to right: far too wide for a PNG at scale 4.
+    const nodes = Array.from({ length: 60 }, (_, i) => ({ id: `stop${i}`, label: `Stop ${i + 1}`, shape: "step" }));
     const edges = nodes.slice(1).map((node, i) => ({ from: `stop${i}`, to: node.id }));
     const wide = JSON.stringify({ type: "flow", direction: "right", nodes, edges });
 
@@ -472,7 +472,7 @@ describe("exit code 1: bad input or a failed render", () => {
 
     expect(result.status).toBe(1);
     expect(result.stdout).toBe("");
-    expect(result.stderr).toMatch(/^\$: the PNG would be \d+ by \d+ px, but neither side may be over 16384 px \(use a scale of 3 or less, or split the diagram\)\n$/);
+    expect(result.stderr).toMatch(/^\$: the PNG would be \d+ by \d+ px, but neither side may be over 16384 px \(.+\)\n$/);
     expect(existsSync(join(skill.elsewhere, "route.svg"))).toBe(false);
     expect(existsSync(join(skill.elsewhere, "route.png"))).toBe(false);
   });

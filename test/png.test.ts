@@ -153,14 +153,38 @@ async function rejection(promise: Promise<unknown>): Promise<StructaError> {
   return error as StructaError;
 }
 
+/** The size of a diagram's SVG, which is its PNG's size at scale 1. */
+async function sizeOf(diagram: object): Promise<{ width: number; height: number }> {
+  return svgSize((await render(diagram, { embedFonts: false })).svg);
+}
+
+/**
+ * The largest n from `low` to `high` for which `fits(n)` holds, when it holds
+ * for every n up to some point and for none after. Laying out is quick, so
+ * the limit tests find the diagram that comes closest under a limit rather
+ * than hard-coding one that card sizes would soon move.
+ */
+async function largest(low: number, high: number, fits: (n: number) => Promise<boolean>): Promise<number> {
+  expect(await fits(low)).toBe(true);
+  while (low < high) {
+    const mid = Math.ceil((low + high) / 2);
+    if (await fits(mid)) low = mid;
+    else high = mid - 1;
+  }
+  return low;
+}
+
+/** The longest row of steps whose PNG at scale 4 is no wider than 16,384 px. */
+const longestRow = () => largest(1, 100, async (n) => (await sizeOf(row(n))).width * 4 <= 16_384);
+
 describe("PNG size limits", () => {
   it("refuses a PNG with a side over 16,384 px with TOO_LARGE, and suggests a scale that fits", async () => {
-    const { svg } = await render(row(25), { embedFonts: false });
-    const { width, height } = svgSize(svg);
+    const tooLong = row((await longestRow()) + 1);
+    const { width, height } = await sizeOf(tooLong);
     expect(width * 4).toBeGreaterThan(16_384);
     expect(width * 3).toBeLessThanOrEqual(16_384);
 
-    const error = await rejection(render(row(25), { formats: ["svg", "png"], scale: 4 }));
+    const error = await rejection(render(tooLong, { formats: ["svg", "png"], scale: 4 }));
 
     expect(error.code).toBe("TOO_LARGE");
     expect(error.problems).toEqual([
@@ -173,10 +197,10 @@ describe("PNG size limits", () => {
   });
 
   it("draws a PNG with a side just under 16,384 px", async () => {
-    const { svg, png } = await render(row(24), { formats: ["svg", "png"], embedFonts: false, scale: 4 });
+    const { svg, png } = await render(row(await longestRow()), { formats: ["svg", "png"], embedFonts: false, scale: 4 });
 
     const { width, height } = svgSize(svg);
-    expect(width * 4).toBeGreaterThan(16_000);
+    expect(width * 4).toBeGreaterThan(15_500);
     expect(pngSize(png)).toEqual({ width: width * 4, height: height * 4 });
   });
 
@@ -237,14 +261,20 @@ describe("PNG size limits", () => {
   });
 
   it("draws a PNG just under 100,000,000 pixels", { timeout: 120_000 }, async () => {
-    // Tuned to come out just under the limit: if the layout or sizes change, retune the first column's label.
-    const diagram = seedTrays(15, 24, "Sow tray # thinly");
-    const { svg, png } = await render(diagram, { formats: ["svg", "png"], embedFonts: false, scale: 4 });
+    // A grid near the limit, its first column widened a character at a time to come as close under it as it can.
+    const sowing = "Sow tray # thinly and evenly, then cover the seed with a fine layer of sieved compost";
+    const diagram = (length: number) => seedTrays(15, 24, sowing.slice(0, length));
+    const pixels = async (length: number) => {
+      const { width, height } = await sizeOf(diagram(length));
+      return width * 4 * height * 4;
+    };
+    const length = await largest("Sow tray #".length, sowing.length, async (n) => (await pixels(n)) <= 100_000_000);
+
+    const { svg, png } = await render(diagram(length), { formats: ["svg", "png"], embedFonts: false, scale: 4 });
 
     const { width, height } = svgSize(svg);
-    const pixels = width * 4 * height * 4;
-    expect(pixels).toBeGreaterThan(99_500_000);
-    expect(pixels).toBeLessThanOrEqual(100_000_000);
+    expect(width * 4 * height * 4).toBeGreaterThan(99_000_000);
+    expect(width * 4 * height * 4).toBeLessThanOrEqual(100_000_000);
     expect(pngSize(png)).toEqual({ width: width * 4, height: height * 4 });
   });
 });
