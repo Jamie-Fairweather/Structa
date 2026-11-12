@@ -1,16 +1,18 @@
 /**
- * Builds the skill folder: our code bundled into one ES module, elkjs's own
- * file copied beside it untouched, a one-line package.json that makes the
- * folder CommonJS so elkjs's UMD file loads even inside an ESM project, the
- * examples folder, and the JSON Schema the module prints.
+ * Builds the skill folder: our code bundled into one ES module, with resvg's
+ * glue and wasm inside it, elkjs's own file copied beside it untouched, a
+ * one-line package.json that makes the folder CommonJS so elkjs's UMD file
+ * loads even inside an ESM project, the examples folder, and the JSON Schema
+ * the module prints.
  */
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { copyFileSync, cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import { dirname, join } from "node:path";
+import { dirname, join, sep } from "node:path";
 import { fileURLToPath } from "node:url";
-import { build } from "esbuild";
+import { brotliCompressSync, constants as zlib } from "node:zlib";
+import { build, type Plugin } from "esbuild";
 import { FACES } from "../../src/text/faces";
 import { LAYOUT_TABLES } from "./subset";
 import { readTtf, type TtfFont } from "./ttf";
@@ -43,6 +45,7 @@ export async function buildSkill(outDir: string, project: string = repository): 
   rmSync(outDir, { recursive: true, force: true });
   mkdirSync(outDir, { recursive: true });
 
+  const resvg = readResvg(project);
   await build({
     absWorkingDir: project,
     entryPoints: ["src/structa.ts"],
@@ -54,10 +57,18 @@ export async function buildSkill(outDir: string, project: string = repository): 
     // Our code only imports elkjs types. Keep it external anyway, so a stray
     // value import can't pull ELK into the bundle (the checks would catch it).
     external: ["elkjs", "elkjs/*"],
-    // The paths to the elkjs file and the examples folder next to structa.mjs,
-    // and no source-only fallbacks.
-    define: { STRUCTA_ELK_FILE: JSON.stringify(`./${ELK_FILE}`), STRUCTA_EXAMPLES_DIR: JSON.stringify(`./${EXAMPLES_DIR}/`) },
+    define: {
+      // The paths to the elkjs file and the examples folder next to
+      // structa.mjs, and no source-only fallbacks.
+      STRUCTA_ELK_FILE: JSON.stringify(`./${ELK_FILE}`),
+      STRUCTA_EXAMPLES_DIR: JSON.stringify(`./${EXAMPLES_DIR}/`),
+      // resvg's wasm, carried inside structa.mjs.
+      STRUCTA_RESVG_WASM: JSON.stringify(resvg.wasm),
+    },
     dropLabels: ["source"],
+    // Keep legal comments where they are, so resvg's sits right before its glue.
+    legalComments: "inline",
+    plugins: [legalComment(resvg.glue, resvg.legalComment)],
     logLevel: "warning",
   });
   const elkPackage = dirname(createRequire(join(project, "package.json")).resolve("elkjs/package.json"));
@@ -78,6 +89,40 @@ export async function buildSkill(outDir: string, project: string = repository): 
   }
   if (schema.status !== 0) throw new Error(`node ${MODULE_FILE} schema failed: ${schema.stderr}`);
   writeFileSync(join(outDir, SCHEMA_FILE), schema.stdout);
+}
+
+/**
+ * The pinned @resvg/resvg-wasm in `project`: its folder, its unmodified wasm
+ * brotli-compressed and base64-encoded for embedding, and the legal comment
+ * that goes before its JavaScript glue.
+ */
+function readResvg(project: string): { glue: string; wasm: string; legalComment: string } {
+  // The package exports only its entry point and its wasm, so find its folder from the wasm.
+  const wasmFile = createRequire(join(project, "package.json")).resolve("@resvg/resvg-wasm/index_bg.wasm");
+  const glue = dirname(wasmFile);
+  const { version } = JSON.parse(readFileSync(join(glue, "package.json"), "utf8")) as Manifest;
+  const compressed = brotliCompressSync(readFileSync(wasmFile), { params: { [zlib.BROTLI_PARAM_QUALITY]: 9 } });
+  return {
+    glue,
+    wasm: compressed.toString("base64"),
+    legalComment: `/*! @resvg/resvg-wasm ${version} | MPL-2.0 | https://github.com/thx/resvg-js/tree/v${version} */`,
+  };
+}
+
+/**
+ * Puts `comment` at the top of each file esbuild bundles from the folder
+ * `dir`. With legalComments "inline", it then sits right before that code.
+ */
+function legalComment(dir: string, comment: string): Plugin {
+  return {
+    name: "legal-comment",
+    setup(build) {
+      build.onLoad({ filter: /\.m?js$/ }, (args) => {
+        if (!args.path.startsWith(dir + sep)) return undefined;
+        return { contents: `${comment}\n${readFileSync(args.path, "utf8")}`, loader: "js" };
+      });
+    },
+  };
 }
 
 /** Text that only ELK's compiled code contains: its Java package names and GWT's runtime markers. */

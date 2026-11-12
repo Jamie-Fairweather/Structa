@@ -33,18 +33,34 @@ describe("render()", () => {
     expect(Object.keys(await render(tidyShed, { formats: ["svg"] }))).toEqual(["svg"]);
   });
 
+  it("returns the svg and png keys, in that order, when both are asked for in either order", async () => {
+    expect(Object.keys(await render(tidyShed, { formats: ["png", "svg"] }))).toEqual(["svg", "png"]);
+  });
+
   it.each([
-    [{ formats: ["png"] }, "options.formats[0]", 'format "png" is not supported yet'],
-    [{ formats: ["svg", "pdf"] }, "options.formats[1]", 'format "pdf" is not supported yet'],
+    [{ formats: ["svg", "pdf"] }, "options.formats[1]", '"pdf" is not a valid format'],
+    [{ formats: ["PNG"] }, "options.formats[0]", '"PNG" is not a valid format'],
     [{ formats: [] }, "options.formats", "must list at least one format"],
     [{ formats: "svg" }, "options.formats", "must be a list of formats"],
   ])("rejects %j with INVALID_OPTIONS", async (options, path, message) => {
     const error = await rejection(render(tidyShed, options as never));
 
     expect(error.code).toBe("INVALID_OPTIONS");
-    expect(error.problems).toEqual([{ path, message, hint: 'use ["svg"]' }]);
-    expect(error.message).toBe(`${path}: ${message} (use ["svg"])`);
+    expect(error.problems).toEqual([{ path, message, hint: 'use "svg", "png" or both' }]);
+    expect(error.message).toBe(`${path}: ${message} (use "svg", "png" or both)`);
   });
+
+  it.each([[0], [5], [2.5], [-1], ["2"], [null], [true], [Number.NaN]])(
+    "rejects scale: %j with INVALID_OPTIONS, whatever the formats",
+    async (scale) => {
+      for (const formats of [["png"], ["svg"]] as const) {
+        const error = await rejection(render(tidyShed, { formats, scale } as never));
+
+        expect(error.code).toBe("INVALID_OPTIONS");
+        expect(error.problems).toEqual([{ path: "options.scale", message: "must be a whole number from 1 to 4", hint: "leave it out for 2" }]);
+      }
+    },
+  );
 
   it.each([
     ["sepia", '"sepia" is not a valid theme'],
@@ -69,13 +85,14 @@ describe("render()", () => {
   });
 
   it("reports every problem with the options at once", async () => {
-    const error = await rejection(render(tidyShed, { formats: ["pdf", "svg", "png"], theme: "sepia" } as never));
+    const error = await rejection(render(tidyShed, { formats: ["pdf", "svg", "gif"], theme: "sepia", scale: 8 } as never));
 
     expect(error.code).toBe("INVALID_OPTIONS");
     expect(error.problems).toEqual([
-      { path: "options.formats[0]", message: 'format "pdf" is not supported yet', hint: 'use ["svg"]' },
-      { path: "options.formats[2]", message: 'format "png" is not supported yet', hint: 'use ["svg"]' },
+      { path: "options.formats[0]", message: '"pdf" is not a valid format', hint: 'use "svg", "png" or both' },
+      { path: "options.formats[2]", message: '"gif" is not a valid format', hint: 'use "svg", "png" or both' },
       { path: "options.theme", message: '"sepia" is not a valid theme', hint: 'use "light" or "dark"' },
+      { path: "options.scale", message: "must be a whole number from 1 to 4", hint: "leave it out for 2" },
     ]);
   });
 

@@ -15,7 +15,8 @@
 - Every file in `examples/` is a snapshot fixture, in light and dark, and the folder ships in the skill folder. `examples/<type>.json` is what `structa example <type>` prints, so every diagram type needs one. After an output change you intend, run `bun run test -u` and look at each changed `.svg` (and `structa.schema.json`) under `test/__snapshots__/` before committing.
 - `bun run gallery` builds the skill folder, then writes `dist/gallery/index.html`: every example drawn by the built `structa.mjs`, light and dark side by side. Open that file in a browser (the script prints its `file://` link) to check the look by eye, such as after a snapshot change.
 - JSON fields, their limits and the font faces each text field is drawn in live in `src/input/definitions.ts`. The validator and the JSON Schema are both generated from it.
-- `src/` has one folder per module in the spec (`input`, `text`, `shapes`, `layout`, `theme`, `painter`) plus `render.ts`, the command line in `cli.ts`, and `structa.ts`, the built file's entry point. Grow these modules rather than adding parallel ones.
+- `src/` has one folder per module in the spec (`input`, `text`, `shapes`, `layout`, `theme`, `painter`, `raster`) plus `render.ts`, the command line in `cli.ts`, and `structa.ts`, the built file's entry point. Grow these modules rather than adding parallel ones.
+- `src/raster` draws PNGs with `@resvg/resvg-wasm`, the only module that loads its wasm. The build embeds that wasm in `structa.mjs`, brotli-compressed, and bundles resvg's glue after its legal comment. Upgrading resvg-wasm is a deliberate change: re-check the PNG tests and the skill-folder tests that name its version.
 
 ## Agent skills
 
