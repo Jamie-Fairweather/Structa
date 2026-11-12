@@ -52,7 +52,7 @@ function defSchema(def: Def): JsonSchema {
       return { type: "array", maxItems: def.maxItems, items: defSchema(def.items) };
     case "text":
       // The length limit lives under $defs; the characters allowed depend on the faces this field is drawn in.
-      return { $ref: `#/$defs/${def.text.name}`, pattern: drawablePattern(def.faces) };
+      return { $ref: `#/$defs/${def.text.name}`, type: "string", pattern: drawablePattern(def.faces) };
     case "id":
     case "ref":
       return { $ref: "#/$defs/id" };
