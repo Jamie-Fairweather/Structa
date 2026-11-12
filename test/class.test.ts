@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import type { Element } from "@xmldom/xmldom";
 import { describe, expect, it } from "vitest";
 import { render, StructaError, type Problem } from "../src/index";
@@ -8,8 +9,10 @@ import {
   cardBox,
   cardById,
   cards,
+  depthInPill,
   distanceToOutline,
   lines,
+  overlaps,
   parsePath,
   rectBox,
   svgDoc,
@@ -122,6 +125,70 @@ describe("class lines", () => {
       ]);
     },
   );
+});
+
+describe("class layout", () => {
+  /** A greenhouse linked to three classes, listed in the given order. */
+  function greenhouse(order: readonly string[], direction?: string) {
+    return {
+      type: "class",
+      ...(direction ? { direction } : {}),
+      nodes: [{ id: "house", label: "Greenhouse" }, ...order.map((id) => ({ id, label: id[0]!.toUpperCase() + id.slice(1) }))],
+      edges: order.map((id) => ({ from: "house", to: id, kind: "association" })),
+    };
+  }
+
+  it.each([[["bench", "heater", "vent"]], [["vent", "heater", "bench"]], [["heater", "vent", "bench"]]])(
+    "places side-by-side class cards in the order the nodes are listed: %j",
+    async (order) => {
+      const doc = await svgDoc(greenhouse(order));
+
+      const [a, b, c] = order.map((id) => cardBox(cardById(doc, id)));
+      expect(b!.x).toBeGreaterThan(a!.x);
+      expect(c!.x).toBeGreaterThan(b!.x);
+    },
+  );
+
+  it.each(["down", "right"])("keeps cards and badges apart, and ends every line on a card, direction %s", async (direction) => {
+    const example = JSON.parse(readFileSync(new URL("../examples/class-status.json", import.meta.url), "utf8")) as {
+      edges: { from: string; to: string }[];
+    };
+    const doc = await svgDoc({ ...example, direction });
+
+    const extents = cards(doc).map((card) => {
+      const parts = [cardBox(card), badgeBox(card)].filter((box) => box !== undefined);
+      const x = Math.min(...parts.map((b) => b.x));
+      const y = Math.min(...parts.map((b) => b.y));
+      const width = Math.max(...parts.map((b) => b.x + b.width)) - x;
+      const height = Math.max(...parts.map((b) => b.y + b.height)) - y;
+      return { id: card.getAttribute("data-id"), box: { x, y, width, height } };
+    });
+    for (const a of extents) {
+      for (const b of extents) if (a !== b) expect(overlaps(a.box, b.box), `${a.id} and ${b.id}`).toBe(false);
+    }
+    // A plain line has no arrowhead: both its ends meet what's drawn of a card, its outline or the badge on it.
+    const onCard = (p: { x: number; y: number }, id: string) => {
+      const card = cardById(doc, id);
+      const badge = badgeBox(card);
+      const onOutline = distanceToOutline(p, cardBox(card));
+      return badge ? Math.min(onOutline, Math.abs(depthInPill(p, badge))) : onOutline;
+    };
+    lines(doc).forEach((line, i) => {
+      const points = parsePath(line.getElementsByTagName("path")[0]!.getAttribute("d")!).flatMap((c) => c.points);
+      expect(onCard(points[0]!, example.edges[i]!.from), `edges[${i}] start`).toBeLessThanOrEqual(1);
+      expect(onCard(points.at(-1)!, example.edges[i]!.to), `edges[${i}] end`).toBeLessThanOrEqual(1);
+    });
+  });
+
+  it("runs top to bottom by default, and left to right with direction right", async () => {
+    const down = await svgDoc(greenhouse(["bench"]));
+    const right = await svgDoc(greenhouse(["bench"], "right"));
+
+    const [house, bench] = ["house", "bench"].map((id) => cardBox(cardById(down, id)));
+    expect(bench!.y).toBeGreaterThanOrEqual(house!.y + house!.height);
+    const [houseRight, benchRight] = ["house", "bench"].map((id) => cardBox(cardById(right, id)));
+    expect(benchRight!.x).toBeGreaterThanOrEqual(houseRight!.x + houseRight!.width);
+  });
 });
 
 describe("class cards", () => {
