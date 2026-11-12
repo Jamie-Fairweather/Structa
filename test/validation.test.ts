@@ -227,6 +227,14 @@ describe("ids", () => {
     ]);
   });
 
+  it("shortens a long id in the message without cutting a character in half", async () => {
+    const id = "🌱".repeat(50);
+
+    expect(await problems(pondWith((p) => (p.edges[1]!.id = id)))).toEqual([
+      { path: "edges[1].id", message: `"${"🌱".repeat(40)}…" is not a valid id`, hint: "use only letters, digits and - _ . :" },
+    ]);
+  });
+
   it("rejects an empty id", async () => {
     expect(await problems(pondWith((p) => (p.edges[1]!.id = "")))).toEqual([
       { path: "edges[1].id", message: "must not be empty", hint: "use only letters, digits and - _ . :" },
@@ -429,6 +437,49 @@ describe("text", () => {
     ]);
   });
 
+  it("names the first five characters it can't draw and counts the rest", async () => {
+    const found = await problems(pondWith((p) => (p.nodes[1]!.label = "Lay 池 the 塘 liner 🌱 ⇑ \t 水 石 草")));
+
+    expect(found).toEqual([
+      expect.objectContaining({ path: "nodes[1].label", message: 'contains "池" (U+6C60), which Structa\'s fonts can\'t draw' }),
+      expect.objectContaining({ path: "nodes[1].label", message: 'contains "塘" (U+5858), which Structa\'s fonts can\'t draw' }),
+      expect.objectContaining({ path: "nodes[1].label", message: 'contains "🌱" (U+1F331), which Structa\'s fonts can\'t draw' }),
+      expect.objectContaining({ path: "nodes[1].label", message: 'contains "⇑" (U+21D1), which Structa\'s fonts can\'t draw' }),
+      expect.objectContaining({ path: "nodes[1].label", message: "contains a tab (U+0009)" }),
+      {
+        path: "nodes[1].label",
+        message: "contains 3 other characters Structa's fonts can't draw",
+        hint: "use Latin letters, digits and common symbols",
+      },
+    ]);
+  });
+
+  it("counts a single extra character it can't draw as one", async () => {
+    const found = await problems(pondWith((p) => (p.nodes[1]!.label = "Lay 池 the 塘 liner 🌱 ⇑ 水 石")));
+
+    expect(found.at(-1)).toEqual({
+      path: "nodes[1].label",
+      message: "contains 1 other character Structa's fonts can't draw",
+      hint: "use Latin letters, digits and common symbols",
+    });
+  });
+
+  it("keeps the report short for a huge label of characters it can't draw", async () => {
+    const label = Array.from({ length: 20_000 }, (_, i) => String.fromCodePoint(0x4e00 + i)).join("");
+
+    const found = await problems(pondWith((p) => (p.nodes[1]!.label = label)));
+
+    expect(found.map((p) => p.message)).toEqual([
+      "is 20000 characters long; the limit is 100",
+      'contains "一" (U+4E00), which Structa\'s fonts can\'t draw',
+      'contains "丁" (U+4E01), which Structa\'s fonts can\'t draw',
+      'contains "丂" (U+4E02), which Structa\'s fonts can\'t draw',
+      'contains "七" (U+4E03), which Structa\'s fonts can\'t draw',
+      'contains "丄" (U+4E04), which Structa\'s fonts can\'t draw',
+      "contains 19995 other characters Structa's fonts can't draw",
+    ]);
+  });
+
   it("allows everything the label's font can draw, beyond plain ASCII", async () => {
     const label = "Étang → filtre … 5 € ≤ 10 ⇒ “ok” Ĳ";
 
@@ -474,8 +525,9 @@ describe("JSON syntax errors", () => {
     [
       "a line break inside a string",
       lines('{ "type": "flow", "nodes": [', '  { "id": "dig", "label": "Dig the', 'hole", "shape": "step" } ] }'),
-      2, 35, "found a line feed (U+000A) inside a string", "keep each string on one line; text wraps by itself",
+      2, 35, "found a line feed (U+000A) inside a string", "use a space instead: text wraps by itself",
     ],
+    ["a tab inside a string", '{ "type": "flow", "nodes": [{ "id": "dig", "label": "Dig\tthe hole" }] }', 1, 57, "found a tab (U+0009) inside a string", "use a space instead"],
     ["a bad escape", '{ "type": "fl\\ow" }', 1, 14, '"\\o" is not a valid escape', "write a backslash as \\\\"],
     ["a number with a leading zero", '{ "version": 01 }', 1, 14, "invalid number", "write numbers like 1, 2.5 or -3"],
     ["text after the end", '{ "type": "flow", "nodes": [] } x', 1, 33, 'expected the end of the input but found "x"', "the input must be exactly one JSON object"],
@@ -529,7 +581,7 @@ describe("JSON syntax errors", () => {
 });
 
 describe("several problems", () => {
-  it("reports them all at once, in input order, each with a path and hint, one per line", async () => {
+  it("reports them all at once, in a fixed order, each with a path and hint, one per line", async () => {
     const error = await rejection({
       version: 3,
       type: "flow",

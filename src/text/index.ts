@@ -38,12 +38,12 @@ export function faceStyle(face: FaceId): FaceStyle {
  * face it is drawn in has in its width table.
  */
 export function undrawable(text: string, faces: readonly FaceId[]): string[] {
-  const found: string[] = [];
+  const found = new Set<string>();
   for (const ch of text) {
     const codePoint = ch.codePointAt(0)!;
-    if (!found.includes(ch) && faces.some((face) => !table(face).widths.has(codePoint))) found.push(ch);
+    if (!found.has(ch) && faces.some((face) => !table(face).widths.has(codePoint))) found.add(ch);
   }
-  return found;
+  return [...found];
 }
 
 /** Width of `text` in px: the sum of its advance widths, with no kerning. */

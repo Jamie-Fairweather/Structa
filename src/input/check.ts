@@ -1,5 +1,6 @@
 import type { Problem } from "../errors";
 import { undrawable } from "../text";
+import { describeChar } from "./chars";
 import { ID_PATTERN, type Def, type Field, type ObjectDef, type TextDef } from "./definitions";
 
 type Json = { readonly [key: string]: unknown };
@@ -7,11 +8,18 @@ type Json = { readonly [key: string]: unknown };
 const ID = new RegExp(ID_PATTERN);
 const ID_HINT = "use only letters, digits and - _ . :";
 const REF_HINT = "use the id of one of the nodes";
+const DRAW_HINT = "use Latin letters, digits and common symbols";
+/** Characters a field can't draw are named one by one up to this many; the rest are counted. */
+const NAMED_CHARS = 5;
 
 /**
  * Checks `input` against a definition. Returns the normalised value (defaults
- * filled in, text tidied) and every problem found, in input order. The value
- * is only complete when there are no problems.
+ * filled in, text tidied) and every problem found. The value is only complete
+ * when there are no problems.
+ *
+ * Problems come in a fixed order: list items in order, and in each object its
+ * unknown fields first (sorted by name), then its own fields in the order the
+ * definition lists them. A dangling reference sorts to where the reference is.
  */
 export function check(def: ObjectDef, input: unknown): { value: unknown; problems: Problem[] } {
   // Each problem gets a sequence number when its place in the input is visited,
@@ -116,7 +124,13 @@ export function check(def: ObjectDef, input: unknown): { value: unknown; problem
     if (length > def.text.maxLength) {
       report(path, `is ${length} characters long; the limit is ${def.text.maxLength}`, "shorten it");
     }
-    for (const ch of undrawable(value, def.faces)) report(path, ...describeUndrawable(ch));
+    // Named one by one up to a point, so a long run of unusual text stays one short list.
+    const bad = undrawable(value, def.faces);
+    for (const ch of bad.slice(0, NAMED_CHARS)) report(path, ...describeUndrawable(ch));
+    const more = bad.length - NAMED_CHARS;
+    if (more > 0) {
+      report(path, `contains ${more} other ${more === 1 ? "character" : "characters"} Structa's fonts can't draw`, DRAW_HINT);
+    }
     // Runs of spaces collapse and the ends are trimmed, as SVG would show them anyway.
     const tidy = value.replace(/ {2,}/g, " ").replace(/^ | $/g, "");
     if (tidy === "") report(path, "must not be empty", "write the text to show");
@@ -154,27 +168,24 @@ function orList(values: readonly string[]): string {
 
 /** A short, readable form of any input value for a message. */
 function show(value: unknown): string {
-  if (typeof value === "string") return JSON.stringify(value.length > 40 ? `${value.slice(0, 40)}…` : value);
+  if (typeof value === "string") return JSON.stringify(shorten(value, 40));
   if (Array.isArray(value)) return "a list";
   if (value === null || typeof value === "number" || typeof value === "boolean") return String(value);
   if (typeof value === "object") return "an object";
   return `a ${typeof value}`;
 }
 
-const CONTROL_NAMES = new Map([
-  [0x09, ["a tab", "use a space instead"]],
-  [0x0a, ["a line feed", "use a space instead: text wraps by itself"]],
-  [0x0d, ["a carriage return", "use a space instead: text wraps by itself"]],
-]);
+/** At most `max` characters of `text`, cut between code points so an emoji is never split. */
+function shorten(text: string, max: number): string {
+  // 2 * max + 2 code units always hold more than `max` whole code points when the text has them.
+  const head = Array.from(text.slice(0, 2 * max + 2));
+  return head.length > max ? `${head.slice(0, max).join("")}…` : text;
+}
 
 function describeUndrawable(ch: string): [message: string, hint: string] {
-  const codePoint = ch.codePointAt(0)!;
-  const code = `U+${codePoint.toString(16).toUpperCase().padStart(4, "0")}`;
-  if (codePoint <= 0x1f || codePoint === 0x7f) {
-    const [name, hint] = CONTROL_NAMES.get(codePoint) ?? ["a control character", "remove it"];
-    return [`contains ${name} (${code})`, hint!];
-  }
+  const { code, control, visible } = describeChar(ch);
+  if (control) return [`contains ${control.name} (${code})`, control.hint];
   // Show the character itself only when it's visible.
-  const shown = /^[\p{L}\p{N}\p{P}\p{S}]$/u.test(ch) ? `"${ch}" (${code})` : code;
-  return [`contains ${shown}, which Structa's fonts can't draw`, "use Latin letters, digits and common symbols"];
+  const shown = visible ? `"${ch}" (${code})` : code;
+  return [`contains ${shown}, which Structa's fonts can't draw`, DRAW_HINT];
 }

@@ -1,4 +1,5 @@
 import type { Problem } from "../errors";
+import { describeChar } from "./chars";
 
 /**
  * Parses JSON text. On a syntax error, returns one problem at `$` giving the
@@ -58,7 +59,8 @@ function findSyntaxError(text: string): SyntaxError | undefined {
         continue;
       }
       if (ch.charCodeAt(0) < 0x20) {
-        return fail(`found ${controlName(ch)} inside a string`, "keep each string on one line; text wraps by itself");
+        const { code, control } = describeChar(ch);
+        return fail(`found ${control!.name} (${code}) inside a string`, control!.hint);
       }
       i++;
     }
@@ -169,21 +171,9 @@ function describe(text: string, i: number): string {
   const word = WORD.exec(text)?.[0];
   if (word !== undefined) return JSON.stringify(word.length > 20 ? `${word.slice(0, 20)}…` : word);
   const whole = String.fromCodePoint(text.codePointAt(i)!);
-  return /^[\p{L}\p{N}\p{P}\p{S}]$/u.test(whole) ? JSON.stringify(whole) : codeOf(whole);
-}
-
-const CONTROL_NAMES = new Map([
-  ["\t", "a tab"],
-  ["\n", "a line feed"],
-  ["\r", "a carriage return"],
-]);
-
-function controlName(ch: string): string {
-  return `${CONTROL_NAMES.get(ch) ?? "a control character"} (${codeOf(ch)})`;
-}
-
-function codeOf(ch: string): string {
-  return `U+${ch.codePointAt(0)!.toString(16).toUpperCase().padStart(4, "0")}`;
+  const { code, control, visible } = describeChar(whole);
+  if (visible) return JSON.stringify(whole);
+  return control ? `${control.name} (${code})` : code;
 }
 
 /** 1-based line and column of `index`. A line break is LF, CRLF or a lone CR. */
