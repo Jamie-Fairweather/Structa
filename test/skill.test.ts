@@ -256,6 +256,46 @@ describe("commands win over file names", () => {
   });
 });
 
+describe("input encodings", () => {
+  const BOM = "﻿";
+  const utf16le = (text: string) => Buffer.from(text, "utf16le");
+  const utf16be = (text: string) => Buffer.from(text, "utf16le").swap16();
+  const hint = "it is UTF-16 text (save it as UTF-8; in PowerShell, use -Encoding utf8)";
+
+  it("strips a UTF-8 byte-order mark from a file", async () => {
+    const { svg } = await render(flowJson);
+    writeFileSync(join(skill.elsewhere, "with-bom.json"), BOM + flowJson);
+
+    expect(skill.run(["with-bom.json"])).toEqual({ status: 0, stdout: svg, stderr: "" });
+  });
+
+  it("strips a UTF-8 byte-order mark from standard input", async () => {
+    const { svg } = await render(flowJson);
+
+    expect(skill.run(["-"], { stdin: BOM + flowJson })).toEqual({ status: 0, stdout: svg, stderr: "" });
+  });
+
+  it.each([
+    ["UTF-16LE with a byte-order mark, as Windows PowerShell saves it", utf16le(BOM + flowJson)],
+    ["UTF-16BE with a byte-order mark", utf16be(BOM + flowJson)],
+    ["UTF-16LE without a byte-order mark", utf16le(flowJson)],
+    ["UTF-16BE without a byte-order mark", utf16be(flowJson)],
+  ])("refuses a file in %s, with a hint to save it as UTF-8, and writes nothing", (_name, bytes) => {
+    writeFileSync(join(skill.elsewhere, "wide.json"), bytes);
+
+    const result = skill.run(["wide.json", "-o", "wide.svg"]);
+
+    expect(result).toEqual({ status: 1, stdout: "", stderr: `can't read wide.json: ${hint}\n` });
+    expect(existsSync(join(skill.elsewhere, "wide.svg"))).toBe(false);
+  });
+
+  it("refuses UTF-16 on standard input the same way", () => {
+    const result = skill.run(["-"], { stdin: utf16le(BOM + flowJson) });
+
+    expect(result).toEqual({ status: 1, stdout: "", stderr: `can't read standard input: ${hint}\n` });
+  });
+});
+
 describe("import { render } from structa.mjs", () => {
   it("gives the same SVG as render() in this process, and importing doesn't start the command line", async () => {
     const { svg } = await render(flowJson);

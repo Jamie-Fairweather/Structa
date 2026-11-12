@@ -92,12 +92,15 @@ async function printExample(type: string): Promise<number> {
 }
 
 async function renderDiagram(command: Extract<Command, { kind: "render" }>): Promise<number> {
-  let json: string;
+  const name = command.input === "-" ? "standard input" : command.input;
+  let bytes: Buffer;
   try {
-    json = command.input === "-" ? await readStdin() : await readFile(command.input, "utf8");
+    bytes = command.input === "-" ? await readStdin() : await readFile(command.input);
   } catch (error) {
-    return fail(`can't read ${command.input}: ${(error as Error).message}`);
+    return fail(`can't read ${name}: ${(error as Error).message}`);
   }
+  const json = decodeUtf8(bytes);
+  if (json === undefined) return fail(`can't read ${name}: it is UTF-16 text (save it as UTF-8; in PowerShell, use -Encoding utf8)`);
   let svg: string;
   try {
     ({ svg } = await render(json, { theme: command.theme, embedFonts: command.embedFonts }));
@@ -173,10 +176,24 @@ function parseArgs(args: readonly string[]): Command | string {
   return { kind: "render", input, output, theme, embedFonts };
 }
 
-async function readStdin(): Promise<string> {
+async function readStdin(): Promise<Buffer> {
   const chunks: Buffer[] = [];
   for await (const chunk of process.stdin) chunks.push(chunk as Buffer);
-  return Buffer.concat(chunks).toString("utf8");
+  return Buffer.concat(chunks);
+}
+
+/**
+ * The input as UTF-8 text, without a leading byte-order mark, or undefined
+ * when it is UTF-16. UTF-16 starts with the byte-order mark FF FE or FE FF,
+ * or, without one, has a zero in its first two bytes: JSON starts with an
+ * ASCII character, and a zero byte is never valid JSON in UTF-8.
+ */
+function decodeUtf8(bytes: Buffer): string | undefined {
+  const [first, second] = bytes;
+  const utf16Mark = (first === 0xff && second === 0xfe) || (first === 0xfe && second === 0xff);
+  if (utf16Mark || first === 0 || second === 0) return undefined;
+  const text = bytes.toString("utf8");
+  return text.startsWith("﻿") ? text.slice(1) : text;
 }
 
 function fail(message: string): number {

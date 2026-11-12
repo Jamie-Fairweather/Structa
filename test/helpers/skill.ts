@@ -17,7 +17,8 @@ export interface RunResult {
 }
 
 export interface RunOptions {
-  readonly stdin?: string;
+  /** Text is sent as UTF-8; bytes are sent as they are. */
+  readonly stdin?: string | Uint8Array;
 }
 
 export interface BuiltSkill {
