@@ -2,6 +2,7 @@ import { cpSync, existsSync, readFileSync, rmSync, writeFileSync } from "node:fs
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { checkSkill, installedElkFile } from "../scripts/lib/skill";
 import { render } from "../src/index";
 import { buildSkillForTest, type BuiltSkill } from "./helpers/skill";
 
@@ -126,6 +127,73 @@ describe("exit code 1: bad input or a failed render", () => {
       stderr: `can't find the layout engine: expected ${join(noElk, "elk.bundled.js")} next to structa.mjs\n`,
     });
     expect(existsSync(join(skill.elsewhere, "returns.svg"))).toBe(false);
+  });
+});
+
+describe("build checks", () => {
+  const elk = readFileSync(installedElkFile(), "utf8");
+  let copies = 0;
+
+  /** A copy of the built folder with one thing broken. */
+  function tampered(change: (dir: string) => void): string {
+    const dir = join(dirname(skill.dir), `tampered-${copies++}`);
+    cpSync(skill.dir, dir, { recursive: true });
+    change(dir);
+    return dir;
+  }
+  const appendTo = (file: string, text: string) => (dir: string) =>
+    writeFileSync(join(dir, file), readFileSync(join(dir, file), "utf8") + text);
+
+  it("passes on the built folder", () => {
+    expect(checkSkill(skill.dir)).toEqual([]);
+  });
+
+  it.each<[string, (dir: string) => void, string]>([
+    ["structa.mjs is missing", (dir) => rmSync(join(dir, "structa.mjs")), "structa.mjs is missing"],
+    ["elk.bundled.js is missing", (dir) => rmSync(join(dir, "elk.bundled.js")), "elk.bundled.js is missing"],
+    ["package.json is missing", (dir) => rmSync(join(dir, "package.json")), "package.json is missing"],
+    [
+      "elk.bundled.js differs from the pinned package",
+      appendTo("elk.bundled.js", "\n"),
+      "elk.bundled.js is not byte-for-byte the same as lib/elk.bundled.js in elkjs 0.12.1",
+    ],
+    [
+      "package.json declares ESM",
+      (dir) => writeFileSync(join(dir, "package.json"), '{"type":"module"}\n'),
+      'package.json must be the one line {"type":"commonjs"}',
+    ],
+    [
+      "package.json takes more than one line",
+      (dir) => writeFileSync(join(dir, "package.json"), '{\n  "type": "commonjs"\n}\n'),
+      'package.json must be the one line {"type":"commonjs"}',
+    ],
+    [
+      "structa.mjs has an ELK class name",
+      appendTo("structa.mjs", '\nconst algorithm = "org.eclipse.elk.layered";\n'),
+      'structa.mjs contains elkjs code: "org.eclipse.elk."',
+    ],
+    ["structa.mjs has a GWT $clinit_", appendTo("structa.mjs", "\nfunction $clinit_Layer() {}\n"), 'structa.mjs contains elkjs code: "$clinit_"'],
+    ["structa.mjs has GWT's gwtOnLoad", appendTo("structa.mjs", "\nvar gwtOnLoad = 1;\n"), 'structa.mjs contains elkjs code: "gwtOnLoad"'],
+    ["structa.mjs has GWT's $wnd", appendTo("structa.mjs", "\nvar a = $wnd.Math.abs(-1);\n"), 'structa.mjs contains elkjs code: "$wnd."'],
+    [
+      "structa.mjs requires elkjs",
+      appendTo("structa.mjs", '\nconst Elk = createRequire(import.meta.url)("elkjs/lib/elk.bundled.js");\n'),
+      'structa.mjs names the elkjs package: "elkjs/lib/elk.bundled.js"',
+    ],
+    ["structa.mjs imports elkjs", appendTo("structa.mjs", "\nimport 'elkjs';\n"), "structa.mjs names the elkjs package: 'elkjs'"],
+  ])("fails when %s", (_name, change, problem) => {
+    expect(checkSkill(tampered(change))).toEqual([problem]);
+  });
+
+  it("fails when structa.mjs has a long run copied from elk.bundled.js", () => {
+    const start = elk.length / 2;
+    const copied = elk.slice(start, start + 120);
+
+    const problems = checkSkill(tampered(appendTo("structa.mjs", `\n${copied}\n`)));
+
+    expect(problems).toHaveLength(1);
+    expect(problems[0]).toMatch(/^structa\.mjs contains \d+ characters copied from elk\.bundled\.js, starting ".{1,40}"$/);
+    expect(Number(/contains (\d+)/.exec(problems[0]!)![1])).toBeGreaterThanOrEqual(120);
   });
 });
 
