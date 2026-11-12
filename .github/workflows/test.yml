@@ -37,3 +37,6 @@ jobs:
       - run: bun run typecheck
 
       - run: bun run test
+
+      # Builds the skill folder into dist/structa and runs the packaging checks.
+      - run: bun run build
