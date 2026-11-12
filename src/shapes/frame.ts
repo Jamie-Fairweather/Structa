@@ -47,7 +47,7 @@ export interface Badge extends Box {
  */
 export interface Row {
   readonly id: string;
-  readonly kind: "property" | "method";
+  readonly kind: "property" | "method" | "value";
   readonly status?: Status;
   readonly tooltip: string;
   /** The band the row's tint fills when it has a status. */

@@ -81,13 +81,14 @@ describe("node structa.mjs schema", () => {
   });
 });
 
-/** A small valid class diagram. */
+/** A small valid class diagram: two classes with members, and an enum with values. */
 function toolShed() {
   return {
     type: "class",
     nodes: [
       { id: "shed", label: "ToolShed", properties: [{ text: "floor: Area" }], methods: [{ text: "lock(key: Key): void" }] },
       { id: "rake", label: "Rake", properties: [{ text: "tines: int" }], methods: [{ text: "gather(): Leaves" }] },
+      { id: "handle", label: "HandleWood", stereotype: "enum", values: [{ text: "ASH" }, { text: "HICKORY" }] },
     ],
     edges: [{ id: "holds", from: "shed", to: "rake", kind: "association" }],
   } as Node;
@@ -119,15 +120,21 @@ describe("the JSON Schema", () => {
     edge = items("flow", "edges");
   });
 
-  /** The class card's property and method rows, as parts of the schema, in the class node at `n`. */
+  /**
+   * The class card's property and method rows, as parts of the schema, in the
+   * class node at `n`, and an enum's value rows, in the fixture's enum.
+   */
   function rowParts(n: number): Part[] {
-    return (["properties", "methods"] as const).map((section) => [
-      `a class row in ${section}`,
-      "class",
-      () => items("class", "nodes").properties[section].items,
-      (input: Node) => input.nodes[n][section][0],
-      `nodes[${n}].${section}[0].`,
-    ]);
+    return [
+      ...(["properties", "methods"] as const).map((section): Part => [
+        `a class row in ${section}`,
+        "class",
+        () => items("class", "nodes").properties[section].items,
+        (input: Node) => input.nodes[n][section][0],
+        `nodes[${n}].${section}[0].`,
+      ]),
+      ["an enum value", "class", () => items("class", "nodes").properties.values.items, (input: Node) => input.nodes[2].values[n], `nodes[2].values[${n}].`],
+    ];
   }
 
   it("offers exactly the diagram types render() accepts, each with its own nodes and edges", async () => {
@@ -209,6 +216,20 @@ describe("the JSON Schema", () => {
     ["node status", "flow", () => node, (input, value) => (input.nodes[0].status = value)],
     ["edge status", "flow", () => edge, (input, value) => (input.edges[0].status = value)],
     ["class node status", "class", () => items("class", "nodes"), (input, value) => (input.nodes[0].status = value)],
+    [
+      "class node stereotype",
+      "class",
+      () => items("class", "nodes"),
+      (input, value) => {
+        input.nodes[0].stereotype = value;
+        // An enum lists values, not properties and methods.
+        if (value === "enum") {
+          input.nodes[0].values = [{ text: "OPEN" }];
+          delete input.nodes[0].properties;
+          delete input.nodes[0].methods;
+        }
+      },
+    ],
     ["class edge kind", "class", () => items("class", "edges"), (input, value) => (input.edges[0].kind = value)],
     ...(["properties", "methods"] as const).flatMap((section) => {
       const { part, row } = classRow(section);
@@ -381,6 +402,23 @@ describe("the JSON Schema", () => {
     for (const kind of ["title", "label", "description", "lineLabel", "rowText"]) {
       expect(root.$defs[kind]).toMatchObject({ type: "string", minLength: 1, maxLength: expect.any(Number), pattern: "[^ ]" });
     }
+  });
+
+  it.each<readonly [name: string, fields: Node, accepted: boolean]>([
+    ["an enum with values", { stereotype: "enum", values: [{ text: "ASH" }] }, true],
+    ["an enum with no rows", { stereotype: "enum" }, true],
+    ["a record with members", { stereotype: "record", properties: [{ text: "length: Metres" }] }, true],
+    ["a class with values", { values: [{ text: "ASH" }] }, false],
+    ["an interface with values", { stereotype: "interface", values: [] }, false],
+    ["an enum with properties", { stereotype: "enum", properties: [] }, false],
+    ["an enum with methods and values", { stereotype: "enum", methods: [{ text: "grain(): Grain" }], values: [{ text: "ASH" }] }, false],
+    ["a stereotype that isn't one, with values", { stereotype: "struct", values: [{ text: "ASH" }] }, false],
+  ])("agrees with render() about %s: only an enum has values, and an enum has no members", async (_name, fields, accepted) => {
+    const validate = new Ajv2020({ strict: true }).compile(root);
+    const input = toolShed();
+    input.nodes[1] = { id: "rake", label: "Rake", ...fields };
+
+    expect([validate(input), (await outcome(input)) === "ok"]).toEqual([accepted, accepted]);
   });
 
   it("agrees with render() that more is a whole number from 1 to 9999", async () => {

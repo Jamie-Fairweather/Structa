@@ -20,6 +20,9 @@ export {
   CLASS_NAME_FACE,
   CLASS_SECTIONS,
   DESCRIPTION_FACE,
+  ENUM_SECTIONS,
+  MEMBER_SECTIONS,
+  type ClassSection,
   DIAGRAM_TYPES,
   LINE_LABEL_FACE,
   NOTE_LABEL_FACE,
@@ -63,15 +66,15 @@ export type Visibility = (typeof VISIBILITIES)[number];
 
 export type Stereotype = (typeof STEREOTYPES)[number];
 
-/** One member of a class. */
+/** One member of a class, or one value of an enum. */
 export interface ClassRow {
   /** The explicit id, or its section and position, like `methods[2]`. Unique within its card. */
   readonly id: string;
   readonly text: string;
   readonly visibility?: Visibility;
-  /** Drawn underlined. */
+  /** Drawn underlined. An enum's values never are. */
   readonly static: boolean;
-  /** Drawn in italics. */
+  /** Drawn in italics. An enum's values never are. */
   readonly abstract: boolean;
   /** Its own status, or, when it has none, its card's when the card is new or removed. */
   readonly status?: Status;
@@ -86,8 +89,11 @@ export interface ClassNode {
   readonly stereotype?: Stereotype;
   /** Set by the flag only; a class whose stereotype is "abstract" is abstract too. */
   readonly abstract: boolean;
+  /** A class's members. An enum has none. */
   readonly properties: readonly ClassRow[];
   readonly methods: readonly ClassRow[];
+  /** An enum's values. Only an enum has any. */
+  readonly values: readonly ClassRow[];
   /** How many members were left out on purpose. */
   readonly more?: number;
 }
@@ -152,22 +158,24 @@ export function parseDiagram(input: unknown): ParseResult {
   };
 }
 
-/** A class node as checked: rows may have no id yet. */
+/** A class node as checked: rows may have no id yet, and an enum's values have no flags. */
 type WithoutIds<N extends ClassNode> = Omit<N, (typeof CLASS_SECTIONS)[number]> & {
-  readonly [section in (typeof CLASS_SECTIONS)[number]]: readonly (Omit<ClassRow, "id"> & { id?: string })[];
+  readonly [section in (typeof CLASS_SECTIONS)[number]]: readonly (Omit<ClassRow, "id" | "static" | "abstract"> &
+    Partial<Pick<ClassRow, "id" | "static" | "abstract">>)[];
 };
 
 /**
  * Gives every row its id (its own, or its section and position) and its
- * status: a row without one in a new or removed card takes the card's.
+ * status: a row without one in a new or removed card takes the card's. An
+ * enum's values, which can't be static or abstract, are neither.
  */
 function classNode(node: WithoutIds<ClassNode>): ClassNode {
   const inherited = node.status === "new" || node.status === "removed" ? node.status : undefined;
-  const [properties, methods] = CLASS_SECTIONS.map((section) =>
+  const [properties, methods, values] = CLASS_SECTIONS.map((section) =>
     node[section].map((row, i): ClassRow => {
       const status = row.status ?? inherited;
-      return { ...row, id: row.id ?? `${section}[${i}]`, ...(status === undefined ? {} : { status }) };
+      return { static: false, abstract: false, ...row, id: row.id ?? `${section}[${i}]`, ...(status === undefined ? {} : { status }) };
     }),
   );
-  return { ...node, properties: properties!, methods: methods! };
+  return { ...node, properties: properties!, methods: methods!, values: values! };
 }

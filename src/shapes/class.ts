@@ -3,10 +3,12 @@ import {
   ABSTRACT_ROW_TEXT_FACE,
   CLASS_DESCRIPTION_FACE,
   CLASS_NAME_FACE,
-  CLASS_SECTIONS,
+  ENUM_SECTIONS,
+  MEMBER_SECTIONS,
   ROW_TEXT_FACE,
   type ClassNode,
   type ClassRow,
+  type ClassSection,
   type Visibility,
 } from "../input";
 import { baseline, measure, wrap, type FaceId } from "../text";
@@ -20,9 +22,10 @@ const SYMBOLS = new Map<Visibility, string>([
   ["package", "~"],
 ]);
 
-const ROW_KINDS = new Map<(typeof CLASS_SECTIONS)[number], Row["kind"]>([
+const ROW_KINDS = new Map<ClassSection, Row["kind"]>([
   ["properties", "property"],
   ["methods", "method"],
+  ["values", "value"],
 ]);
 
 /** Stereotype words are fixed, so they need no checking against the font. */
@@ -31,12 +34,12 @@ const STEREOTYPE_FACE: FaceId = "inter-regular";
 /**
  * A class card, one standard width: any stereotype as a muted «…» line, then
  * the name and any description, centred at the top; then a section for the
- * properties and one for the methods, each under a divider. Each section
- * keeps its place, as in UML: a class with methods but no properties has an
- * empty properties section, so its methods are still under the second
- * divider. A class without methods has no methods section, and one with no
- * rows has neither. The "… N more" line ends the last section, or has one of
- * its own.
+ * properties and one for the methods, each under a divider, or an enum's one
+ * section of values. Each section keeps its place, as in UML: a class with
+ * methods but no properties has an empty properties section, so its methods
+ * are still under the second divider. A class without methods has no methods
+ * section, and one with no rows has neither. The "… N more" line ends the
+ * last section, or has one of its own.
  */
 export function classBody(node: ClassNode, sizes: Sizes): CardBody {
   const c = sizes.classCard;
@@ -60,12 +63,14 @@ export function classBody(node: ClassNode, sizes: Sizes): CardBody {
   }
   y += c.paddingY;
 
+  // An enum has only its values; any other class only its members.
+  const drawn: readonly ClassSection[] = node.stereotype === "enum" ? ENUM_SECTIONS : MEMBER_SECTIONS;
   // Once any row has a visibility, every row's text starts after the symbol's column, so they line up.
-  const symbols = CLASS_SECTIONS.some((section) => node[section].some((row) => row.visibility !== undefined));
+  const symbols = drawn.some((section) => node[section].some((row) => row.visibility !== undefined));
   const textX = c.paddingX + (symbols ? measure("+ ", ROW_TEXT_FACE, sizes.row.fontSize) : 0);
 
   // Every section up to the last one with rows, empty ones included.
-  const sections = CLASS_SECTIONS.filter((_, i) => CLASS_SECTIONS.slice(i).some((section) => node[section].length > 0));
+  const sections = drawn.filter((_, i) => drawn.slice(i).some((section) => node[section].length > 0));
   // The "… N more" line ends the last section, or has a section of its own on a class with no rows.
   const count = Math.max(sections.length, node.more === undefined ? 0 : 1);
   const dividers: number[] = [];

@@ -114,8 +114,20 @@ export interface Field {
   /** Shown in the schema, and in the hint when a required field is missing. */
   readonly description: string;
   readonly default?: string | boolean | readonly [];
-  /** Allowed only when the object's `field` is `value`, as "about" is only for notes. */
-  readonly onlyWhen?: { readonly field: string; readonly value: string; readonly hint: string };
+  /** Allowed only when a condition holds, as "about" is only for notes. */
+  readonly onlyWhen?: Condition;
+}
+
+/**
+ * Another field of the same object, a choice, is `value`, or, with `not`,
+ * isn't. An optional deciding field left out isn't `value`. `hint` says what
+ * to do when a field is given without its condition.
+ */
+export interface Condition {
+  readonly field: string;
+  readonly value: string;
+  readonly not?: true;
+  readonly hint: string;
 }
 
 function required(name: string, def: Def, description: string): Field {
@@ -275,8 +287,20 @@ export const STEREOTYPES = ["interface", "abstract", "enum", "record"] as const;
 /** Who can use a class member, drawn before its text as + - # ~. */
 export const VISIBILITIES = ["public", "private", "protected", "package"] as const;
 
-/** The two lists of a class card's rows, in the order they're drawn. */
-export const CLASS_SECTIONS = ["properties", "methods"] as const;
+/** A class's lists of members, in the order they're drawn. */
+export const MEMBER_SECTIONS = ["properties", "methods"] as const;
+
+/** An enum's one list of rows, which it has instead of members. */
+export const ENUM_SECTIONS = ["values"] as const;
+
+/** Every list of a class card's rows. A card has either members or values. */
+export const CLASS_SECTIONS = [...MEMBER_SECTIONS, ...ENUM_SECTIONS] as const;
+
+export type ClassSection = (typeof CLASS_SECTIONS)[number];
+
+/** What a field only an enum, or only a class that isn't one, may have. */
+const ENUM: Condition = { field: "stereotype", value: "enum", hint: 'add "stereotype": "enum", or list the rows in properties and methods' };
+const NOT_ENUM: Condition = { field: "stereotype", value: "enum", not: true, hint: "list an enum's rows in values" };
 
 /** The most rows one card may have, all its sections together. */
 const ROWS_PER_CARD = 100;
@@ -284,7 +308,7 @@ const ROWS_HINT = 'split the class, or leave dull members out and count them wit
 
 /** A card's rows as checked: a section that had a problem may be missing, and a row that had one is `{}`. */
 type CheckedRows = { readonly status?: Status } & {
-  readonly [section in (typeof CLASS_SECTIONS)[number]]?: readonly { readonly status?: Status }[];
+  readonly [section in ClassSection]?: readonly { readonly status?: Status }[];
 };
 
 /** What to do about a row whose status differs from its card's. A changed card can hold rows of any status. */
@@ -328,7 +352,7 @@ const rowLimitRule: Rule = (_checked, given, path) => {
 };
 
 /** One member of a class: a property or a method, called `noun` in messages. */
-function classRow(section: (typeof CLASS_SECTIONS)[number], noun: string): ObjectDef {
+function classRow(section: (typeof MEMBER_SECTIONS)[number], noun: string): ObjectDef {
   return {
     kind: "object",
     noun,
@@ -351,13 +375,25 @@ function classRow(section: (typeof CLASS_SECTIONS)[number], noun: string): Objec
   };
 }
 
+/** One value of an enum. Enum values are never static or abstract, and have no visibility. */
+const ENUM_VALUE: ObjectDef = {
+  kind: "object",
+  noun: "value",
+  fields: [
+    required("text", { kind: "text", text: ROW_TEXT, faces: [ROW_TEXT_FACE] }, "the value as you'd write it, such as a constant's name"),
+    optional("id", { kind: "id", of: "row" }, "an id unique within the card; without one the row is known as values[N]"),
+    optional("status", STATUS, "what the change does to this row; leave it out for no status"),
+  ],
+};
+
 const CLASS_NODE: ObjectDef = {
   kind: "object",
   noun: "node",
   description:
-    `One class. Its rows' statuses must agree with its own: a row in a new or removed card can only have the card's status, and takes it when it has none; ` +
+    `One class. An enum (stereotype "enum") lists values instead of properties and methods, and only an enum has values. ` +
+    `Its rows' statuses must agree with its own: a row in a new or removed card can only have the card's status, and takes it when it has none; ` +
     `a row in an unchanged card can only be unchanged; and a card needs a status when any of its rows has one. ` +
-    `A card has at most ${ROWS_PER_CARD} rows, properties and methods together.`,
+    `A card has at most ${ROWS_PER_CARD} rows, all its lists together.`,
   rules: [rowStatusRule, rowLimitRule],
   fields: [
     required("id", { kind: "id", of: "node" }, "a unique id made of letters, digits and - _ . :"),
@@ -379,22 +415,37 @@ const CLASS_NODE: ObjectDef = {
       'true draws the name in italics, as stereotype "abstract" does, without the «abstract» line',
       false,
     ),
-    optional(
-      "properties",
-      { kind: "list", noun: "properties", items: classRow("properties", "property"), maxItems: ROWS_PER_CARD, limitHint: ROWS_HINT },
-      "the class's properties, in order",
-      [],
-    ),
-    optional(
-      "methods",
-      { kind: "list", noun: "methods", items: classRow("methods", "method"), maxItems: ROWS_PER_CARD, limitHint: ROWS_HINT },
-      "the class's methods, in order, drawn under the properties",
-      [],
-    ),
+    {
+      ...optional(
+        "properties",
+        { kind: "list", noun: "properties", items: classRow("properties", "property"), maxItems: ROWS_PER_CARD, limitHint: ROWS_HINT },
+        "the class's properties, in order; not for an enum",
+        [],
+      ),
+      onlyWhen: NOT_ENUM,
+    },
+    {
+      ...optional(
+        "methods",
+        { kind: "list", noun: "methods", items: classRow("methods", "method"), maxItems: ROWS_PER_CARD, limitHint: ROWS_HINT },
+        "the class's methods, in order, drawn under the properties; not for an enum",
+        [],
+      ),
+      onlyWhen: NOT_ENUM,
+    },
+    {
+      ...optional(
+        "values",
+        { kind: "list", noun: "values", items: ENUM_VALUE, maxItems: ROWS_PER_CARD, limitHint: ROWS_HINT },
+        'an enum\'s values, in order; only with "stereotype": "enum"',
+        [],
+      ),
+      onlyWhen: ENUM,
+    },
     optional(
       "more",
       { kind: "count", min: 1, max: 9999 },
-      'how many members were left out on purpose, drawn as a muted "… N more" row',
+      'how many members or values were left out on purpose, drawn as a muted "… N more" row',
     ),
   ],
 };

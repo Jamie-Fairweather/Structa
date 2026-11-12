@@ -457,6 +457,149 @@ describe("static rows", () => {
   });
 });
 
+describe("enums", () => {
+  /** A season enum with whatever fields a test gives it. */
+  function season(fields: object = {}) {
+    return {
+      type: "class",
+      nodes: [{ id: "season", label: "SowingSeason", stereotype: "enum", values: [{ text: "SPRING" }, { id: "summer", text: "SUMMER" }, { text: "AUTUMN" }], ...fields }],
+    };
+  }
+
+  it("draws an enum's values as rows under one divider, after «enum» and its name", async () => {
+    const doc = await svgDoc(season());
+
+    const card = cardById(doc, "season");
+    const values = rows(card);
+    expect(values.map((row) => [row.getAttribute("data-kind"), row.getAttribute("data-id"), textLines(row)])).toEqual([
+      ["value", "values[0]", ["SPRING"]],
+      ["value", "summer", ["SUMMER"]],
+      ["value", "values[2]", ["AUTUMN"]],
+    ]);
+    expect(values.map(titleOf)).toEqual(["SPRING", "SUMMER", "AUTUMN"]);
+    const [divider, ...others] = byClassIn(card, "divider");
+    expect(others).toEqual([]);
+    const [line, name] = texts(card);
+    expect([line!.textContent, name!.textContent]).toEqual(["«enum»", "SowingSeason"]);
+    expect(numberAttr(divider!, "y1")).toBeGreaterThan(numberAttr(name!, "y"));
+    for (const row of values) {
+      const [t] = texts(row);
+      expect(faceOf(t!)).toBe("Structa JetBrains Mono 400 normal");
+      expect(numberAttr(t!, "y") - 12).toBeGreaterThan(numberAttr(divider!, "y1"));
+    }
+    // With no visibility symbols, the values start at the card's padding, as plain rows do.
+    const plain = await svgDoc(packet({ properties: [{ text: "SPRING" }] }));
+    expect(numberAttr(texts(values[0]!)[0]!, "x")).toBe(numberAttr(texts(rows(cardById(plain, "packet"))[0]!)[0]!, "x"));
+  });
+
+  it("draws an enum without values as just its name, and '… N more' in a section of its own", async () => {
+    const empty = await svgDoc(season({ values: undefined }));
+    const more = await svgDoc(season({ values: undefined, more: 4 }));
+
+    expect(byClassIn(cardById(empty, "season"), "divider")).toEqual([]);
+    expect(byClassIn(cardById(more, "season"), "divider")).toHaveLength(1);
+    expect(textLines(byClassIn(cardById(more, "season"), "more")[0]!)).toEqual(["… 4 more"]);
+  });
+
+  it("ends an enum's values with '… N more'", async () => {
+    const doc = await svgDoc(season({ more: 9 }));
+
+    const card = cardById(doc, "season");
+    const [more] = byClassIn(card, "more");
+    expect(numberAttr(texts(more!)[0]!, "y")).toBeGreaterThan(numberAttr(texts(rows(card).at(-1)!)[0]!, "y"));
+  });
+
+  it("gives values their own status, or a new card's, with a tint and badge, and strikes removed ones through", async () => {
+    const changed = await svgDoc(season({ status: "changed", values: [{ text: "SPRING", status: "new" }, { text: "WINTER", status: "removed" }, { text: "SUMMER" }] }));
+    const added = await svgDoc(season({ status: "new" }));
+
+    const [fresh, gone, plain] = rows(cardById(changed, "season"));
+    expect([fresh, gone, plain].map((row) => row!.getAttribute("data-status"))).toEqual(["new", "removed", null]);
+    expect(textLines(byClassIn(fresh!, "badge")[0]!)).toEqual(["NEW"]);
+    expect(byClassIn(gone!, "strike")).toHaveLength(1);
+    expect(rows(cardById(added, "season")).map((row) => row.getAttribute("data-status"))).toEqual(["new", "new", "new"]);
+  });
+
+  it("holds an enum's values to its status like any rows", async () => {
+    expect(await problems(season({ status: "new", values: [{ text: "SPRING", status: "removed" }] }))).toEqual([
+      {
+        path: "nodes[0].values[0].status",
+        message: 'a row in a new card can\'t be "removed"',
+        hint: 'leave it out, as rows in a new card are new, or make the card "changed"',
+      },
+    ]);
+    expect(await problems(season({ values: [{ text: "SPRING", status: "new" }] }))).toEqual([
+      expect.objectContaining({ path: "nodes[0].status", message: "missing: a card needs a status when any of its rows has one" }),
+    ]);
+  });
+
+  it.each([
+    ["no stereotype", {}],
+    ["stereotype interface", { stereotype: "interface" }],
+    ["stereotype record", { stereotype: "record" }],
+  ])("rejects values on a class with %s", async (_name, fields) => {
+    expect(await problems(packet({ ...fields, values: [{ text: "SPRING" }] }))).toEqual([
+      {
+        path: "nodes[0].values",
+        message: 'only a node with "stereotype": "enum" can have "values"',
+        hint: 'add "stereotype": "enum", or list the rows in properties and methods',
+      },
+    ]);
+  });
+
+  it("rejects properties and methods on an enum, even empty ones, each at its list", async () => {
+    expect(await problems(season({ properties: [], methods: [{ text: "next(): SowingSeason" }] }))).toEqual(
+      ["properties", "methods"].map((section) => ({
+        path: `nodes[0].${section}`,
+        message: `a node with "stereotype": "enum" can't have "${section}"`,
+        hint: "list an enum's rows in values",
+      })),
+    );
+  });
+
+  it("doesn't judge values against a stereotype that isn't valid", async () => {
+    expect(await problems(season({ stereotype: "enumeration" }))).toEqual([
+      expect.objectContaining({ path: "nodes[0].stereotype", message: '"enumeration" is not a valid stereotype' }),
+    ]);
+  });
+
+  it("checks a value's own fields, and reports it all together with the enum's other problems, in order", async () => {
+    const input = season({ methods: [], values: [{ id: "spring", text: "SPRING", visibility: "public" }, { id: "spring" }] });
+
+    expect(await problems(input)).toEqual([
+      {
+        path: "nodes[0].methods",
+        message: `a node with "stereotype": "enum" can't have "methods"`,
+        hint: "list an enum's rows in values",
+      },
+      { path: "nodes[0].values[0].visibility", message: 'unknown field "visibility"', hint: "allowed fields: text, id, status" },
+      {
+        path: "nodes[0].values[1].text",
+        message: 'missing required field "text"',
+        hint: 'add "text": the value as you\'d write it, such as a constant\'s name',
+      },
+      {
+        path: "nodes[0].values[1].id",
+        message: 'the id "spring" is already used by nodes[0].values[0]',
+        hint: "give every row in a card its own id",
+      },
+    ]);
+  });
+
+  it("allows 100 values and rejects 101", async () => {
+    const many = (n: number) => Array.from({ length: n }, (_, i) => ({ text: `SEASON_${i}` }));
+
+    await expect(render(season({ values: many(100) }), { embedFonts: false })).resolves.toHaveProperty("svg");
+    expect(await problems(season({ values: many(101) }))).toEqual([
+      {
+        path: "nodes[0].values",
+        message: "has 101 values; the limit is 100",
+        hint: 'split the class, or leave dull members out and count them with "more"',
+      },
+    ]);
+  });
+});
+
 describe("the more row", () => {
   it.each([
     ["methods", { ...MEMBERS, more: 12 }],
@@ -1088,7 +1231,7 @@ describe("class input", () => {
       {
         path: "nodes[0].shape",
         message: 'unknown field "shape"',
-        hint: "allowed fields: id, label, description, status, stereotype, abstract, properties, methods, more",
+        hint: "allowed fields: id, label, description, status, stereotype, abstract, properties, methods, values, more",
       },
     ]);
   });
