@@ -115,8 +115,11 @@ describe("text in PNGs", () => {
     },
   );
 
-  it.todo("draws Inter Regular, Bold and SemiBold Italic and JetBrains Mono Regular and Italic as wide as the width tables (no field is drawn in them yet)");
-  it.todo("draws the same word at weights 400, 600 and 700 as three different images (only step labels, at 600, are drawn yet)");
+  // Still open on #11. No field is drawn in these faces yet: fill each check in
+  // with the ticket that first draws the face (titles, descriptions and line
+  // labels in #8, class rows in #13, italics in #14).
+  it.todo("draws Inter Regular, Bold and SemiBold Italic and JetBrains Mono Regular and Italic as wide as the width tables (#8, #13, #14)");
+  it.todo("draws the same word at weights 400, 600 and 700 as three different images (once #8's titles, descriptions or line labels draw 400 and 700)");
 });
 
 /** A line of `length` short steps, left to right. */
