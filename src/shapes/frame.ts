@@ -60,53 +60,66 @@ export interface Card {
   readonly badge?: Badge;
 }
 
-/** What sits on a card's top border. */
+/** What sits on a card's top border, read from the node the card is built from. */
 export interface CardHeader {
   readonly status?: Status;
 }
+
+/** A node the frame can build a card from. */
+type Framed = CardHeader & { readonly id: string };
 
 /** Badge words are fixed, so they need no checking against the font. */
 const BADGE_FACE: FaceId = "inter-bold";
 
 /**
- * The shared card frame: every card builder goes through it. It tells the
- * builder how wide the card must be to hold what sits on its border, then
- * adds the badge and strikes through a removed card's title (the painter
- * fades the rest).
+ * The shared card frame: every card builder goes through it, once for all of
+ * a diagram's cards. It tells `build` how wide each card must be to hold what
+ * sits on its border, then adds the badge and strikes through a removed
+ * card's title (the painter fades the rest).
  *
- * With `band`, the box handed to ELK grows upwards by half a badge: the band
- * the status badge (top-right) and the area tag (top-left) overhang. It is
- * given to every card once any card has something on its border, so the
- * outlines of cards side by side still line up.
+ * Once any card has something on its border, every card's box handed to ELK
+ * grows upwards by half a badge: the band the status badge (top-right) and
+ * the area tag (top-left) overhang. Giving it to every card keeps the outlines
+ * of cards side by side lined up.
  */
-export function frameCard(
-  id: string,
-  header: CardHeader,
-  band: boolean,
+export function frameCards<N extends Framed>(
+  nodes: readonly N[],
   sizes: Sizes,
-  build: (minWidth: number) => CardBody,
-): Card {
-  const { status } = header;
-  const badgeWidth = status === undefined ? 0 : measureBadge(status, sizes);
-  const body = build(status === undefined ? 0 : badgeWidth + 2 * sizes.badge.inset);
-  const top = band ? sizes.badge.height / 2 : 0;
-  const outline = { x: 0, y: top, width: body.width, height: body.height };
+  build: (node: N, minWidth: number) => CardBody,
+): Card[] {
+  const top = nodes.some((node) => borderWidth(node, sizes) > 0) ? sizes.badge.height / 2 : 0;
+  return nodes.map((node) => frameCard(node, top, sizes, build));
+}
+
+/** How wide a card must be to hold what sits on its top border; 0 when nothing does. */
+function borderWidth(header: CardHeader, sizes: Sizes): number {
+  return header.status === undefined ? 0 : measureBadge(header.status, sizes) + 2 * sizes.badge.inset;
+}
+
+function frameCard<N extends Framed>(node: N, top: number, sizes: Sizes, build: (node: N, minWidth: number) => CardBody): Card {
+  const { id, status } = node;
+  const minWidth = borderWidth(node, sizes);
+  const body = build(node, minWidth);
+  // A body narrower than its border needs is widened, its contents centred, so a badge never hangs off the card.
+  const width = Math.max(body.width, minWidth);
+  const dx = (width - body.width) / 2;
+  const outline = { x: 0, y: top, width, height: body.height };
 
   return {
     id,
     kind: body.kind,
     ...(status === undefined ? {} : { status }),
-    width: body.width,
+    width,
     height: top + body.height,
     outline,
     tooltip: body.tooltip,
     texts: body.texts.map((t) => {
-      const moved = { ...t, y: t.y + top };
+      const moved = { ...t, x: t.x + dx, y: t.y + top };
       return status === "removed" && t.title ? { ...moved, strike: strikeThrough(moved, sizes) } : moved;
     }),
     ...(status === undefined
       ? {}
-      : { badge: badge(status, outline.width - sizes.badge.inset - badgeWidth, top - sizes.badge.height / 2, sizes) }),
+      : { badge: badge(status, width - sizes.badge.inset - measureBadge(status, sizes), top - sizes.badge.height / 2, sizes) }),
   };
 }
 

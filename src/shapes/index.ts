@@ -10,7 +10,7 @@ import {
 } from "../input";
 import { baseline, measure, wrap, type FaceId } from "../text";
 import type { Sizes } from "../theme";
-import { frameCard, strikeThrough, type Card, type CardBody, type TextLine } from "./frame";
+import { frameCards, strikeThrough, type Card, type CardBody, type TextLine } from "./frame";
 
 export { topAt, type Badge, type Box, type Card, type Strike, type TextLine } from "./frame";
 export { buildLegend, type Legend, type LegendItem } from "./legend";
@@ -91,20 +91,17 @@ function block(
   };
 }
 
-/** Sizes every card, each through the shared card frame. */
+/** Sizes every card through the shared card frame. */
 export function buildCards(nodes: readonly FlowStep[], sizes: Sizes): Card[] {
-  const band = nodes.some((node) => node.status !== undefined);
-  return nodes.map((node) =>
-    frameCard(node.id, { status: node.status }, band, sizes, (minWidth) => stepBody(node, sizes, minWidth)),
-  );
+  return frameCards(nodes, sizes, (node, minWidth) => stepBody(node, sizes, minWidth));
 }
 
-/** A step: a rounded box sized to its wrapped label between a minimum and maximum width. */
-function stepBody(node: FlowStep, sizes: Sizes, frameWidth: number): CardBody {
+/** A step: a rounded box sized to its wrapped label between a minimum and maximum width, and at least `minWidth`. */
+function stepBody(node: FlowStep, sizes: Sizes, minWidth: number): CardBody {
   const s = sizes.step;
   const lines = wrap(node.label, STEP_LABEL_FACE, s.fontSize, s.maxWidth - 2 * s.paddingX);
   const textWidth = Math.max(...lines.map((l) => measure(l, STEP_LABEL_FACE, s.fontSize)));
-  const width = Math.max(frameWidth, Math.min(s.maxWidth, Math.max(s.minWidth, Math.ceil(textWidth + 2 * s.paddingX))));
+  const width = Math.max(minWidth, Math.min(s.maxWidth, Math.max(s.minWidth, Math.ceil(textWidth + 2 * s.paddingX))));
   const height = Math.max(s.minHeight, 2 * s.paddingY + lines.length * s.lineHeight);
   const top = (height - lines.length * s.lineHeight) / 2;
   const offset = baseline(STEP_LABEL_FACE, s.fontSize, s.lineHeight);
