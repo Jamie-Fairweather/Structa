@@ -13,7 +13,8 @@
     "prepare": "husky",
     "generate": "bun scripts/generate-font-metrics.ts",
     "typecheck": "bun run generate && tsc",
-    "test": "bun run generate && vitest run"
+    "test": "bun run generate && vitest run",
+    "build": "bun run generate && bun scripts/build.ts"
   },
   "devDependencies": {
     "@commitlint/cli": "21.2.4",
