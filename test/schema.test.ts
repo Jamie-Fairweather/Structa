@@ -195,21 +195,46 @@ describe("the JSON Schema", () => {
     }
   });
 
-  it.each([
-    ["theme", () => root, (input: Node, value: string) => (input.theme = value)],
-    ["direction", () => root, (input: Node, value: string) => (input.direction = value)],
-    ["shape", () => node, (input: Node, value: string) => (input.nodes[0].shape = value)],
-    ["node status", () => node, (input: Node, value: string) => (input.nodes[0].status = value)],
-    ["edge status", () => edge, (input: Node, value: string) => (input.edges[0].status = value)],
-  ])("offers exactly the %s values render() accepts", async (name, part, set) => {
+  /** The first row of a class card's section: its part of the schema, and the row in the input. */
+  const classRow = (section: "properties" | "methods") => ({
+    part: () => items("class", "nodes").properties[section].items,
+    row: (input: Node) => input.nodes[0][section][0],
+  });
+
+  it.each<readonly [name: string, type: string, part: () => Node, set: (input: Node, value: string) => void]>([
+    ["theme", "flow", () => root, (input, value) => (input.theme = value)],
+    ["direction", "flow", () => root, (input, value) => (input.direction = value)],
+    ["shape", "flow", () => node, (input, value) => (input.nodes[0].shape = value)],
+    ["node status", "flow", () => node, (input, value) => (input.nodes[0].status = value)],
+    ["edge status", "flow", () => edge, (input, value) => (input.edges[0].status = value)],
+    ["class node status", "class", () => items("class", "nodes"), (input, value) => (input.nodes[0].status = value)],
+    ["class edge kind", "class", () => items("class", "edges"), (input, value) => (input.edges[0].kind = value)],
+    ...(["properties", "methods"] as const).flatMap((section) => {
+      const { part, row } = classRow(section);
+      return [
+        [`${section} row visibility`, "class", part, (input: Node, value: string) => (row(input).visibility = value)],
+        [
+          `${section} row status`,
+          "class",
+          part,
+          (input: Node, value: string) => {
+            // A row with a status needs its card to have one; a changed card's rows may have any.
+            input.nodes[0].status = "changed";
+            row(input).status = value;
+          },
+        ],
+      ] as const;
+    }),
+  ])("offers exactly the %s values render() accepts", async (name, type, part, set) => {
     const values: string[] = part().properties[name.split(" ").at(-1)!].enum;
+    expect(values.length).toBeGreaterThan(0);
 
     for (const value of values) {
-      const input = greenhouse();
+      const input = FIXTURES.get(type)!();
       set(input, value);
-      expect(await outcome(input)).toBe("ok");
+      expect([value, await outcome(input)]).toEqual([value, "ok"]);
     }
-    const input = greenhouse();
+    const input = FIXTURES.get(type)!();
     set(input, "sideways");
     const quoted = values.map((v) => JSON.stringify(v));
     const choices = quoted.length <= 2 ? quoted.join(" or ") : `${quoted.slice(0, -1).join(", ")} or ${quoted.at(-1)}`;
