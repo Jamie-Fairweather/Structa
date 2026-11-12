@@ -1,15 +1,19 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { basename, extname } from "node:path";
 import { render } from "./render";
+import { THEME_NAMES, type ThemeName } from "./theme";
 
 interface Command {
   /** A file path, or "-" for standard input. */
   readonly input: string;
   /** Where to write the SVG; standard output when absent. */
   readonly output?: string;
+  /** Wins over the JSON's theme when given. */
+  readonly theme?: ThemeName;
 }
 
-const USAGE = "usage: node structa.mjs <diagram.json | -> [-o <diagram.svg>]";
+const THEMES = THEME_NAMES.join(" or ");
+const USAGE = `usage: node structa.mjs <diagram.json | -> [-o <diagram.svg>] [--theme ${THEME_NAMES.join("|")}]`;
 
 /** Runs the command line. Returns the exit code: 0 success, 1 bad input or a failed render, 2 bad usage. */
 export async function runCli(args: readonly string[]): Promise<number> {
@@ -26,7 +30,7 @@ export async function runCli(args: readonly string[]): Promise<number> {
   }
   let svg: string;
   try {
-    ({ svg } = await render(json));
+    ({ svg } = await render(json, { theme: command.theme }));
   } catch (error) {
     return fail((error as Error).message);
   }
@@ -46,6 +50,7 @@ export async function runCli(args: readonly string[]): Promise<number> {
 function parseArgs(args: readonly string[]): Command | string {
   let input: string | undefined;
   let output: string | undefined;
+  let theme: ThemeName | undefined;
   for (let i = 0; i < args.length; i++) {
     const arg = args[i]!;
     if (arg === "-o") {
@@ -58,6 +63,12 @@ function parseArgs(args: readonly string[]): Command | string {
         return `-o ${JSON.stringify(file)}: ${fix}`;
       }
       output = file;
+    } else if (arg === "--theme") {
+      const name = args[++i];
+      if (name === undefined) return `--theme needs ${THEMES}`;
+      if (theme !== undefined) return "give --theme only once";
+      if (!THEME_NAMES.includes(name as ThemeName)) return `--theme ${JSON.stringify(name)}: the theme must be ${THEMES}`;
+      theme = name as ThemeName;
     } else if (arg.startsWith("-") && arg !== "-") {
       return `unknown option ${JSON.stringify(arg)}`;
     } else if (input !== undefined) {
@@ -67,7 +78,7 @@ function parseArgs(args: readonly string[]): Command | string {
     }
   }
   if (input === undefined) return "give the diagram's JSON file, or - to read it from standard input";
-  return output === undefined ? { input } : { input, output };
+  return { input, output, theme };
 }
 
 async function readStdin(): Promise<string> {

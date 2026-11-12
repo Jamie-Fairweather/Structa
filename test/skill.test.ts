@@ -57,6 +57,25 @@ describe("node structa.mjs", () => {
     expect(result).toEqual({ status: 0, stdout: svg, stderr: "" });
   });
 
+  it("draws the theme --theme asks for", async () => {
+    const light = await render(flowJson, { theme: "light" });
+    const dark = await render(flowJson, { theme: "dark" });
+
+    expect(skill.run([flowPath, "--theme", "dark"])).toEqual({ status: 0, stdout: dark.svg, stderr: "" });
+    expect(skill.run(["--theme", "light", flowPath])).toEqual({ status: 0, stdout: light.svg, stderr: "" });
+    expect(dark.svg).not.toBe(light.svg);
+  });
+
+  it("lets --theme win over the JSON's theme, either way round", async () => {
+    const withTheme = (theme: string) => JSON.stringify({ ...JSON.parse(flowJson), theme });
+    const light = await render(flowJson, { theme: "light" });
+    const dark = await render(flowJson, { theme: "dark" });
+
+    expect(skill.run(["-"], { stdin: withTheme("dark") })).toEqual({ status: 0, stdout: dark.svg, stderr: "" });
+    expect(skill.run(["-", "--theme", "light"], { stdin: withTheme("dark") })).toEqual({ status: 0, stdout: light.svg, stderr: "" });
+    expect(skill.run(["-", "--theme", "dark"], { stdin: withTheme("light") })).toEqual({ status: 0, stdout: dark.svg, stderr: "" });
+  });
+
   it("relies on its one-line CommonJS package.json to load elkjs inside an ESM project", () => {
     // The same folder without it: Node then treats elk.bundled.js as an ES module, and it can't load.
     const bare = join(dirname(skill.dir), "structa-without-package-json");
@@ -271,6 +290,10 @@ describe("exit code 2: bad usage", () => {
     ["an output with no extension", ["IN", "-o", "chart"], '-o "chart": the output file must end in .svg'],
     ["an output that is only an extension", ["IN", "-o", ".SVG"], '-o ".SVG": give it a name before .svg'],
     ["an unknown option", ["IN", "--sparkle"], 'unknown option "--sparkle"'],
+    ["--theme with no value", ["IN", "--theme"], "--theme needs light or dark"],
+    ["an unknown theme", ["IN", "--theme", "sepia"], '--theme "sepia": the theme must be light or dark'],
+    ["a theme in the wrong case", ["IN", "--theme", "Dark"], '--theme "Dark": the theme must be light or dark'],
+    ["two --theme", ["IN", "--theme", "dark", "--theme", "light"], "give --theme only once"],
   ])("rejects %s, prints the usage line and writes nothing", (_name, args, message) => {
     const input = join(skill.elsewhere, "usage-input.json");
     writeFileSync(input, flowJson);
@@ -286,5 +309,11 @@ describe("exit code 2: bad usage", () => {
     for (const name of ["a.svg", "b.svg", "chart.png", "chart.txt", "chart", ".SVG"]) {
       expect(existsSync(join(skill.elsewhere, name))).toBe(false);
     }
+  });
+
+  it("lists every flag in the usage line", () => {
+    const [, usage] = skill.run([]).stderr.split("\n");
+
+    expect(usage).toBe("usage: node structa.mjs <diagram.json | -> [-o <diagram.svg>] [--theme light|dark]");
   });
 });
