@@ -198,14 +198,14 @@ describe("node structa.mjs --help", () => {
     "Diagram types: flow",
     "",
     "Options:",
-    "  -o <file.svg>       write the SVG to this file, not stdout (.svg in any case)",
+    "  -o <file.svg>       write the SVG to this file, not stdout (must end in .svg)",
     '  --theme light|dark  draw in this theme; wins over the JSON\'s "theme"',
     "  --no-embed-fonts    leave the fonts out of the SVG, for a smaller file",
     "  -h, --help          print this help",
     "",
     "Start from an example, and check your JSON against the schema.",
     "Commands win over file names: draw a file named schema as ./schema.",
-    "Input is UTF-8; a byte-order mark is fine, UTF-16 is refused.",
+    "Input must be UTF-8 (a byte-order mark is fine), not UTF-16 or ANSI.",
     "",
     "Exit codes:",
     "  0  success",
@@ -260,7 +260,28 @@ describe("input encodings", () => {
   const BOM = String.fromCharCode(0xfeff);
   const utf16le = (text: string) => Buffer.from(text, "utf16le");
   const utf16be = (text: string) => Buffer.from(text, "utf16le").swap16();
-  const hint = "it is UTF-16 text (save it as UTF-8; in PowerShell, use -Encoding utf8)";
+  const utf32 = (text: string, order: "LE" | "BE") =>
+    Buffer.concat(
+      [...text].map((char) => {
+        const bytes = Buffer.alloc(4);
+        if (order === "LE") bytes.writeUInt32LE(char.codePointAt(0)!);
+        else bytes.writeUInt32BE(char.codePointAt(0)!);
+        return bytes;
+      }),
+    );
+  const fix = "(save it as UTF-8; in PowerShell, use -Encoding utf8)";
+  const hint = `it is UTF-16 text ${fix}`;
+  const notUtf8 = `it isn't UTF-8 text ${fix}`;
+  // Labels with a Latin letter the fonts draw. Windows PowerShell 5.1's
+  // Set-Content saves them in the ANSI code page, where é is the lone byte E9.
+  const cafe = JSON.stringify({
+    type: "flow",
+    nodes: [
+      { id: "order", label: "Order at the café", shape: "step" },
+      { id: "sip", label: "Sip the crème", shape: "step" },
+    ],
+    edges: [{ from: "order", to: "sip" }],
+  });
 
   it("strips a UTF-8 byte-order mark from a file", async () => {
     const { svg } = await render(flowJson);
@@ -276,23 +297,39 @@ describe("input encodings", () => {
   });
 
   it.each([
-    ["UTF-16LE with a byte-order mark, as Windows PowerShell saves it", utf16le(BOM + flowJson)],
-    ["UTF-16BE with a byte-order mark", utf16be(BOM + flowJson)],
-    ["UTF-16LE without a byte-order mark", utf16le(flowJson)],
-    ["UTF-16BE without a byte-order mark", utf16be(flowJson)],
-  ])("refuses a file in %s, with a hint to save it as UTF-8, and writes nothing", (_name, bytes) => {
+    ["UTF-16LE with a byte-order mark, as Windows PowerShell saves it", utf16le(BOM + flowJson), hint],
+    ["UTF-16BE with a byte-order mark", utf16be(BOM + flowJson), hint],
+    ["UTF-16LE without a byte-order mark", utf16le(flowJson), notUtf8],
+    ["UTF-16BE without a byte-order mark", utf16be(flowJson), notUtf8],
+    ["UTF-32LE with a byte-order mark", utf32(BOM + flowJson, "LE"), notUtf8],
+    ["UTF-32BE with a byte-order mark", utf32(BOM + flowJson, "BE"), notUtf8],
+    ["UTF-32LE without a byte-order mark", utf32(flowJson, "LE"), notUtf8],
+    ["UTF-32BE without a byte-order mark", utf32(flowJson, "BE"), notUtf8],
+    ["UTF-8 after a zero byte", Buffer.concat([Buffer.from([0]), Buffer.from(flowJson)]), notUtf8],
+    ["the Windows ANSI code page, with a lone E9 byte for é", Buffer.from(cafe, "latin1"), notUtf8],
+  ])("refuses a file in %s, with one line asking for UTF-8, and writes nothing", (_name, bytes, message) => {
     writeFileSync(join(skill.elsewhere, "wide.json"), bytes);
 
     const result = skill.run(["wide.json", "-o", "wide.svg"]);
 
-    expect(result).toEqual({ status: 1, stdout: "", stderr: `can't read wide.json: ${hint}\n` });
+    expect(result).toEqual({ status: 1, stdout: "", stderr: `can't read wide.json: ${message}\n` });
     expect(existsSync(join(skill.elsewhere, "wide.svg"))).toBe(false);
   });
 
-  it("refuses UTF-16 on standard input the same way", () => {
-    const result = skill.run(["-"], { stdin: utf16le(BOM + flowJson) });
+  it("draws the same é label when the file is UTF-8", async () => {
+    const { svg } = await render(cafe);
+    writeFileSync(join(skill.elsewhere, "cafe.json"), cafe);
 
-    expect(result).toEqual({ status: 1, stdout: "", stderr: `can't read standard input: ${hint}\n` });
+    expect(skill.run(["cafe.json"])).toEqual({ status: 0, stdout: svg, stderr: "" });
+  });
+
+  it.each([
+    ["UTF-16", utf16le(BOM + flowJson), hint],
+    ["ANSI", Buffer.from(cafe, "latin1"), notUtf8],
+  ])("refuses %s on standard input the same way", (_name, bytes, message) => {
+    const result = skill.run(["-"], { stdin: bytes });
+
+    expect(result).toEqual({ status: 1, stdout: "", stderr: `can't read standard input: ${message}\n` });
   });
 });
 
@@ -553,6 +590,8 @@ describe("exit code 2: bad usage", () => {
     ["a .txt output", ["IN", "-o", "chart.txt"], '-o "chart.txt": the output file must end in .svg'],
     ["an output with no extension", ["IN", "-o", "chart"], '-o "chart": the output file must end in .svg'],
     ["an output that is only an extension", ["IN", "-o", ".SVG"], '-o ".SVG": give it a name before .svg'],
+    ["--help as the file after -o", ["IN", "-o", "--help"], '-o "--help": the output file must end in .svg'],
+    ["-h as the file after -o", ["IN", "-o", "-h"], '-o "-h": the output file must end in .svg'],
     ["an unknown option", ["IN", "--sparkle"], 'unknown option "--sparkle"'],
     ["--theme with no value", ["IN", "--theme"], "--theme needs light or dark"],
     ["an unknown theme", ["IN", "--theme", "sepia"], '--theme "sepia": the theme must be light or dark'],
@@ -590,7 +629,7 @@ describe("exit code 2: bad usage", () => {
     const [, usage] = skill.run([]).stderr.split("\n");
 
     expect(usage).toBe(
-      "usage: node structa.mjs <diagram.json | -> [-o <diagram.svg>] [--theme light|dark] [--no-embed-fonts]" +
+      "usage: node structa.mjs <diagram.json | -> [-o <file.svg>] [--theme light|dark] [--no-embed-fonts]" +
         " | schema | example <type> | --help",
     );
   });
