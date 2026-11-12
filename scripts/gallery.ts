@@ -11,15 +11,16 @@ import { spawnSync } from "node:child_process";
 import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { escapeAttr as escape } from "../src/painter/svg";
+import { THEME_NAMES, type ThemeName } from "../src/theme";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const structa = join(root, "dist", "structa", "structa.mjs");
 const examplesDir = join(root, "examples");
 const outDir = join(root, "dist", "gallery");
-const THEMES = ["light", "dark"] as const;
 
 interface Picture {
-  readonly theme: (typeof THEMES)[number];
+  readonly theme: ThemeName;
   /** The SVG's file name, next to index.html. */
   readonly file: string;
   readonly width: number;
@@ -35,7 +36,7 @@ mkdirSync(outDir, { recursive: true });
 
 const sections = examples.map((example) => {
   const name = example.slice(0, -".json".length);
-  const pictures = THEMES.map((theme) => draw(example, `${name}.${theme}.svg`, theme));
+  const pictures = THEME_NAMES.map((theme) => draw(example, `${name}.${theme}.svg`, theme));
   return section(example, pictures);
 });
 const index = join(outDir, "index.html");
@@ -51,10 +52,19 @@ function draw(example: string, file: string, theme: Picture["theme"]): Picture {
     console.error(`can't draw examples/${example} in ${theme}: ${result.error?.message ?? result.stderr.trim()}`);
     process.exit(1);
   }
-  const svg = readFileSync(out, "utf8");
-  const size = /^<svg [^>]*width="([\d.]+)" height="([\d.]+)"/.exec(svg);
-  if (!size) throw new Error(`${file} doesn't start with an <svg> that has a width and height`);
-  return { theme, file, width: Number(size[1]), height: Number(size[2]) };
+  // The size is read from the root <svg> tag, whatever order its attributes are in.
+  const rootTag = /^<svg\s[^>]*>/.exec(readFileSync(out, "utf8"))?.[0] ?? "";
+  const width = sizeAttribute(rootTag, "width");
+  const height = sizeAttribute(rootTag, "height");
+  if (width === undefined || height === undefined) {
+    throw new Error(`${file} doesn't start with an <svg> that has a width and height`);
+  }
+  return { theme, file, width, height };
+}
+
+function sizeAttribute(tag: string, name: string): number | undefined {
+  const value = new RegExp(`\\s${name}="([\\d.]+)"`).exec(tag)?.[1];
+  return value === undefined ? undefined : Number(value);
 }
 
 function section(example: string, pictures: readonly Picture[]): string {
@@ -96,8 +106,4 @@ ${sections.join("\n")}
 </body>
 </html>
 `;
-}
-
-function escape(text: string): string {
-  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
