@@ -1,15 +1,19 @@
-import { appendFileSync, chmodSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { appendFileSync, chmodSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, utimesSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { brotliDecompressSync } from "node:zlib";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { unzipSync } from "fflate";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { zipSkill } from "../scripts/lib/skill";
 import { readTtf, type TtfFont } from "../scripts/lib/ttf";
 import { render } from "../src/index";
 import { CHARACTER_RANGES } from "../src/text/faces";
 import { buildChangedProject, buildSkillForTest, type BuiltSkill } from "./helpers/skill";
 
-// Seam 2: the built skill folder, run with `node structa.mjs` in a separate
-// process, from a different working folder, inside someone else's ESM project.
+// Seam 2: the built skill folder, made by the release and unzipped from its
+// zip, run with `node structa.mjs` in a separate process, from a different
+// working folder, inside someone else's ESM project.
 let skill: BuiltSkill;
 beforeAll(async () => {
   skill = await buildSkillForTest();
@@ -402,6 +406,160 @@ describe("resvg inside structa.mjs", () => {
   });
 });
 
+describe("the licences in the skill folder", () => {
+  const licence = (name: string) => readFileSync(join(skill.dir, "licenses", name), "utf8");
+  const fromRepository = (path: string) => readFileSync(fileURLToPath(new URL(`../${path}`, import.meta.url)), "utf8");
+
+  it("ships elkjs's own EPL-2.0 text, unchanged", () => {
+    expect(licence("EPL-2.0.md")).toBe(fromRepository("node_modules/elkjs/LICENSE.md"));
+    expect(licence("EPL-2.0.md")).toMatch(/^# Eclipse Public License - v 2\.0\n/);
+  });
+
+  it("says where elkjs's source lives: the shipped version, its repository at that tag, and Eclipse ELK", () => {
+    const note = licence("elkjs-source.txt");
+
+    expect(note).toContain("elk.bundled.js is lib/elk.bundled.js from the published elkjs 0.12.1, byte for byte");
+    expect(note).toContain("https://github.com/kieler/elkjs/tree/0.12.1");
+    expect(note).toContain("https://github.com/eclipse-elk/elk");
+    expect(note).toContain("EPL-2.0 OR GPL-3.0-or-later");
+  });
+
+  it("ships the Apache-2.0 text, as apache.org publishes it, for the Guava and GWT code compiled into elkjs", () => {
+    const sha256 = createHash("sha256").update(licence("Apache-2.0.txt")).digest("hex");
+
+    // The SHA-256 of https://www.apache.org/licenses/LICENSE-2.0.txt.
+    expect(sha256).toBe("cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30");
+    expect(licence("elkjs-source.txt")).toContain(
+      [
+        "elk.bundled.js also holds Guava and GWT code, compiled into it along with ELK. That code is licensed Apache-2.0, and its text is in Apache-2.0.txt.",
+        "- Guava: https://github.com/google/guava",
+        "- GWT: https://github.com/gwtproject/gwt",
+      ].join("\n"),
+    );
+  });
+
+  it("ships the MPL-2.0 text, as mozilla.org publishes it, and says where resvg's wasm and glue come from", () => {
+    const sha256 = createHash("sha256").update(licence("MPL-2.0.txt")).digest("hex");
+    const note = licence("resvg-source.txt");
+
+    // The SHA-256 of https://www.mozilla.org/media/MPL/2.0/index.txt.
+    expect(sha256).toBe("3f3d9e0024b1921b067d6f7f88deb4a60cbe7a78e76c64e3f1d7fc3b779b9d04");
+    expect(note).toContain("structa.mjs carries index_bg.wasm from the published @resvg/resvg-wasm 2.6.2 unmodified");
+    expect(note).toContain("and bundles its JavaScript glue, index.mjs, unminified");
+    expect(note).toContain("Licence: MPL-2.0. Its text is in MPL-2.0.txt.");
+    expect(note).toContain("Source code: https://github.com/thx/resvg-js/tree/v2.6.2");
+  });
+
+  it.each([
+    ["OFL-1.1-Inter.txt", "fonts/inter/OFL.txt", "Copyright (c) 2016 The Inter Project Authors"],
+    ["OFL-1.1-JetBrains-Mono.txt", "fonts/jetbrains-mono/OFL.txt", "Copyright 2020 The JetBrains Mono Project Authors"],
+  ])("ships %s, the font's own OFL-1.1 from %s", (name, original, copyright) => {
+    expect(licence(name)).toBe(fromRepository(original));
+    expect(licence(name).startsWith(`${copyright} (https://github.com/`)).toBe(true);
+    expect(licence(name)).toContain("SIL OPEN FONT LICENSE Version 1.1");
+  });
+
+  it("ships Structa's own MIT licence", () => {
+    expect(licence("MIT.txt")).toBe(fromRepository("LICENSE"));
+    expect(licence("MIT.txt")).toMatch(/^MIT License\n/);
+  });
+
+  it("are named, with each embedded part, in the banner structa.mjs starts with", () => {
+    const banner = [
+      "/*!",
+      " * Structa, under the MIT licence (licenses/MIT.txt). This file also embeds:",
+      " * - @resvg/resvg-wasm 2.6.2, its wasm and JavaScript glue: MPL-2.0 (licenses/MPL-2.0.txt, licenses/resvg-source.txt)",
+      " * - the Inter fonts, subset: OFL-1.1 (licenses/OFL-1.1-Inter.txt)",
+      " * - the JetBrains Mono fonts, subset: OFL-1.1 (licenses/OFL-1.1-JetBrains-Mono.txt)",
+      " * elkjs 0.12.1 is not in this file: it ships next to it as elk.bundled.js,",
+      " * under EPL-2.0 OR GPL-3.0-or-later, with Apache-2.0 parts (licenses/elkjs-source.txt).",
+      " */",
+      "",
+    ].join("\n");
+
+    expect(readFileSync(join(skill.dir, "structa.mjs"), "utf8").startsWith(banner)).toBe(true);
+  });
+
+  it("holds exactly the licence texts and source notes", () => {
+    expect(readdirSync(join(skill.dir, "licenses")).sort()).toEqual([
+      "Apache-2.0.txt",
+      "EPL-2.0.md",
+      "MIT.txt",
+      "MPL-2.0.txt",
+      "OFL-1.1-Inter.txt",
+      "OFL-1.1-JetBrains-Mono.txt",
+      "elkjs-source.txt",
+      "resvg-source.txt",
+    ]);
+  });
+});
+
+// What bun run release wrote. Every test in this file runs the skill folder unzipped from this zip.
+describe("the release zip", () => {
+  /** Every file under `dir`, as a path with forward slashes, in code-unit order. */
+  const filesUnder = (dir: string): string[] => {
+    const walk = (prefix: string): string[] =>
+      readdirSync(join(dir, prefix), { withFileTypes: true }).flatMap((entry) => {
+        const path = prefix === "" ? entry.name : `${prefix}/${entry.name}`;
+        return entry.isDirectory() ? walk(path) : [path];
+      });
+    return walk("").sort();
+  };
+  /** The comment at the end of a zip, after its end-of-central-directory record. */
+  const zipComment = (zip: Uint8Array): string => {
+    const bytes = Buffer.from(zip);
+    const end = bytes.lastIndexOf(Buffer.from([0x50, 0x4b, 0x05, 0x06]));
+    const length = bytes.readUInt16LE(end + 20);
+    expect(end + 22 + length).toBe(bytes.length);
+    return bytes.toString("utf8", end + 22);
+  };
+
+  it("holds the whole built skill folder in a structa folder, file for file", () => {
+    const unzipped = unzipSync(readFileSync(skill.release.zip));
+    const files = filesUnder(skill.release.folder);
+
+    expect(files).toEqual(expect.arrayContaining(["structa.mjs", "elk.bundled.js", "package.json", "structa.schema.json", "licenses/MIT.txt"]));
+    expect(Object.keys(unzipped)).toEqual(files.map((file) => `structa/${file}`));
+    for (const file of files) {
+      const same = Buffer.from(unzipped[`structa/${file}`]!).equals(readFileSync(join(skill.release.folder, file)));
+      expect([file, same]).toEqual([file, true]);
+    }
+  });
+
+  it("is labelled with the licence of everything in it", () => {
+    expect(zipComment(readFileSync(skill.release.zip))).toBe(
+      "SPDX-License-Identifier: MIT AND (EPL-2.0 OR GPL-3.0-or-later) AND MPL-2.0 AND OFL-1.1 AND Apache-2.0",
+    );
+  });
+
+  it("is the same bytes from the same files, whenever they were written or zipped", () => {
+    const touched = join(dirname(skill.dir), "structa-touched");
+    cpSync(skill.release.folder, touched, { recursive: true });
+    for (const file of filesUnder(touched)) utimesSync(join(touched, file), new Date(2031, 5, 7), new Date(2031, 5, 7));
+    vi.useFakeTimers({ toFake: ["Date"] });
+    try {
+      vi.setSystemTime(new Date(2044, 10, 3, 17, 5));
+
+      expect(Buffer.from(zipSkill(touched)).equals(readFileSync(skill.release.zip))).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("comes with release notes that say how to use it and what its licence is", () => {
+    expect(readFileSync(skill.release.notes, "utf8")).toBe(
+      [
+        "Unzip `structa.zip` into your skills folder: it holds a ready-to-use `structa` skill folder.",
+        "Agents then run `node structa.mjs diagram.json -o diagram.png` in it, with Node 20 or newer and nothing to install.",
+        "",
+        "Licence of the zip: `MIT AND (EPL-2.0 OR GPL-3.0-or-later) AND MPL-2.0 AND OFL-1.1 AND Apache-2.0`.",
+        "Structa's own code is MIT. The licence texts and source notes for the parts it ships are in `structa/licenses/`.",
+        "",
+      ].join("\n"),
+    );
+  });
+});
+
 describe("import { render } from structa.mjs", () => {
   it("draws the same PNG as render() in this process", async () => {
     const { png } = await render(flowJson, { formats: ["png"] });
@@ -694,6 +852,87 @@ describe("bun run build", () => {
       failure(
         'structa.mjs embeds no "Inter" 600 normal font',
         'structa.mjs embeds a "Inter SemiBold" 600 normal font, which is not one of its faces',
+      ),
+    );
+  }, BUILD_TIMEOUT);
+
+  it.each([
+    ["licenses/MIT.txt", "LICENSE"],
+    ["licenses/EPL-2.0.md", "node_modules/elkjs/LICENSE.md"],
+    ["licenses/Apache-2.0.txt", "licenses/Apache-2.0.txt"],
+    ["licenses/MPL-2.0.txt", "licenses/MPL-2.0.txt"],
+    ["licenses/OFL-1.1-Inter.txt", "fonts/inter/OFL.txt"],
+    ["licenses/OFL-1.1-JetBrains-Mono.txt", "fonts/jetbrains-mono/OFL.txt"],
+  ])(
+    "fails when %s is missing, because the project has no %s",
+    async (shipped, source) => {
+      const message = await buildChangedProject((project) => rmSync(join(project, source)));
+
+      expect(message).toBe(failure(`${shipped} is missing (the build copies it from ${source})`));
+    },
+    BUILD_TIMEOUT,
+  );
+
+  it.each([
+    [
+      "an empty Apache-2.0 text",
+      (project: string) => writeFileSync(join(project, "licenses", "Apache-2.0.txt"), ""),
+      ['licenses/Apache-2.0.txt is not the Apache-2.0 text: it doesn\'t say "Apache License"', 'licenses/Apache-2.0.txt is not the Apache-2.0 text: it doesn\'t say "Version 2.0, January 2004"'],
+    ],
+    [
+      "JetBrains Mono's OFL in place of Inter's",
+      (project: string) => cpSync(join(project, "fonts", "jetbrains-mono", "OFL.txt"), join(project, "fonts", "inter", "OFL.txt")),
+      ['licenses/OFL-1.1-Inter.txt is not Inter\'s OFL-1.1: it doesn\'t say "The Inter Project Authors"'],
+    ],
+  ])(
+    "fails when a licence file holds the wrong text: %s",
+    async (_name, change, problems) => {
+      const message = await buildChangedProject(change);
+
+      expect(message).toBe(failure(...problems));
+    },
+    BUILD_TIMEOUT,
+  );
+
+  it("fails when resvg's glue is bundled without its legal comment, as when it is copied into our source", async () => {
+    const message = await buildChangedProject((project) => {
+      cpSync(join(project, "node_modules", "@resvg", "resvg-wasm", "index.mjs"), join(project, "src", "raster", "resvg-glue.mjs"));
+      const raster = join(project, "src", "raster", "index.ts");
+      writeFileSync(raster, readFileSync(raster, "utf8").replace('from "@resvg/resvg-wasm";', 'from "./resvg-glue.mjs";'));
+    });
+
+    expect(message).toBe(
+      failure("structa.mjs has no legal comment for resvg's glue: /*! @resvg/resvg-wasm 2.6.2 | MPL-2.0 | https://github.com/thx/resvg-js/tree/v2.6.2 */"),
+    );
+  }, BUILD_TIMEOUT);
+
+  it("fails when structa.mjs doesn't start with its licence banner, as when the source starts with a hashbang", async () => {
+    const message = await buildChangedProject((project) => {
+      const entry = join(project, "src", "structa.ts");
+      writeFileSync(entry, `#!/usr/bin/env node\n${readFileSync(entry, "utf8")}`);
+    });
+
+    expect(message).toBe(failure("structa.mjs doesn't start with its licence banner"));
+  }, BUILD_TIMEOUT);
+
+  it("fails when structa.mjs bundles code from a package that no licence file covers", async () => {
+    const message = await buildChangedProject((project) => {
+      for (const [name, colour] of [["a-new-library", "teal"], ["@someone/new-library", "plum"]] as const) {
+        const dir = join(project, "node_modules", ...name.split("/"));
+        mkdirSync(dir, { recursive: true });
+        writeFileSync(join(dir, "package.json"), JSON.stringify({ name, version: "1.0.0", type: "module", main: "index.js" }));
+        writeFileSync(join(dir, "index.js"), `export const colour = ${JSON.stringify(colour)};\n`);
+      }
+      appendTo("src/structa.ts", 'export { colour as teal } from "a-new-library";\nexport { colour as plum } from "@someone/new-library";\n')(project);
+    });
+
+    const hint =
+      "To ship a new library on purpose, add its licence in licenceFiles() in scripts/lib/skill.ts with the package in its packages, " +
+      "and add it to the banner and to RELEASE_LICENSE";
+    expect(message).toBe(
+      failure(
+        `structa.mjs bundles @someone/new-library (node_modules/@someone/new-library/index.js), but nothing in licenses/ covers it: it may bundle only @resvg/resvg-wasm. ${hint}`,
+        `structa.mjs bundles a-new-library (node_modules/a-new-library/index.js), but nothing in licenses/ covers it: it may bundle only @resvg/resvg-wasm. ${hint}`,
       ),
     );
   }, BUILD_TIMEOUT);

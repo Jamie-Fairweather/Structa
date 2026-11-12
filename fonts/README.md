@@ -15,4 +15,4 @@ Unmodified static TTFs from the official release zips, each under the SIL Open F
 
 Sources: https://github.com/rsms/inter/releases/tag/v4.1 and https://github.com/JetBrains/JetBrainsMono/releases/tag/v2.304.
 
-Keep these files byte-for-byte as released. `bun run generate` trims them for shipping into `generated/fonts/` (only the shared characters, no OpenType layout tables, every name record kept) and reads the width tables from those trimmed copies.
+Keep these files byte-for-byte as released. The skill folder ships each `OFL.txt` unchanged, as `licenses/OFL-1.1-Inter.txt` and `licenses/OFL-1.1-JetBrains-Mono.txt`. `bun run generate` trims them for shipping into `generated/fonts/` (only the shared characters, no OpenType layout tables, every name record kept) and reads the width tables from those trimmed copies.

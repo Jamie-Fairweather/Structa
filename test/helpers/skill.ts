@@ -1,9 +1,10 @@
 import { spawnSync } from "node:child_process";
-import { cpSync, mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { buildSkill } from "../../scripts/lib/skill";
+import { unzipSync } from "fflate";
+import { buildSkill, releaseSkill, type Release } from "../../scripts/lib/skill";
 
 const repository = fileURLToPath(new URL("../..", import.meta.url));
 
@@ -12,9 +13,14 @@ const BUILD_INPUTS = [
   "src",
   "generated",
   "examples",
+  "licenses",
+  "LICENSE",
+  "fonts/inter/OFL.txt",
+  "fonts/jetbrains-mono/OFL.txt",
   "package.json",
   "tsconfig.json",
   "node_modules/elkjs/package.json",
+  "node_modules/elkjs/LICENSE.md",
   "node_modules/elkjs/lib/elk.bundled.js",
   "node_modules/@resvg/resvg-wasm",
 ];
@@ -31,8 +37,10 @@ export interface RunOptions {
 }
 
 export interface BuiltSkill {
-  /** The built skill folder, inside a project whose package.json says "type": "module". */
+  /** The skill folder unzipped from the release zip, inside a project whose package.json says "type": "module". */
   readonly dir: string;
+  /** What `bun run release` makes, made in a folder outside that project. */
+  readonly release: Release;
   /** A folder outside the skill folder, where every run starts. */
   readonly elsewhere: string;
   /** Runs `node <dir>/structa.mjs ...args` from `elsewhere` with this Node. */
@@ -44,14 +52,16 @@ export interface BuiltSkill {
 }
 
 /**
- * Builds the skill folder the way a user would drop it in: under a project
+ * Makes the release as `bun run release` does, and unzips its zip the way a
+ * user would drop the skill folder in: into the skills folder of a project
  * whose package.json says "type": "module" and whose node_modules holds a
  * decoy elkjs that throws if anything loads it.
  */
 export async function buildSkillForTest(): Promise<BuiltSkill> {
   const root = realpathSync(mkdtempSync(join(tmpdir(), "structa-skill-")));
   const project = join(root, "project");
-  const dir = join(project, "skills", "structa");
+  const skills = join(project, "skills");
+  const dir = join(skills, "structa");
   const elsewhere = join(root, "elsewhere");
   mkdirSync(elsewhere, { recursive: true });
   mkdirSync(join(project, "node_modules", "elkjs", "lib"), { recursive: true });
@@ -61,9 +71,13 @@ export async function buildSkillForTest(): Promise<BuiltSkill> {
   writeFileSync(join(project, "node_modules", "elkjs", "index.js"), decoy);
   writeFileSync(join(project, "node_modules", "elkjs", "lib", "elk.bundled.js"), decoy);
 
-  await buildSkill(dir);
+  const release = await releaseSkill(join(root, "dist"));
+  for (const [path, bytes] of Object.entries(unzipSync(readFileSync(release.zip)))) {
+    mkdirSync(dirname(join(skills, path)), { recursive: true });
+    writeFileSync(join(skills, path), bytes);
+  }
 
-  const node = (args: readonly string[], options: RunOptions = {}): RunResult => {
+  const node =(args: readonly string[], options: RunOptions = {}): RunResult => {
     const result = spawnSync(process.execPath, args, {
       cwd: elsewhere,
       input: options.stdin ?? "",
@@ -76,6 +90,7 @@ export async function buildSkillForTest(): Promise<BuiltSkill> {
 
   return {
     dir,
+    release,
     elsewhere,
     node,
     run: (args, options = {}) => node([join(options.dir ?? dir, "structa.mjs"), ...args], options),
