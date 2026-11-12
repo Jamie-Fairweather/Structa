@@ -23,6 +23,7 @@ const MODULE_FILE = "structa.mjs";
 const ELK_FILE = "elk.bundled.js";
 const SCHEMA_FILE = "structa.schema.json";
 const EXAMPLES_DIR = "examples";
+const LICENSES_DIR = "licenses";
 const PACKAGE_JSON = '{"type":"commonjs"}\n';
 
 /**
@@ -75,6 +76,7 @@ export async function buildSkill(outDir: string, project: string = repository): 
   copyFileSync(join(elkPackage, "lib", ELK_FILE), join(outDir, ELK_FILE));
   writeFileSync(join(outDir, "package.json"), PACKAGE_JSON);
   cpSync(join(project, EXAMPLES_DIR), join(outDir, EXAMPLES_DIR), { recursive: true });
+  writeLicences(join(outDir, LICENSES_DIR), licenceFiles(project, elkPackage, resvg));
 
   const problems = checkSkill(outDir, project, elkPackage);
   if (problems.length > 0) throw new Error(`the skill folder failed its checks:\n${problems.join("\n")}`);
@@ -91,21 +93,33 @@ export async function buildSkill(outDir: string, project: string = repository): 
   writeFileSync(join(outDir, SCHEMA_FILE), schema.stdout);
 }
 
-/**
- * The pinned @resvg/resvg-wasm in `project`: its folder, its unmodified wasm
- * brotli-compressed and base64-encoded for embedding, and the legal comment
- * that goes before its JavaScript glue.
- */
-function readResvg(project: string): { glue: string; wasm: string; legalComment: string } {
+/** The pinned @resvg/resvg-wasm, as the build embeds it. */
+interface Resvg {
+  /** Its folder, which holds its JavaScript glue. */
+  readonly glue: string;
+  /** Its unmodified wasm, brotli-compressed and base64-encoded. */
+  readonly wasm: string;
+  readonly version: string;
+  /** Its source code at that version. */
+  readonly source: string;
+  /** The comment that goes before its glue. */
+  readonly legalComment: string;
+}
+
+/** The pinned @resvg/resvg-wasm in `project`. */
+function readResvg(project: string): Resvg {
   // The package exports only its entry point and its wasm, so find its folder from the wasm.
   const wasmFile = createRequire(join(project, "package.json")).resolve("@resvg/resvg-wasm/index_bg.wasm");
   const glue = dirname(wasmFile);
-  const { version } = JSON.parse(readFileSync(join(glue, "package.json"), "utf8")) as Manifest;
+  const version = String((JSON.parse(readFileSync(join(glue, "package.json"), "utf8")) as Manifest).version);
   const compressed = brotliCompressSync(readFileSync(wasmFile), { params: { [zlib.BROTLI_PARAM_QUALITY]: 9 } });
+  const source = `https://github.com/thx/resvg-js/tree/v${version}`;
   return {
     glue,
     wasm: compressed.toString("base64"),
-    legalComment: `/*! @resvg/resvg-wasm ${version} | MPL-2.0 | https://github.com/thx/resvg-js/tree/v${version} */`,
+    version,
+    source,
+    legalComment: `/*! @resvg/resvg-wasm ${version} | MPL-2.0 | ${source} */`,
   };
 }
 
@@ -123,6 +137,70 @@ function legalComment(dir: string, comment: string): Plugin {
       });
     },
   };
+}
+
+/** A file in the skill folder's licenses/ folder. */
+interface LicenceFile {
+  /** Its name in licenses/. */
+  readonly name: string;
+  /** The file the build copies there; otherwise `text` is what it writes. */
+  readonly copy?: string;
+  readonly text?: string;
+}
+
+/**
+ * The licence texts and source notes for everything the skill folder ships,
+ * built from `project`, whose installed elkjs is at `elkPackage`.
+ */
+function licenceFiles(project: string, elkPackage: string, resvg: Resvg): LicenceFile[] {
+  const elk = (JSON.parse(readFileSync(join(elkPackage, "package.json"), "utf8")) as Manifest).version;
+  return [
+    { name: "MIT.txt", copy: join(project, "LICENSE") },
+    { name: "EPL-2.0.md", copy: join(elkPackage, "LICENSE.md") },
+    { name: "Apache-2.0.txt", copy: join(project, LICENSES_DIR, "Apache-2.0.txt") },
+    {
+      name: "elkjs-source.txt",
+      text: [
+        `${ELK_FILE} is lib/${ELK_FILE} from the published elkjs ${elk}, byte for byte. It ships next to ${MODULE_FILE}, which loads it to lay out diagrams.`,
+        "",
+        "Licence: EPL-2.0 OR GPL-3.0-or-later. The EPL-2.0 text is in EPL-2.0.md. The GPL-3.0 text is at https://www.gnu.org/licenses/gpl-3.0-standalone.html.",
+        "",
+        "Source code:",
+        `- elkjs ${elk}: https://github.com/kieler/elkjs/tree/${elk}`,
+        "- Eclipse ELK, the Java code elkjs is compiled from: https://github.com/eclipse-elk/elk",
+        "",
+        `${ELK_FILE} also holds Guava and GWT code, compiled into it along with ELK. That code is licensed Apache-2.0, and its text is in Apache-2.0.txt.`,
+        "- Guava: https://github.com/google/guava",
+        "- GWT: https://github.com/gwtproject/gwt",
+        "",
+      ].join("\n"),
+    },
+    { name: "MPL-2.0.txt", copy: join(project, LICENSES_DIR, "MPL-2.0.txt") },
+    {
+      name: "resvg-source.txt",
+      text: [
+        `${MODULE_FILE} carries index_bg.wasm from the published @resvg/resvg-wasm ${resvg.version} unmodified ` +
+          "(brotli-compressed and base64-encoded, and unpacked with Node's zlib to draw a PNG), " +
+          "and bundles its JavaScript glue, index.mjs, unminified, straight after a comment naming the package, version, licence and source.",
+        "",
+        "Licence: MPL-2.0. Its text is in MPL-2.0.txt.",
+        "",
+        `Source code: ${resvg.source}`,
+        "",
+      ].join("\n"),
+    },
+    { name: "OFL-1.1-Inter.txt", copy: join(project, "fonts", "inter", "OFL.txt") },
+    { name: "OFL-1.1-JetBrains-Mono.txt", copy: join(project, "fonts", "jetbrains-mono", "OFL.txt") },
+  ];
+}
+
+/** Writes `files` into the folder `dir`. */
+function writeLicences(dir: string, files: readonly LicenceFile[]): void {
+  mkdirSync(dir, { recursive: true });
+  for (const file of files) {
+    if (file.copy !== undefined) copyFileSync(file.copy, join(dir, file.name));
+    else writeFileSync(join(dir, file.name), file.text ?? "");
+  }
 }
 
 /** Text that only ELK's compiled code contains: its Java package names and GWT's runtime markers. */

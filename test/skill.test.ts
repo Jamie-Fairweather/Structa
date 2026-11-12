@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { appendFileSync, chmodSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -399,6 +400,78 @@ describe("resvg inside structa.mjs", () => {
     // The glue's own first lines follow, as the package wrote them.
     const glue = text.slice(text.indexOf(legal) + legal.length).trimStart();
     expect(glue.startsWith("var wasm;\nvar heap = new Array(128).fill(void 0);\nheap.push(void 0, null, true, false);\n")).toBe(true);
+  });
+});
+
+describe("the licences in the skill folder", () => {
+  const licence = (name: string) => readFileSync(join(skill.dir, "licenses", name), "utf8");
+  const fromRepository = (path: string) => readFileSync(fileURLToPath(new URL(`../${path}`, import.meta.url)), "utf8");
+
+  it("ships elkjs's own EPL-2.0 text, unchanged", () => {
+    expect(licence("EPL-2.0.md")).toBe(fromRepository("node_modules/elkjs/LICENSE.md"));
+    expect(licence("EPL-2.0.md")).toMatch(/^# Eclipse Public License - v 2\.0\n/);
+  });
+
+  it("says where elkjs's source lives: the shipped version, its repository at that tag, and Eclipse ELK", () => {
+    const note = licence("elkjs-source.txt");
+
+    expect(note).toContain("elk.bundled.js is lib/elk.bundled.js from the published elkjs 0.12.1, byte for byte");
+    expect(note).toContain("https://github.com/kieler/elkjs/tree/0.12.1");
+    expect(note).toContain("https://github.com/eclipse-elk/elk");
+    expect(note).toContain("EPL-2.0 OR GPL-3.0-or-later");
+  });
+
+  it("ships the Apache-2.0 text, as apache.org publishes it, for the Guava and GWT code compiled into elkjs", () => {
+    const sha256 = createHash("sha256").update(licence("Apache-2.0.txt")).digest("hex");
+
+    // The SHA-256 of https://www.apache.org/licenses/LICENSE-2.0.txt.
+    expect(sha256).toBe("cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30");
+    expect(licence("elkjs-source.txt")).toContain(
+      [
+        "elk.bundled.js also holds Guava and GWT code, compiled into it along with ELK. That code is licensed Apache-2.0, and its text is in Apache-2.0.txt.",
+        "- Guava: https://github.com/google/guava",
+        "- GWT: https://github.com/gwtproject/gwt",
+      ].join("\n"),
+    );
+  });
+
+  it("ships the MPL-2.0 text, as mozilla.org publishes it, and says where resvg's wasm and glue come from", () => {
+    const sha256 = createHash("sha256").update(licence("MPL-2.0.txt")).digest("hex");
+    const note = licence("resvg-source.txt");
+
+    // The SHA-256 of https://www.mozilla.org/media/MPL/2.0/index.txt.
+    expect(sha256).toBe("3f3d9e0024b1921b067d6f7f88deb4a60cbe7a78e76c64e3f1d7fc3b779b9d04");
+    expect(note).toContain("structa.mjs carries index_bg.wasm from the published @resvg/resvg-wasm 2.6.2 unmodified");
+    expect(note).toContain("and bundles its JavaScript glue, index.mjs, unminified");
+    expect(note).toContain("Licence: MPL-2.0. Its text is in MPL-2.0.txt.");
+    expect(note).toContain("Source code: https://github.com/thx/resvg-js/tree/v2.6.2");
+  });
+
+  it.each([
+    ["OFL-1.1-Inter.txt", "fonts/inter/OFL.txt", "Copyright (c) 2016 The Inter Project Authors"],
+    ["OFL-1.1-JetBrains-Mono.txt", "fonts/jetbrains-mono/OFL.txt", "Copyright 2020 The JetBrains Mono Project Authors"],
+  ])("ships %s, the font's own OFL-1.1 from %s", (name, original, copyright) => {
+    expect(licence(name)).toBe(fromRepository(original));
+    expect(licence(name).startsWith(`${copyright} (https://github.com/`)).toBe(true);
+    expect(licence(name)).toContain("SIL OPEN FONT LICENSE Version 1.1");
+  });
+
+  it("ships Structa's own MIT licence", () => {
+    expect(licence("MIT.txt")).toBe(fromRepository("LICENSE"));
+    expect(licence("MIT.txt")).toMatch(/^MIT License\n/);
+  });
+
+  it("holds exactly the licence texts and source notes", () => {
+    expect(readdirSync(join(skill.dir, "licenses")).sort()).toEqual([
+      "Apache-2.0.txt",
+      "EPL-2.0.md",
+      "MIT.txt",
+      "MPL-2.0.txt",
+      "OFL-1.1-Inter.txt",
+      "OFL-1.1-JetBrains-Mono.txt",
+      "elkjs-source.txt",
+      "resvg-source.txt",
+    ]);
   });
 });
 
