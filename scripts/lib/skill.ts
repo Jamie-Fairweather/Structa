@@ -3,8 +3,8 @@
  * glue and wasm inside it, elkjs's own file copied beside it untouched, a
  * one-line package.json that makes the folder CommonJS so elkjs's UMD file
  * loads even inside an ESM project, the examples folder, the JSON Schema
- * the module prints, and the licences of everything in it. Also zips the
- * folder for release.
+ * the module prints, and the licences of everything in it. Also makes the
+ * release: the folder, its zip and the zip's notes.
  */
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -109,7 +109,45 @@ export async function buildSkill(outDir: string, project: string = repository): 
 }
 
 /** The licence of the release zip as a whole: Structa's own, and those of the parts it ships. */
-export const RELEASE_LICENSE = "MIT AND (EPL-2.0 OR GPL-3.0-or-later) AND MPL-2.0 AND OFL-1.1 AND Apache-2.0";
+const RELEASE_LICENSE = "MIT AND (EPL-2.0 OR GPL-3.0-or-later) AND MPL-2.0 AND OFL-1.1 AND Apache-2.0";
+
+/** The notes the release job publishes the zip with. */
+const RELEASE_NOTES = [
+  "Unzip `structa.zip` into your skills folder: it holds a ready-to-use `structa` skill folder.",
+  "Agents then run `node structa.mjs diagram.json -o diagram.png` in it, with Node 20 or newer and nothing to install.",
+  "",
+  `Licence of the zip: \`${RELEASE_LICENSE}\`.`,
+  "Structa's own code is MIT. The licence texts and source notes for the parts it ships are in `structa/licenses/`.",
+  "",
+].join("\n");
+
+/** What `bun run release` makes, all in one folder. */
+export interface Release {
+  /** The skill folder, structa/. */
+  readonly folder: string;
+  /** structa.zip, the skill folder zipped, which the release job attaches to the GitHub Release. */
+  readonly zip: string;
+  /** release-notes.md, the notes the release job publishes the zip with. */
+  readonly notes: string;
+}
+
+/**
+ * Makes the release from the project at `project` (this repository; tests
+ * pass a changed copy) in the folder `distDir`: builds the skill folder into
+ * structa/, failing on any release-blocking check, then zips it into
+ * structa.zip and writes release-notes.md.
+ */
+export async function releaseSkill(distDir: string, project: string = repository): Promise<Release> {
+  const release: Release = {
+    folder: join(distDir, ZIP_FOLDER),
+    zip: join(distDir, `${ZIP_FOLDER}.zip`),
+    notes: join(distDir, "release-notes.md"),
+  };
+  await buildSkill(release.folder, project);
+  writeFileSync(release.zip, zipSkill(release.folder));
+  writeFileSync(release.notes, RELEASE_NOTES);
+  return release;
+}
 
 /** The folder the zip holds the skill folder in, so it unzips ready to drop into a skills folder. */
 const ZIP_FOLDER = "structa";

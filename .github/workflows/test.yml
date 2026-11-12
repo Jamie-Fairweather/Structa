@@ -49,6 +49,14 @@ jobs:
 
       - run: bun run test
 
+      # Makes the release exactly as the release workflow does: builds the
+      # skill folder with its release-blocking checks (ELK, fonts, licences),
+      # zips it into dist/structa.zip and writes dist/release-notes.md. Then
+      # Info-ZIP, a separate zip reader, tests the zip.
+      - run: bun run release
+
+      - run: unzip -tq dist/structa.zip
+
       # Builds the skill folder into dist/structa and runs the packaging checks,
       # then draws every example with it into the gallery page, so the gallery
       # script can't break unnoticed.
