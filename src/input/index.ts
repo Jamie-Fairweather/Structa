@@ -49,17 +49,18 @@ export function parseDiagram(input: unknown): ParseResult {
   if (value.type !== "flow") problem("type", 'only "flow" is supported so far');
 
   const nodes: FlowStep[] = [];
+  // Every node with a usable id, even one with other problems, so edges to it aren't reported as dangling.
+  const nodeIds = new Set<string>();
   if (!Array.isArray(value.nodes)) {
     problem("nodes", "must be a list of nodes");
   } else {
-    const seen = new Set<string>();
     value.nodes.forEach((node: unknown, i) => {
       const path = `nodes[${i}]`;
       if (!isObject(node)) return problem(path, "must be an object");
       const id = node.id;
       if (!isId(id)) problem(`${path}.id`, "must be a non-empty string");
-      else if (seen.has(id)) problem(`${path}.id`, `another node already has the id "${id}"`, "give every node its own id");
-      else seen.add(id);
+      else if (nodeIds.has(id)) problem(`${path}.id`, `another node already has the id "${id}"`, "give every node its own id");
+      else nodeIds.add(id);
       if (typeof node.label !== "string") problem(`${path}.label`, "must be a string");
       if (node.shape !== "step") problem(`${path}.shape`, 'only "step" is supported so far');
       if (isId(id) && typeof node.label === "string") nodes.push({ id, label: node.label, shape: "step" });
@@ -67,7 +68,6 @@ export function parseDiagram(input: unknown): ParseResult {
   }
 
   const edges: FlowEdge[] = [];
-  const nodeIds = new Set(nodes.map((n) => n.id));
   if (value.edges !== undefined && !Array.isArray(value.edges)) {
     problem("edges", "must be a list of edges");
   } else {

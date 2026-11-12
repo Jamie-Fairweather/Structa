@@ -83,6 +83,21 @@ describe("render()", () => {
     ]);
   });
 
+  it("doesn't report edges to a node that exists but has another problem", async () => {
+    const error = await rejection(
+      render({
+        type: "flow",
+        nodes: [
+          { id: "dig", shape: "step" },
+          { id: "plant", label: "Plant the bulbs", shape: "step" },
+        ],
+        edges: [{ from: "dig", to: "plant" }],
+      }),
+    );
+
+    expect(error.problems).toEqual([{ path: "nodes[0].label", message: "must be a string" }]);
+  });
+
   it.each([
     ["a list", [], "$", "must be an object describing one diagram"],
     ["another type", { type: "class", nodes: [] }, "type", 'only "flow" is supported so far'],
