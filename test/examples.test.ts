@@ -33,6 +33,23 @@ describe("examples", () => {
     ).toBe(true);
   });
 
+  it("includes a class diagram whose rows use every status, some taking their card's", () => {
+    type Row = { status?: string };
+    type ClassNode = { status?: string; properties?: Row[]; methods?: Row[] };
+    const used = examples.map(({ json }) => JSON.parse(json) as { type: string; nodes: ClassNode[] });
+    const rows = (node: ClassNode) => [...(node.properties ?? []), ...(node.methods ?? [])];
+    const all = ["new", "changed", "removed", "unchanged"];
+
+    expect(
+      used.some(
+        (d) =>
+          d.type === "class" &&
+          all.every((s) => d.nodes.some((node) => rows(node).some((row) => row.status === s))) &&
+          d.nodes.some((node) => (node.status === "new" || node.status === "removed") && rows(node).some((row) => !row.status)),
+      ),
+    ).toBe(true);
+  });
+
   // Every example in both themes. The theme option wins over any theme in the example's JSON.
   describe.each(examples)("$name", ({ name, json }) => {
     describe.each(["light", "dark"] as const)("in %s", (theme) => {

@@ -81,14 +81,73 @@ describe("node structa.mjs schema", () => {
   });
 });
 
+/** A small valid class diagram. */
+function toolShed() {
+  return {
+    type: "class",
+    nodes: [
+      { id: "shed", label: "ToolShed", properties: [{ text: "floor: Area" }], methods: [{ text: "lock(key: Key): void" }] },
+      { id: "rake", label: "Rake", properties: [{ text: "tines: int" }], methods: [{ text: "gather(): Leaves" }] },
+    ],
+    edges: [{ id: "holds", from: "shed", to: "rake", kind: "association" }],
+  } as Node;
+}
+
+/** A part of the schema: its name, the type of diagram it's in, where it is in the schema and in the input, and its path. */
+type Part = readonly [name: string, type: string, part: () => Node, target: (input: Node) => Node, prefix: string];
+
+/** A small valid diagram of each type. */
+const FIXTURES = new Map<string, () => Node>([
+  ["class", toolShed],
+  ["flow", greenhouse],
+]);
+
 describe("the JSON Schema", () => {
   let root: Node;
+  /** The schema of one node or one edge in a diagram of this type. */
+  let items: (type: string, list: "nodes" | "edges") => Node;
   let node: Node;
   let edge: Node;
   beforeAll(() => {
     root = JSON.parse(printed.stdout) as Node;
-    node = root.properties.nodes.items;
-    edge = root.properties.edges.items;
+    items = (type, list) => {
+      const branches = (root.allOf as Node[]).filter((branch) => branch.if.properties.type.const === type);
+      expect(branches).toHaveLength(1);
+      return branches[0]!.then.properties[list].items;
+    };
+    node = items("flow", "nodes");
+    edge = items("flow", "edges");
+  });
+
+  /** The class card's property and method rows, as parts of the schema, in the class node at `n`. */
+  function rowParts(n: number): Part[] {
+    return (["properties", "methods"] as const).map((section) => [
+      `a class row in ${section}`,
+      "class",
+      () => items("class", "nodes").properties[section].items,
+      (input: Node) => input.nodes[n][section][0],
+      `nodes[${n}].${section}[0].`,
+    ]);
+  }
+
+  it("offers exactly the diagram types render() accepts, each with its own nodes and edges", async () => {
+    const validate = new Ajv2020({ strict: true }).compile(root);
+    expect(root.properties.type.enum).toEqual(["class", "flow"]);
+
+    for (const [type, fixture] of FIXTURES) {
+      expect([type, await outcome(fixture())]).toEqual([type, "ok"]);
+      expect([type, validate(fixture())]).toEqual([type, true]);
+      // The other type's nodes don't fit this type.
+      for (const [other, otherFixture] of FIXTURES) {
+        if (other === type) continue;
+        const mixed = { ...fixture(), nodes: otherFixture().nodes, edges: [] };
+        expect([type, other, await outcome(mixed)]).not.toEqual([type, other, "ok"]);
+        expect([type, other, validate(mixed)]).toEqual([type, other, false]);
+      }
+    }
+    expect(await outcome({ ...greenhouse(), type: "sideways" })).toEqual([
+      expect.objectContaining({ path: "type", hint: 'use "class" or "flow"' }),
+    ]);
   });
 
   it("is written down as a reviewable file", async () => {
@@ -100,12 +159,15 @@ describe("the JSON Schema", () => {
     expect(root.type).toBe("object");
   });
 
-  it.each([
-    ["the top level", () => root, (input: Node) => input, ""],
-    ["a node", () => node, (input: Node) => input.nodes[0], "nodes[0]."],
-    ["an edge", () => edge, (input: Node) => input.edges[0], "edges[0]."],
-  ])("lists exactly the fields render() allows on %s", async (_name, part, target, prefix) => {
-    const input = greenhouse();
+  it.each<Part>([
+    ["the top level", "flow", () => root, (input: Node) => input, ""],
+    ["a flow node", "flow", () => node, (input: Node) => input.nodes[0], "nodes[0]."],
+    ["a flow edge", "flow", () => edge, (input: Node) => input.edges[0], "edges[0]."],
+    ["a class node", "class", () => items("class", "nodes"), (input: Node) => input.nodes[0], "nodes[0]."],
+    ["a class edge", "class", () => items("class", "edges"), (input: Node) => input.edges[0], "edges[0]."],
+    ...rowParts(0),
+  ])("lists exactly the fields render() allows on %s", async (_name, type, part, target, prefix) => {
+    const input = FIXTURES.get(type)!();
     target(input).mulch = true;
 
     expect(part().additionalProperties).toBe(false);
@@ -114,13 +176,16 @@ describe("the JSON Schema", () => {
     ]);
   });
 
-  it.each([
-    ["the top level", () => root, (input: Node) => input, ""],
-    ["a node", () => node, (input: Node) => input.nodes[1], "nodes[1]."],
-    ["an edge", () => edge, (input: Node) => input.edges[0], "edges[0]."],
-  ])("requires exactly the fields render() requires on %s", async (_name, part, target, prefix) => {
+  it.each<Part>([
+    ["the top level", "flow", () => root, (input: Node) => input, ""],
+    ["a flow node", "flow", () => node, (input: Node) => input.nodes[1], "nodes[1]."],
+    ["a flow edge", "flow", () => edge, (input: Node) => input.edges[0], "edges[0]."],
+    ["a class node", "class", () => items("class", "nodes"), (input: Node) => input.nodes[1], "nodes[1]."],
+    ["a class edge", "class", () => items("class", "edges"), (input: Node) => input.edges[0], "edges[0]."],
+    ...rowParts(1),
+  ])("requires exactly the fields render() requires on %s", async (_name, type, part, target, prefix) => {
     for (const field of Object.keys(part().properties)) {
-      const input = greenhouse();
+      const input = FIXTURES.get(type)!();
       delete target(input)[field];
 
       const result = await outcome(input);
@@ -130,22 +195,46 @@ describe("the JSON Schema", () => {
     }
   });
 
-  it.each([
-    ["type", () => root, (input: Node, value: string) => (input.type = value)],
-    ["theme", () => root, (input: Node, value: string) => (input.theme = value)],
-    ["direction", () => root, (input: Node, value: string) => (input.direction = value)],
-    ["shape", () => node, (input: Node, value: string) => (input.nodes[0].shape = value)],
-    ["node status", () => node, (input: Node, value: string) => (input.nodes[0].status = value)],
-    ["edge status", () => edge, (input: Node, value: string) => (input.edges[0].status = value)],
-  ])("offers exactly the %s values render() accepts", async (name, part, set) => {
+  /** The first row of a class card's section: its part of the schema, and the row in the input. */
+  const classRow = (section: "properties" | "methods") => ({
+    part: () => items("class", "nodes").properties[section].items,
+    row: (input: Node) => input.nodes[0][section][0],
+  });
+
+  it.each<readonly [name: string, type: string, part: () => Node, set: (input: Node, value: string) => void]>([
+    ["theme", "flow", () => root, (input, value) => (input.theme = value)],
+    ["direction", "flow", () => root, (input, value) => (input.direction = value)],
+    ["shape", "flow", () => node, (input, value) => (input.nodes[0].shape = value)],
+    ["node status", "flow", () => node, (input, value) => (input.nodes[0].status = value)],
+    ["edge status", "flow", () => edge, (input, value) => (input.edges[0].status = value)],
+    ["class node status", "class", () => items("class", "nodes"), (input, value) => (input.nodes[0].status = value)],
+    ["class edge kind", "class", () => items("class", "edges"), (input, value) => (input.edges[0].kind = value)],
+    ...(["properties", "methods"] as const).flatMap((section) => {
+      const { part, row } = classRow(section);
+      return [
+        [`${section} row visibility`, "class", part, (input: Node, value: string) => (row(input).visibility = value)],
+        [
+          `${section} row status`,
+          "class",
+          part,
+          (input: Node, value: string) => {
+            // A row with a status needs its card to have one; a changed card's rows may have any.
+            input.nodes[0].status = "changed";
+            row(input).status = value;
+          },
+        ],
+      ] as const;
+    }),
+  ])("offers exactly the %s values render() accepts", async (name, type, part, set) => {
     const values: string[] = part().properties[name.split(" ").at(-1)!].enum;
+    expect(values.length).toBeGreaterThan(0);
 
     for (const value of values) {
-      const input = greenhouse();
+      const input = FIXTURES.get(type)!();
       set(input, value);
-      expect(await outcome(input)).toBe("ok");
+      expect([value, await outcome(input)]).toEqual([value, "ok"]);
     }
-    const input = greenhouse();
+    const input = FIXTURES.get(type)!();
     set(input, "sideways");
     const quoted = values.map((v) => JSON.stringify(v));
     const choices = quoted.length <= 2 ? quoted.join(" or ") : `${quoted.slice(0, -1).join(", ")} or ${quoted.at(-1)}`;
@@ -241,9 +330,32 @@ describe("the JSON Schema", () => {
     expect(label.minLength).toBe(1);
   });
 
-  it("sets the length limits for titles, labels, descriptions and line labels in one place, and rules out blank text", () => {
-    for (const kind of ["title", "label", "description", "lineLabel"]) {
+  it("sets the length limits for titles, labels, descriptions, line labels and row text in one place, and rules out blank text", () => {
+    for (const kind of ["title", "label", "description", "lineLabel", "rowText"]) {
       expect(root.$defs[kind]).toMatchObject({ type: "string", minLength: 1, maxLength: expect.any(Number), pattern: "[^ ]" });
+    }
+  });
+
+  it("agrees with render() that more is a whole number from 1 to 9999", async () => {
+    const validate = new Ajv2020({ strict: true }).compile(root);
+    expect(items("class", "nodes").properties.more).toMatchObject({ type: "integer", minimum: 1, maximum: 9999 });
+
+    for (const more of [0, 1, 2.5, 12, 9999, 10000, "12", -1]) {
+      const input = toolShed();
+      input.nodes[0].more = more;
+      const accepted = validate(input);
+      expect([more, (await outcome(input)) === "ok"]).toEqual([more, accepted]);
+    }
+  });
+
+  it("agrees with render() that row text may use what JetBrains Mono draws, not what Inter draws", async () => {
+    const pattern = new RegExp(items("class", "nodes").properties.methods.items.properties.text.pattern, "u");
+
+    // JetBrains Mono can draw ⇑ but not Ĳ; Inter is the other way round.
+    for (const [text, drawable] of [["climb(): ⇑", true], ["Ĳssel(): void", false]] as const) {
+      const input = toolShed();
+      input.nodes[0].methods[0].text = text;
+      expect([text, pattern.test(text), (await outcome(input)) === "ok"]).toEqual([text, drawable, drawable]);
     }
   });
 

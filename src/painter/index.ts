@@ -1,6 +1,16 @@
 import type { Status } from "../input";
 import type { PlacedCard, Point, RoutedLine, Scene } from "../layout";
-import { topAt, type Badge, type Card, type Header, type Legend, type Line, type LineLabel, type TextLine } from "../shapes";
+import {
+  topAt,
+  type Badge,
+  type Card,
+  type Header,
+  type Legend,
+  type Line,
+  type LineLabel,
+  type Row,
+  type TextLine,
+} from "../shapes";
 import { FACES, faceStyle, fontDataUrl, type FaceId } from "../text";
 import type { Theme } from "../theme";
 import { arrowhead, roundedRoute } from "./route";
@@ -181,6 +191,7 @@ function card({ card, x: cardX, y: cardY }: PlacedCard<Card>, at: Point, pen: Pe
   const x = cardX + at.x;
   const y = cardY + at.y;
   const { outline } = card;
+  const borderWidth = card.status ? sizes.card.statusBorderWidth : sizes.card.borderWidth;
   return [
     open("g", [["class", "card"], ["data-id", card.id], ["data-kind", card.kind], ...statusAttr(card.status)]),
     el("title", [], escapeText(card.tooltip)),
@@ -193,13 +204,58 @@ function card({ card, x: cardX, y: cardY }: PlacedCard<Card>, at: Point, pen: Pe
         ["rx", sizes.card.radius],
         ["fill", colors.cardFill],
         ["stroke", card.status ? colors.status[card.status].stroke : colors.cardBorder],
-        ["stroke-width", card.status ? sizes.card.statusBorderWidth : sizes.card.borderWidth],
+        ["stroke-width", borderWidth],
         ["filter", `url(#${shadowId})`],
       ]),
+      // Each divider stops at the inside of the border, so it never paints over a status colour.
+      ...card.dividers.map((dividerY) =>
+        el("line", [
+          ["class", "divider"],
+          ["x1", x + outline.x + borderWidth / 2],
+          ["y1", y + dividerY],
+          ["x2", x + outline.x + outline.width - borderWidth / 2],
+          ["y2", y + dividerY],
+          ["stroke", colors.divider],
+          ["stroke-width", sizes.card.borderWidth],
+        ]),
+      ),
       ...card.texts.flatMap((t) => text(t, x, y, colors[t.color], pen)),
+      ...(card.more ? [open("g", [["class", "more"]]), ...text(card.more, x, y, colors[card.more.color], pen), "</g>"] : []),
     ]),
+    // Rows fade themselves, so a removed card's rows aren't faded twice.
+    ...card.rows.flatMap((r) => row(r, x, y, pen)),
     // The badge stays at full strength, so a removed card's REMOVED reads clearly.
     ...(card.badge ? badge(card.badge, x, y, pen) : []),
+    "</g>",
+  ];
+}
+
+/**
+ * One row of a card offset by (x, y), with its own tooltip and data
+ * attributes. A row with a status is tinted with its badge's fill and has its
+ * badge; a removed row is faded, all but its badge.
+ */
+function row(r: Row, x: number, y: number, pen: Pen): string[] {
+  const { colors, sizes } = pen.theme;
+  const tint = r.status
+    ? [
+        el("rect", [
+          ["x", x + r.box.x],
+          ["y", y + r.box.y],
+          ["width", r.box.width],
+          ["height", r.box.height],
+          ["rx", sizes.row.tintRadius],
+          ["fill", colors.status[r.status].badgeFill],
+          ["fill-opacity", colors.rowTintOpacity],
+        ]),
+      ]
+    : [];
+  const symbol = r.symbol ? [open("g", [["class", "symbol"]]), ...text(r.symbol, x, y, colors[r.symbol.color], pen), "</g>"] : [];
+  return [
+    open("g", [["class", "row"], ["data-id", r.id], ["data-kind", r.kind], ...statusAttr(r.status)]),
+    el("title", [], escapeText(r.tooltip)),
+    ...fadedIf(r.status === "removed", pen.theme, [...tint, ...symbol, ...r.texts.flatMap((t) => text(t, x, y, colors[t.color], pen))]),
+    ...(r.badge ? badge(r.badge, x, y, pen) : []),
     "</g>",
   ];
 }
@@ -285,13 +341,14 @@ function line(line: Line, points: readonly Point[], at: Point, pen: Pen): string
     el("title", [], escapeText(line.tooltip)),
     ...fadedIf(line.status === "removed", pen.theme, [
       el("path", [
-        ["d", roundedRoute(pts, cornerRadius, arrowLength)],
+        // A line with an arrowhead stops short of its end, where the arrowhead's tip is.
+        ["d", roundedRoute(pts, cornerRadius, line.arrow ? arrowLength : 0)],
         ["fill", "none"],
         ["stroke", colour],
         ["stroke-width", line.emphasis ? sizes.line.emphasisWidth : sizes.line.width],
         ["stroke-linejoin", "round"],
       ]),
-      el("path", [["d", arrowhead(pts, arrowLength, arrowWidth)], ["fill", colour]]),
+      ...(line.arrow ? [el("path", [["d", arrowhead(pts, arrowLength, arrowWidth)], ["fill", colour]])] : []),
     ]),
     "</g>",
   ];

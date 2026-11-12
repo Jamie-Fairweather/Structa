@@ -1,21 +1,26 @@
 import { drawableRanges, type FaceId } from "../text";
-import { FLOW, ID_PATTERN, TEXT_KINDS, type Def, type Field, type ObjectDef } from "./definitions";
+import { DEFINITIONS, ID_PATTERN, SHARED, TEXT_KINDS, type Def, type Field, type ListDef, type ObjectDef } from "./definitions";
 
 /** A JSON value; objects are built in a fixed key order. */
 type JsonSchema = { [key: string]: unknown };
 
 /**
  * The JSON Schema (draft 2020-12) for the input, generated from the same
- * definitions as the validator. The validator also checks what a schema
- * can't say: references and unique ids.
+ * definitions as the validator. The top level holds the fields every type
+ * shares; each type's nodes and edges come in a branch chosen by `type`. The
+ * validator also checks what a schema can't say: references and unique ids.
  */
 export function jsonSchema(): JsonSchema {
   return {
     $schema: "https://json-schema.org/draft/2020-12/schema",
     title: "Structa diagram",
     description:
-      'One diagram for Structa to draw. Text is plain text in Latin letters, digits and common symbols, with no control characters; runs of spaces collapse to one, and text can\'t be only spaces. Ids must be unique across nodes and edges, and "from" and "to" must name a node.',
-    ...objectSchema(FLOW),
+      'One diagram for Structa to draw. Text is plain text in Latin letters, digits and common symbols, with no control characters; runs of spaces collapse to one, and text can\'t be only spaces. Ids must be unique across nodes and edges, and a row\'s id within its card; "from" and "to" must name a node.',
+    ...objectSchema(SHARED),
+    allOf: [...DEFINITIONS].map(([type, def]) => ({
+      if: { properties: { type: { const: type } }, required: ["type"] },
+      then: { properties: { nodes: itemsSchema(def, "nodes"), edges: itemsSchema(def, "edges") } },
+    })),
     $defs: {
       id: { description: "letters, digits and - _ . :", type: "string", pattern: ID_PATTERN },
       ...Object.fromEntries(
@@ -29,8 +34,15 @@ export function jsonSchema(): JsonSchema {
   };
 }
 
+/** What one item of a type's `nodes` or `edges` list must be. */
+function itemsSchema(def: ObjectDef, name: "nodes" | "edges"): JsonSchema {
+  const list = def.fields.find((field) => field.name === name)!.def as ListDef;
+  return { type: "array", items: defSchema(list.items) };
+}
+
 function objectSchema(def: ObjectDef): JsonSchema {
   return {
+    ...(def.description === undefined ? {} : { description: def.description }),
     type: "object",
     properties: Object.fromEntries(def.fields.map((field) => [field.name, fieldSchema(field)])),
     required: def.fields.filter((f) => f.required).map((f) => f.name),
@@ -49,7 +61,8 @@ function defSchema(def: Def): JsonSchema {
     case "object":
       return objectSchema(def);
     case "list":
-      return { type: "array", maxItems: def.maxItems, items: defSchema(def.items) };
+      // Items that depend on the diagram's type are given in that type's branch.
+      return { type: "array", maxItems: def.maxItems, ...(def.items.kind === "any" ? {} : { items: defSchema(def.items) }) };
     case "text":
       // The length limit lives under $defs; the characters allowed depend on the faces this field is drawn in.
       return { $ref: `#/$defs/${def.text.name}`, type: "string", pattern: drawablePattern(def.faces) };
@@ -60,6 +73,8 @@ function defSchema(def: Def): JsonSchema {
       return { enum: [...def.values] };
     case "boolean":
       return { type: "boolean" };
+    case "count":
+      return { type: "integer", minimum: def.min, maximum: def.max };
     case "const":
       return { const: def.value };
     case "any":

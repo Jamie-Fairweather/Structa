@@ -4,7 +4,7 @@ import type { Direction } from "../input";
 import { createElk } from "./elk";
 import type { LayoutProfile } from "./profiles";
 
-export { FLOW_PROFILE, type LayoutProfile } from "./profiles";
+export { PROFILES, type LayoutProfile } from "./profiles";
 
 /**
  * What layout needs from a card: its fixed size, how far below the top of

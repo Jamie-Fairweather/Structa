@@ -1,6 +1,6 @@
 import { StructaError, type Problem } from "./errors";
 import { parseDiagram } from "./input";
-import { FLOW_PROFILE, layout } from "./layout";
+import { layout, PROFILES } from "./layout";
 import { paint } from "./painter";
 import { DEFAULT_SCALE, rasterise, SCALES, type Scale } from "./raster";
 import { buildCards, buildHeader, buildLegend, buildLine } from "./shapes";
@@ -37,17 +37,19 @@ export async function render<F extends Format = "svg">(
   const { diagram } = parsed;
 
   const theme = getTheme(themeName ?? diagram.theme);
-  const cards = buildCards(diagram.nodes, theme.sizes).map((card, i) => ({ ...card, path: `nodes[${i}]` }));
-  const index = new Map(diagram.nodes.map((node, i) => [node.id, i]));
+  const cards = buildCards(diagram, theme.sizes).map((card, i) => ({ ...card, path: `nodes[${i}]` }));
+  const nodes: readonly { readonly id: string; readonly label: string }[] = diagram.nodes;
+  const index = new Map(nodes.map((node, i) => [node.id, i]));
   const lines = diagram.edges.map((edge, i) => {
     const source = index.get(edge.from)!;
     const target = index.get(edge.to)!;
-    const line = buildLine(edge, diagram.nodes[source]!.label, diagram.nodes[target]!.label, theme.sizes);
+    const line = buildLine(edge, nodes[source]!.label, nodes[target]!.label, theme.sizes);
     return { ...line, source, target, path: `edges[${i}]` };
   });
-  const scene = await layout({ cards, lines }, FLOW_PROFILE, diagram.direction);
+  const scene = await layout({ cards, lines }, PROFILES.get(diagram.type)!, diagram.direction);
   const header = buildHeader(diagram.title, diagram.description, theme.sizes);
-  const statuses = [...diagram.nodes, ...diagram.edges].map((item) => item.status);
+  // Every card's status, its rows' (taken from the card included) and every line's.
+  const statuses = [...cards.flatMap((card) => [card.status, ...card.rows.map((row) => row.status)]), ...lines.map((line) => line.status)];
   const legend = diagram.legend ? buildLegend(statuses, theme.sizes) : undefined;
   const drawing = { scene, header, legend };
 

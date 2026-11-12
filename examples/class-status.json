@@ -1,0 +1,69 @@
+{
+  "type": "class",
+  "title": "Seed library: loans with due dates",
+  "description": "Each loan becomes its own class with a due date, and members get reminders before it. The stamped paper card goes.",
+  "nodes": [
+    {
+      "id": "member",
+      "label": "Member",
+      "status": "changed",
+      "properties": [
+        { "text": "name: string", "visibility": "public", "status": "unchanged" },
+        { "text": "email: string", "visibility": "public", "status": "new" },
+        { "id": "card-number", "text": "cardNumber: string", "visibility": "private", "status": "removed" }
+      ],
+      "methods": [
+        { "id": "borrow", "text": "borrow(packet: SeedPacket, dueOn: Date): Loan", "visibility": "public", "status": "changed" },
+        { "text": "loans(): Loan[]", "visibility": "public" },
+        { "text": "stampCard(packet: SeedPacket): void", "visibility": "private", "status": "removed" }
+      ]
+    },
+    {
+      "id": "loan",
+      "label": "Loan",
+      "description": "One packet lent to one member until a due date.",
+      "status": "new",
+      "properties": [
+        { "text": "startedOn: Date", "visibility": "public" },
+        { "text": "dueOn: Date", "visibility": "public" }
+      ],
+      "methods": [
+        { "text": "isOverdue(today: Date): bool", "visibility": "public" },
+        { "text": "extend(days: int): void", "visibility": "public" }
+      ]
+    },
+    {
+      "id": "packet",
+      "label": "SeedPacket",
+      "status": "unchanged",
+      "properties": [
+        { "text": "variety: string", "visibility": "public" },
+        { "text": "seedCount: int", "visibility": "private" }
+      ],
+      "more": 5
+    },
+    {
+      "id": "paper-card",
+      "label": "PaperCard",
+      "description": "The card members carried, stamped at every loan.",
+      "status": "removed",
+      "properties": [{ "text": "stamps: Stamp[]", "visibility": "private" }],
+      "methods": [{ "text": "stamp(packet: SeedPacket): void", "visibility": "public" }]
+    },
+    {
+      "id": "reminders",
+      "label": "ReminderService",
+      "status": "new",
+      "methods": [
+        { "text": "sendDueSoon(loan: Loan): void", "visibility": "public" },
+        { "text": "sendOverdue(loan: Loan): void", "visibility": "public" }
+      ]
+    }
+  ],
+  "edges": [
+    { "from": "member", "to": "loan", "kind": "association", "label": "borrows", "status": "new", "emphasis": true },
+    { "from": "loan", "to": "packet", "kind": "association", "status": "new" },
+    { "from": "member", "to": "paper-card", "kind": "association", "label": "carries", "status": "removed" },
+    { "from": "reminders", "to": "loan", "kind": "association", "label": "checks daily", "status": "new" }
+  ]
+}

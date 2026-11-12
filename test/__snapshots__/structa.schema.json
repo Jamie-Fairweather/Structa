@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Structa diagram",
-  "description": "One diagram for Structa to draw. Text is plain text in Latin letters, digits and common symbols, with no control characters; runs of spaces collapse to one, and text can't be only spaces. Ids must be unique across nodes and edges, and \"from\" and \"to\" must name a node.",
+  "description": "One diagram for Structa to draw. Text is plain text in Latin letters, digits and common symbols, with no control characters; runs of spaces collapse to one, and text can't be only spaces. Ids must be unique across nodes and edges, and a row's id within its card; \"from\" and \"to\" must name a node.",
   "type": "object",
   "properties": {
     "version": {
@@ -11,6 +11,7 @@
     "type": {
       "description": "the kind of diagram",
       "enum": [
+        "class",
         "flow"
       ]
     },
@@ -50,90 +51,12 @@
     "nodes": {
       "description": "the cards, in reading order; the order gently guides the layout",
       "type": "array",
-      "maxItems": 500,
-      "items": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "description": "a unique id made of letters, digits and - _ . :",
-            "$ref": "#/$defs/id"
-          },
-          "label": {
-            "description": "the text shown in the shape",
-            "$ref": "#/$defs/label",
-            "type": "string",
-            "pattern": "^[\\u0020-\\u007E\\u00A0-\\u00AC\\u00AE-\\u0148\\u014A-\\u017F\\u2010-\\u2015\\u2018-\\u2022\\u2026\\u2030\\u2032-\\u2033\\u2039-\\u203A\\u20AC\\u2122\\u2190-\\u2195\\u21D0\\u21D2\\u21D4\\u2212\\u221E\\u2248\\u2260\\u2264-\\u2265]*$"
-          },
-          "status": {
-            "description": "what the change does to this card; leave it out for no status",
-            "enum": [
-              "new",
-              "changed",
-              "removed",
-              "unchanged"
-            ]
-          },
-          "shape": {
-            "description": "the shape drawn",
-            "enum": [
-              "step"
-            ]
-          }
-        },
-        "required": [
-          "id",
-          "label",
-          "shape"
-        ],
-        "additionalProperties": false
-      }
+      "maxItems": 500
     },
     "edges": {
       "description": "the lines between cards",
       "type": "array",
       "maxItems": 1000,
-      "items": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "description": "a unique id; without one the line is known as edges[N]",
-            "$ref": "#/$defs/id"
-          },
-          "from": {
-            "description": "the id of the node the line starts at",
-            "$ref": "#/$defs/id"
-          },
-          "to": {
-            "description": "the id of the node the line ends at",
-            "$ref": "#/$defs/id"
-          },
-          "label": {
-            "description": "a short label drawn in a pill on the line",
-            "$ref": "#/$defs/lineLabel",
-            "type": "string",
-            "pattern": "^[\\u0020-\\u007E\\u00A0-\\u00AC\\u00AE-\\u0148\\u014A-\\u017F\\u2010-\\u2015\\u2018-\\u2022\\u2026\\u2030\\u2032-\\u2033\\u2039-\\u203A\\u20AC\\u2122\\u2190-\\u2195\\u21D0\\u21D2\\u21D4\\u2212\\u221E\\u2248\\u2260\\u2264-\\u2265]*$"
-          },
-          "status": {
-            "description": "what the change does to this line, shown by its colour; leave it out for no status",
-            "enum": [
-              "new",
-              "changed",
-              "removed",
-              "unchanged"
-            ]
-          },
-          "emphasis": {
-            "description": "true draws the line thicker, to point out the main path",
-            "type": "boolean",
-            "default": false
-          }
-        },
-        "required": [
-          "from",
-          "to"
-        ],
-        "additionalProperties": false
-      },
       "default": []
     }
   },
@@ -142,6 +65,307 @@
     "nodes"
   ],
   "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "class"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "nodes": {
+            "type": "array",
+            "items": {
+              "description": "One class. Its rows' statuses must agree with its own: a row in a new or removed card can only have the card's status, and takes it when it has none; a row in an unchanged card can only be unchanged; and a card needs a status when any of its rows has one. A card has at most 100 rows, properties and methods together.",
+              "type": "object",
+              "properties": {
+                "id": {
+                  "description": "a unique id made of letters, digits and - _ . :",
+                  "$ref": "#/$defs/id"
+                },
+                "label": {
+                  "description": "the class name",
+                  "$ref": "#/$defs/label",
+                  "type": "string",
+                  "pattern": "^[\\u0020-\\u007E\\u00A0-\\u00AC\\u00AE-\\u0148\\u014A-\\u017F\\u2010-\\u2015\\u2018-\\u2022\\u2026\\u2030\\u2032-\\u2033\\u2039-\\u203A\\u20AC\\u2122\\u2190-\\u2195\\u21D0\\u21D2\\u21D4\\u2212\\u221E\\u2248\\u2260\\u2264-\\u2265]*$"
+                },
+                "description": {
+                  "description": "a short sentence drawn under the name",
+                  "$ref": "#/$defs/description",
+                  "type": "string",
+                  "pattern": "^[\\u0020-\\u007E\\u00A0-\\u00AC\\u00AE-\\u0148\\u014A-\\u017F\\u2010-\\u2015\\u2018-\\u2022\\u2026\\u2030\\u2032-\\u2033\\u2039-\\u203A\\u20AC\\u2122\\u2190-\\u2195\\u21D0\\u21D2\\u21D4\\u2212\\u221E\\u2248\\u2260\\u2264-\\u2265]*$"
+                },
+                "status": {
+                  "description": "what the change does to this card; leave it out for no status",
+                  "enum": [
+                    "new",
+                    "changed",
+                    "removed",
+                    "unchanged"
+                  ]
+                },
+                "properties": {
+                  "description": "the class's properties, in order",
+                  "type": "array",
+                  "maxItems": 100,
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "text": {
+                        "description": "the member as you'd write it, such as a name and type or a signature",
+                        "$ref": "#/$defs/rowText",
+                        "type": "string",
+                        "pattern": "^[\\u0020-\\u007E\\u00A0-\\u0131\\u0134-\\u017F\\u2010\\u2013-\\u2014\\u2018-\\u2022\\u2026\\u2030\\u2032-\\u2033\\u2039-\\u203A\\u20AC\\u2122\\u2190-\\u2195\\u21D0-\\u21D4\\u2212\\u221E\\u2248\\u2260\\u2264-\\u2265]*$"
+                      },
+                      "id": {
+                        "description": "an id unique within the card; without one the row is known as properties[N]",
+                        "$ref": "#/$defs/id"
+                      },
+                      "visibility": {
+                        "description": "drawn before the text: + public, - private, # protected, ~ package",
+                        "enum": [
+                          "public",
+                          "private",
+                          "protected",
+                          "package"
+                        ]
+                      },
+                      "status": {
+                        "description": "what the change does to this row; leave it out for no status",
+                        "enum": [
+                          "new",
+                          "changed",
+                          "removed",
+                          "unchanged"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "text"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "default": []
+                },
+                "methods": {
+                  "description": "the class's methods, in order, drawn under the properties",
+                  "type": "array",
+                  "maxItems": 100,
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "text": {
+                        "description": "the member as you'd write it, such as a name and type or a signature",
+                        "$ref": "#/$defs/rowText",
+                        "type": "string",
+                        "pattern": "^[\\u0020-\\u007E\\u00A0-\\u0131\\u0134-\\u017F\\u2010\\u2013-\\u2014\\u2018-\\u2022\\u2026\\u2030\\u2032-\\u2033\\u2039-\\u203A\\u20AC\\u2122\\u2190-\\u2195\\u21D0-\\u21D4\\u2212\\u221E\\u2248\\u2260\\u2264-\\u2265]*$"
+                      },
+                      "id": {
+                        "description": "an id unique within the card; without one the row is known as methods[N]",
+                        "$ref": "#/$defs/id"
+                      },
+                      "visibility": {
+                        "description": "drawn before the text: + public, - private, # protected, ~ package",
+                        "enum": [
+                          "public",
+                          "private",
+                          "protected",
+                          "package"
+                        ]
+                      },
+                      "status": {
+                        "description": "what the change does to this row; leave it out for no status",
+                        "enum": [
+                          "new",
+                          "changed",
+                          "removed",
+                          "unchanged"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "text"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "default": []
+                },
+                "more": {
+                  "description": "how many members were left out on purpose, drawn as a muted \"… N more\" row",
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 9999
+                }
+              },
+              "required": [
+                "id",
+                "label"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "edges": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "description": "a unique id; without one the line is known as edges[N]",
+                  "$ref": "#/$defs/id"
+                },
+                "from": {
+                  "description": "the id of the node the line starts at",
+                  "$ref": "#/$defs/id"
+                },
+                "to": {
+                  "description": "the id of the node the line ends at",
+                  "$ref": "#/$defs/id"
+                },
+                "label": {
+                  "description": "a short label drawn in a pill on the line",
+                  "$ref": "#/$defs/lineLabel",
+                  "type": "string",
+                  "pattern": "^[\\u0020-\\u007E\\u00A0-\\u00AC\\u00AE-\\u0148\\u014A-\\u017F\\u2010-\\u2015\\u2018-\\u2022\\u2026\\u2030\\u2032-\\u2033\\u2039-\\u203A\\u20AC\\u2122\\u2190-\\u2195\\u21D0\\u21D2\\u21D4\\u2212\\u221E\\u2248\\u2260\\u2264-\\u2265]*$"
+                },
+                "status": {
+                  "description": "what the change does to this line, shown by its colour; leave it out for no status",
+                  "enum": [
+                    "new",
+                    "changed",
+                    "removed",
+                    "unchanged"
+                  ]
+                },
+                "emphasis": {
+                  "description": "true draws the line thicker, to point out the main path",
+                  "type": "boolean",
+                  "default": false
+                },
+                "kind": {
+                  "description": "the relationship the line shows",
+                  "enum": [
+                    "association"
+                  ]
+                }
+              },
+              "required": [
+                "from",
+                "to",
+                "kind"
+              ],
+              "additionalProperties": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "flow"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "nodes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "description": "a unique id made of letters, digits and - _ . :",
+                  "$ref": "#/$defs/id"
+                },
+                "label": {
+                  "description": "the text shown in the shape",
+                  "$ref": "#/$defs/label",
+                  "type": "string",
+                  "pattern": "^[\\u0020-\\u007E\\u00A0-\\u00AC\\u00AE-\\u0148\\u014A-\\u017F\\u2010-\\u2015\\u2018-\\u2022\\u2026\\u2030\\u2032-\\u2033\\u2039-\\u203A\\u20AC\\u2122\\u2190-\\u2195\\u21D0\\u21D2\\u21D4\\u2212\\u221E\\u2248\\u2260\\u2264-\\u2265]*$"
+                },
+                "status": {
+                  "description": "what the change does to this card; leave it out for no status",
+                  "enum": [
+                    "new",
+                    "changed",
+                    "removed",
+                    "unchanged"
+                  ]
+                },
+                "shape": {
+                  "description": "the shape drawn",
+                  "enum": [
+                    "step"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "label",
+                "shape"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "edges": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "description": "a unique id; without one the line is known as edges[N]",
+                  "$ref": "#/$defs/id"
+                },
+                "from": {
+                  "description": "the id of the node the line starts at",
+                  "$ref": "#/$defs/id"
+                },
+                "to": {
+                  "description": "the id of the node the line ends at",
+                  "$ref": "#/$defs/id"
+                },
+                "label": {
+                  "description": "a short label drawn in a pill on the line",
+                  "$ref": "#/$defs/lineLabel",
+                  "type": "string",
+                  "pattern": "^[\\u0020-\\u007E\\u00A0-\\u00AC\\u00AE-\\u0148\\u014A-\\u017F\\u2010-\\u2015\\u2018-\\u2022\\u2026\\u2030\\u2032-\\u2033\\u2039-\\u203A\\u20AC\\u2122\\u2190-\\u2195\\u21D0\\u21D2\\u21D4\\u2212\\u221E\\u2248\\u2260\\u2264-\\u2265]*$"
+                },
+                "status": {
+                  "description": "what the change does to this line, shown by its colour; leave it out for no status",
+                  "enum": [
+                    "new",
+                    "changed",
+                    "removed",
+                    "unchanged"
+                  ]
+                },
+                "emphasis": {
+                  "description": "true draws the line thicker, to point out the main path",
+                  "type": "boolean",
+                  "default": false
+                }
+              },
+              "required": [
+                "from",
+                "to"
+              ],
+              "additionalProperties": false
+            }
+          }
+        }
+      }
+    }
+  ],
   "$defs": {
     "id": {
       "description": "letters, digits and - _ . :",
@@ -174,6 +398,13 @@
       "type": "string",
       "minLength": 1,
       "maxLength": 60,
+      "pattern": "[^ ]"
+    },
+    "rowText": {
+      "description": "one row of a card, such as a class member: plain text",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
       "pattern": "[^ ]"
     }
   }
