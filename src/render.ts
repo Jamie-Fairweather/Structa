@@ -2,7 +2,7 @@ import { StructaError } from "./errors";
 import { parseDiagram } from "./input";
 import { FLOW_PROFILE, layout } from "./layout";
 import { paint } from "./painter";
-import { buildCards, buildHeader, buildLine } from "./shapes";
+import { buildCards, buildHeader, buildLegend, buildLine } from "./shapes";
 import { getTheme, THEME_NAMES, type ThemeName } from "./theme";
 
 interface Outputs {
@@ -44,7 +44,9 @@ export async function render<F extends Format = "svg">(
   });
   const scene = await layout({ cards, lines }, FLOW_PROFILE, diagram.direction);
   const header = buildHeader(diagram.title, diagram.description, theme.sizes);
-  const outputs: Outputs = { svg: paint({ scene, ...(header ? { header } : {}) }, theme) };
+  const statuses = [...diagram.nodes, ...diagram.edges].map((item) => item.status);
+  const legend = diagram.legend ? buildLegend(statuses, theme.sizes) : undefined;
+  const outputs: Outputs = { svg: paint({ scene, header, legend }, theme) };
 
   const result: Partial<Outputs> = {};
   for (const format of formats) result[format] = outputs[format];

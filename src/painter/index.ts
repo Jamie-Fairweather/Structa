@@ -1,15 +1,16 @@
 import type { Status } from "../input";
 import type { PlacedCard, Point, RoutedLine, Scene } from "../layout";
-import type { Badge, Card, Header, Line, LineLabel, TextLine } from "../shapes";
+import type { Badge, Card, Header, Legend, Line, LineLabel, TextLine } from "../shapes";
 import { faceStyle } from "../text";
 import type { Theme } from "../theme";
 import { arrowhead, roundedRoute } from "./route";
 import { el, escapeText, num, open, type Attrs } from "./svg";
 
-/** Everything drawn: the laid-out scene, and the title above it. */
+/** Everything drawn: the laid-out scene, the title above it and the legend below it. */
 export interface Drawing {
   readonly scene: Scene<Card, Line>;
   readonly header?: Header;
+  readonly legend?: Legend;
 }
 
 /**
@@ -17,21 +18,23 @@ export interface Drawing {
  * legend are stacked top to bottom, left-aligned, with the canvas padding
  * around them all.
  */
-export function paint({ scene, header }: Drawing, theme: Theme): string {
+export function paint({ scene, header, legend }: Drawing, theme: Theme): string {
   const { canvasPadding: pad, sectionGap } = theme.sizes;
-  const sections = stack([header?.height, scene.cards.length > 0 ? scene.height : undefined], pad, sectionGap);
-  const width = wholePixels(Math.max(scene.width, header?.width ?? 0) + 2 * pad);
-  const height = wholePixels(sections.bottom + pad);
-  const origin = { x: pad, y: sections.tops[1] ?? pad };
+  const { tops, bottom } = stack([header?.height, scene.cards.length > 0 ? scene.height : undefined, legend?.height], pad, sectionGap);
+  const [headerTop, sceneTop, legendTop] = tops;
+  const width = wholePixels(Math.max(scene.width, header?.width ?? 0, legend?.width ?? 0) + 2 * pad);
+  const height = wholePixels(bottom + pad);
   // Ids carry the theme name, so a light and a dark SVG inlined in one page can't clash.
   const ids = { grid: `structa-grid-${theme.name}`, shadow: `structa-shadow-${theme.name}` };
+  const origin = { x: pad, y: sceneTop ?? pad };
 
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" width="${num(width)}" height="${num(height)}" viewBox="0 0 ${num(width)} ${num(height)}">`,
     ...background(width, height, theme, ids),
-    ...(header ? headerText(header, { x: pad, y: sections.tops[0]! }, theme) : []),
+    ...(header ? headerText(header, { x: pad, y: headerTop! }, theme) : []),
     ...scene.cards.flatMap((placed) => card(placed, origin, theme, ids.shadow)),
     ...scene.lines.flatMap((routed) => line(routed, origin, theme)),
+    ...(legend ? legendItems(legend, { x: pad, y: legendTop! }, theme) : []),
     "</svg>",
   ].join("\n") + "\n";
 }
@@ -48,6 +51,28 @@ function stack(heights: readonly (number | undefined)[], top: number, gap: numbe
     return at;
   });
   return { tops, bottom };
+}
+
+function legendItems(legend: Legend, at: Point, theme: Theme): string[] {
+  return [
+    open("g", [["class", "legend"]]),
+    ...legend.items.flatMap((item) => [
+      open("g", [["class", "legend-item"], ...statusAttr(item.status)]),
+      el("line", [
+        ["class", "swatch"],
+        ["x1", at.x + item.swatch.x1],
+        ["y1", at.y + item.swatch.y],
+        ["x2", at.x + item.swatch.x2],
+        ["y2", at.y + item.swatch.y],
+        ["stroke", lineColour(item.status, theme)],
+        ["stroke-width", theme.sizes.line.width],
+        ["stroke-linecap", "round"],
+      ]),
+      ...badge(item.badge, at.x, at.y, theme),
+      "</g>",
+    ]),
+    "</g>",
+  ];
 }
 
 function headerText(header: Header, at: Point, theme: Theme): string[] {

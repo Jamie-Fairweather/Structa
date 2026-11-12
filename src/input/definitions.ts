@@ -115,6 +115,7 @@ function diagram(node: Def, edge: Def, direction: "down" | "right"): ObjectDef {
         "which way the diagram flows: top to bottom or left to right",
         direction,
       ),
+      optional("legend", BOOLEAN, "false leaves out the legend of statuses at the bottom", true),
       required(
         "nodes",
         { kind: "list", noun: "nodes", items: node, maxItems: LIMITS.nodes },

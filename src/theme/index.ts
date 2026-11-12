@@ -86,6 +86,8 @@ export const SIZES = {
   card: { radius: 10, borderWidth: 1, statusBorderWidth: 1.5, shadowOffsetY: 1, shadowBlur: 3 },
   /** The status badge: a pill centred on the card's top border, `inset` from its right-hand end. */
   badge: { fontSize: 10, height: 16, paddingX: 6, inset: 12, borderWidth: 1 },
+  /** Each legend item: a short sample of the status's line colour, then its badge. */
+  legend: { swatchLength: 20, swatchGap: 6, itemGap: 20 },
   /** A line through struck-out text, `rise` font sizes above the baseline. */
   strike: { width: 1.25, rise: 0.3 },
   line: { width: 1.5, emphasisWidth: 3, cornerRadius: 8, arrowLength: 9, arrowWidth: 9 },

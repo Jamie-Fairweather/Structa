@@ -109,9 +109,10 @@ describe("the JSON Schema", () => {
   });
 
   it.each([
+    ["legend", () => root, (input: Node, value: unknown) => (input.legend = value)],
     ["emphasis", () => edge, (input: Node, value: unknown) => (input.edges[0].emphasis = value)],
-  ])("agrees with render() that %s is true or false", async (_name, part, set) => {
-    expect(part().properties.emphasis.type).toBe("boolean");
+  ])("agrees with render() that %s is true or false", async (name, part, set) => {
+    expect(part().properties[name].type).toBe("boolean");
 
     for (const value of [true, false]) {
       const input = greenhouse();
@@ -139,6 +140,14 @@ describe("the JSON Schema", () => {
     const off = greenhouse();
     off.edges[0].emphasis = false;
     expect((await render(off, opts)).svg).toBe((await render(greenhouse(), opts)).svg);
+  });
+
+  it("documents that the legend is on unless turned off", async () => {
+    expect(root.properties.legend.default).toBe(true);
+
+    const changed = greenhouse();
+    changed.nodes[0].status = "changed";
+    expect((await render({ ...changed, legend: true }, opts)).svg).toBe((await render(changed, opts)).svg);
   });
 
   it("accepts version 1 only", async () => {

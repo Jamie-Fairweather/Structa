@@ -135,7 +135,7 @@ describe("the top level", () => {
 describe("unknown fields", () => {
   it("rejects an unknown top-level field", async () => {
     expect(await problems({ ...pond(), colour: "green" })).toEqual([
-      { path: "colour", message: 'unknown field "colour"', hint: "allowed fields: version, type, title, description, direction, nodes, edges" },
+      { path: "colour", message: 'unknown field "colour"', hint: "allowed fields: version, type, title, description, direction, legend, nodes, edges" },
     ]);
   });
 
@@ -156,7 +156,7 @@ describe("unknown fields", () => {
       {
         path: '["line colour"]',
         message: 'unknown field "line colour"',
-        hint: "allowed fields: version, type, title, description, direction, nodes, edges",
+        hint: "allowed fields: version, type, title, description, direction, legend, nodes, edges",
       },
     ]);
   });
@@ -253,6 +253,15 @@ describe("statuses and emphasis", () => {
   ])("rejects emphasis %j", async (emphasis, message) => {
     expect(await problems(pondWith((p) => (p.edges[1]!.emphasis = emphasis)))).toEqual([
       { path: "edges[1].emphasis", message, hint: "write true or false, without quotes" },
+    ]);
+  });
+
+  it.each([
+    ["no", '"no" is not true or false'],
+    [0, "0 is not true or false"],
+  ])("rejects legend %j", async (legend, message) => {
+    expect(await problems({ ...pond(), legend })).toEqual([
+      { path: "legend", message, hint: "write true or false, without quotes" },
     ]);
   });
 });
@@ -700,7 +709,7 @@ describe("several problems", () => {
     });
 
     expect(error.problems).toEqual([
-      { path: "colour", message: 'unknown field "colour"', hint: "allowed fields: version, type, title, description, direction, nodes, edges" },
+      { path: "colour", message: 'unknown field "colour"', hint: "allowed fields: version, type, title, description, direction, legend, nodes, edges" },
       { path: "version", message: "3 is not supported", hint: "use 1, or leave version out" },
       { path: "nodes[1].size", message: 'unknown field "size"', hint: "allowed fields: id, label, status, shape" },
       { path: "nodes[1].id", message: 'the id "dig" is already used by nodes[0]', hint: "give every node and edge its own id" },

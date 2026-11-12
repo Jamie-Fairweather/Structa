@@ -33,6 +33,8 @@ export interface FlowDiagram {
   readonly title?: string;
   readonly description?: string;
   readonly direction: Direction;
+  /** Whether to draw the legend of the statuses used. */
+  readonly legend: boolean;
   readonly nodes: readonly FlowStep[];
   readonly edges: readonly FlowEdge[];
 }
@@ -68,6 +70,7 @@ export function parseDiagram(input: unknown): ParseResult {
       ...(diagram.title === undefined ? {} : { title: diagram.title }),
       ...(diagram.description === undefined ? {} : { description: diagram.description }),
       direction: diagram.direction,
+      legend: diagram.legend,
       nodes: diagram.nodes,
       edges: diagram.edges.map((edge, i) => ({ ...edge, id: edge.id ?? `edges[${i}]` })),
     },

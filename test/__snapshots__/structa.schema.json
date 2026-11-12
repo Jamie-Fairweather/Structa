@@ -34,6 +34,11 @@
       ],
       "default": "down"
     },
+    "legend": {
+      "description": "false leaves out the legend of statuses at the bottom",
+      "type": "boolean",
+      "default": true
+    },
     "nodes": {
       "description": "the cards, in reading order; the order gently guides the layout",
       "type": "array",

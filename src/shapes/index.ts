@@ -13,6 +13,7 @@ import type { Sizes } from "../theme";
 import { frameCard, strikeThrough, type Card, type CardBody, type TextLine } from "./frame";
 
 export type { Badge, Box, Card, Strike, TextLine } from "./frame";
+export { buildLegend, type Legend, type LegendItem } from "./legend";
 
 export interface Line {
   readonly id: string;

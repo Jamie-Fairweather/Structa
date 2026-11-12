@@ -126,8 +126,8 @@ function measureBadge(status: Status, sizes: Sizes): number {
   return Math.ceil(measure(badgeWord(status), BADGE_FACE, b.fontSize) + 2 * b.paddingX);
 }
 
-/** A badge with its top-left corner at (x, y). */
-function badge(status: Status, x: number, y: number, sizes: Sizes): Badge {
+/** A badge with its top-left corner at (x, y). Cards and the legend share it. */
+export function badge(status: Status, x: number, y: number, sizes: Sizes): Badge {
   const b = sizes.badge;
   const width = measureBadge(status, sizes);
   return {
