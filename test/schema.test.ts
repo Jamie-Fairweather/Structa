@@ -2,18 +2,22 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import Ajv2020 from "ajv/dist/2020";
-import { afterAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { render, StructaError, type Problem } from "../src/index";
-import { buildSkillForTest } from "./helpers/skill";
+import { buildSkillForTest, type BuiltSkill, type RunResult } from "./helpers/skill";
 
 // The schema is a plain JSON value; these tests walk it loosely.
 type Node = { [key: string]: any };
 
 // Seam 2: the schema is what `node structa.mjs schema` prints from the built
 // skill folder. The tests below check that it agrees with render().
-const skill = await buildSkillForTest();
-afterAll(() => skill.remove());
-const printed = skill.run(["schema"]);
+let skill: BuiltSkill;
+let printed: RunResult;
+beforeAll(async () => {
+  skill = await buildSkillForTest();
+  printed = skill.run(["schema"]);
+}, 60_000);
+afterAll(() => skill?.remove());
 const examplesDir = fileURLToPath(new URL("../examples/", import.meta.url));
 
 const opts = { embedFonts: false } as const;
@@ -78,9 +82,14 @@ describe("node structa.mjs schema", () => {
 });
 
 describe("the JSON Schema", () => {
-  const root = JSON.parse(printed.stdout) as Node;
-  const node = root.properties.nodes.items;
-  const edge = root.properties.edges.items;
+  let root: Node;
+  let node: Node;
+  let edge: Node;
+  beforeAll(() => {
+    root = JSON.parse(printed.stdout) as Node;
+    node = root.properties.nodes.items;
+    edge = root.properties.edges.items;
+  });
 
   it("is written down as a reviewable file", async () => {
     await expect(printed.stdout).toMatchFileSnapshot("__snapshots__/structa.schema.json");
@@ -205,10 +214,13 @@ describe("the JSON Schema", () => {
   });
 
   describe("agrees with render() about label text", () => {
-    const { minLength, maxLength, pattern: notBlank } = root.$defs.label;
-    const characters = new RegExp(node.properties.label.pattern, "u");
-    const schemaAccepts = (text: string) =>
-      characters.test(text) && new RegExp(notBlank, "u").test(text) && [...text].length >= minLength && [...text].length <= maxLength;
+    let schemaAccepts: (text: string) => boolean;
+    beforeAll(() => {
+      const { minLength, maxLength, pattern: notBlank } = root.$defs.label;
+      const characters = new RegExp(node.properties.label.pattern, "u");
+      schemaAccepts = (text) =>
+        characters.test(text) && new RegExp(notBlank, "u").test(text) && [...text].length >= minLength && [...text].length <= maxLength;
+    });
 
     it.each(["Open the vents", "", " ", "   ", "  Open   the vents  ", String.fromCodePoint(0xa0)])("for %j", async (text) => {
       const input = greenhouse();
