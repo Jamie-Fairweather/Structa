@@ -32,6 +32,20 @@ export function faceStyle(face: FaceId): FaceStyle {
   return FACES.find((f) => f.id === face)!;
 }
 
+/**
+ * The distinct characters in `text` that at least one of `faces` can't draw,
+ * in order of first appearance. A text field may use only characters every
+ * face it is drawn in has in its width table.
+ */
+export function undrawable(text: string, faces: readonly FaceId[]): string[] {
+  const found: string[] = [];
+  for (const ch of text) {
+    const codePoint = ch.codePointAt(0)!;
+    if (!found.includes(ch) && faces.some((face) => !table(face).widths.has(codePoint))) found.push(ch);
+  }
+  return found;
+}
+
 /** Width of `text` in px: the sum of its advance widths, with no kerning. */
 export function measure(text: string, face: FaceId, size: number): number {
   const t = table(face);
