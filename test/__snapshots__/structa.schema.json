@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Structa diagram",
+  "description": "One diagram for Structa to draw. Text is plain text in Latin letters, digits and common symbols, with no control characters; runs of spaces collapse to one. Ids must be unique across nodes and edges, and \"from\" and \"to\" must name a node.",
+  "type": "object",
+  "properties": {
+    "version": {
+      "description": "the format version; leave it out to mean the current one",
+      "const": 1
+    },
+    "type": {
+      "description": "the kind of diagram",
+      "enum": [
+        "flow"
+      ]
+    },
+    "direction": {
+      "description": "which way the diagram flows: top to bottom or left to right",
+      "enum": [
+        "down",
+        "right"
+      ],
+      "default": "down"
+    },
+    "nodes": {
+      "description": "the cards, in reading order; the order gently guides the layout",
+      "type": "array",
+      "maxItems": 500,
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "a unique id made of letters, digits and - _ . :",
+            "$ref": "#/$defs/id"
+          },
+          "label": {
+            "description": "the text shown in the shape",
+            "$ref": "#/$defs/label"
+          },
+          "shape": {
+            "description": "the shape drawn",
+            "enum": [
+              "step"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "shape"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "edges": {
+      "description": "the lines between cards",
+      "type": "array",
+      "maxItems": 1000,
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "a unique id; without one the line is known as edges[N]",
+            "$ref": "#/$defs/id"
+          },
+          "from": {
+            "description": "the id of the node the line starts at",
+            "$ref": "#/$defs/id"
+          },
+          "to": {
+            "description": "the id of the node the line ends at",
+            "$ref": "#/$defs/id"
+          }
+        },
+        "required": [
+          "from",
+          "to"
+        ],
+        "additionalProperties": false
+      },
+      "default": []
+    }
+  },
+  "required": [
+    "type",
+    "nodes"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "id": {
+      "description": "letters, digits and - _ . :",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.:-]+$"
+    },
+    "label": {
+      "description": "the name shown on a card: plain text",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "description": {
+      "description": "a sentence about a card: plain text",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 300
+    },
+    "lineLabel": {
+      "description": "a short label on a line: plain text",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 60
+    }
+  }
+}

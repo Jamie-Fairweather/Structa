@@ -3,6 +3,8 @@ import { check } from "./check";
 import { diagramDefinition } from "./definitions";
 import { parseJson } from "./json";
 
+export { jsonSchema } from "./schema";
+
 export interface FlowStep {
   readonly id: string;
   /** Tidied: runs of spaces collapsed and the ends trimmed. */
