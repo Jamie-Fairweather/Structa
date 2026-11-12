@@ -2,7 +2,7 @@ import { StructaError } from "./errors";
 import { parseDiagram } from "./input";
 import { FLOW_PROFILE, layout } from "./layout";
 import { paint } from "./painter";
-import { buildStep } from "./shapes";
+import { buildLine, buildStep } from "./shapes";
 import { getTheme } from "./theme";
 
 interface Outputs {
@@ -31,7 +31,14 @@ export async function render<F extends Format = "svg">(
 
   const theme = getTheme("light");
   const cards = diagram.nodes.map((node, i) => ({ ...buildStep(node, theme.sizes), path: `nodes[${i}]` }));
-  const scene = await layout({ cards }, FLOW_PROFILE);
+  const index = new Map(diagram.nodes.map((node, i) => [node.id, i]));
+  const lines = diagram.edges.map((edge, i) => {
+    const source = index.get(edge.from)!;
+    const target = index.get(edge.to)!;
+    const line = buildLine(edge, diagram.nodes[source]!.label, diagram.nodes[target]!.label);
+    return { ...line, source, target, path: `edges[${i}]` };
+  });
+  const scene = await layout({ cards, lines }, FLOW_PROFILE);
   const svg = paint(scene, theme);
 
   void options;

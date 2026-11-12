@@ -44,6 +44,46 @@ export function cardBox(card: Element): Box {
   return { x: num("x"), y: num("y"), width: num("width"), height: num("height") };
 }
 
+export interface Point {
+  x: number;
+  y: number;
+}
+
+export interface PathCommand {
+  command: string;
+  points: Point[];
+}
+
+/** Splits path data into commands with their (absolute) points. */
+export function parsePath(d: string): PathCommand[] {
+  const commands: PathCommand[] = [];
+  for (const match of d.matchAll(/([A-Za-z])([^A-Za-z]*)/g)) {
+    const numbers = (match[2]!.match(/-?\d+(?:\.\d+)?/g) ?? []).map(Number);
+    const points: Point[] = [];
+    for (let i = 0; i + 1 < numbers.length; i += 2) points.push({ x: numbers[i]!, y: numbers[i + 1]! });
+    commands.push({ command: match[1]!, points });
+  }
+  return commands;
+}
+
+/** A line's stroked route and its filled arrowhead tip. */
+export function lineGeometry(line: Element): { route: PathCommand[]; arrowTip: Point } {
+  const paths = Array.from(line.getElementsByTagName("path"));
+  const route = paths.find((p) => p.getAttribute("fill") === "none");
+  const arrow = paths.find((p) => p.getAttribute("fill") !== "none");
+  if (!route || !arrow) throw new Error(`line ${line.getAttribute("data-id")} needs a route and an arrowhead`);
+  return { route: parsePath(route.getAttribute("d")!), arrowTip: parsePath(arrow.getAttribute("d")!)[0]!.points[0]! };
+}
+
+/** How far a point is from the outline of a box (0 when exactly on it). */
+export function distanceToOutline(p: Point, box: Box): number {
+  const dx = Math.max(box.x - p.x, 0, p.x - (box.x + box.width));
+  const dy = Math.max(box.y - p.y, 0, p.y - (box.y + box.height));
+  const outside = Math.hypot(dx, dy);
+  if (outside > 0) return outside;
+  return Math.min(p.x - box.x, box.x + box.width - p.x, p.y - box.y, box.y + box.height - p.y);
+}
+
 export function cardById(doc: Document, id: string): Element {
   const card = cards(doc).find((c) => c.getAttribute("data-id") === id);
   if (!card) throw new Error(`no card with data-id ${id}`);
