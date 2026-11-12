@@ -1,5 +1,5 @@
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { cpSync, existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { render } from "../src/index";
@@ -93,6 +93,22 @@ describe("exit code 1: bad input or a failed render", () => {
     expect(result.status).toBe(1);
     expect(result.stdout).toBe("");
     expect(result.stderr).toMatch(/^can't read no-such-diagram\.json: .+\n$/);
+  });
+
+  it("names the missing elk.bundled.js, and doesn't fall back to an elkjs in node_modules", () => {
+    // The project around the skill folder has an elkjs in node_modules that throws if it's loaded.
+    const noElk = join(dirname(skill.dir), "structa-without-elk");
+    cpSync(skill.dir, noElk, { recursive: true });
+    rmSync(join(noElk, "elk.bundled.js"));
+
+    const result = skill.run([flowPath, "-o", "returns.svg"], { dir: noElk });
+
+    expect(result).toEqual({
+      status: 1,
+      stdout: "",
+      stderr: `can't find the layout engine: expected ${join(noElk, "elk.bundled.js")} next to structa.mjs\n`,
+    });
+    expect(existsSync(join(skill.elsewhere, "returns.svg"))).toBe(false);
   });
 });
 

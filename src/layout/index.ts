@@ -54,9 +54,11 @@ export async function layout<C extends LayoutCard, L extends LayoutLine>(
     children: graph.cards.map((card, i) => ({ id: `n${i}`, width: card.width, height: card.height })),
     edges: graph.lines.map((line, i) => ({ id: `e${i}`, sources: [`n${line.source}`], targets: [`n${line.target}`] })),
   };
+  // Outside the try: a missing elk.bundled.js is a broken install, not a layout failure.
+  const elk = createElk();
   let result: ElkNode;
   try {
-    result = await createElk().layout(elkGraph, { layoutOptions: { ...profile.options } });
+    result = await elk.layout(elkGraph, { layoutOptions: { ...profile.options } });
   } catch (error) {
     throw layoutFailed([{ path: "$", message: `the layout engine failed: ${(error as Error)?.message ?? error}` }]);
   }
