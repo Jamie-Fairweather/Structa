@@ -159,7 +159,7 @@ export function badlyFormattedNumbers(svg: string): string[] {
   return found;
 }
 
-/** A face as "family weight style", e.g. "Inter 600 normal". */
+/** A face as "family weight style", e.g. "Structa Inter 600 normal". */
 export type FaceName = string;
 
 export interface FontFaceRule {

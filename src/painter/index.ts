@@ -36,11 +36,15 @@ export function paint(scene: Scene<Card, Line>, theme: Theme, options: PaintOpti
   ].join("\n") + "\n";
 }
 
-/** A <style> with one @font-face rule per face used, in the fixed face order; nothing when no text is drawn. */
+/**
+ * A <style> with one @font-face rule per face used, in the fixed face order;
+ * nothing when no text is drawn. The rules name Structa's own family, not the
+ * plain one, because an inlined SVG's <style> applies to the whole page.
+ */
 function fontFaces(used: ReadonlySet<FaceId>): string[] {
   const rules = FACES.filter(({ id }) => used.has(id)).map(
-    ({ id, family, weight, style }) =>
-      `@font-face{font-family:"${family}";font-style:${style};font-weight:${weight};src:url("${fontDataUrl(id)}")}`,
+    ({ id, embeddedFamily, weight, style }) =>
+      `@font-face{font-family:"${embeddedFamily}";font-style:${style};font-weight:${weight};src:url("${fontDataUrl(id)}")}`,
   );
   return rules.length === 0 ? [] : [el("style", [], escapeText(rules.join("")))];
 }

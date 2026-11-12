@@ -24,9 +24,9 @@ describe("fonts embedded in SVGs", () => {
     const doc = parseSvg((await render(rakeLeaves)).svg);
 
     // Step labels are drawn in Inter SemiBold, and that's the only face this diagram uses.
-    expect(textFaces(doc)).toEqual(["Inter 600 normal"]);
+    expect(textFaces(doc)).toEqual(["Structa Inter 600 normal"]);
     const rules = fontFaceRules(doc);
-    expect(rules.map((rule) => rule.face)).toEqual(["Inter 600 normal"]);
+    expect(rules.map((rule) => rule.face)).toEqual(["Structa Inter 600 normal"]);
 
     const base64 = DATA_URL.exec(rules[0]!.src)?.[1];
     expect(base64).toBeDefined();
@@ -44,6 +44,19 @@ describe("fonts embedded in SVGs", () => {
     for (const kept of "Aéł…→≠") expect(font.advance(kept.codePointAt(0)!), kept).toBeDefined();
     for (const dropped of "ЖΩ") expect(font.advance(dropped.codePointAt(0)!), dropped).toBeUndefined();
     expect(font.tables.filter((table) => ["GDEF", "GPOS", "GSUB", "kern"].includes(table))).toEqual([]);
+  });
+
+  it("names the embedded faces for Structa only, so an SVG inlined into a web page leaves the page's own Inter alone", async () => {
+    const doc = parseSvg((await render(rakeLeaves)).svg);
+    const fontFamilies = new Set(Array.from(doc.getElementsByTagName("text"), (text) => text.getAttribute("font-family")));
+
+    // An inlined SVG's <style> applies to the whole page, so its rules use a family no page has.
+    expect(fontFaceRules(doc).map((rule) => rule.face)).toEqual(["Structa Inter 600 normal"]);
+    // The text falls back to an installed Inter, then any sans-serif, when the fonts aren't embedded.
+    expect([...fontFamilies]).toEqual(["Structa Inter, Inter, sans-serif"]);
+    // The font file still names itself Inter SemiBold: that's how the rasteriser finds it.
+    const font = readTtf(Buffer.from(DATA_URL.exec(fontFaceRules(doc)[0]!.src)![1]!, "base64"));
+    expect([font.family, font.weight, font.style]).toEqual(["Inter", 600, "normal"]);
   });
 
   it("embeds no font, and writes no <style>, when no text is drawn", async () => {
