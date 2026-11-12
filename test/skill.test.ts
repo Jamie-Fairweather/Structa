@@ -265,6 +265,7 @@ describe("exit code 2: bad usage", () => {
     ["a .png output", ["IN", "-o", "chart.png"], '-o "chart.png": the output file must end in .svg'],
     ["a .txt output", ["IN", "-o", "chart.txt"], '-o "chart.txt": the output file must end in .svg'],
     ["an output with no extension", ["IN", "-o", "chart"], '-o "chart": the output file must end in .svg'],
+    ["an output that is only an extension", ["IN", "-o", ".SVG"], '-o ".SVG": give it a name before .svg'],
     ["an unknown option", ["IN", "--sparkle"], 'unknown option "--sparkle"'],
   ])("rejects %s, prints the usage line and writes nothing", (_name, args, message) => {
     const input = join(skill.elsewhere, "usage-input.json");
@@ -278,7 +279,7 @@ describe("exit code 2: bad usage", () => {
     expect(first).toBe(message);
     expect(usage).toMatch(/^usage: node structa\.mjs /);
     expect(rest).toEqual([""]);
-    for (const name of ["a.svg", "b.svg", "chart.png", "chart.txt", "chart"]) {
+    for (const name of ["a.svg", "b.svg", "chart.png", "chart.txt", "chart", ".SVG"]) {
       expect(existsSync(join(skill.elsewhere, name))).toBe(false);
     }
   });

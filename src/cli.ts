@@ -1,5 +1,5 @@
 import { readFile, writeFile } from "node:fs/promises";
-import { extname } from "node:path";
+import { basename, extname } from "node:path";
 import { render } from "./render";
 
 interface Command {
@@ -52,7 +52,11 @@ function parseArgs(args: readonly string[]): Command | string {
       const file = args[++i];
       if (file === undefined) return "-o needs a file name";
       if (output !== undefined) return "give -o only once";
-      if (extname(file).toLowerCase() !== ".svg") return `-o ${JSON.stringify(file)}: the output file must end in .svg`;
+      if (extname(file).toLowerCase() !== ".svg") {
+        // extname() of a bare ".svg" is empty: the name is all extension.
+        const fix = basename(file).toLowerCase() === ".svg" ? "give it a name before .svg" : "the output file must end in .svg";
+        return `-o ${JSON.stringify(file)}: ${fix}`;
+      }
       output = file;
     } else if (arg.startsWith("-") && arg !== "-") {
       return `unknown option ${JSON.stringify(arg)}`;
