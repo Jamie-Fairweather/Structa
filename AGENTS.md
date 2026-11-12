@@ -13,7 +13,7 @@
 - Skill-folder tests get their own fresh build from `buildSkillForTest()` in `test/helpers/skill.ts`, which builds inside a temporary `"type": "module"` project and runs `node structa.mjs` from another folder. `bun run build` writes `dist/structa/` and fails when the packaging checks in `scripts/lib/skill.ts` do. Those checks are tested through the build: `buildChangedProject()` builds a changed copy of the project and returns the build's error. When the build starts reading a new file or folder, add it to `BUILD_INPUTS` there.
 - Upgrading elkjs means updating `PUBLISHED_ELK` in `scripts/lib/skill.ts` too: the new version and the SHA-256 of `lib/elk.bundled.js` in its published npm package. Never patch or override elkjs.
 - Every file in `examples/` is a snapshot fixture. After an output change you intend, run `bun run test -u` and look at each changed `.svg` under `test/__snapshots__/` before committing.
-- `src/` has one folder per module in the spec (`input`, `text`, `shapes`, `layout`, `theme`, `painter`) plus `render.ts`. Grow these modules rather than adding parallel ones.
+- `src/` has one folder per module in the spec (`input`, `text`, `shapes`, `layout`, `theme`, `painter`) plus `render.ts`, the command line in `cli.ts`, and `structa.ts`, the built file's entry point. Grow these modules rather than adding parallel ones.
 
 ## Agent skills
 
