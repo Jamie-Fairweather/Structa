@@ -1,6 +1,7 @@
 /**
  * A small reader for the parts of a TrueType file the build needs: the table
- * list, units per em, vertical metrics and per-character advance widths.
+ * list, units per em, vertical metrics, per-character advance widths and the
+ * name records.
  */
 export interface TtfFont {
   readonly tables: readonly string[];
@@ -10,8 +11,21 @@ export interface TtfFont {
   readonly descender: number;
   /** Advance of glyph 0 (.notdef), what a renderer draws for a missing character. */
   readonly missingAdvance: number;
+  /** Every code point the font has a glyph for, in ascending order. */
+  readonly characters: readonly number[];
+  /** Every record in the name table, in table order. */
+  readonly names: readonly NameRecord[];
   /** Advance width in font units, or undefined when the font has no glyph. */
   advance(codePoint: number): number | undefined;
+}
+
+export interface NameRecord {
+  readonly platformId: number;
+  readonly encodingId: number;
+  readonly languageId: number;
+  readonly nameId: number;
+  /** The string, decoded as UTF-16BE on the Unicode and Windows platforms and one byte per character otherwise. */
+  readonly value: string;
 }
 
 export function readTtf(bytes: Uint8Array): TtfFont {
@@ -43,7 +57,13 @@ export function readTtf(bytes: Uint8Array): TtfFont {
   const advanceOf = (glyph: number): number =>
     view.getUint16(hmtx + 4 * Math.min(glyph, numberOfHMetrics - 1));
 
-  const glyphOf = readCmap(view, table("cmap"));
+  const { glyphOf, ranges } = readCmap(view, table("cmap"));
+  const characters: number[] = [];
+  for (const [first, last] of ranges) {
+    for (let codePoint = first; codePoint <= last; codePoint++) {
+      if (glyphOf(codePoint) !== 0) characters.push(codePoint);
+    }
+  }
 
   return {
     tables: [...tableOffsets.keys()].sort(),
@@ -51,6 +71,8 @@ export function readTtf(bytes: Uint8Array): TtfFont {
     ascender,
     descender,
     missingAdvance: advanceOf(0),
+    characters,
+    names: readNames(view, table("name")),
     advance(codePoint) {
       const glyph = glyphOf(codePoint);
       return glyph === 0 ? undefined : advanceOf(glyph);
@@ -58,8 +80,40 @@ export function readTtf(bytes: Uint8Array): TtfFont {
   };
 }
 
-/** Returns a code point to glyph id lookup from the best Unicode cmap subtable. */
-function readCmap(view: DataView, cmap: number): (codePoint: number) => number {
+function readNames(view: DataView, name: number): NameRecord[] {
+  const count = view.getUint16(name + 2);
+  const strings = name + view.getUint16(name + 4);
+  const records: NameRecord[] = [];
+  for (let i = 0; i < count; i++) {
+    const record = name + 6 + i * 12;
+    const platformId = view.getUint16(record);
+    const length = view.getUint16(record + 8);
+    const start = strings + view.getUint16(record + 10);
+    const twoByte = platformId === 0 || platformId === 3;
+    let value = "";
+    for (let at = start; at < start + length; at += twoByte ? 2 : 1) {
+      value += String.fromCharCode(twoByte ? view.getUint16(at) : view.getUint8(at));
+    }
+    records.push({
+      platformId,
+      encodingId: view.getUint16(record + 2),
+      languageId: view.getUint16(record + 4),
+      nameId: view.getUint16(record + 6),
+      value,
+    });
+  }
+  return records;
+}
+
+interface Cmap {
+  /** The glyph id for a code point, 0 when the font has none. */
+  readonly glyphOf: (codePoint: number) => number;
+  /** The code point ranges (inclusive) the subtable covers; some may map to glyph 0. */
+  readonly ranges: readonly (readonly [number, number])[];
+}
+
+/** Reads the best Unicode cmap subtable. */
+function readCmap(view: DataView, cmap: number): Cmap {
   const count = view.getUint16(cmap + 2);
   let format4: number | undefined;
   let format12: number | undefined;
@@ -78,7 +132,9 @@ function readCmap(view: DataView, cmap: number): (codePoint: number) => number {
   if (format12 !== undefined) {
     const sub = format12;
     const groups = view.getUint32(sub + 12);
-    return (codePoint) => {
+    const ranges: [number, number][] = [];
+    for (let g = 0; g < groups; g++) ranges.push([view.getUint32(sub + 16 + g * 12), view.getUint32(sub + 20 + g * 12)]);
+    const glyphOf = (codePoint: number) => {
       for (let g = 0; g < groups; g++) {
         const group = sub + 16 + g * 12;
         const start = view.getUint32(group);
@@ -89,6 +145,7 @@ function readCmap(view: DataView, cmap: number): (codePoint: number) => number {
       }
       return 0;
     };
+    return { glyphOf, ranges };
   }
 
   if (format4 !== undefined) {
@@ -98,7 +155,14 @@ function readCmap(view: DataView, cmap: number): (codePoint: number) => number {
     const startCodes = endCodes + segCount * 2 + 2;
     const idDeltas = startCodes + segCount * 2;
     const idRangeOffsets = idDeltas + segCount * 2;
-    return (codePoint) => {
+    const ranges: [number, number][] = [];
+    for (let s = 0; s < segCount; s++) {
+      // The last segment, ending at 0xFFFF, only closes the table.
+      const end = Math.min(view.getUint16(endCodes + s * 2), 0xfffe);
+      const start = view.getUint16(startCodes + s * 2);
+      if (start <= end) ranges.push([start, end]);
+    }
+    const glyphOf = (codePoint: number) => {
       if (codePoint > 0xffff) return 0;
       for (let s = 0; s < segCount; s++) {
         const end = view.getUint16(endCodes + s * 2);
@@ -114,6 +178,7 @@ function readCmap(view: DataView, cmap: number): (codePoint: number) => number {
       }
       return 0;
     };
+    return { glyphOf, ranges };
   }
 
   throw new Error("font has no Unicode cmap subtable");

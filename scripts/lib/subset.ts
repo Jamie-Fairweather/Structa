@@ -12,9 +12,15 @@ import { createRequire } from "node:module";
  */
 export const LAYOUT_TABLES: readonly string[] = ["BASE", "GDEF", "GPOS", "GSUB", "JSTF", "MATH", "kern", "kerx", "mort", "morx"];
 
+/** The WebAssembly constructors this file uses; the project's types (ES2022 and Node) don't declare them. */
+interface WasmApi {
+  readonly Module: new (bytes: Uint8Array) => unknown;
+  readonly Instance: new (module: unknown, imports: object) => { readonly exports: unknown };
+}
+
 /** The parts of hb-subset's C API this file calls. Pointers are byte offsets into `memory`. */
 interface HarfBuzz {
-  readonly memory: WebAssembly.Memory;
+  readonly memory: { readonly buffer: ArrayBuffer };
   malloc(size: number): number;
   free(pointer: number): void;
   hb_blob_create(data: number, length: number, mode: number, userData: number, destroy: number): number;
@@ -48,7 +54,8 @@ let harfBuzz: HarfBuzz | undefined;
 function loadHarfBuzz(): HarfBuzz {
   if (!harfBuzz) {
     const wasm = readFileSync(createRequire(import.meta.url).resolve("harfbuzzjs/dist/harfbuzz-subset.wasm"));
-    const instance = new WebAssembly.Instance(new WebAssembly.Module(wasm), {});
+    const { Module, Instance } = (globalThis as unknown as { WebAssembly: WasmApi }).WebAssembly;
+    const instance = new Instance(new Module(wasm), {});
     const exports = instance.exports as unknown as HarfBuzz & { _initialize?: () => void };
     exports._initialize?.();
     harfBuzz = exports;

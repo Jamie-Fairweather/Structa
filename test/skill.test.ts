@@ -2,7 +2,9 @@ import { appendFileSync, cpSync, existsSync, readdirSync, readFileSync, rmSync, 
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { readTtf, type TtfFont } from "../scripts/lib/ttf";
 import { render } from "../src/index";
+import { CHARACTER_RANGES } from "../src/text/faces";
 import { buildChangedProject, buildSkillForTest, type BuiltSkill } from "./helpers/skill";
 
 // Seam 2: the built skill folder, run with `node structa.mjs` in a separate
@@ -90,6 +92,46 @@ describe("node structa.mjs", () => {
         `can't load the layout engine: Node didn't load ${join(bare, "elk.bundled.js")} as CommonJS ` +
         "(keep the package.json that came with structa.mjs next to it)\n",
     });
+  });
+});
+
+describe("the fonts inside structa.mjs", () => {
+  const fontsDir = fileURLToPath(new URL("../fonts/", import.meta.url));
+  const unmodified = [
+    "inter/Inter-Regular.ttf",
+    "inter/Inter-SemiBold.ttf",
+    "inter/Inter-Bold.ttf",
+    "inter/Inter-SemiBoldItalic.ttf",
+    "jetbrains-mono/JetBrainsMono-Regular.ttf",
+    "jetbrains-mono/JetBrainsMono-Italic.ttf",
+  ];
+  const postScriptName = (font: TtfFont) => font.names.find((n) => n.nameId === 6 && n.platformId === 3)?.value;
+  const inSharedRanges = (codePoint: number) => CHARACTER_RANGES.some(([first, last]) => codePoint >= first && codePoint <= last);
+
+  function shippedFonts(): TtfFont[] {
+    const module = readFileSync(join(skill.dir, "structa.mjs"), "utf8");
+    return [...module.matchAll(/data:font\/ttf;base64,([A-Za-z0-9+/]+=*)/g)].map(([, base64]) => readTtf(Buffer.from(base64!, "base64")));
+  }
+
+  it("are the six faces, once each", () => {
+    const names = shippedFonts().map(postScriptName);
+
+    expect(names.sort()).toEqual(
+      ["Inter-Bold", "Inter-Regular", "Inter-SemiBold", "Inter-SemiBoldItalic", "JetBrainsMono-Italic", "JetBrainsMono-Regular"],
+    );
+  });
+
+  it.each(unmodified)("cut %s to the shared characters, keeping its widths, vertical metrics and name records", (file) => {
+    const original = readTtf(readFileSync(join(fontsDir, file)));
+    const font = shippedFonts().find((shipped) => postScriptName(shipped) === postScriptName(original))!;
+    const widths = (f: TtfFont) => f.characters.map((codePoint) => [codePoint, f.advance(codePoint)]);
+
+    expect(font).toBeDefined();
+    expect(font.characters).toEqual(original.characters.filter(inSharedRanges));
+    expect(widths(font)).toEqual(widths(original).filter(([codePoint]) => inSharedRanges(codePoint!)));
+    expect(font.missingAdvance).toBe(original.missingAdvance);
+    expect([font.unitsPerEm, font.ascender, font.descender]).toEqual([original.unitsPerEm, original.ascender, original.descender]);
+    expect(font.names).toEqual(original.names);
   });
 });
 
