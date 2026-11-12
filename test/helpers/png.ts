@@ -30,6 +30,13 @@ export function pixel(picture: Picture, x: number, y: number): { color: string; 
   return { color: `#${hex}`, alpha: picture.rgba[at + 3]! };
 }
 
+/** The largest difference between two #rrggbb colours in any one channel. */
+export function colourDifference(a: string, b: string): number {
+  const channels = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+  const [x, y] = [channels(a), channels(b)];
+  return Math.max(...x.map((value, i) => Math.abs(value - y[i]!)));
+}
+
 /** The width and height an SVG's root element gives. */
 export function svgSize(svg: string): { width: number; height: number } {
   const root = parseSvg(svg).documentElement!;

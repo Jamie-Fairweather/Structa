@@ -11,6 +11,7 @@ import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { brotliDecompressSync } from "node:zlib";
 import { initWasm, Resvg } from "@resvg/resvg-wasm";
+import { StructaError, type Problem } from "../errors";
 import { FACES, fontFile } from "../text";
 
 /** How many PNG pixels to draw per SVG pixel. render() and the CLI accept exactly these. */
@@ -34,6 +35,9 @@ export async function rasterise(svg: string, scale: Scale): Promise<Uint8Array> 
   await ready;
   const resvg = new Resvg(svg, { fitTo: { mode: "zoom", value: scale }, font: { fontBuffers: FACES.map(({ id }) => fontFile(id)) } });
   try {
+    // resvg reads the SVG's own size before drawing anything.
+    const tooLarge = sizeProblems(resvg.width, resvg.height, scale);
+    if (tooLarge.length > 0) throw new StructaError("TOO_LARGE", tooLarge);
     const image = resvg.render();
     try {
       return image.asPng();
@@ -43,6 +47,24 @@ export async function rasterise(svg: string, scale: Scale): Promise<Uint8Array> 
   } finally {
     resvg.free();
   }
+}
+
+/** The largest PNG drawn: no side over MAX_SIDE px, and no more than MAX_PIXELS in all. */
+const MAX_SIDE = 16_384;
+const MAX_PIXELS = 100_000_000;
+
+/** What's wrong with drawing a `width` × `height` SVG at `scale`: one problem per limit it breaks. */
+function sizeProblems(width: number, height: number, scale: Scale): Problem[] {
+  const fits = (s: number) => width * s <= MAX_SIDE && height * s <= MAX_SIDE && width * s * height * s <= MAX_PIXELS;
+  if (fits(scale)) return [];
+  const smaller = SCALES.filter((s) => s < scale && fits(s)).at(-1);
+  const hint = smaller === undefined ? "split the diagram into smaller ones" : `use a scale of ${smaller} or less, or split the diagram`;
+  const [w, h] = [width * scale, height * scale];
+  const size = `the PNG would be ${w} by ${h} px`;
+  const problems: Problem[] = [];
+  if (w > MAX_SIDE || h > MAX_SIDE) problems.push({ path: "$", message: `${size}, but neither side may be over ${MAX_SIDE} px`, hint });
+  if (w * h > MAX_PIXELS) problems.push({ path: "$", message: `${size}, ${w * h} pixels in all, but it may have at most ${MAX_PIXELS}`, hint });
+  return problems;
 }
 
 function wasm(): Uint8Array {
