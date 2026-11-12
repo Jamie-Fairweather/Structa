@@ -1,6 +1,6 @@
 import { cpSync, existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { render } from "../src/index";
 import { buildSkillForTest, type BuiltSkill } from "./helpers/skill";
@@ -49,6 +49,23 @@ describe("node structa.mjs", () => {
     writeFileSync(join(skill.elsewhere, "library-returns.json"), flowJson);
 
     const result = skill.run(["library-returns.json"]);
+
+    expect(result).toEqual({ status: 0, stdout: svg, stderr: "" });
+  });
+});
+
+describe("import { render } from structa.mjs", () => {
+  it("gives the same SVG as render() in this process, and importing doesn't start the command line", async () => {
+    const { svg } = await render(flowJson);
+    const url = pathToFileURL(join(skill.dir, "structa.mjs")).href;
+    const script = [
+      `import { render } from ${JSON.stringify(url)};`,
+      'let json = "";',
+      "for await (const chunk of process.stdin) json += chunk;",
+      "process.stdout.write((await render(json)).svg);",
+    ].join("\n");
+
+    const result = skill.node(["--input-type=module", "-e", script], { stdin: flowJson });
 
     expect(result).toEqual({ status: 0, stdout: svg, stderr: "" });
   });
