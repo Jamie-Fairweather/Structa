@@ -88,11 +88,13 @@ describe("the JSON Schema", () => {
   });
 
   it.each([
-    ["type", (input: Node, value: string) => (input.type = value)],
-    ["direction", (input: Node, value: string) => (input.direction = value)],
-    ["shape", (input: Node, value: string) => (input.nodes[0].shape = value)],
-  ])("offers exactly the %s values render() accepts", async (field, set) => {
-    const values: string[] = (field === "shape" ? node : root).properties[field].enum;
+    ["type", () => root, (input: Node, value: string) => (input.type = value)],
+    ["direction", () => root, (input: Node, value: string) => (input.direction = value)],
+    ["shape", () => node, (input: Node, value: string) => (input.nodes[0].shape = value)],
+    ["node status", () => node, (input: Node, value: string) => (input.nodes[0].status = value)],
+    ["edge status", () => edge, (input: Node, value: string) => (input.edges[0].status = value)],
+  ])("offers exactly the %s values render() accepts", async (name, part, set) => {
+    const values: string[] = part().properties[name.split(" ").at(-1)!].enum;
 
     for (const value of values) {
       const input = greenhouse();
@@ -101,9 +103,24 @@ describe("the JSON Schema", () => {
     }
     const input = greenhouse();
     set(input, "sideways");
-    expect(await outcome(input)).toEqual([
-      expect.objectContaining({ hint: `use ${values.map((v) => JSON.stringify(v)).join(" or ")}` }),
-    ]);
+    const quoted = values.map((v) => JSON.stringify(v));
+    const choices = quoted.length <= 2 ? quoted.join(" or ") : `${quoted.slice(0, -1).join(", ")} or ${quoted.at(-1)}`;
+    expect(await outcome(input)).toEqual([expect.objectContaining({ hint: `use ${choices}` })]);
+  });
+
+  it.each([
+    ["emphasis", () => edge, (input: Node, value: unknown) => (input.edges[0].emphasis = value)],
+  ])("agrees with render() that %s is true or false", async (_name, part, set) => {
+    expect(part().properties.emphasis.type).toBe("boolean");
+
+    for (const value of [true, false]) {
+      const input = greenhouse();
+      set(input, value);
+      expect(await outcome(input)).toBe("ok");
+    }
+    const input = greenhouse();
+    set(input, "true");
+    expect(await outcome(input)).not.toBe("ok");
   });
 
   it("documents the defaults render() uses", async () => {
@@ -114,6 +131,14 @@ describe("the JSON Schema", () => {
     const bare = await render({ ...withoutEdges, edges: [] }, opts);
     expect((await render(withoutEdges, opts)).svg).toBe(bare.svg);
     expect((await render({ ...greenhouse(), direction: "down" }, opts)).svg).toBe((await render(greenhouse(), opts)).svg);
+  });
+
+  it("documents that emphasis is off unless asked for", async () => {
+    expect(edge.properties.emphasis.default).toBe(false);
+
+    const off = greenhouse();
+    off.edges[0].emphasis = false;
+    expect((await render(off, opts)).svg).toBe((await render(greenhouse(), opts)).svg);
   });
 
   it("accepts version 1 only", async () => {

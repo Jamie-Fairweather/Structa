@@ -19,6 +19,8 @@ export interface FlowEdge {
   readonly id: string;
   readonly from: string;
   readonly to: string;
+  readonly status?: Status;
+  readonly emphasis: boolean;
 }
 
 /** Which way the diagram flows. */
@@ -61,7 +63,7 @@ export function parseDiagram(input: unknown): ParseResult {
       type: diagram.type,
       direction: diagram.direction,
       nodes: diagram.nodes,
-      edges: diagram.edges.map((edge, i) => ({ id: edge.id ?? `edges[${i}]`, from: edge.from, to: edge.to })),
+      edges: diagram.edges.map((edge, i) => ({ ...edge, id: edge.id ?? `edges[${i}]` })),
     },
   };
 }

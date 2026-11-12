@@ -147,7 +147,7 @@ describe("unknown fields", () => {
 
   it("rejects an unknown edge field", async () => {
     expect(await problems(pondWith((p) => (p.edges[0]!.colour = "blue")))).toEqual([
-      { path: "edges[0].colour", message: 'unknown field "colour"', hint: "allowed fields: id, from, to" },
+      { path: "edges[0].colour", message: 'unknown field "colour"', hint: "allowed fields: id, from, to, status, emphasis" },
     ]);
   });
 
@@ -210,6 +210,49 @@ describe("nodes and edges", () => {
   it("requires a label to be a string", async () => {
     expect(await problems(pondWith((p) => (p.nodes[0]!.label = 42)))).toEqual([
       { path: "nodes[0].label", message: "must be a string", hint: "write the text in double quotes" },
+    ]);
+  });
+});
+
+describe("statuses and emphasis", () => {
+  const STATUS_HINT = 'use "new", "changed", "removed" or "unchanged"';
+
+  it("accepts the four statuses on nodes and edges, and no status at all", async () => {
+    for (const status of ["new", "changed", "removed", "unchanged"]) {
+      const input = pondWith((p) => {
+        p.nodes[0]!.status = status;
+        p.edges[0]!.status = status;
+      });
+      await expect(render(input, opts)).resolves.toHaveProperty("svg");
+    }
+    await expect(render(pond(), opts)).resolves.toHaveProperty("svg");
+  });
+
+  it.each([
+    ["nodes[1].status", (p: ReturnType<typeof pond>) => (p.nodes[1]!.status = "deleted"), '"deleted" is not a valid status'],
+    ["nodes[1].status", (p: ReturnType<typeof pond>) => (p.nodes[1]!.status = "New"), '"New" is not a valid status'],
+    ["edges[0].status", (p: ReturnType<typeof pond>) => (p.edges[0]!.status = true), "true is not a valid status"],
+  ])("rejects a status other than the four at %s", async (path, change, message) => {
+    expect(await problems(pondWith(change))).toEqual([{ path, message, hint: STATUS_HINT }]);
+  });
+
+  it("accepts emphasis true or false, and treats a missing one as false", async () => {
+    const without = await render(pond(), opts);
+    const off = await render(pondWith((p) => (p.edges[0]!.emphasis = false)), opts);
+    const on = await render(pondWith((p) => (p.edges[0]!.emphasis = true)), opts);
+
+    expect(off.svg).toBe(without.svg);
+    expect(on.svg).not.toBe(without.svg);
+  });
+
+  it.each([
+    ["yes", '"yes" is not true or false'],
+    ["true", '"true" is not true or false'],
+    [1, "1 is not true or false"],
+    [null, "null is not true or false"],
+  ])("rejects emphasis %j", async (emphasis, message) => {
+    expect(await problems(pondWith((p) => (p.edges[1]!.emphasis = emphasis)))).toEqual([
+      { path: "edges[1].emphasis", message, hint: "write true or false, without quotes" },
     ]);
   });
 });

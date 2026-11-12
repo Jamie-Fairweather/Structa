@@ -150,20 +150,35 @@ function badge(b: Badge, x: number, y: number, theme: Theme): string[] {
 function line({ line, points }: RoutedLine<Line>, pad: number, theme: Theme): string[] {
   const { colors, sizes } = theme;
   const pts = points.map((p) => ({ x: p.x + pad, y: p.y + pad }));
-  const { width, cornerRadius, arrowLength, arrowWidth } = sizes.line;
+  const { cornerRadius, arrowLength, arrowWidth } = sizes.line;
+  const colour = lineColour(line.status, theme);
   return [
-    open("g", [["class", "line"], ["data-id", line.id], ["data-kind", line.kind], ["data-from", line.from], ["data-to", line.to]]),
-    el("title", [], escapeText(line.tooltip)),
-    el("path", [
-      ["d", roundedRoute(pts, cornerRadius, arrowLength)],
-      ["fill", "none"],
-      ["stroke", colors.line],
-      ["stroke-width", width],
-      ["stroke-linejoin", "round"],
+    open("g", [
+      ["class", "line"],
+      ["data-id", line.id],
+      ["data-kind", line.kind],
+      ["data-from", line.from],
+      ["data-to", line.to],
+      ...statusAttr(line.status),
     ]),
-    el("path", [["d", arrowhead(pts, arrowLength, arrowWidth)], ["fill", colors.line]]),
+    el("title", [], escapeText(line.tooltip)),
+    ...fadedIf(line.status === "removed", theme, [
+      el("path", [
+        ["d", roundedRoute(pts, cornerRadius, arrowLength)],
+        ["fill", "none"],
+        ["stroke", colour],
+        ["stroke-width", line.emphasis ? sizes.line.emphasisWidth : sizes.line.width],
+        ["stroke-linejoin", "round"],
+      ]),
+      el("path", [["d", arrowhead(pts, arrowLength, arrowWidth)], ["fill", colour]]),
+    ]),
     "</g>",
   ];
+}
+
+/** A line's status shows by colour only. Unchanged lines look like lines with no status. */
+function lineColour(status: Status | undefined, theme: Theme): string {
+  return status === undefined || status === "unchanged" ? theme.colors.line : theme.colors.status[status].stroke;
 }
 
 /** Rounds a canvas size up to whole pixels, ignoring floating-point noise. */

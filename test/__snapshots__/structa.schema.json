@@ -81,6 +81,20 @@
           "to": {
             "description": "the id of the node the line ends at",
             "$ref": "#/$defs/id"
+          },
+          "status": {
+            "description": "what the change does to this line, shown by its colour; leave it out for no status",
+            "enum": [
+              "new",
+              "changed",
+              "removed",
+              "unchanged"
+            ]
+          },
+          "emphasis": {
+            "description": "true draws the line thicker, to point out the main path",
+            "type": "boolean",
+            "default": false
           }
         },
         "required": [

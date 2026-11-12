@@ -34,8 +34,11 @@ export type Def =
   | { readonly kind: "id"; readonly of: "node" | "edge" }
   | { readonly kind: "ref"; readonly to: "node" }
   | ChoiceDef
+  | { readonly kind: "boolean" }
   | { readonly kind: "const"; readonly value: number }
   | { readonly kind: "any" };
+
+const BOOLEAN: Def = { kind: "boolean" };
 
 export interface ObjectDef {
   readonly kind: "object";
@@ -74,7 +77,7 @@ export interface Field {
   readonly required: boolean;
   /** Shown in the schema, and in the hint when a required field is missing. */
   readonly description: string;
-  readonly default?: string | readonly [];
+  readonly default?: string | boolean | readonly [];
 }
 
 function required(name: string, def: Def, description: string): Field {
@@ -141,6 +144,8 @@ const FLOW_EDGE: ObjectDef = {
     optional("id", { kind: "id", of: "edge" }, "a unique id; without one the line is known as edges[N]"),
     required("from", { kind: "ref", to: "node" }, "the id of the node the line starts at"),
     required("to", { kind: "ref", to: "node" }, "the id of the node the line ends at"),
+    optional("status", STATUS, "what the change does to this line, shown by its colour; leave it out for no status"),
+    optional("emphasis", BOOLEAN, "true draws the line thicker, to point out the main path", false),
   ],
 };
 

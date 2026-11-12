@@ -1,5 +1,5 @@
 // The label's face comes from the input definitions, which check labels against it.
-import { STEP_LABEL_FACE, type FlowEdge, type FlowStep } from "../input";
+import { STEP_LABEL_FACE, type FlowEdge, type FlowStep, type Status } from "../input";
 import { baseline, measure, wrap } from "../text";
 import type { Sizes } from "../theme";
 import { frameCard, type Card, type CardBody } from "./frame";
@@ -11,6 +11,8 @@ export interface Line {
   readonly kind: "flow";
   readonly from: string;
   readonly to: string;
+  readonly status?: Status;
+  readonly emphasis: boolean;
   readonly tooltip: string;
 }
 
@@ -51,5 +53,13 @@ function stepBody(node: FlowStep, sizes: Sizes, frameWidth: number): CardBody {
 }
 
 export function buildLine(edge: FlowEdge, fromLabel: string, toLabel: string): Line {
-  return { id: edge.id, kind: "flow", from: edge.from, to: edge.to, tooltip: `${fromLabel} → ${toLabel}` };
+  return {
+    id: edge.id,
+    kind: "flow",
+    from: edge.from,
+    to: edge.to,
+    ...(edge.status === undefined ? {} : { status: edge.status }),
+    emphasis: edge.emphasis,
+    tooltip: `${fromLabel} → ${toLabel}`,
+  };
 }

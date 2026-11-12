@@ -79,6 +79,9 @@ export function check(def: ObjectDef, input: unknown): { value: unknown; problem
             : `${show(value)} is not a valid ${field?.name ?? "value"}`;
         return report(path, message, `use ${orList(def.values)}`);
       }
+      case "boolean":
+        if (typeof value === "boolean") return value;
+        return report(path, `${show(value)} is not true or false`, "write true or false, without quotes");
       case "const":
         if (value === def.value) return value;
         return report(

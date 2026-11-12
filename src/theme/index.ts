@@ -84,7 +84,7 @@ export const SIZES = {
   badge: { fontSize: 10, height: 16, paddingX: 6, inset: 12, borderWidth: 1 },
   /** A line through struck-out text, `rise` font sizes above the baseline. */
   strike: { width: 1.25, rise: 0.3 },
-  line: { width: 1.5, cornerRadius: 8, arrowLength: 9, arrowWidth: 9 },
+  line: { width: 1.5, emphasisWidth: 3, cornerRadius: 8, arrowLength: 9, arrowWidth: 9 },
   step: {
     fontSize: 14,
     lineHeight: 20,

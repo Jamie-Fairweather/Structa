@@ -1,7 +1,7 @@
 import type { Element } from "@xmldom/xmldom";
 import { describe, expect, it } from "vitest";
 import { render } from "../src/index";
-import { badgeBox, byClassIn, cardBox, cardById, cards, overlaps, parseSvg, textLines } from "./helpers/svg";
+import { badgeBox, byClassIn, cardBox, cardById, cards, lines, overlaps, parseSvg, textLines } from "./helpers/svg";
 
 const opts = { embedFonts: false } as const;
 
@@ -200,5 +200,76 @@ describe("card status", () => {
       ["plant", "new"],
       ["mulch", null],
     ]);
+  });
+});
+
+describe("line status", () => {
+  /** The hedge with its three lines given these statuses and fields. */
+  function hedgeLines(...extras: object[]) {
+    const input = hedge();
+    input.edges = input.edges.map((edge, i) => ({ ...edge, ...extras[i] }));
+    return input;
+  }
+
+  function stroke(line: Element) {
+    const [route, arrow] = Array.from(line.getElementsByTagName("path"));
+    return { colour: route!.getAttribute("stroke"), arrow: arrow!.getAttribute("fill"), width: Number(route!.getAttribute("stroke-width")) };
+  }
+
+  it("draws every line exactly once with its own status", async () => {
+    const doc = await svgDoc(hedgeLines({ status: "new" }, {}, { status: "unchanged" }));
+
+    expect(lines(doc).map((l) => [l.getAttribute("data-id"), l.getAttribute("data-status")])).toEqual([
+      ["edges[0]", "new"],
+      ["edges[1]", null],
+      ["edges[2]", "unchanged"],
+    ]);
+  });
+
+  it.each([
+    ["light", "new", "#1f883d"],
+    ["light", "changed", "#bf8700"],
+    ["light", "removed", "#cf222e"],
+    ["light", "unchanged", "#8c959f"],
+    ["dark", "new", "#3fb950"],
+    ["dark", "changed", "#d29922"],
+    ["dark", "removed", "#f85149"],
+    ["dark", "unchanged", "#6e7681"],
+  ] as const)("colours a %s-theme %s line and its arrowhead, with no badge", async (theme, status, colour) => {
+    const doc = await svgDoc(hedgeLines({}, { status }), theme);
+
+    const line = lines(doc)[1]!;
+    expect(stroke(line)).toMatchObject({ colour, arrow: colour });
+    expect(byClassIn(line, "badge")).toEqual([]);
+    expect(textLines(line)).toEqual([]);
+  });
+
+  it("draws unchanged lines and lines with no status in the same neutral colour", async () => {
+    for (const [theme, neutral] of [["light", "#8c959f"], ["dark", "#6e7681"]] as const) {
+      const doc = await svgDoc(hedgeLines({ status: "unchanged" }, {}), theme);
+
+      expect(stroke(lines(doc)[0]!).colour).toBe(neutral);
+      expect(stroke(lines(doc)[1]!).colour).toBe(neutral);
+    }
+  });
+
+  it("fades a removed line, and only that one", async () => {
+    const doc = await svgDoc(hedgeLines({ status: "removed" }, { status: "changed" }));
+
+    const [removed, changed] = lines(doc);
+    const faded = byClassIn(removed!, "faded");
+    expect(faded).toHaveLength(1);
+    expect(Number(faded[0]!.getAttribute("opacity"))).toBeLessThan(0.7);
+    expect(faded[0]!.getElementsByTagName("path")).toHaveLength(2);
+    expect(byClassIn(changed!, "faded")).toEqual([]);
+  });
+
+  it("draws a line with emphasis thicker, whatever its status", async () => {
+    const doc = await svgDoc(hedgeLines({ emphasis: true }, { emphasis: false }, { emphasis: true, status: "new" }));
+
+    const [bold, plain, boldNew] = lines(doc).map((l) => stroke(l).width);
+    expect(bold).toBeGreaterThanOrEqual(plain! * 1.5);
+    expect(boldNew).toBe(bold);
+    expect(stroke(lines(doc)[1]!).width).toBe(stroke(lines(await svgDoc(hedge()))[1]!).width);
   });
 });
