@@ -52,6 +52,6 @@ describe("render()", () => {
     expect(error.code).toBe("INVALID_INPUT");
     expect(error.problems).toHaveLength(1);
     expect(error.problems[0]!.path).toBe("$");
-    expect(error.problems[0]!.message).toMatch(/^invalid JSON: /);
+    expect(error.problems[0]!.message).toBe('invalid JSON at line 1, column 30: expected a value but found "}"');
   });
 });

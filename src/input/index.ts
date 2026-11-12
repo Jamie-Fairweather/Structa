@@ -1,6 +1,7 @@
 import type { Problem } from "../errors";
 import { check } from "./check";
 import { diagramDefinition } from "./definitions";
+import { parseJson } from "./json";
 
 export interface FlowStep {
   readonly id: string;
@@ -39,11 +40,9 @@ export type ParseResult =
 export function parseDiagram(input: unknown): ParseResult {
   let value = input;
   if (typeof input === "string") {
-    try {
-      value = JSON.parse(input);
-    } catch (error) {
-      return { ok: false, problems: [{ path: "$", message: `invalid JSON: ${(error as Error).message}` }] };
-    }
+    const parsed = parseJson(input);
+    if (!parsed.ok) return { ok: false, problems: [parsed.problem] };
+    value = parsed.value;
   }
 
   const type = typeof value === "object" && value !== null ? (value as { type?: unknown }).type : undefined;

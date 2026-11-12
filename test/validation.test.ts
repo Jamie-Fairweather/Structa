@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { render, StructaError, type Problem } from "../src/index";
 import { cardById, lines, parseSvg, textLines, titleOf } from "./helpers/svg";
@@ -432,6 +433,98 @@ describe("text", () => {
     const label = "Étang → filtre … 5 € ≤ 10 ⇒ “ok” Ĳ";
 
     expect((await stepText(label)).title).toBe(label);
+  });
+});
+
+describe("JSON syntax errors", () => {
+  const lines = (...rows: string[]) => rows.join("\n");
+
+  it.each<[string, string, number, number, string, string]>([
+    [
+      "a comma before }",
+      lines("{", '  "type": "flow",', '  "nodes": [],', "}"),
+      4, 1, 'expected a field name in double quotes but found "}"', "remove the comma before it",
+    ],
+    [
+      "a comma before ]",
+      lines("{", '  "type": "flow",', '  "nodes": [', '    { "id": "dig", "label": "Dig", "shape": "step" },', "  ]", "}"),
+      5, 3, 'expected a value but found "]"', "remove the comma before it",
+    ],
+    [
+      "a missing comma between fields",
+      lines("{", '  "type": "flow"', '  "nodes": []', "}"),
+      3, 3, 'expected "," or "}" but found a string', "put a comma between fields",
+    ],
+    [
+      "a missing comma between items",
+      lines(
+        '{ "type": "flow", "nodes": [',
+        '    { "id": "dig", "label": "Dig", "shape": "step" }',
+        '    { "id": "fill", "label": "Fill", "shape": "step" }',
+        "] }",
+      ),
+      3, 5, 'expected "," or "]" but found "{"', "put a comma between items",
+    ],
+    ["single quotes", "{'type': 'flow'}", 1, 2, `expected a field name in double quotes but found "'"`, "JSON uses double quotes, not single quotes"],
+    ["a bare field name", '{ type: "flow" }', 1, 3, 'expected a field name in double quotes but found "type"', "put field names in double quotes"],
+    ["bare text", '{ "type": flow }', 1, 11, 'expected a value but found "flow"', "put text in double quotes"],
+    ["a missing colon", '{ "type" "flow" }', 1, 10, 'expected ":" but found a string', "put a colon between a field name and its value"],
+    ["an early end", '{ "type": "flow", "nodes": [', 1, 29, "the input ends too soon", "close every open list and object"],
+    ["an end inside a string", '{ "type": "flo', 1, 15, "the input ends inside a string", 'close the string with "'],
+    [
+      "a line break inside a string",
+      lines('{ "type": "flow", "nodes": [', '  { "id": "dig", "label": "Dig the', 'hole", "shape": "step" } ] }'),
+      2, 35, "found a line feed (U+000A) inside a string", "keep each string on one line; text wraps by itself",
+    ],
+    ["a bad escape", '{ "type": "fl\\ow" }', 1, 14, '"\\o" is not a valid escape', "write a backslash as \\\\"],
+    ["a number with a leading zero", '{ "version": 01 }', 1, 14, "invalid number", "write numbers like 1, 2.5 or -3"],
+    ["text after the end", '{ "type": "flow", "nodes": [] } x', 1, 33, 'expected the end of the input but found "x"', "the input must be exactly one JSON object"],
+    ["two objects", "{} {}", 1, 4, 'expected the end of the input but found "{"', "the input must be exactly one JSON object"],
+    ["nothing at all", "", 1, 1, "the input is empty", "pass one JSON object describing the diagram"],
+    [
+      "a byte-order mark",
+      `${String.fromCodePoint(0xfeff)}{ "type": "flow", "nodes": [] }`,
+      1, 1, "expected a value but found U+FEFF", "remove the byte-order mark at the start",
+    ],
+  ])("reports %s at $ with its line and column", async (_name, json, line, column, what, hint) => {
+    expect(await problems(json)).toEqual([{ path: "$", message: `invalid JSON at line ${line}, column ${column}: ${what}`, hint }]);
+  });
+
+  it("gives a line and column for every way of damaging an example", async () => {
+    const json = readFileSync(new URL("../examples/flow.json", import.meta.url), "utf8");
+    const damaged = new Set<string>();
+    for (let i = 0; i <= json.length; i++) {
+      damaged.add(json.slice(0, i) + json.slice(i + 1));
+      for (const junk of [",", '"', "}", "]", "x", "'", "\\", "\t"]) damaged.add(json.slice(0, i) + junk + json.slice(i));
+    }
+    const isJson = (text: string) => {
+      try {
+        JSON.parse(text);
+        return true;
+      } catch {
+        return false;
+      }
+    };
+
+    const unplaced: string[] = [];
+    for (const text of [...damaged].filter((t) => !isJson(t))) {
+      const [problem] = await problems(text);
+      if (!/^invalid JSON at line \d+, column \d+: /.test(problem!.message)) unplaced.push(problem!.message);
+    }
+
+    expect(unplaced).toEqual([]);
+  });
+
+  it("counts Windows line endings as one line break", async () => {
+    const json = ["{", '  "type": "flow",', '  "nodes": [],', "}"].join("\r\n");
+
+    expect(await problems(json)).toEqual([
+      {
+        path: "$",
+        message: 'invalid JSON at line 4, column 1: expected a field name in double quotes but found "}"',
+        hint: "remove the comma before it",
+      },
+    ]);
   });
 });
 
