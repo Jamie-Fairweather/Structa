@@ -257,7 +257,7 @@ describe("commands win over file names", () => {
 });
 
 describe("input encodings", () => {
-  const BOM = "﻿";
+  const BOM = String.fromCharCode(0xfeff);
   const utf16le = (text: string) => Buffer.from(text, "utf16le");
   const utf16be = (text: string) => Buffer.from(text, "utf16le").swap16();
   const hint = "it is UTF-16 text (save it as UTF-8; in PowerShell, use -Encoding utf8)";

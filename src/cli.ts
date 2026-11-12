@@ -193,7 +193,7 @@ function decodeUtf8(bytes: Buffer): string | undefined {
   const utf16Mark = (first === 0xff && second === 0xfe) || (first === 0xfe && second === 0xff);
   if (utf16Mark || first === 0 || second === 0) return undefined;
   const text = bytes.toString("utf8");
-  return text.startsWith("﻿") ? text.slice(1) : text;
+  return text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
 }
 
 function fail(message: string): number {
