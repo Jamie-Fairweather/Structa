@@ -109,13 +109,19 @@ function diagram(node: Def, edge: Def, direction: "down" | "right"): ObjectDef {
   };
 }
 
-// Text fields register every face they are drawn in (see src/shapes).
+/**
+ * The faces text fields are drawn in. src/shapes draws with these, and each
+ * text field below registers the same ones, so its characters are checked
+ * against the faces that really draw it.
+ */
+export const STEP_LABEL_FACE: FaceId = "inter-semibold";
+
 const FLOW_NODE: ObjectDef = {
   kind: "object",
   noun: "node",
   fields: [
     required("id", { kind: "id", of: "node" }, "a unique id made of letters, digits and - _ . :"),
-    required("label", { kind: "text", text: LABEL, faces: ["inter-semibold"] }, "the text shown in the shape"),
+    required("label", { kind: "text", text: LABEL, faces: [STEP_LABEL_FACE] }, "the text shown in the shape"),
     required("shape", { kind: "choice", values: ["step"], later: true }, "the shape drawn"),
   ],
 };

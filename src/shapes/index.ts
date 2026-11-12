@@ -1,4 +1,5 @@
-import type { FlowEdge, FlowStep } from "../input";
+// The label's face comes from the input definitions, which check labels against it.
+import { STEP_LABEL_FACE, type FlowEdge, type FlowStep } from "../input";
 import { baseline, measure, wrap, type FaceId } from "../text";
 import type { Sizes, ThemeColors } from "../theme";
 
@@ -31,8 +32,6 @@ export interface Line {
   readonly to: string;
   readonly tooltip: string;
 }
-
-const STEP_LABEL_FACE: FaceId = "inter-semibold";
 
 /** A step: a rounded box sized to its wrapped label between a minimum and maximum width. */
 export function buildStep(node: FlowStep, sizes: Sizes): Card {
