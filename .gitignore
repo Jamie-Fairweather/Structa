@@ -1,1 +1,5 @@
 node_modules/
+
+# Build output and generated files (see AGENTS.md)
+dist/
+generated/
