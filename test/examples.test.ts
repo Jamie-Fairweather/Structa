@@ -16,15 +16,32 @@ describe("examples", () => {
     expect(examples.length).toBeGreaterThan(0);
   });
 
-  describe.each(examples)("$name", ({ name, json }) => {
-    it("matches its light snapshot", async () => {
-      const { svg } = await render(json, { embedFonts: false });
+  it("includes one that uses every status on cards and lines, with labels, emphasis and a title", () => {
+    const used = examples.map(({ json }) => JSON.parse(json) as { title?: string; nodes: object[]; edges?: object[] });
+    const statuses = (items: readonly object[]) => new Set(items.map((item) => (item as { status?: string }).status));
+    const all = ["new", "changed", "removed", "unchanged"];
 
-      await expect(svg).toMatchFileSnapshot(`__snapshots__/examples/${name}.light.svg`);
+    expect(
+      used.some(
+        (d) =>
+          d.title !== undefined &&
+          all.every((s) => statuses(d.nodes).has(s)) &&
+          statuses(d.edges ?? []).size > 2 &&
+          (d.edges ?? []).some((e) => "label" in e) &&
+          (d.edges ?? []).some((e) => "emphasis" in e),
+      ),
+    ).toBe(true);
+  });
+
+  describe.each(examples)("$name", ({ name, json }) => {
+    it.each(["light", "dark"] as const)("matches its %s snapshot", async (theme) => {
+      const { svg } = await render(json, { embedFonts: false, theme });
+
+      await expect(svg).toMatchFileSnapshot(`__snapshots__/examples/${name}.${theme}.svg`);
     });
 
-    it("passes the SVG rules", async () => {
-      const { svg } = await render(json, { embedFonts: false });
+    it.each(["light", "dark"] as const)("passes the SVG rules in the %s theme", async (theme) => {
+      const { svg } = await render(json, { embedFonts: false, theme });
 
       expect(passiveSvgViolations(svg)).toEqual([]);
       expect(badlyFormattedNumbers(svg)).toEqual([]);

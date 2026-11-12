@@ -1,0 +1,175 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="674" height="988" viewBox="0 0 674 988">
+<defs>
+<pattern id="structa-grid-light" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="9" cy="9" r="1" fill="#8c959f" fill-opacity="0.5"/></pattern>
+<filter id="structa-shadow-light" x="-20%" y="-30%" width="140%" height="170%"><feDropShadow dx="0" dy="1" stdDeviation="3" flood-color="#1f2328" flood-opacity="0.1"/></filter>
+</defs>
+<rect width="674" height="988" fill="#f4f5f7"/>
+<rect width="674" height="988" fill="url(#structa-grid-light)"/>
+<g class="title">
+<text x="32" y="50.55" font-family="Inter, sans-serif" font-size="18" font-weight="700" fill="#1f2328">Weekend bread orders</text>
+</g>
+<g class="description">
+<text x="32" y="73.73" font-family="Inter, sans-serif" font-size="13" font-weight="400" fill="#59636e">Orders now close on Thursday night and every loaf is weighed before it is boxed. Phone orders are</text>
+<text x="32" y="91.73" font-family="Inter, sans-serif" font-size="13" font-weight="400" fill="#59636e">gone.</text>
+</g>
+<g class="card" data-id="online" data-kind="step" data-status="changed">
+<title>Take orders online</title>
+<rect x="277.5" y="128" width="159" height="44" rx="10" fill="#ffffff" stroke="#bf8700" stroke-width="1.5" filter="url(#structa-shadow-light)"/>
+<text x="357" y="155.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Take orders online</text>
+<g class="badge">
+<rect x="361.5" y="120" width="63" height="16" rx="8" fill="#ffffff"/>
+<rect x="361.5" y="120" width="63" height="16" rx="8" fill="#fae17d" stroke="#bf8700" stroke-width="1"/>
+<text x="393" y="131.64" font-family="Inter, sans-serif" font-size="10" font-weight="700" fill="#7d4e00" text-anchor="middle">CHANGED</text>
+</g>
+</g>
+<g class="card" data-id="phone" data-kind="step" data-status="removed">
+<title>Take orders by phone</title>
+<g class="faded" opacity="0.55">
+<rect x="32" y="248" width="181" height="44" rx="10" fill="#ffffff" stroke="#cf222e" stroke-width="1.5" filter="url(#structa-shadow-light)"/>
+<text x="122.5" y="275.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Take orders by phone</text>
+<line class="strike" x1="48.45" y1="270.89" x2="196.55" y2="270.89" stroke="#1f2328" stroke-width="1.25"/>
+</g>
+<g class="badge">
+<rect x="138" y="240" width="63" height="16" rx="8" fill="#ffffff"/>
+<rect x="138" y="240" width="63" height="16" rx="8" fill="#ffcecb" stroke="#cf222e" stroke-width="1"/>
+<text x="169.5" y="251.64" font-family="Inter, sans-serif" font-size="10" font-weight="700" fill="#a40e26" text-anchor="middle">REMOVED</text>
+</g>
+</g>
+<g class="card" data-id="close" data-kind="step" data-status="new">
+<title>Close orders on Thursday night</title>
+<rect x="253" y="228" width="208" height="64" rx="10" fill="#ffffff" stroke="#1f883d" stroke-width="1.5" filter="url(#structa-shadow-light)"/>
+<text x="357" y="255.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Close orders on Thursday</text>
+<text x="357" y="275.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">night</text>
+<g class="badge">
+<rect x="412" y="220" width="37" height="16" rx="8" fill="#ffffff"/>
+<rect x="412" y="220" width="37" height="16" rx="8" fill="#b9f0c4" stroke="#1f883d" stroke-width="1"/>
+<text x="430.5" y="231.64" font-family="Inter, sans-serif" font-size="10" font-weight="700" fill="#116329" text-anchor="middle">NEW</text>
+</g>
+</g>
+<g class="card" data-id="bake" data-kind="step" data-status="unchanged">
+<title>Bake on Friday</title>
+<rect x="78.17" y="416" width="133" height="44" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1.5" filter="url(#structa-shadow-light)"/>
+<text x="144.67" y="443.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Bake on Friday</text>
+<g class="badge">
+<rect x="121.17" y="408" width="78" height="16" rx="8" fill="#ffffff"/>
+<rect x="121.17" y="408" width="78" height="16" rx="8" fill="#eaeef2" stroke="#8c959f" stroke-width="1"/>
+<text x="160.17" y="419.64" font-family="Inter, sans-serif" font-size="10" font-weight="700" fill="#59636e" text-anchor="middle">UNCHANGED</text>
+</g>
+</g>
+<g class="card" data-id="weigh" data-kind="step" data-status="new">
+<title>Weigh each loaf</title>
+<rect x="51.5" y="584" width="142" height="44" rx="10" fill="#ffffff" stroke="#1f883d" stroke-width="1.5" filter="url(#structa-shadow-light)"/>
+<text x="122.5" y="611.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Weigh each loaf</text>
+<g class="badge">
+<rect x="144.5" y="576" width="37" height="16" rx="8" fill="#ffffff"/>
+<rect x="144.5" y="576" width="37" height="16" rx="8" fill="#b9f0c4" stroke="#1f883d" stroke-width="1"/>
+<text x="163" y="587.64" font-family="Inter, sans-serif" font-size="10" font-weight="700" fill="#116329" text-anchor="middle">NEW</text>
+</g>
+</g>
+<g class="card" data-id="box" data-kind="step" data-status="unchanged">
+<title>Box and label the order</title>
+<rect x="59.83" y="684" width="188" height="44" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1.5" filter="url(#structa-shadow-light)"/>
+<text x="153.83" y="711.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Box and label the order</text>
+<g class="badge">
+<rect x="157.83" y="676" width="78" height="16" rx="8" fill="#ffffff"/>
+<rect x="157.83" y="676" width="78" height="16" rx="8" fill="#eaeef2" stroke="#8c959f" stroke-width="1"/>
+<text x="196.83" y="687.64" font-family="Inter, sans-serif" font-size="10" font-weight="700" fill="#59636e" text-anchor="middle">UNCHANGED</text>
+</g>
+</g>
+<g class="card" data-id="collect" data-kind="step">
+<title>Customer collects on Saturday</title>
+<rect x="65.83" y="852" width="176" height="64" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<text x="153.83" y="879.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Customer collects on</text>
+<text x="153.83" y="899.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Saturday</text>
+</g>
+<g class="line" data-id="edges[0]" data-kind="flow" data-from="online" data-to="close" data-status="new">
+<title>Take orders online → Close orders on Thursday night</title>
+<path d="M357 172 L357 219" fill="none" stroke="#1f883d" stroke-width="3" stroke-linejoin="round"/>
+<path d="M357 228 L352.5 219 L361.5 219 Z" fill="#1f883d"/>
+</g>
+<g class="line" data-id="edges[1]" data-kind="flow" data-from="close" data-to="bake" data-status="new">
+<title>Close orders on Thursday night → Bake on Friday: final list</title>
+<path d="M357 292 L357 376 Q357 384 349 384 L174.83 384 Q166.83 384 166.83 392 L166.83 399" fill="none" stroke="#1f883d" stroke-width="3" stroke-linejoin="round"/>
+<path d="M166.83 408 L162.33 399 L171.33 399 Z" fill="#1f883d"/>
+<g class="line-label">
+<rect x="327" y="340" width="60" height="20" rx="10" fill="#ffffff" stroke="#1f883d" stroke-width="1"/>
+<text x="357" y="354.37" font-family="Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">final list</text>
+</g>
+</g>
+<g class="line" data-id="edges[2]" data-kind="flow" data-from="phone" data-to="bake" data-status="removed">
+<title>Take orders by phone → Bake on Friday: call-ins</title>
+<g class="faded" opacity="0.55">
+<path d="M122.5 292 L122.5 402.58" fill="none" stroke="#cf222e" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M122.5 411.58 L118 402.58 L127 402.58 Z" fill="#cf222e"/>
+<g class="line-label">
+<rect x="93.5" y="340" width="58" height="20" rx="10" fill="#ffffff" stroke="#cf222e" stroke-width="1"/>
+<text x="122.5" y="354.37" font-family="Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">call-ins</text>
+<line class="strike" x1="101.87" y1="350.77" x2="143.13" y2="350.77" stroke="#1f2328" stroke-width="1.25"/>
+</g>
+</g>
+</g>
+<g class="line" data-id="edges[3]" data-kind="flow" data-from="bake" data-to="weigh" data-status="new">
+<title>Bake on Friday → Weigh each loaf: once cool</title>
+<path d="M122.5 460 L122.5 575" fill="none" stroke="#1f883d" stroke-width="3" stroke-linejoin="round"/>
+<path d="M122.5 584 L118 575 L127 575 Z" fill="#1f883d"/>
+<g class="line-label">
+<rect x="86.5" y="508" width="72" height="20" rx="10" fill="#ffffff" stroke="#1f883d" stroke-width="1"/>
+<text x="122.5" y="522.37" font-family="Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">once cool</text>
+</g>
+</g>
+<g class="line" data-id="edges[4]" data-kind="flow" data-from="weigh" data-to="box" data-status="new">
+<title>Weigh each loaf → Box and label the order</title>
+<path d="M122.5 628 L122.5 675" fill="none" stroke="#1f883d" stroke-width="3" stroke-linejoin="round"/>
+<path d="M122.5 684 L118 675 L127 675 Z" fill="#1f883d"/>
+</g>
+<g class="line" data-id="edges[5]" data-kind="flow" data-from="bake" data-to="box" data-status="removed">
+<title>Bake on Friday → Box and label the order</title>
+<g class="faded" opacity="0.55">
+<path d="M166.83 460 L166.83 476 Q166.83 484 174.83 484 L209.5 484 Q217.5 484 217.5 492 L217.5 644 Q217.5 652 209.5 652 L193.17 652 Q185.17 652 185.17 660 L185.17 667" fill="none" stroke="#cf222e" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M185.17 676 L180.67 667 L189.67 667 Z" fill="#cf222e"/>
+</g>
+</g>
+<g class="line" data-id="edges[6]" data-kind="flow" data-from="box" data-to="collect" data-status="changed">
+<title>Box and label the order → Customer collects on Saturday: from 8 am</title>
+<path d="M153.83 728 L153.83 843" fill="none" stroke="#bf8700" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M153.83 852 L149.33 843 L158.33 843 Z" fill="#bf8700"/>
+<g class="line-label">
+<rect x="116.33" y="776" width="75" height="20" rx="10" fill="#ffffff" stroke="#bf8700" stroke-width="1"/>
+<text x="153.83" y="790.37" font-family="Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">from 8 am</text>
+</g>
+</g>
+<g class="legend">
+<g class="legend-item" data-status="new">
+<line class="swatch" x1="32" y1="948" x2="52" y2="948" stroke="#1f883d" stroke-width="1.5" stroke-linecap="round"/>
+<g class="badge">
+<rect x="58" y="940" width="37" height="16" rx="8" fill="#ffffff"/>
+<rect x="58" y="940" width="37" height="16" rx="8" fill="#b9f0c4" stroke="#1f883d" stroke-width="1"/>
+<text x="76.5" y="951.64" font-family="Inter, sans-serif" font-size="10" font-weight="700" fill="#116329" text-anchor="middle">NEW</text>
+</g>
+</g>
+<g class="legend-item" data-status="changed">
+<line class="swatch" x1="115" y1="948" x2="135" y2="948" stroke="#bf8700" stroke-width="1.5" stroke-linecap="round"/>
+<g class="badge">
+<rect x="141" y="940" width="63" height="16" rx="8" fill="#ffffff"/>
+<rect x="141" y="940" width="63" height="16" rx="8" fill="#fae17d" stroke="#bf8700" stroke-width="1"/>
+<text x="172.5" y="951.64" font-family="Inter, sans-serif" font-size="10" font-weight="700" fill="#7d4e00" text-anchor="middle">CHANGED</text>
+</g>
+</g>
+<g class="legend-item" data-status="removed">
+<line class="swatch" x1="224" y1="948" x2="244" y2="948" stroke="#cf222e" stroke-width="1.5" stroke-linecap="round"/>
+<g class="badge">
+<rect x="250" y="940" width="63" height="16" rx="8" fill="#ffffff"/>
+<rect x="250" y="940" width="63" height="16" rx="8" fill="#ffcecb" stroke="#cf222e" stroke-width="1"/>
+<text x="281.5" y="951.64" font-family="Inter, sans-serif" font-size="10" font-weight="700" fill="#a40e26" text-anchor="middle">REMOVED</text>
+</g>
+</g>
+<g class="legend-item" data-status="unchanged">
+<line class="swatch" x1="333" y1="948" x2="353" y2="948" stroke="#8c959f" stroke-width="1.5" stroke-linecap="round"/>
+<g class="badge">
+<rect x="359" y="940" width="78" height="16" rx="8" fill="#ffffff"/>
+<rect x="359" y="940" width="78" height="16" rx="8" fill="#eaeef2" stroke="#8c959f" stroke-width="1"/>
+<text x="398" y="951.64" font-family="Inter, sans-serif" font-size="10" font-weight="700" fill="#59636e" text-anchor="middle">UNCHANGED</text>
+</g>
+</g>
+</g>
+</svg>

@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="555" height="424" viewBox="0 0 555 424">
+<defs>
+<pattern id="structa-grid-dark" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="9" cy="9" r="1" fill="#6e7681" fill-opacity="0.4"/></pattern>
+<filter id="structa-shadow-dark" x="-20%" y="-30%" width="140%" height="170%"><feDropShadow dx="0" dy="1" stdDeviation="3" flood-color="#010409" flood-opacity="0.5"/></filter>
+</defs>
+<rect width="555" height="424" fill="#0d1117"/>
+<rect width="555" height="424" fill="url(#structa-grid-dark)"/>
+<g class="card" data-id="scan" data-kind="step">
+<title>Scan the returned book</title>
+<rect x="85.83" y="32" width="191" height="44" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
+<text x="181.33" y="59.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Scan the returned book</text>
+</g>
+<g class="card" data-id="inspect" data-kind="step">
+<title>Check for damage</title>
+<rect x="71" y="124" width="157" height="44" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
+<text x="149.5" y="151.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Check for damage</text>
+</g>
+<g class="card" data-id="fee" data-kind="step">
+<title>Work out any late fee</title>
+<rect x="268" y="124" width="177" height="44" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
+<text x="356.5" y="151.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Work out any late fee</text>
+</g>
+<g class="card" data-id="close" data-kind="step">
+<title>Close the loan</title>
+<rect x="106.5" y="216" width="129" height="44" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
+<text x="171" y="243.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Close the loan</text>
+</g>
+<g class="card" data-id="receipt" data-kind="step">
+<title>Email the borrower a receipt, listing the return date and any fee owed</title>
+<rect x="32" y="308" width="235" height="84" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
+<text x="149.5" y="335.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Email the borrower a receipt,</text>
+<text x="149.5" y="355.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">listing the return date and any</text>
+<text x="149.5" y="375.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">fee owed</text>
+</g>
+<g class="card" data-id="trolley" data-kind="step">
+<title>Put the book on the returns trolley</title>
+<rect x="307" y="308" width="216" height="64" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
+<text x="415" y="335.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Put the book on the returns</text>
+<text x="415" y="355.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">trolley</text>
+</g>
+<g class="line" data-id="edges[0]" data-kind="flow" data-from="scan" data-to="inspect">
+<title>Scan the returned book → Check for damage</title>
+<path d="M149.5 76 L149.5 115" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M149.5 124 L145 115 L154 115 Z" fill="#6e7681"/>
+</g>
+<g class="line" data-id="edges[1]" data-kind="flow" data-from="scan" data-to="fee">
+<title>Scan the returned book → Work out any late fee</title>
+<path d="M213.17 76 L213.17 92 Q213.17 100 221.17 100 L348.5 100 Q356.5 100 356.5 108 L356.5 115" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M356.5 124 L352 115 L361 115 Z" fill="#6e7681"/>
+</g>
+<g class="line" data-id="edges[2]" data-kind="flow" data-from="inspect" data-to="close">
+<title>Check for damage → Close the loan</title>
+<path d="M149.5 168 L149.5 207" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M149.5 216 L145 207 L154 207 Z" fill="#6e7681"/>
+</g>
+<g class="line" data-id="edges[3]" data-kind="flow" data-from="fee" data-to="close">
+<title>Work out any late fee → Close the loan</title>
+<path d="M356.5 168 L356.5 184 Q356.5 192 348.5 192 L200.5 192 Q192.5 192 192.5 200 L192.5 207" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M192.5 216 L188 207 L197 207 Z" fill="#6e7681"/>
+</g>
+<g class="line" data-id="edges[4]" data-kind="flow" data-from="close" data-to="receipt">
+<title>Close the loan → Email the borrower a receipt, listing the return date and any fee owed</title>
+<path d="M149.5 260 L149.5 299" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M149.5 308 L145 299 L154 299 Z" fill="#6e7681"/>
+</g>
+<g class="line" data-id="edges[5]" data-kind="flow" data-from="close" data-to="trolley">
+<title>Close the loan → Put the book on the returns trolley</title>
+<path d="M192.5 260 L192.5 276 Q192.5 284 200.5 284 L407 284 Q415 284 415 292 L415 299" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M415 308 L410.5 299 L419.5 299 Z" fill="#6e7681"/>
+</g>
+</svg>

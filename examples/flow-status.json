@@ -1,0 +1,23 @@
+{
+  "type": "flow",
+  "title": "Weekend bread orders",
+  "description": "Orders now close on Thursday night and every loaf is weighed before it is boxed. Phone orders are gone.",
+  "nodes": [
+    { "id": "online", "label": "Take orders online", "shape": "step", "status": "changed" },
+    { "id": "phone", "label": "Take orders by phone", "shape": "step", "status": "removed" },
+    { "id": "close", "label": "Close orders on Thursday night", "shape": "step", "status": "new" },
+    { "id": "bake", "label": "Bake on Friday", "shape": "step", "status": "unchanged" },
+    { "id": "weigh", "label": "Weigh each loaf", "shape": "step", "status": "new" },
+    { "id": "box", "label": "Box and label the order", "shape": "step", "status": "unchanged" },
+    { "id": "collect", "label": "Customer collects on Saturday", "shape": "step" }
+  ],
+  "edges": [
+    { "from": "online", "to": "close", "status": "new", "emphasis": true },
+    { "from": "close", "to": "bake", "label": "final list", "status": "new", "emphasis": true },
+    { "from": "phone", "to": "bake", "label": "call-ins", "status": "removed" },
+    { "from": "bake", "to": "weigh", "label": "once cool", "status": "new", "emphasis": true },
+    { "from": "weigh", "to": "box", "status": "new", "emphasis": true },
+    { "from": "bake", "to": "box", "status": "removed" },
+    { "from": "box", "to": "collect", "status": "changed", "label": "from 8 am" }
+  ]
+}
