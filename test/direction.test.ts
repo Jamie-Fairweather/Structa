@@ -48,3 +48,59 @@ describe("direction", () => {
     expect(cover!.x).toBeGreaterThanOrEqual(sow!.x + sow!.width);
   });
 });
+
+describe("node order", () => {
+  /** One step followed by three, with the three listed in the given order. */
+  function harvest(order: readonly string[]) {
+    const steps = new Map([
+      ["wash", "Wash the carrots"],
+      ["dry", "Dry them on a rack"],
+      ["store", "Store them in sand"],
+    ]);
+    return {
+      type: "flow",
+      nodes: [
+        { id: "pull", label: "Pull the carrots", shape: "step" },
+        ...order.map((id) => ({ id, label: steps.get(id)!, shape: "step" })),
+      ],
+      edges: [
+        { from: "pull", to: "wash" },
+        { from: "pull", to: "dry" },
+        { from: "pull", to: "store" },
+      ],
+    };
+  }
+
+  it.each([[["wash", "dry", "store"]], [["store", "dry", "wash"]], [["dry", "store", "wash"]]])(
+    "places side-by-side cards in the order the nodes are listed: %j",
+    async (order) => {
+      const placed = await boxes(harvest(order), order);
+
+      expect(placed[1]!.x).toBeGreaterThan(placed[0]!.x);
+      expect(placed[2]!.x).toBeGreaterThan(placed[1]!.x);
+    },
+  );
+
+  it("is only a hint: connections still win over the listed order", async () => {
+    // Listing "tie" before "net" asks for tie on the left, but that would cross
+    // the two lines, so tie stays under its own parent on the right.
+    const [net, tie] = await boxes(
+      {
+        type: "flow",
+        nodes: [
+          { id: "hoops", label: "Bend the hoops", shape: "step" },
+          { id: "stakes", label: "Drive in the stakes", shape: "step" },
+          { id: "tie", label: "Tie the canes", shape: "step" },
+          { id: "net", label: "Pin the netting", shape: "step" },
+        ],
+        edges: [
+          { from: "hoops", to: "net" },
+          { from: "stakes", to: "tie" },
+        ],
+      },
+      ["net", "tie"],
+    );
+
+    expect(tie!.x).toBeGreaterThan(net!.x);
+  });
+});

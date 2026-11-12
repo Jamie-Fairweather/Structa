@@ -14,11 +14,13 @@ export interface LayoutProfile {
 
 export const FLOW_PROFILE: LayoutProfile = {
   name: "flow",
-  version: 1,
+  version: 2,
   options: {
     "elk.algorithm": "layered",
     "elk.edgeRouting": "ORTHOGONAL",
     "elk.randomSeed": "1",
+    // JSON node order is a soft hint: ELK keeps it unless that adds crossings.
+    "elk.layered.considerModelOrder.strategy": "PREFER_NODES",
     "elk.spacing.nodeNode": "40",
     "elk.layered.spacing.nodeNodeBetweenLayers": "48",
     "elk.spacing.edgeNode": "24",
