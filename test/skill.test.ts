@@ -43,6 +43,45 @@ describe("node structa.mjs", () => {
     expect(readFileSync(join(skill.elsewhere, name), "utf8")).toBe(svg);
   });
 
+  it.each(["lower.png", "UPPER.PNG", "Mixed.Png"])("writes render()'s PNG, at scale 2, to -o %s", async (name) => {
+    const { png } = await render(flowJson, { formats: ["png"] });
+
+    const result = skill.run([flowPath, "-o", name]);
+
+    expect(result).toEqual({ status: 0, stdout: "", stderr: "" });
+    expect(readFileSync(join(skill.elsewhere, name)).equals(Buffer.from(png))).toBe(true);
+  });
+
+  it("writes every -o from one run, in any mix of formats", async () => {
+    const { svg, png } = await render(flowJson, { formats: ["svg", "png"] });
+
+    const result = skill.run([flowPath, "-o", "both.svg", "-o", "both.png", "-o", "copy.SVG"]);
+
+    expect(result).toEqual({ status: 0, stdout: "", stderr: "" });
+    expect(readFileSync(join(skill.elsewhere, "both.svg"), "utf8")).toBe(svg);
+    expect(readFileSync(join(skill.elsewhere, "copy.SVG"), "utf8")).toBe(svg);
+    expect(readFileSync(join(skill.elsewhere, "both.png")).equals(Buffer.from(png))).toBe(true);
+  });
+
+  it("draws the PNG at the --scale asked for, wherever the flag goes", async () => {
+    const { png } = await render(flowJson, { formats: ["png"], scale: 3 });
+
+    expect(skill.run([flowPath, "--scale", "3", "-o", "big.png"])).toEqual({ status: 0, stdout: "", stderr: "" });
+    expect(readFileSync(join(skill.elsewhere, "big.png")).equals(Buffer.from(png))).toBe(true);
+    expect(skill.run(["--scale", "3", "-o", "big-too.png", flowPath])).toEqual({ status: 0, stdout: "", stderr: "" });
+    expect(readFileSync(join(skill.elsewhere, "big-too.png")).equals(Buffer.from(png))).toBe(true);
+  });
+
+  it("ignores --scale with no PNG output, and --no-embed-fonts with no SVG output", async () => {
+    const { svg, png } = await render(flowJson, { formats: ["svg", "png"] });
+
+    expect(skill.run([flowPath, "--scale", "4"])).toEqual({ status: 0, stdout: svg, stderr: "" });
+    expect(skill.run([flowPath, "--scale", "1", "-o", "scaled.svg"])).toEqual({ status: 0, stdout: "", stderr: "" });
+    expect(readFileSync(join(skill.elsewhere, "scaled.svg"), "utf8")).toBe(svg);
+    expect(skill.run([flowPath, "--no-embed-fonts", "-o", "fonts.png"])).toEqual({ status: 0, stdout: "", stderr: "" });
+    expect(readFileSync(join(skill.elsewhere, "fonts.png")).equals(Buffer.from(png))).toBe(true);
+  });
+
   it("embeds the fonts by default, and leaves them out with --no-embed-fonts, wherever the flag goes", async () => {
     const { svg } = await render(flowJson, { embedFonts: false });
 
@@ -188,7 +227,7 @@ describe("node structa.mjs example <type>", () => {
 describe("node structa.mjs --help", () => {
   // Any new flag or output updates --help and this text.
   const help = [
-    "Structa draws one diagram, described in JSON, as an SVG image.",
+    "Structa draws one diagram, described in JSON, as an SVG or PNG image.",
     "",
     "Usage:",
     "  node structa.mjs <diagram.json> [options]  draw the diagram",
@@ -199,8 +238,9 @@ describe("node structa.mjs --help", () => {
     "Diagram types: flow",
     "",
     "Options:",
-    "  -o <file.svg>       write the SVG to this file, not stdout (must end in .svg)",
+    "  -o <file>           write a .svg or .png file, not stdout; repeat for more",
     '  --theme light|dark  draw in this theme; wins over the JSON\'s "theme"',
+    "  --scale 1-4         PNG pixels per SVG pixel (default 2)",
     "  --no-embed-fonts    leave the fonts out of the SVG, for a smaller file",
     "  -h, --help          print this help",
     "",
@@ -220,6 +260,7 @@ describe("node structa.mjs --help", () => {
     [["-h"]],
     [["IN", "-o", "a.svg", "--help"]],
     [["IN", "--theme", "dark", "--no-embed-fonts", "-h"]],
+    [["IN", "-o", "a.png", "--scale", "3", "--help"]],
     [["example", "pie", "-h"]],
   ])(
     "prints the short help for %j, and nothing else",
@@ -228,6 +269,7 @@ describe("node structa.mjs --help", () => {
 
       expect(result).toEqual({ status: 0, stdout: help, stderr: "" });
       expect(existsSync(join(skill.elsewhere, "a.svg"))).toBe(false);
+      expect(existsSync(join(skill.elsewhere, "a.png"))).toBe(false);
     },
   );
 
@@ -418,6 +460,34 @@ describe("exit code 1: bad input or a failed render", () => {
       ].join("\n"),
     );
     expect(existsSync(join(skill.elsewhere, "bread.svg"))).toBe(false);
+  });
+
+  it("writes no file at all when one of the outputs fails to draw", () => {
+    // A line of 25 steps, left to right: too wide for a PNG at scale 4.
+    const nodes = Array.from({ length: 25 }, (_, i) => ({ id: `stop${i}`, label: `Stop ${i + 1}`, shape: "step" }));
+    const edges = nodes.slice(1).map((node, i) => ({ from: `stop${i}`, to: node.id }));
+    const wide = JSON.stringify({ type: "flow", direction: "right", nodes, edges });
+
+    const result = skill.run(["-", "-o", "route.svg", "-o", "route.png", "--scale", "4"], { stdin: wide });
+
+    expect(result.status).toBe(1);
+    expect(result.stdout).toBe("");
+    expect(result.stderr).toMatch(/^\$: the PNG would be \d+ by \d+ px, but neither side may be over 16384 px \(use a scale of 3 or less, or split the diagram\)\n$/);
+    expect(existsSync(join(skill.elsewhere, "route.svg"))).toBe(false);
+    expect(existsSync(join(skill.elsewhere, "route.png"))).toBe(false);
+  });
+
+  it("writes no file at all when one of the files can't be written, and leaves files already there as they were", () => {
+    writeFileSync(join(skill.elsewhere, "kept.svg"), "the old picture");
+
+    const result = skill.run([flowPath, "-o", "kept.svg", "-o", "fresh.png", "-o", join("no-such-folder", "lost.png")]);
+
+    expect(result.status).toBe(1);
+    expect(result.stdout).toBe("");
+    expect(result.stderr).toMatch(/^can't write no-such-folder[\\/]lost\.png: ENOENT: .+\n$/);
+    expect(result.stderr).not.toMatch(/\.tmp/);
+    expect(readFileSync(join(skill.elsewhere, "kept.svg"), "utf8")).toBe("the old picture");
+    expect(readdirSync(skill.elsewhere).filter((name) => /kept|fresh|lost/.test(name))).toEqual(["kept.svg"]);
   });
 
   it("reports a JSON syntax error at $ with its line and column", () => {
@@ -630,27 +700,39 @@ describe("exit code 2: bad usage", () => {
     ["no input", [], "give the diagram's JSON file, or - to read it from standard input"],
     ["two inputs", ["a.json", "b.json"], 'give one input, not two ("a.json" and "b.json")'],
     ["-o with no file", ["IN", "-o"], "-o needs a file name"],
-    ["two -o", ["IN", "-o", "a.svg", "-o", "b.svg"], "give -o only once"],
-    ["a .png output", ["IN", "-o", "chart.png"], '-o "chart.png": the output file must end in .svg'],
-    ["a .txt output", ["IN", "-o", "chart.txt"], '-o "chart.txt": the output file must end in .svg'],
-    ["an output with no extension", ["IN", "-o", "chart"], '-o "chart": the output file must end in .svg'],
+    ["the same -o twice", ["IN", "-o", "a.png", "-o", "b.svg", "-o", "a.png"], 'give each -o its own file ("a.png" is given twice)'],
+    ["two spellings of one -o", ["IN", "-o", "a.svg", "-o", "./a.svg"], 'give each -o its own file ("a.svg" and "./a.svg" are the same file)'],
+    ["a .txt output", ["IN", "-o", "chart.txt"], '-o "chart.txt": the output file must end in .svg or .png'],
+    ["a .jpg output", ["IN", "-o", "chart.jpg"], '-o "chart.jpg": the output file must end in .svg or .png'],
+    ["an output with no extension", ["IN", "-o", "chart"], '-o "chart": the output file must end in .svg or .png'],
     ["an output that is only an extension", ["IN", "-o", ".SVG"], '-o ".SVG": give it a name before .svg'],
-    ["--help as the file after -o", ["IN", "-o", "--help"], '-o "--help": the output file must end in .svg'],
-    ["-h as the file after -o", ["IN", "-o", "-h"], '-o "-h": the output file must end in .svg'],
+    ["a PNG output that is only an extension", ["IN", "-o", ".png"], '-o ".png": give it a name before .png'],
+    ["--help as the file after -o", ["IN", "-o", "--help"], '-o "--help": the output file must end in .svg or .png'],
+    ["-h as the file after -o", ["IN", "-o", "-h"], '-o "-h": the output file must end in .svg or .png'],
     ["an unknown option", ["IN", "--sparkle"], 'unknown option "--sparkle"'],
     ["--theme with no value", ["IN", "--theme"], "--theme needs light or dark"],
     ["an unknown theme", ["IN", "--theme", "sepia"], '--theme "sepia": the theme must be light or dark'],
     ["a theme in the wrong case", ["IN", "--theme", "Dark"], '--theme "Dark": the theme must be light or dark'],
     ["two --theme", ["IN", "--theme", "dark", "--theme", "light"], "give --theme only once"],
+    ["--scale with no value", ["IN", "-o", "a.png", "--scale"], "--scale needs a whole number from 1 to 4"],
+    ["a scale of 0", ["IN", "-o", "a.png", "--scale", "0"], '--scale "0": the scale must be a whole number from 1 to 4'],
+    ["a scale of 5", ["IN", "-o", "a.png", "--scale", "5"], '--scale "5": the scale must be a whole number from 1 to 4'],
+    ["a fractional scale", ["IN", "-o", "a.png", "--scale", "1.5"], '--scale "1.5": the scale must be a whole number from 1 to 4'],
+    ["a scale written 02", ["IN", "-o", "a.png", "--scale", "02"], '--scale "02": the scale must be a whole number from 1 to 4'],
+    ["a scale in words", ["IN", "-o", "a.png", "--scale", "two"], '--scale "two": the scale must be a whole number from 1 to 4'],
+    ["a bad scale with no PNG output", ["IN", "--scale", "8"], '--scale "8": the scale must be a whole number from 1 to 4'],
+    ["two --scale", ["IN", "-o", "a.png", "--scale", "2", "--scale", "3"], "give --scale only once"],
     ["schema with an argument", ["schema", "IN"], "schema takes no other arguments"],
     ["schema with -o", ["schema", "-o", "a.svg"], "schema takes no other arguments"],
     ["schema with --theme", ["schema", "--theme", "dark"], "schema takes no other arguments"],
+    ["schema with --scale", ["schema", "--scale", "2"], "schema takes no other arguments"],
     ["schema with --no-embed-fonts", ["schema", "--no-embed-fonts"], "schema takes no other arguments"],
     ["example with no type", ["example"], "example needs a diagram type (valid types: flow)"],
     ["an unknown example type", ["example", "pie"], 'unknown diagram type "pie" (valid types: flow)'],
     ["example with two types", ["example", "flow", "flow"], 'give one diagram type, not two ("flow" and "flow")'],
-    ["example with -o", ["example", "flow", "-o", "a.svg"], "example takes no other arguments"],
+    ["example with -o", ["example", "flow", "-o", "a.png"], "example takes no other arguments"],
     ["example with --theme", ["example", "flow", "--theme", "dark"], "example takes no other arguments"],
+    ["example with --scale", ["example", "flow", "--scale", "2"], "example takes no other arguments"],
     ["example with --no-embed-fonts", ["example", "flow", "--no-embed-fonts"], "example takes no other arguments"],
   ])("rejects %s, prints the usage line and writes nothing", (_name, args, message) => {
     const input = join(skill.elsewhere, "usage-input.json");
@@ -665,7 +747,7 @@ describe("exit code 2: bad usage", () => {
     expect(usage).toMatch(/^usage: node structa\.mjs /);
     expect(usage).toContain("[--no-embed-fonts]");
     expect(rest).toEqual([""]);
-    for (const name of ["a.svg", "b.svg", "chart.png", "chart.txt", "chart", ".SVG"]) {
+    for (const name of ["a.svg", "a.png", "b.svg", "chart.txt", "chart.jpg", "chart", ".SVG", ".png"]) {
       expect(existsSync(join(skill.elsewhere, name))).toBe(false);
     }
   });
@@ -674,7 +756,7 @@ describe("exit code 2: bad usage", () => {
     const [, usage] = skill.run([]).stderr.split("\n");
 
     expect(usage).toBe(
-      "usage: node structa.mjs <diagram.json | -> [-o <file.svg>] [--theme light|dark] [--no-embed-fonts]" +
+      "usage: node structa.mjs <diagram.json | -> [-o <file.svg | file.png>]... [--theme light|dark] [--scale 1-4] [--no-embed-fonts]" +
         " | schema | example <type> | --help",
     );
   });
