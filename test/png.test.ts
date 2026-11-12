@@ -138,9 +138,40 @@ describe("text in PNGs", () => {
     },
   );
 
-  // Still open on #11. Fill each check in with the ticket that first draws the
-  // face (titles, descriptions and line labels in #8, italics in #14).
-  it.todo("draws Inter Regular, Bold and SemiBold Italic and JetBrains Mono Italic as wide as the width tables (#8, #14)");
+  // Slanted letters overhang their advances at both ends, by the same amount once and twice over, so the check holds.
+  it.each(["AVATAR Wave", "Waffle office", "Café über Ærø", "→ ≠ … ≤ ≥ ×"])(
+    "draws %j in Inter SemiBold Italic, as abstract class names are, as wide as the width tables within 0.5px",
+    async (sample) => {
+      const abstractClass = (label: string) => ({ type: "class", nodes: [{ id: "card", label, abstract: true }] });
+      // A class with no rows draws only its name.
+      await expectAsWideAsTables((label) => drawn(abstractClass(label), label, (card) => inside(card, 4)), sample);
+    },
+  );
+
+  it.each(["{x: 1, y: [2]}", "-> != <= >= === www", "Café über Ærø", "fn(a): T[]"])(
+    "draws %j in JetBrains Mono Italic, as abstract class rows are, as wide as the width tables within 0.5px",
+    async (sample) => {
+      const abstractRow = (text: string) => ({ type: "class", nodes: [{ id: "card", label: "Sample", methods: [{ text, abstract: true }] }] });
+      const row = (card: Element) => inside(card, 4, Number(byClassIn(card, "divider").at(-1)!.getAttribute("y1")) + 2);
+      await expectAsWideAsTables((text) => drawn(abstractRow(text), text, row), sample);
+    },
+  );
+
+  // JetBrains Mono's italic is as wide as its upright face, so only the picture shows the rasteriser found the italic.
+  it.each([
+    ["an abstract class's name", { label: "Trowel" }, { label: "Trowel", abstract: true }],
+    ["an abstract row", { label: "Trowel", methods: [{ text: "dig(depth: cm): Hole" }] }, { label: "Trowel", methods: [{ text: "dig(depth: cm): Hole", abstract: true }] }],
+  ])("draws %s in the italic face, not the upright one", async (_name, upright, italic) => {
+    const picture = async (node: object) =>
+      decodePng((await render({ type: "class", nodes: [{ id: "card", ...node }] }, { formats: ["png"], scale: 1 })).png);
+    const [plain, slanted] = [await picture(upright), await picture(italic)];
+
+    expect([slanted.width, slanted.height]).toEqual([plain.width, plain.height]);
+    expect(Buffer.from(slanted.rgba).equals(Buffer.from(plain.rgba))).toBe(false);
+  });
+
+  // Still open on #11. Fill it in with the ticket that first draws the faces (titles, descriptions and line labels in #8).
+  it.todo("draws Inter Regular and Bold as wide as the width tables (#8)");
   it.todo("draws the same word at weights 400, 600 and 700 as three different images (once #8's titles, descriptions or line labels draw 400 and 700)");
 });
 
