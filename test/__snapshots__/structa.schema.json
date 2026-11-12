@@ -110,6 +110,20 @@
                     "unchanged"
                   ]
                 },
+                "stereotype": {
+                  "description": "what kind of class this is, drawn as a «…» line above the name",
+                  "enum": [
+                    "interface",
+                    "abstract",
+                    "enum",
+                    "record"
+                  ]
+                },
+                "abstract": {
+                  "description": "true draws the name in italics, as stereotype \"abstract\" does, without the «abstract» line",
+                  "type": "boolean",
+                  "default": false
+                },
                 "properties": {
                   "description": "the class's properties, in order",
                   "type": "array",

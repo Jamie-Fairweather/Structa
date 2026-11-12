@@ -1,4 +1,5 @@
 import {
+  ABSTRACT_CLASS_NAME_FACE,
   CLASS_DESCRIPTION_FACE,
   CLASS_NAME_FACE,
   CLASS_SECTIONS,
@@ -23,21 +24,33 @@ const ROW_KINDS = new Map<(typeof CLASS_SECTIONS)[number], Row["kind"]>([
   ["methods", "method"],
 ]);
 
+/** Stereotype words are fixed, so they need no checking against the font. */
+const STEREOTYPE_FACE: FaceId = "inter-regular";
+
 /**
- * A class card, one standard width: the name and any description centred at
- * the top, then a section for the properties and one for the methods, each
- * under a divider. Each section keeps its place, as in UML: a class with
- * methods but no properties has an empty properties section, so its methods
- * are still under the second divider. A class without methods has no methods
- * section, and one with no rows has neither. The "… N more" line ends the
- * last section, or has one of its own.
+ * A class card, one standard width: any stereotype as a muted «…» line, then
+ * the name and any description, centred at the top; then a section for the
+ * properties and one for the methods, each under a divider. Each section
+ * keeps its place, as in UML: a class with methods but no properties has an
+ * empty properties section, so its methods are still under the second
+ * divider. A class without methods has no methods section, and one with no
+ * rows has neither. The "… N more" line ends the last section, or has one of
+ * its own.
  */
 export function classBody(node: ClassNode, sizes: Sizes): CardBody {
   const c = sizes.classCard;
   const width = c.width;
-  const name = centred(node.label, CLASS_NAME_FACE, c.nameSize, c.nameLineHeight, c.paddingY, width, sizes);
-  const texts: TextLine[] = name.texts.map((t) => ({ ...t, color: "text", title: true }));
-  let y = name.bottom;
+  const texts: TextLine[] = [];
+  let y: number = c.paddingY;
+  if (node.stereotype !== undefined) {
+    const line = centred(`«${node.stereotype}»`, STEREOTYPE_FACE, c.stereotypeSize, c.stereotypeLineHeight, y, width, sizes);
+    texts.push(...line.texts.map((t): TextLine => ({ ...t, color: "mutedText" })));
+    y = line.bottom;
+  }
+  const nameFace = node.abstract || node.stereotype === "abstract" ? ABSTRACT_CLASS_NAME_FACE : CLASS_NAME_FACE;
+  const name = centred(node.label, nameFace, c.nameSize, c.nameLineHeight, y, width, sizes);
+  texts.push(...name.texts.map((t): TextLine => ({ ...t, color: "text", title: true })));
+  y = name.bottom;
   if (node.description !== undefined) {
     const top = y + c.descriptionGap;
     const description = centred(node.description, CLASS_DESCRIPTION_FACE, c.descriptionSize, c.descriptionLineHeight, top, width, sizes);
@@ -73,7 +86,8 @@ export function classBody(node: ClassNode, sizes: Sizes): CardBody {
     y += c.sectionPaddingY;
   }
 
-  const tooltip = node.description === undefined ? node.label : `${node.label}: ${node.description}`;
+  const named = node.stereotype === undefined ? node.label : `«${node.stereotype}» ${node.label}`;
+  const tooltip = node.description === undefined ? named : `${named}: ${node.description}`;
   const outline = { kind: "rounded", radius: sizes.card.radius } as const;
   return { kind: "class", width, height: y, outline, tooltip, texts, dividers, rows, ...(more ? { more } : {}) };
 }

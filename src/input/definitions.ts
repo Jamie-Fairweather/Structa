@@ -190,6 +190,8 @@ export const NOTE_LABEL_FACE: FaceId = "inter-regular";
 export const CARD_DESCRIPTION_FACE: FaceId = "inter-regular";
 export const LINE_LABEL_FACE: FaceId = "inter-regular";
 export const CLASS_NAME_FACE: FaceId = "inter-semibold";
+/** An abstract class's name: real italics, as UML draws it. */
+export const ABSTRACT_CLASS_NAME_FACE: FaceId = "inter-semibold-italic";
 export const CLASS_DESCRIPTION_FACE: FaceId = "inter-regular";
 export const ROW_TEXT_FACE: FaceId = "mono-regular";
 
@@ -264,6 +266,9 @@ function edge(end: RefDef, endNote: string, extra: readonly Field[]): ObjectDef 
 }
 
 const FLOW_EDGE = edge(LINE_END, ", which can't be a note", []);
+
+/** What kind of class a card is, drawn as a «…» line above its name. */
+export const STEREOTYPES = ["interface", "abstract", "enum", "record"] as const;
 
 /** Who can use a class member, drawn before its text as + - # ~. */
 export const VISIBILITIES = ["public", "private", "protected", "package"] as const;
@@ -352,13 +357,24 @@ const CLASS_NODE: ObjectDef = {
   rules: [rowStatusRule, rowLimitRule],
   fields: [
     required("id", { kind: "id", of: "node" }, "a unique id made of letters, digits and - _ . :"),
-    required("label", { kind: "text", text: LABEL, faces: [CLASS_NAME_FACE] }, "the class name"),
+    required("label", { kind: "text", text: LABEL, faces: [CLASS_NAME_FACE, ABSTRACT_CLASS_NAME_FACE] }, "the class name"),
     optional(
       "description",
       { kind: "text", text: DESCRIPTION, faces: [CLASS_DESCRIPTION_FACE] },
       "a short sentence drawn under the name",
     ),
     optional("status", STATUS, "what the change does to this card; leave it out for no status"),
+    optional(
+      "stereotype",
+      { kind: "choice", values: STEREOTYPES, later: false },
+      "what kind of class this is, drawn as a «…» line above the name",
+    ),
+    optional(
+      "abstract",
+      BOOLEAN,
+      'true draws the name in italics, as stereotype "abstract" does, without the «abstract» line',
+      false,
+    ),
     optional(
       "properties",
       { kind: "list", noun: "properties", items: classRow("properties", "property"), maxItems: ROWS_PER_CARD, limitHint: ROWS_HINT },

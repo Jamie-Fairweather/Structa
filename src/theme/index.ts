@@ -117,11 +117,16 @@ export const SIZES = {
   connector: { width: 1, dash: 2, gap: 3 },
   /** A line's label: text in a pill bordered in the line's colour, wrapped to `maxWidth`. */
   lineLabel: { fontSize: 12, lineHeight: 16, paddingX: 8, paddingY: 2, maxWidth: 180, borderWidth: 1 },
-  /** Class cards: one standard width, the name and description centred at the top, then each section of rows under a divider. */
+  /**
+   * Class cards: one standard width, any stereotype line, the name and the
+   * description centred at the top, then each section of rows under a divider.
+   */
   classCard: {
     width: 360,
     paddingX: 14,
     paddingY: 12,
+    stereotypeSize: 12,
+    stereotypeLineHeight: 16,
     nameSize: 15,
     nameLineHeight: 20,
     descriptionSize: 12,

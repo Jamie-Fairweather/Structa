@@ -7,11 +7,13 @@ import {
   type CLASS_EDGE_KINDS,
   type FlowShape,
   type Status,
+  type STEREOTYPES,
   type VISIBILITIES,
 } from "./definitions";
 import { parseJson } from "./json";
 
 export {
+  ABSTRACT_CLASS_NAME_FACE,
   CARD_DESCRIPTION_FACE,
   CLASS_DESCRIPTION_FACE,
   CLASS_NAME_FACE,
@@ -58,6 +60,8 @@ export interface ClassEdge extends FlowEdge {
 
 export type Visibility = (typeof VISIBILITIES)[number];
 
+export type Stereotype = (typeof STEREOTYPES)[number];
+
 /** One member of a class. */
 export interface ClassRow {
   /** The explicit id, or its section and position, like `methods[2]`. Unique within its card. */
@@ -74,6 +78,9 @@ export interface ClassNode {
   readonly label: string;
   readonly description?: string;
   readonly status?: Status;
+  readonly stereotype?: Stereotype;
+  /** Set by the flag only; a class whose stereotype is "abstract" is abstract too. */
+  readonly abstract: boolean;
   readonly properties: readonly ClassRow[];
   readonly methods: readonly ClassRow[];
   /** How many members were left out on purpose. */

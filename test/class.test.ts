@@ -234,6 +234,120 @@ describe("class cards", () => {
   });
 });
 
+describe("stereotypes", () => {
+  it.each([
+    ["interface", "light", "#59636e"],
+    ["abstract", "light", "#59636e"],
+    ["enum", "dark", "#8b949e"],
+    ["record", "dark", "#8b949e"],
+  ] as const)("draws stereotype %s as a muted «…» line centred above the name, in %s", async (stereotype, theme, muted) => {
+    const doc = await svgDoc(packet({ stereotype, description: "Saved seed, lent out." }), theme);
+
+    const card = cardById(doc, "packet");
+    const [line, name] = texts(card);
+    expect(textLines(card)).toEqual([`«${stereotype}»`, "SeedPacket", "Saved seed, lent out."]);
+    expect(line!.getAttribute("font-family")).toMatch(/^Structa Inter,/);
+    expect([line!.getAttribute("font-weight"), line!.getAttribute("font-style"), line!.getAttribute("fill")]).toEqual(["400", null, muted]);
+    expect(numberAttr(line!, "font-size")).toBeLessThan(numberAttr(name!, "font-size"));
+    // Centred on the card, like the name, and a line above it, inside the card.
+    expect(line!.getAttribute("text-anchor")).toBe("middle");
+    expect(numberAttr(line!, "x")).toBe(numberAttr(name!, "x"));
+    expect(numberAttr(line!, "y")).toBeLessThan(numberAttr(name!, "y") - numberAttr(line!, "font-size"));
+    expect(numberAttr(line!, "y") - numberAttr(line!, "font-size")).toBeGreaterThan(outlineBox(card).y);
+    expect(titleOf(card)).toBe(`«${stereotype}» SeedPacket: Saved seed, lent out.`);
+  });
+
+  it("draws no stereotype line without a stereotype", async () => {
+    const doc = await svgDoc(packet());
+
+    expect(textLines(cardById(doc, "packet"))).toEqual(["SeedPacket"]);
+  });
+
+  it("makes the card taller by the stereotype line", async () => {
+    const plain = outlineBox(cardById(await svgDoc(packet(MEMBERS)), "packet"));
+    const withLine = outlineBox(cardById(await svgDoc(packet({ ...MEMBERS, stereotype: "record" })), "packet"));
+
+    expect(withLine.height).toBeGreaterThan(plain.height);
+    expect(withLine.width).toBe(plain.width);
+  });
+
+  it.each(["struct", "Interface", true])("rejects the stereotype %j", async (stereotype) => {
+    expect(await problems(packet({ stereotype }))).toEqual([
+      {
+        path: "nodes[0].stereotype",
+        message: `${JSON.stringify(stereotype)} is not a valid stereotype`,
+        hint: 'use "interface", "abstract", "enum" or "record"',
+      },
+    ]);
+  });
+});
+
+describe("abstract classes", () => {
+  /** The faces a card's name is drawn in, as "family weight style". */
+  function nameFaces(card: Element): string[] {
+    const other = new Set([...rows(card), ...byClassIn(card, "badge")].flatMap(texts));
+    const name = texts(card).filter((t) => !t.textContent!.startsWith("«") && !other.has(t));
+    return name.map((t) => `${t.getAttribute("font-family")!.split(",")[0]} ${t.getAttribute("font-weight")} ${t.getAttribute("font-style") ?? "normal"}`);
+  }
+
+  it.each([
+    ["abstract: true", { abstract: true }],
+    ["stereotype abstract", { stereotype: "abstract" }],
+    ["both", { abstract: true, stereotype: "abstract" }],
+    ["abstract: true on an interface", { abstract: true, stereotype: "interface" }],
+  ])("draws the name of a class with %s in Inter SemiBold Italic, every wrapped line", async (_name, fields) => {
+    const label = "SeasonalHeirloomVegetableSeedPacketExchangeRegistrationRequestHandlerFactory";
+    const doc = await svgDoc(packet({ label, ...fields }));
+
+    const faces = nameFaces(cardById(doc, "packet"));
+    expect(faces.length).toBeGreaterThan(1);
+    expect(new Set(faces)).toEqual(new Set(["Structa Inter 600 italic"]));
+  });
+
+  it.each([
+    ["no flags", {}],
+    ["abstract: false", { abstract: false }],
+    ["stereotype interface", { stereotype: "interface" }],
+  ])("draws the name of a class with %s upright", async (_name, fields) => {
+    const doc = await svgDoc(packet(fields));
+
+    expect(nameFaces(cardById(doc, "packet"))).toEqual(["Structa Inter 600 normal"]);
+  });
+
+  it("keeps an abstract class's description and stereotype line upright", async () => {
+    const doc = await svgDoc(packet({ stereotype: "abstract", description: "Saved seed, lent out." }));
+
+    const [line, , description] = texts(cardById(doc, "packet"));
+    expect(line!.hasAttribute("font-style")).toBe(false);
+    expect(description!.hasAttribute("font-style")).toBe(false);
+  });
+
+  it("strikes through a removed abstract class's italic name", async () => {
+    const doc = await svgDoc(packet({ abstract: true, status: "removed" }));
+
+    const card = cardById(doc, "packet");
+    expect(byClassIn(card, "strike")).toHaveLength(1);
+    expect(nameFaces(card)).toEqual(["Structa Inter 600 italic"]);
+  });
+
+  it.each(["yes", 1, null])("rejects abstract: %j", async (abstract) => {
+    expect(await problems(packet({ abstract }))).toEqual([
+      { path: "nodes[0].abstract", message: `${JSON.stringify(abstract)} is not true or false`, hint: "write true or false, without quotes" },
+    ]);
+  });
+
+  it("checks the name against both faces it can be drawn in", async () => {
+    // Inter SemiBold and SemiBold Italic draw the same characters, so this is the upright check, through both.
+    expect(await problems(packet({ abstract: true, label: "Store ⇑" }))).toEqual([
+      {
+        path: "nodes[0].label",
+        message: 'contains "⇑" (U+21D1), which Structa\'s fonts can\'t draw',
+        hint: "use Latin letters, digits and common symbols",
+      },
+    ]);
+  });
+});
+
 describe("the more row", () => {
   it.each([
     ["methods", { ...MEMBERS, more: 12 }],
@@ -865,7 +979,7 @@ describe("class input", () => {
       {
         path: "nodes[0].shape",
         message: 'unknown field "shape"',
-        hint: "allowed fields: id, label, description, status, properties, methods, more",
+        hint: "allowed fields: id, label, description, status, stereotype, abstract, properties, methods, more",
       },
     ]);
   });
