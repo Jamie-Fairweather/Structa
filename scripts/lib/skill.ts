@@ -47,6 +47,8 @@ export async function buildSkill(outDir: string, project: string = repository): 
   mkdirSync(outDir, { recursive: true });
 
   const resvg = readResvg(project);
+  const elkPackage = dirname(createRequire(join(project, "package.json")).resolve("elkjs/package.json"));
+  const elkVersion = String((JSON.parse(readFileSync(join(elkPackage, "package.json"), "utf8")) as Manifest).version);
   await build({
     absWorkingDir: project,
     entryPoints: ["src/structa.ts"],
@@ -67,16 +69,16 @@ export async function buildSkill(outDir: string, project: string = repository): 
       STRUCTA_RESVG_WASM: JSON.stringify(resvg.wasm),
     },
     dropLabels: ["source"],
+    banner: { js: banner(elkVersion, resvg) },
     // Keep legal comments where they are, so resvg's sits right before its glue.
     legalComments: "inline",
     plugins: [legalComment(resvg.glue, resvg.legalComment)],
     logLevel: "warning",
   });
-  const elkPackage = dirname(createRequire(join(project, "package.json")).resolve("elkjs/package.json"));
   copyFileSync(join(elkPackage, "lib", ELK_FILE), join(outDir, ELK_FILE));
   writeFileSync(join(outDir, "package.json"), PACKAGE_JSON);
   cpSync(join(project, EXAMPLES_DIR), join(outDir, EXAMPLES_DIR), { recursive: true });
-  writeLicences(join(outDir, LICENSES_DIR), licenceFiles(project, elkPackage, resvg));
+  writeLicences(join(outDir, LICENSES_DIR), licenceFiles(project, elkPackage, elkVersion, resvg));
 
   const problems = checkSkill(outDir, project, elkPackage);
   if (problems.length > 0) throw new Error(`the skill folder failed its checks:\n${problems.join("\n")}`);
@@ -150,10 +152,9 @@ interface LicenceFile {
 
 /**
  * The licence texts and source notes for everything the skill folder ships,
- * built from `project`, whose installed elkjs is at `elkPackage`.
+ * built from `project`, whose installed elkjs is version `elk` at `elkPackage`.
  */
-function licenceFiles(project: string, elkPackage: string, resvg: Resvg): LicenceFile[] {
-  const elk = (JSON.parse(readFileSync(join(elkPackage, "package.json"), "utf8")) as Manifest).version;
+function licenceFiles(project: string, elkPackage: string, elk: string, resvg: Resvg): LicenceFile[] {
   return [
     { name: "MIT.txt", copy: join(project, "LICENSE") },
     { name: "EPL-2.0.md", copy: join(elkPackage, "LICENSE.md") },
@@ -192,6 +193,24 @@ function licenceFiles(project: string, elkPackage: string, resvg: Resvg): Licenc
     { name: "OFL-1.1-Inter.txt", copy: join(project, "fonts", "inter", "OFL.txt") },
     { name: "OFL-1.1-JetBrains-Mono.txt", copy: join(project, "fonts", "jetbrains-mono", "OFL.txt") },
   ];
+}
+
+/**
+ * The comment structa.mjs starts with: the third-party parts embedded in it
+ * and their licences, and elkjs, which ships beside it, with elkjs version `elk`.
+ */
+function banner(elk: string, resvg: Resvg): string {
+  const licence = (name: string) => `${LICENSES_DIR}/${name}`;
+  return [
+    "/*!",
+    ` * Structa, under the MIT licence (${licence("MIT.txt")}). This file also embeds:`,
+    ` * - @resvg/resvg-wasm ${resvg.version}, its wasm and JavaScript glue: MPL-2.0 (${licence("MPL-2.0.txt")}, ${licence("resvg-source.txt")})`,
+    ` * - the Inter fonts, subset: OFL-1.1 (${licence("OFL-1.1-Inter.txt")})`,
+    ` * - the JetBrains Mono fonts, subset: OFL-1.1 (${licence("OFL-1.1-JetBrains-Mono.txt")})`,
+    ` * elkjs ${elk} is not in this file: it ships next to it as ${ELK_FILE},`,
+    ` * under EPL-2.0 OR GPL-3.0-or-later, with Apache-2.0 parts (${licence("elkjs-source.txt")}).`,
+    " */",
+  ].join("\n");
 }
 
 /** Writes `files` into the folder `dir`. */

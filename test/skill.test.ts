@@ -461,6 +461,22 @@ describe("the licences in the skill folder", () => {
     expect(licence("MIT.txt")).toMatch(/^MIT License\n/);
   });
 
+  it("are named, with each embedded part, in the banner structa.mjs starts with", () => {
+    const banner = [
+      "/*!",
+      " * Structa, under the MIT licence (licenses/MIT.txt). This file also embeds:",
+      " * - @resvg/resvg-wasm 2.6.2, its wasm and JavaScript glue: MPL-2.0 (licenses/MPL-2.0.txt, licenses/resvg-source.txt)",
+      " * - the Inter fonts, subset: OFL-1.1 (licenses/OFL-1.1-Inter.txt)",
+      " * - the JetBrains Mono fonts, subset: OFL-1.1 (licenses/OFL-1.1-JetBrains-Mono.txt)",
+      " * elkjs 0.12.1 is not in this file: it ships next to it as elk.bundled.js,",
+      " * under EPL-2.0 OR GPL-3.0-or-later, with Apache-2.0 parts (licenses/elkjs-source.txt).",
+      " */",
+      "",
+    ].join("\n");
+
+    expect(readFileSync(join(skill.dir, "structa.mjs"), "utf8").startsWith(banner)).toBe(true);
+  });
+
   it("holds exactly the licence texts and source notes", () => {
     expect(readdirSync(join(skill.dir, "licenses")).sort()).toEqual([
       "Apache-2.0.txt",
