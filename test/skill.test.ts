@@ -13,14 +13,18 @@ beforeAll(async () => {
 }, 60_000);
 afterAll(() => skill?.remove());
 
-const flowPath = fileURLToPath(new URL("../examples/flow.json", import.meta.url));
+const examplesDir = fileURLToPath(new URL("../examples/", import.meta.url));
+const examples = readdirSync(examplesDir)
+  .filter((file) => file.endsWith(".json"))
+  .sort();
+const flowPath = join(examplesDir, "flow.json");
 const flowJson = readFileSync(flowPath, "utf8");
 
 describe("node structa.mjs", () => {
-  it("prints exactly render()'s SVG on standard output when there's no -o", async () => {
-    const { svg } = await render(flowJson);
+  it.each(examples)("prints exactly render()'s SVG for examples/%s on standard output when there's no -o", async (file) => {
+    const { svg } = await render(readFileSync(join(examplesDir, file), "utf8"));
 
-    const result = skill.run([flowPath]);
+    const result = skill.run([join(examplesDir, file)]);
 
     expect(result.stderr).toBe("");
     expect(result.status).toBe(0);
