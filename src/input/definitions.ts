@@ -3,6 +3,7 @@
  * The validator (check.ts) and the JSON Schema (schema.ts) are both generated
  * from these, so they can't disagree. Every new field goes here.
  */
+import type { Problem } from "../errors";
 import type { FaceId } from "../text";
 import { THEME_NAMES } from "../theme";
 
@@ -52,10 +53,23 @@ export interface ObjectDef {
   readonly kind: "object";
   /** What one of these is called in messages: "node", "edge", "diagram". */
   readonly noun: string;
+  /** Shown in the schema: what one of these is, and the rules it must follow that a schema can't say. */
+  readonly description?: string;
   readonly fields: readonly Field[];
   /** Lets other fields through unchecked. Only for a type that isn't built yet, whose fields aren't known. */
   readonly otherFields?: "allowed";
+  /** Checks across its fields, run once its fields have been checked. */
+  readonly rules?: readonly Rule[];
 }
+
+/**
+ * A check across an object's fields: given the object as checked (a field that
+ * had a problem is left out) and as given, and its path, it returns the
+ * problems it finds, each with a hint.
+ */
+export type Rule = (checked: Fields, given: Fields, path: string) => readonly Required<Problem>[];
+
+type Fields = { readonly [name: string]: unknown };
 
 export interface ListDef {
   readonly kind: "list";
@@ -63,6 +77,8 @@ export interface ListDef {
   readonly noun: string;
   readonly items: Def;
   readonly maxItems: number;
+  /** What to do about too many items. */
+  readonly limitHint: string;
 }
 
 /** Plain text. It may only use characters that every face it's drawn in can draw. */
@@ -102,6 +118,7 @@ function optional(name: string, def: Def, description: string, defaultValue?: Fi
 export const DIAGRAM_TYPES: readonly string[] = ["class", "flow"];
 
 const LIMITS = { nodes: 500, edges: 1000 } as const;
+const SPLIT_HINT = "split the diagram into smaller ones";
 
 /** The top level of one diagram type. `direction` is its default: "right" for ER, "down" for the rest. */
 function diagram(node: Def, edge: Def, direction: "down" | "right"): ObjectDef {
@@ -132,10 +149,15 @@ function diagram(node: Def, edge: Def, direction: "down" | "right"): ObjectDef {
       optional("legend", BOOLEAN, "false leaves out the legend of statuses at the bottom", true),
       required(
         "nodes",
-        { kind: "list", noun: "nodes", items: node, maxItems: LIMITS.nodes },
+        { kind: "list", noun: "nodes", items: node, maxItems: LIMITS.nodes, limitHint: SPLIT_HINT },
         "the cards, in reading order; the order gently guides the layout",
       ),
-      optional("edges", { kind: "list", noun: "edges", items: edge, maxItems: LIMITS.edges }, "the lines between cards", []),
+      optional(
+        "edges",
+        { kind: "list", noun: "edges", items: edge, maxItems: LIMITS.edges, limitHint: SPLIT_HINT },
+        "the lines between cards",
+        [],
+      ),
     ],
   };
 }
@@ -183,8 +205,54 @@ export const VISIBILITIES = ["public", "private", "protected", "package"] as con
 /** The two lists of a class card's rows, in the order they're drawn. */
 export const CLASS_SECTIONS = ["properties", "methods"] as const;
 
-/** The most rows one card may have. */
+/** The most rows one card may have, all its sections together. */
 const ROWS_PER_CARD = 100;
+const ROWS_HINT = 'split the class, or leave dull members out and count them with "more"';
+
+/** A card's rows as checked: a section that had a problem may be missing, and a row that had one is `{}`. */
+type CheckedRows = { readonly status?: Status } & {
+  readonly [section in (typeof CLASS_SECTIONS)[number]]?: readonly { readonly status?: Status }[];
+};
+
+/** The row statuses each card status allows, and what to do about any other. */
+const ROW_STATUSES = new Map<Status, { readonly allowed: readonly Status[]; readonly hint: string }>([
+  ["new", { allowed: ["new"], hint: 'leave it out, as rows in a new card are new, or make the card "changed"' }],
+  ["removed", { allowed: ["removed"], hint: 'leave it out, as rows in a removed card are removed, or make the card "changed"' }],
+  ["unchanged", { allowed: ["unchanged"], hint: 'make the card "changed", or leave the row\'s status out' }],
+  ["changed", { allowed: STATUSES, hint: "" }],
+]);
+
+/**
+ * A card's rows can't contradict it: a new or removed card's rows can only
+ * have its status, an unchanged card's rows can only be unchanged, and a card
+ * whose rows have a status needs one of its own.
+ */
+const rowStatusRule: Rule = (checked, given, path) => {
+  const card = checked as CheckedRows;
+  // A card status that isn't valid was reported already; judging its rows against nothing would only add noise.
+  if (given.status !== undefined && card.status === undefined) return [];
+  const rows = CLASS_SECTIONS.flatMap((section) =>
+    (card[section] ?? []).flatMap((row, i) => (row.status === undefined ? [] : [{ status: row.status, path: `${path}.${section}[${i}].status` }])),
+  );
+  if (card.status === undefined) {
+    if (rows.length === 0) return [];
+    const hint = 'give the card a status, such as "changed", or take the statuses off its rows';
+    return [{ path: `${path}.status`, message: "missing: a card needs a status when any of its rows has one", hint }];
+  }
+  const { allowed, hint } = ROW_STATUSES.get(card.status)!;
+  const article = card.status === "unchanged" ? "an" : "a";
+  return rows
+    .filter((row) => !allowed.includes(row.status))
+    .map((row) => ({ path: row.path, message: `a row in ${article} ${card.status} card can't be "${row.status}"`, hint }));
+};
+
+/** At most ROWS_PER_CARD rows in a card, every section together. A section over it alone was reported already. */
+const rowLimitRule: Rule = (_checked, given, path) => {
+  const counts = CLASS_SECTIONS.map((section) => (Array.isArray(given[section]) ? given[section].length : 0));
+  const total = counts.reduce((sum, n) => sum + n, 0);
+  if (counts.some((n) => n > ROWS_PER_CARD) || total <= ROWS_PER_CARD) return [];
+  return [{ path, message: `has ${total} rows; the limit is ${ROWS_PER_CARD} per card`, hint: ROWS_HINT }];
+};
 
 /** One member of a class: a property or a method, called `noun` in messages. */
 function classRow(section: (typeof CLASS_SECTIONS)[number], noun: string): ObjectDef {
@@ -211,6 +279,11 @@ function classRow(section: (typeof CLASS_SECTIONS)[number], noun: string): Objec
 const CLASS_NODE: ObjectDef = {
   kind: "object",
   noun: "node",
+  description:
+    `One class. Its rows' statuses must agree with its own: a row in a new or removed card can only have the card's status, and takes it when it has none; ` +
+    `a row in an unchanged card can only be unchanged; and a card needs a status when any of its rows has one. ` +
+    `A card has at most ${ROWS_PER_CARD} rows, properties and methods together.`,
+  rules: [rowStatusRule, rowLimitRule],
   fields: [
     required("id", { kind: "id", of: "node" }, "a unique id made of letters, digits and - _ . :"),
     required("label", { kind: "text", text: LABEL, faces: [CLASS_NAME_FACE] }, "the class name"),
@@ -222,13 +295,13 @@ const CLASS_NODE: ObjectDef = {
     optional("status", STATUS, "what the change does to this card; leave it out for no status"),
     optional(
       "properties",
-      { kind: "list", noun: "properties", items: classRow("properties", "property"), maxItems: ROWS_PER_CARD },
+      { kind: "list", noun: "properties", items: classRow("properties", "property"), maxItems: ROWS_PER_CARD, limitHint: ROWS_HINT },
       "the class's properties, in order",
       [],
     ),
     optional(
       "methods",
-      { kind: "list", noun: "methods", items: classRow("methods", "method"), maxItems: ROWS_PER_CARD },
+      { kind: "list", noun: "methods", items: classRow("methods", "method"), maxItems: ROWS_PER_CARD, limitHint: ROWS_HINT },
       "the class's methods, in order, drawn under the properties",
       [],
     ),

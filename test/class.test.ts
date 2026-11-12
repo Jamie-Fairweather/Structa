@@ -555,6 +555,154 @@ describe("row status", () => {
   });
 });
 
+describe("status rules", () => {
+  /** A card with this status and one property and three methods with these statuses. */
+  function card(status: string | undefined, ...rowStatuses: (string | undefined)[]) {
+    const texts = ["soil: Soil", "dig(): void", "feed(): void", "rake(): void"];
+    const rowsOf = rowStatuses.map((s, i) => ({ text: texts[i]!, ...(s ? { status: s } : {}) }));
+    return {
+      id: "bed",
+      label: "RaisedBed",
+      ...(status ? { status } : {}),
+      properties: rowsOf.slice(0, 1),
+      methods: rowsOf.slice(1),
+    };
+  }
+
+  const diagram = (...nodes: object[]) => ({ type: "class", nodes });
+
+  it.each([
+    ["new", ["new", undefined, "new"]],
+    ["removed", ["removed", "removed", undefined]],
+    ["unchanged", ["unchanged", undefined, "unchanged"]],
+    ["changed", ["new", "changed", "removed", "unchanged"]],
+    ["changed", [undefined, undefined]],
+    [undefined, [undefined, undefined]],
+  ] as const)("lets a %s card hold rows that are %j", async (status, rowStatuses) => {
+    await expect(render(diagram(card(status, ...rowStatuses)), { embedFonts: false })).resolves.toHaveProperty("svg");
+  });
+
+  it("rejects a new card holding rows that aren't new, each at the row", async () => {
+    expect(await problems(diagram(card("new", "changed", "new", "removed", "unchanged")))).toEqual([
+      {
+        path: "nodes[0].properties[0].status",
+        message: 'a row in a new card can\'t be "changed"',
+        hint: 'leave it out, as rows in a new card are new, or make the card "changed"',
+      },
+      {
+        path: "nodes[0].methods[1].status",
+        message: 'a row in a new card can\'t be "removed"',
+        hint: 'leave it out, as rows in a new card are new, or make the card "changed"',
+      },
+      {
+        path: "nodes[0].methods[2].status",
+        message: 'a row in a new card can\'t be "unchanged"',
+        hint: 'leave it out, as rows in a new card are new, or make the card "changed"',
+      },
+    ]);
+  });
+
+  it("rejects a removed card holding rows that aren't removed", async () => {
+    expect(await problems(diagram(card("removed", "removed", "new", undefined, "unchanged")))).toEqual([
+      {
+        path: "nodes[0].methods[0].status",
+        message: 'a row in a removed card can\'t be "new"',
+        hint: 'leave it out, as rows in a removed card are removed, or make the card "changed"',
+      },
+      {
+        path: "nodes[0].methods[2].status",
+        message: 'a row in a removed card can\'t be "unchanged"',
+        hint: 'leave it out, as rows in a removed card are removed, or make the card "changed"',
+      },
+    ]);
+  });
+
+  it("rejects an unchanged card holding new, changed or removed rows", async () => {
+    expect(await problems(diagram(card("unchanged", "unchanged", "new", "changed", "removed")))).toEqual(
+      ["new", "changed", "removed"].map((status, i) => ({
+        path: `nodes[0].methods[${i}].status`,
+        message: `a row in an unchanged card can't be "${status}"`,
+        hint: 'make the card "changed", or leave the row\'s status out',
+      })),
+    );
+  });
+
+  it.each(["new", "unchanged"])("rejects a card with no status holding a row that's %s, once for the card", async (status) => {
+    expect(await problems(diagram(card(undefined, undefined, status, status)))).toEqual([
+      {
+        path: "nodes[0].status",
+        message: "missing: a card needs a status when any of its rows has one",
+        hint: 'give the card a status, such as "changed", or take the statuses off its rows',
+      },
+    ]);
+  });
+
+  it("doesn't judge rows against a card status that isn't valid", async () => {
+    expect(await problems(diagram(card("deleted", "removed")))).toEqual([
+      { path: "nodes[0].status", message: '"deleted" is not a valid status', hint: 'use "new", "changed", "removed" or "unchanged"' },
+    ]);
+  });
+
+  it("reports every card's contradictions together, in order, with other problems", async () => {
+    const input = diagram(
+      { ...card("new", "removed"), colour: "green" },
+      { ...card(undefined, "new"), id: "path" },
+      { ...card("unchanged", undefined, "changed"), id: "shed" },
+    );
+
+    expect((await problems(input)).map((p) => p.path)).toEqual([
+      "nodes[0].colour",
+      "nodes[0].properties[0].status",
+      "nodes[1].status",
+      "nodes[2].methods[0].status",
+    ]);
+  });
+});
+
+describe("class limits", () => {
+  const member = (i: number) => ({ text: `job${i}(): void` });
+  const many = (n: number) => Array.from({ length: n }, (_, i) => member(i));
+
+  it("allows 100 rows in a card, properties and methods together", async () => {
+    await expect(render(packet({ properties: many(40), methods: many(60) }), { embedFonts: false })).resolves.toHaveProperty("svg");
+  });
+
+  it("rejects 101 rows in a card as INVALID_INPUT", async () => {
+    expect(await problems(packet({ properties: many(40), methods: many(61) }))).toEqual([
+      {
+        path: "nodes[0]",
+        message: "has 101 rows; the limit is 100 per card",
+        hint: 'split the class, or leave dull members out and count them with "more"',
+      },
+    ]);
+  });
+
+  it("reports 101 rows in one section once, at that section", async () => {
+    expect(await problems(packet({ properties: many(101), methods: many(5) }))).toEqual([
+      {
+        path: "nodes[0].properties",
+        message: "has 101 properties; the limit is 100",
+        hint: 'split the class, or leave dull members out and count them with "more"',
+      },
+    ]);
+  });
+
+  it("allows row text of 200 characters and rejects 201 as INVALID_INPUT", async () => {
+    await expect(render(packet({ methods: [{ text: "m".repeat(200) }] }), { embedFonts: false })).resolves.toHaveProperty("svg");
+    expect(await problems(packet({ methods: [{ text: "m".repeat(201) }] }))).toEqual([
+      { path: "nodes[0].methods[0].text", message: "is 201 characters long; the limit is 200", hint: "shorten it" },
+    ]);
+  });
+
+  it("allows a class name of 100 characters and a description of 300", async () => {
+    await expect(render(packet({ label: "N".repeat(100), description: "d".repeat(300) }), { embedFonts: false })).resolves.toHaveProperty("svg");
+    expect((await problems(packet({ label: "N".repeat(101), description: "d".repeat(301) }))).map((p) => p.message)).toEqual([
+      "is 101 characters long; the limit is 100",
+      "is 301 characters long; the limit is 300",
+    ]);
+  });
+});
+
 describe("class input", () => {
   /** Two classes, each with a property and a method. */
   function sheds() {

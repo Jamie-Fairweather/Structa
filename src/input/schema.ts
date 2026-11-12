@@ -15,7 +15,7 @@ export function jsonSchema(): JsonSchema {
     $schema: "https://json-schema.org/draft/2020-12/schema",
     title: "Structa diagram",
     description:
-      'One diagram for Structa to draw. Text is plain text in Latin letters, digits and common symbols, with no control characters; runs of spaces collapse to one, and text can\'t be only spaces. Ids must be unique across nodes and edges, and "from" and "to" must name a node.',
+      'One diagram for Structa to draw. Text is plain text in Latin letters, digits and common symbols, with no control characters; runs of spaces collapse to one, and text can\'t be only spaces. Ids must be unique across nodes and edges, and a row\'s id within its card; "from" and "to" must name a node.',
     ...objectSchema(SHARED),
     allOf: [...DEFINITIONS].map(([type, def]) => ({
       if: { properties: { type: { const: type } }, required: ["type"] },
@@ -42,6 +42,7 @@ function itemsSchema(def: ObjectDef, name: "nodes" | "edges"): JsonSchema {
 
 function objectSchema(def: ObjectDef): JsonSchema {
   return {
+    ...(def.description === undefined ? {} : { description: def.description }),
     type: "object",
     properties: Object.fromEntries(def.fields.map((field) => [field.name, fieldSchema(field)])),
     required: def.fields.filter((f) => f.required).map((f) => f.name),

@@ -19,7 +19,8 @@ const NAMED_CHARS = 5;
  *
  * Problems come in a fixed order: list items in order, and in each object its
  * unknown fields first (sorted by name), then its own fields in the order the
- * definition lists them. A dangling reference sorts to where the reference is.
+ * definition lists them, then what its rules find. A dangling reference sorts
+ * to where the reference is.
  */
 export function check(def: ObjectDef, input: unknown): { value: unknown; problems: Problem[] } {
   // Each problem gets a sequence number when its place in the input is visited,
@@ -49,9 +50,7 @@ export function check(def: ObjectDef, input: unknown): { value: unknown; problem
           report(path, `must be a list of ${def.noun}`, "write it as [...]");
           return [];
         }
-        if (value.length > def.maxItems) {
-          report(path, `has ${value.length} ${def.noun}; the limit is ${def.maxItems}`, "split the diagram into smaller ones");
-        }
+        if (value.length > def.maxItems) report(path, `has ${value.length} ${def.noun}; the limit is ${def.maxItems}`, def.limitHint);
         if (def.items.kind === "object" && isNode(def.items)) nodesListed = true;
         return value.map((item: unknown, i) => walk(def.items, item, `${path}[${i}]`));
       }
@@ -124,6 +123,9 @@ export function check(def: ObjectDef, input: unknown): { value: unknown; problem
       if (given !== undefined) result[field.name] = walk(field.def, given, at, field);
       else if (field.required) report(at, `missing required field "${field.name}"`, missingHint(field));
       else if (field.default !== undefined) result[field.name] = field.default;
+    }
+    for (const rule of def.rules ?? []) {
+      for (const problem of rule(result, value, path)) report(problem.path, problem.message, problem.hint);
     }
     return result;
   }
