@@ -1,9 +1,11 @@
 import { createHash } from "node:crypto";
-import { appendFileSync, chmodSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { appendFileSync, chmodSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, utimesSync, writeFileSync } from "node:fs";
+import { dirname, join, relative, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { brotliDecompressSync } from "node:zlib";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { unzipSync } from "fflate";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { zipSkill } from "../scripts/lib/skill";
 import { readTtf, type TtfFont } from "../scripts/lib/ttf";
 import { render } from "../src/index";
 import { CHARACTER_RANGES } from "../src/text/faces";
@@ -488,6 +490,68 @@ describe("the licences in the skill folder", () => {
       "elkjs-source.txt",
       "resvg-source.txt",
     ]);
+  });
+});
+
+describe("the release zip", () => {
+  /** Every file under `dir`, as a path with forward slashes, in code-unit order. */
+  const filesUnder = (dir: string): string[] =>
+    readdirSync(dir, { recursive: true, withFileTypes: true })
+      .filter((entry) => entry.isFile())
+      .map((entry) => relative(dir, join(entry.parentPath, entry.name)).split(sep).join("/"))
+      .sort();
+  /** The comment at the end of a zip, after its end-of-central-directory record. */
+  const zipComment = (zip: Uint8Array): string => {
+    const bytes = Buffer.from(zip);
+    const end = bytes.lastIndexOf(Buffer.from([0x50, 0x4b, 0x05, 0x06]));
+    const length = bytes.readUInt16LE(end + 20);
+    expect(end + 22 + length).toBe(bytes.length);
+    return bytes.toString("utf8", end + 22);
+  };
+
+  it("holds the skill folder in a structa folder, file for file", () => {
+    const unzipped = unzipSync(zipSkill(skill.dir));
+    const files = filesUnder(skill.dir);
+
+    expect(files).toContain("licenses/MIT.txt");
+    expect(Object.keys(unzipped)).toEqual(files.map((file) => `structa/${file}`));
+    for (const file of files) {
+      expect([file, Buffer.from(unzipped[`structa/${file}`]!).equals(readFileSync(join(skill.dir, file)))]).toEqual([file, true]);
+    }
+  });
+
+  it("is labelled with the licence of everything in it", () => {
+    expect(zipComment(zipSkill(skill.dir))).toBe(
+      "SPDX-License-Identifier: MIT AND (EPL-2.0 OR GPL-3.0-or-later) AND MPL-2.0 AND OFL-1.1 AND Apache-2.0",
+    );
+  });
+
+  it("is the same bytes from the same files, whenever they were written or zipped", () => {
+    const touched = join(dirname(skill.dir), "structa-touched");
+    cpSync(skill.dir, touched, { recursive: true });
+    for (const file of filesUnder(touched)) utimesSync(join(touched, file), new Date(2031, 5, 7), new Date(2031, 5, 7));
+    vi.useFakeTimers({ toFake: ["Date"] });
+    try {
+      vi.setSystemTime(new Date(2032, 0, 1, 9, 30));
+      const first = zipSkill(skill.dir);
+      vi.setSystemTime(new Date(2044, 10, 3, 17, 5));
+      const second = zipSkill(touched);
+
+      expect(Buffer.from(first).equals(Buffer.from(second))).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("unzips to a skill folder that node structa.mjs runs from", async () => {
+    const unzipped = join(dirname(skill.dir), "unzipped");
+    for (const [name, bytes] of Object.entries(unzipSync(zipSkill(skill.dir)))) {
+      mkdirSync(dirname(join(unzipped, name)), { recursive: true });
+      writeFileSync(join(unzipped, name), bytes);
+    }
+    const { svg } = await render(flowJson);
+
+    expect(skill.run([flowPath], { dir: join(unzipped, "structa") })).toEqual({ status: 0, stdout: svg, stderr: "" });
   });
 });
 

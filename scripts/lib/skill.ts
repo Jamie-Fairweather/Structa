@@ -7,12 +7,13 @@
  */
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { brotliCompressSync, constants as zlib } from "node:zlib";
 import { build, type Plugin } from "esbuild";
+import { zipSync, type Zippable } from "fflate";
 import { FACES } from "../../src/text/faces";
 import { LAYOUT_TABLES } from "./subset";
 import { readTtf, type TtfFont } from "./ttf";
@@ -98,6 +99,45 @@ export async function buildSkill(outDir: string, project: string = repository): 
   }
   if (schema.status !== 0) throw new Error(`node ${MODULE_FILE} schema failed: ${schema.stderr}`);
   writeFileSync(join(outDir, SCHEMA_FILE), schema.stdout);
+}
+
+/** The licence of the release zip as a whole: Structa's own, and those of the parts it ships. */
+export const RELEASE_LICENSE = "MIT AND (EPL-2.0 OR GPL-3.0-or-later) AND MPL-2.0 AND OFL-1.1 AND Apache-2.0";
+
+/** The folder the zip holds the skill folder in, so it unzips ready to drop into a skills folder. */
+const ZIP_FOLDER = "structa";
+/** The time every file in the zip carries: 1 February 1980, the earliest a zip can hold in any time zone. */
+const ZIP_TIME = new Date(1980, 1, 1);
+/** The end of a zip: its end-of-central-directory record, with no comment yet. */
+const ZIP_END = { signature: 0x06054b50, length: 22 };
+
+/**
+ * The release zip of the skill folder `dir`: every file in it, inside a
+ * structa folder, with RELEASE_LICENSE in the zip's comment. The same files
+ * always give the same bytes: they go in code-unit order of their paths, all
+ * with one fixed time.
+ */
+export function zipSkill(dir: string): Uint8Array {
+  // Every path starts with the folder name, so none is an array index and the keys keep this order.
+  const files: Zippable = {};
+  for (const path of filesIn(dir).sort()) files[`${ZIP_FOLDER}/${path}`] = readFileSync(join(dir, path));
+  const zip = Buffer.from(zipSync(files, { level: 9, mtime: ZIP_TIME }));
+  const end = zip.length - ZIP_END.length;
+  if (zip.readUInt32LE(end) !== ZIP_END.signature || zip.readUInt16LE(end + 20) !== 0) {
+    throw new Error("the zip doesn't end with an end-of-central-directory record and no comment");
+  }
+  const comment = Buffer.from(`SPDX-License-Identifier: ${RELEASE_LICENSE}`, "utf8");
+  const labelled = Buffer.concat([zip, comment]);
+  labelled.writeUInt16LE(comment.length, end + 20);
+  return labelled;
+}
+
+/** Every file under `dir`, `prefix` and below, as a path with forward slashes. */
+function filesIn(dir: string, prefix = ""): string[] {
+  return readdirSync(join(dir, prefix), { withFileTypes: true }).flatMap((entry) => {
+    const path = prefix === "" ? entry.name : `${prefix}/${entry.name}`;
+    return entry.isDirectory() ? filesIn(dir, path) : [path];
+  });
 }
 
 /** The pinned @resvg/resvg-wasm, as the build embeds it. */
