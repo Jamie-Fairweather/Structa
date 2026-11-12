@@ -49,7 +49,8 @@ export async function render<F extends Format = "svg">(
   const profile = diagram.type === "class" ? CLASS_PROFILE : FLOW_PROFILE;
   const scene = await layout({ cards, lines }, profile, diagram.direction);
   const header = buildHeader(diagram.title, diagram.description, theme.sizes);
-  const statuses = [...diagram.nodes, ...diagram.edges].map((item) => item.status);
+  const rows = diagram.type === "class" ? diagram.nodes.flatMap((node) => [...node.properties, ...node.methods]) : [];
+  const statuses = [...diagram.nodes, ...rows, ...diagram.edges].map((item) => item.status);
   const legend = diagram.legend ? buildLegend(statuses, theme.sizes) : undefined;
   const drawing = { scene, header, legend };
 

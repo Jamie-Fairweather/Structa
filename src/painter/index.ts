@@ -230,13 +230,31 @@ function card({ card, x: cardX, y: cardY }: PlacedCard<Card>, at: Point, pen: Pe
   ];
 }
 
-/** One row of a card offset by (x, y), with its own tooltip and data attributes. */
+/**
+ * One row of a card offset by (x, y), with its own tooltip and data
+ * attributes. A row with a status is tinted with its badge's fill and has its
+ * badge; a removed row is faded, all but its badge.
+ */
 function row(r: Row, x: number, y: number, pen: Pen): string[] {
-  const { colors } = pen.theme;
+  const { colors, sizes } = pen.theme;
+  const tint = r.status
+    ? [
+        el("rect", [
+          ["x", x + r.box.x],
+          ["y", y + r.box.y],
+          ["width", r.box.width],
+          ["height", r.box.height],
+          ["rx", sizes.row.tintRadius],
+          ["fill", colors.status[r.status].badgeFill],
+          ["fill-opacity", colors.rowTintOpacity],
+        ]),
+      ]
+    : [];
   return [
     open("g", [["class", "row"], ["data-id", r.id], ["data-kind", r.kind], ...statusAttr(r.status)]),
     el("title", [], escapeText(r.tooltip)),
-    ...r.texts.flatMap((t) => text(t, x, y, colors[t.color], pen)),
+    ...fadedIf(r.status === "removed", pen.theme, [...tint, ...r.texts.flatMap((t) => text(t, x, y, colors[t.color], pen))]),
+    ...(r.badge ? badge(r.badge, x, y, pen) : []),
     "</g>",
   ];
 }

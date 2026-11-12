@@ -181,7 +181,8 @@ function badgeWord(status: Status): string {
   return status.toUpperCase();
 }
 
-function measureBadge(status: Status, sizes: Sizes): number {
+/** How wide a status's badge is. */
+export function measureBadge(status: Status, sizes: Sizes): number {
   const b = sizes.badge;
   return Math.ceil(measure(badgeWord(status), BADGE_FACE, b.fontSize) + 2 * b.paddingX);
 }

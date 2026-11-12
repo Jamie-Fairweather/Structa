@@ -9,7 +9,7 @@ import {
 } from "../input";
 import { baseline, measure, wrap, type FaceId } from "../text";
 import type { Sizes } from "../theme";
-import type { CardBody, Row, TextLine } from "./frame";
+import { badge, measureBadge, type CardBody, type Row, type TextLine } from "./frame";
 
 const SYMBOLS = new Map<Visibility, string>([
   ["public", "+"],
@@ -57,9 +57,9 @@ export function classBody(node: ClassNode, sizes: Sizes): CardBody {
     y += c.sectionPaddingY;
     const section = sections[i];
     for (const member of section ? node[section] : []) {
-      const row = classRow(member, ROW_KINDS.get(section!)!, y, width, textX, sizes);
+      const { row, height } = classRow(member, ROW_KINDS.get(section!)!, y, width, textX, sizes);
       rows.push(row);
-      y += row.box.height;
+      y += height;
     }
     if (i === count - 1 && node.more !== undefined) {
       more = moreLine(node.more, y, textX, sizes);
@@ -96,19 +96,40 @@ function moreLine(count: number, top: number, textX: number, sizes: Sizes): Text
   };
 }
 
-/** One member's row, from `top` down: its text wrapped after its visibility symbol. */
-function classRow(member: ClassRow, kind: Row["kind"], top: number, width: number, textX: number, sizes: Sizes): Row {
+/**
+ * One member's row, from `top` down: its text wrapped after its visibility
+ * symbol and, when it has a status, clear of the badge at its right-hand end.
+ */
+function classRow(
+  member: ClassRow,
+  kind: Row["kind"],
+  top: number,
+  width: number,
+  textX: number,
+  sizes: Sizes,
+): { row: Row; height: number } {
   const r = sizes.row;
   const left = sizes.classCard.paddingX;
+  const { status } = member;
   const symbol = member.visibility === undefined ? undefined : SYMBOLS.get(member.visibility)!;
-  const lines = wrap(member.text, ROW_TEXT_FACE, r.fontSize, width - left - textX);
+  const badgeWidth = status === undefined ? 0 : measureBadge(status, sizes);
+  const room = width - left - textX - (status === undefined ? 0 : badgeWidth + r.badgeGap);
+  const lines = wrap(member.text, ROW_TEXT_FACE, r.fontSize, room);
   const offset = baseline(ROW_TEXT_FACE, r.fontSize, r.lineHeight);
   const height = 2 * r.paddingY + lines.length * r.lineHeight;
-  return {
+  const row: Row = {
     id: member.id,
     kind,
+    ...(status === undefined
+      ? {}
+      : {
+          status,
+          // Centred on the first line, so it stays level with the row's start when the text wraps.
+          badge: badge(status, width - left - badgeWidth, top + r.paddingY + (r.lineHeight - sizes.badge.height) / 2, sizes),
+        }),
     tooltip: symbol === undefined ? member.text : `${symbol} ${member.text}`,
-    box: { x: r.tintInset, y: top, width: width - 2 * r.tintInset, height },
+    // A tint never quite touches the next row's, so a run of rows with a status reads as separate rows.
+    box: { x: r.tintInset, y: top + r.tintGap / 2, width: width - 2 * r.tintInset, height: height - r.tintGap },
     // In a monospaced face, the symbol and its space fill the column the other lines start after.
     texts: lines.map((line, i) => ({
       text: i === 0 && symbol !== undefined ? `${symbol} ${line}` : line,
@@ -120,4 +141,5 @@ function classRow(member: ClassRow, kind: Row["kind"], top: number, width: numbe
       color: "text",
     })),
   };
+  return { row, height };
 }

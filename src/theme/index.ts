@@ -39,6 +39,8 @@ export interface ThemeColors {
   readonly line: string;
   /** How strongly removed cards, rows and lines are drawn. */
   readonly fadedOpacity: number;
+  /** How strongly a row with a status is tinted with its badge's fill: less than the badge itself. */
+  readonly rowTintOpacity: number;
   readonly status: { readonly [status in Status]: StatusColors };
 }
 
@@ -56,6 +58,7 @@ const COLORS: { readonly [name in ThemeName]: ThemeColors } = {
     mutedText: "#59636e",
     line: "#8c959f",
     fadedOpacity: 0.55,
+    rowTintOpacity: 0.45,
     status: {
       new: { stroke: "#1f883d", badgeFill: "#b9f0c4", badgeFillOpacity: 1, badgeText: "#116329" },
       changed: { stroke: "#bf8700", badgeFill: "#fae17d", badgeFillOpacity: 1, badgeText: "#7d4e00" },
@@ -76,6 +79,7 @@ const COLORS: { readonly [name in ThemeName]: ThemeColors } = {
     mutedText: "#8b949e",
     line: "#6e7681",
     fadedOpacity: 0.5,
+    rowTintOpacity: 0.12,
     status: {
       new: { stroke: "#3fb950", badgeFill: "#3fb950", badgeFillOpacity: 0.25, badgeText: "#56d364" },
       changed: { stroke: "#d29922", badgeFill: "#d29922", badgeFillOpacity: 0.25, badgeText: "#e3b341" },
@@ -115,8 +119,12 @@ export const SIZES = {
     descriptionGap: 2,
     sectionPaddingY: 6,
   },
-  /** A card's rows, such as class members. A row's tint is inset from the card's sides by `tintInset`. */
-  row: { fontSize: 12, lineHeight: 18, paddingY: 3, tintInset: 6, tintRadius: 4 },
+  /**
+   * A card's rows, such as class members. A row with a status is tinted, inset
+   * `tintInset` from the card's sides and `tintGap` apart from the next row's
+   * tint, with its badge `badgeGap` after its text.
+   */
+  row: { fontSize: 12, lineHeight: 18, paddingY: 4, tintInset: 6, tintGap: 2, tintRadius: 4, badgeGap: 8 },
   step: {
     fontSize: 14,
     lineHeight: 20,

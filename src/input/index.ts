@@ -50,6 +50,7 @@ export interface ClassRow {
   readonly id: string;
   readonly text: string;
   readonly visibility?: Visibility;
+  /** Its own status, or, when it has none, its card's when the card is new or removed. */
   readonly status?: Status;
 }
 
@@ -130,10 +131,17 @@ type WithoutIds<N extends ClassNode> = Omit<N, (typeof CLASS_SECTIONS)[number]> 
   readonly [section in (typeof CLASS_SECTIONS)[number]]: readonly (Omit<ClassRow, "id"> & { id?: string })[];
 };
 
-/** Gives every row its id: its own, or its section and position. */
+/**
+ * Gives every row its id (its own, or its section and position) and its
+ * status: a row without one in a new or removed card takes the card's.
+ */
 function classNode(node: WithoutIds<ClassNode>): ClassNode {
+  const inherited = node.status === "new" || node.status === "removed" ? node.status : undefined;
   const [properties, methods] = CLASS_SECTIONS.map((section) =>
-    node[section].map((row, i): ClassRow => ({ ...row, id: row.id ?? `${section}[${i}]` })),
+    node[section].map((row, i): ClassRow => {
+      const status = row.status ?? inherited;
+      return { ...row, id: row.id ?? `${section}[${i}]`, ...(status === undefined ? {} : { status }) };
+    }),
   );
   return { ...node, properties: properties!, methods: methods! };
 }

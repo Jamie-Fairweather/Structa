@@ -2,12 +2,16 @@ import type { Element } from "@xmldom/xmldom";
 import { describe, expect, it } from "vitest";
 import { render, StructaError, type Problem } from "../src/index";
 import {
+  allElements,
+  badgeBox,
   byClassIn,
   cardBox,
   cardById,
+  cards,
   distanceToOutline,
   lines,
   parsePath,
+  rectBox,
   svgDoc,
   textLines,
   titleOf,
@@ -40,6 +44,12 @@ function rows(card: Element): Element[] {
 
 function texts(el: Element): Element[] {
   return Array.from(el.getElementsByTagName("text"));
+}
+
+/** A row's own text, without the word in its badge. */
+function memberTexts(row: Element): Element[] {
+  const inBadge = new Set(byClassIn(row, "badge").flatMap(texts));
+  return texts(row).filter((t) => !inBadge.has(t));
 }
 
 function numberAttr(el: Element, name: string): number {
@@ -337,6 +347,211 @@ describe("class card rows", () => {
       const right = numberAttr(t, "x") + MONO_ADVANCE * size * t.textContent!.length;
       expect(right).toBeLessThanOrEqual(box.x + box.width);
     }
+  });
+});
+
+describe("row status", () => {
+  /** A changed seed packet whose four methods have these statuses. */
+  function statuses(...given: (string | undefined)[]) {
+    const methods = ["sow(): void", "water(): void", "thin(): void", "label(): void"];
+    return packet({
+      status: "changed",
+      methods: methods.map((text, i) => ({ text, visibility: "public", ...(given[i] ? { status: given[i] } : {}) })),
+    });
+  }
+
+  function tint(row: Element): Element | undefined {
+    return Array.from(row.getElementsByTagName("rect")).find((rect) => rect.parentNode === row || (rect.parentNode as Element).getAttribute("class") === "faded");
+  }
+
+  it("tints a row with a status and puts its badge at its right-hand end", async () => {
+    const doc = await svgDoc(statuses("new"));
+
+    const card = cardById(doc, "packet");
+    const row = rows(card)[0]!;
+    expect(row.getAttribute("data-status")).toBe("new");
+    const band = rectBox(tint(row)!);
+    const badge = badgeBox(row)!;
+    const [word] = texts(byClassIn(row, "badge")[0]!);
+    expect(word!.textContent).toBe("NEW");
+    // The tint spans the card inside its border; the badge sits inside it, at the right.
+    const box = cardBox(card);
+    expect(band.x).toBeGreaterThan(box.x);
+    expect(band.x + band.width).toBeLessThan(box.x + box.width);
+    expect(band.width).toBeGreaterThan(box.width * 0.9);
+    expect(badge.x + badge.width).toBeLessThan(band.x + band.width);
+    expect(badge.x).toBeGreaterThan(band.x + band.width / 2);
+    expect(badge.y).toBeGreaterThanOrEqual(band.y);
+    expect(badge.y + badge.height).toBeLessThanOrEqual(band.y + band.height);
+    // The row's text is inside its band.
+    const [t] = texts(row);
+    expect(numberAttr(t!, "y")).toBeGreaterThan(band.y);
+    expect(numberAttr(t!, "y")).toBeLessThan(band.y + band.height);
+  });
+
+  it("gives a row without a status no tint, no badge and no status attribute", async () => {
+    const doc = await svgDoc(statuses("new"));
+
+    const row = rows(cardById(doc, "packet"))[1]!;
+    expect(row.hasAttribute("data-status")).toBe(false);
+    expect(row.getElementsByTagName("rect")).toHaveLength(0);
+    expect(byClassIn(row, "badge")).toEqual([]);
+  });
+
+  // The spec's GitHub Primer table: the badge's fill, its strength, its border and its word, and the tint is the
+  // badge's fill at less than the badge's strength.
+  it.each([
+    ["light", "new", "#b9f0c4", 1, "#1f883d", "#116329"],
+    ["light", "changed", "#fae17d", 1, "#bf8700", "#7d4e00"],
+    ["light", "removed", "#ffcecb", 1, "#cf222e", "#a40e26"],
+    ["light", "unchanged", "#eaeef2", 1, "#8c959f", "#59636e"],
+    ["dark", "new", "#3fb950", 0.25, "#3fb950", "#56d364"],
+    ["dark", "changed", "#d29922", 0.25, "#d29922", "#e3b341"],
+    ["dark", "removed", "#f85149", 0.25, "#f85149", "#ff7b72"],
+    ["dark", "unchanged", "#6e7681", 0.25, "#6e7681", "#8b949e"],
+  ] as const)("colours a %s-theme %s row's tint and badge", async (theme, status, fill, strength, stroke, word) => {
+    const doc = await svgDoc(statuses(status), theme);
+
+    const row = rows(cardById(doc, "packet"))[0]!;
+    const band = tint(row)!;
+    expect(band.getAttribute("fill")).toBe(fill);
+    expect(Number(band.getAttribute("fill-opacity"))).toBeGreaterThan(0);
+    expect(Number(band.getAttribute("fill-opacity"))).toBeLessThan(strength);
+    const [, pill] = Array.from(byClassIn(row, "badge")[0]!.getElementsByTagName("rect"));
+    expect([pill!.getAttribute("fill"), Number(pill!.getAttribute("fill-opacity") ?? 1), pill!.getAttribute("stroke")]).toEqual([
+      fill,
+      strength,
+      stroke,
+    ]);
+    expect(texts(byClassIn(row, "badge")[0]!)[0]!.getAttribute("fill")).toBe(word);
+  });
+
+  it("keeps a row's text clear of its badge, wrapping it sooner", async () => {
+    // 38 characters: one line on its own, but not beside a badge.
+    const text = "transplant(seedlings: Seedling[]): Bed";
+    const doc = await svgDoc(packet({ status: "changed", methods: [{ text, status: "changed" }, { text }] }));
+
+    const [withBadge, without] = rows(cardById(doc, "packet"));
+    const badge = badgeBox(withBadge!)!;
+    for (const t of memberTexts(withBadge!)) {
+      const right = numberAttr(t, "x") + MONO_ADVANCE * numberAttr(t, "font-size") * t.textContent!.length;
+      expect(right).toBeLessThan(badge.x);
+    }
+    expect(memberTexts(withBadge!).length).toBeGreaterThan(memberTexts(without!).length);
+    expect(memberTexts(withBadge!).map((t) => t.textContent).join(" ")).toBe(text);
+  });
+
+  it("fades a removed row and strikes through every line of its text, but not its badge", async () => {
+    const text = "transplant(seedlings: Seedling[], bed: RaisedBed, spacing: Centimetres): Planting";
+    const doc = await svgDoc(packet({ status: "changed", methods: [{ text, status: "removed" }, { text: "water(): void" }] }));
+
+    const [removed, plain] = rows(cardById(doc, "packet"));
+    const [faded] = byClassIn(removed!, "faded");
+    expect(Number(faded!.getAttribute("opacity"))).toBeLessThan(0.7);
+    const drawn = texts(faded!);
+    expect(drawn.length).toBeGreaterThan(1);
+    const strikes = byClassIn(faded!, "strike");
+    expect(strikes).toHaveLength(drawn.length);
+    drawn.forEach((t, i) => {
+      const strike = strikes[i]!;
+      const baseline = numberAttr(t, "y");
+      const size = numberAttr(t, "font-size");
+      expect(numberAttr(strike, "y1")).toBe(numberAttr(strike, "y2"));
+      expect(numberAttr(strike, "y1")).toBeLessThan(baseline - size * 0.15);
+      expect(numberAttr(strike, "y1")).toBeGreaterThan(baseline - size * 0.5);
+      expect(numberAttr(strike, "x1")).toBeCloseTo(numberAttr(t, "x"), 5);
+      expect(numberAttr(strike, "x2") - numberAttr(strike, "x1")).toBeCloseTo(MONO_ADVANCE * size * t.textContent!.length, 1);
+    });
+    expect(byClassIn(faded!, "badge")).toEqual([]);
+    expect(byClassIn(removed!, "badge")).toHaveLength(1);
+    expect(byClassIn(plain!, "faded")).toEqual([]);
+    expect(byClassIn(plain!, "strike")).toEqual([]);
+  });
+
+  it.each(["new", "removed"])("gives rows without a status in a %s card the card's status, tint and badge", async (status) => {
+    const doc = await svgDoc(packet({ status, properties: [{ text: "variety: string" }], methods: [{ text: "sow(): void", status }] }));
+
+    for (const row of rows(cardById(doc, "packet"))) {
+      expect(row.getAttribute("data-status")).toBe(status);
+      expect(tint(row)).toBeDefined();
+      expect(textLines(byClassIn(row, "badge")[0]!)).toEqual([status.toUpperCase()]);
+    }
+  });
+
+  it("fades a removed card's rows once, not twice", async () => {
+    const doc = await svgDoc(packet({ status: "removed", methods: [{ text: "sow(): void" }] }));
+
+    const card = cardById(doc, "packet");
+    const [row] = rows(card);
+    const fadedAround = (el: Element): number =>
+      el.parentNode && "getAttribute" in el.parentNode
+        ? ((el.parentNode as Element).getAttribute("class") === "faded" ? 1 : 0) + fadedAround(el.parentNode as Element)
+        : 0;
+    expect(fadedAround(texts(row!)[0]!)).toBe(1);
+    expect(byClassIn(row!, "strike")).toHaveLength(1);
+  });
+
+  it.each(["changed", "unchanged", undefined])("leaves rows without a status in a %s card plain", async (status) => {
+    const doc = await svgDoc(packet({ ...(status ? { status } : {}), methods: [{ text: "sow(): void" }] }));
+
+    const [row] = rows(cardById(doc, "packet"));
+    expect(row!.hasAttribute("data-status")).toBe(false);
+    expect(row!.getElementsByTagName("rect")).toHaveLength(0);
+  });
+
+  it("draws every row exactly once, with its own or its card's status", async () => {
+    const input = {
+      type: "class",
+      nodes: [
+        { id: "sower", label: "Sower", status: "new", properties: [{ text: "seeds: int" }], methods: [{ id: "sow", text: "sow(): void" }] },
+        {
+          id: "bed",
+          label: "Bed",
+          status: "changed",
+          properties: [{ text: "length: Metres", status: "unchanged" }, { text: "soil: Soil" }],
+          methods: [{ text: "dig(): void", status: "removed" }, { id: "feed", text: "feed(): void", status: "new" }, { text: "rake(): void", status: "changed" }],
+        },
+        { id: "cloche", label: "Cloche", status: "removed", methods: [{ text: "cover(): void", status: "removed" }, { text: "vent(): void" }] },
+        { id: "fork", label: "Fork", status: "unchanged", properties: [{ text: "tines: int", status: "unchanged" }, { text: "handle: Wood" }] },
+        { id: "string", label: "String", properties: [{ text: "length: Metres" }] },
+      ],
+    };
+    const doc = await svgDoc(input);
+
+    const drawn = cards(doc).flatMap((card) =>
+      rows(card).map((row) => [card.getAttribute("data-id"), row.getAttribute("data-id"), row.getAttribute("data-kind"), row.getAttribute("data-status")]),
+    );
+    expect(drawn).toEqual([
+      ["sower", "properties[0]", "property", "new"],
+      ["sower", "sow", "method", "new"],
+      ["bed", "properties[0]", "property", "unchanged"],
+      ["bed", "properties[1]", "property", null],
+      ["bed", "methods[0]", "method", "removed"],
+      ["bed", "feed", "method", "new"],
+      ["bed", "methods[2]", "method", "changed"],
+      ["cloche", "methods[0]", "method", "removed"],
+      ["cloche", "methods[1]", "method", "removed"],
+      ["fork", "properties[0]", "property", "unchanged"],
+      ["fork", "properties[1]", "property", null],
+      ["string", "properties[0]", "property", null],
+    ]);
+    // Every row is drawn once: no row element is inside another.
+    expect(allElements(doc).filter((el) => el.getAttribute("class") === "row")).toHaveLength(drawn.length);
+  });
+
+  it("lists the statuses rows use in the legend", async () => {
+    const input = packet({ status: "changed", methods: [{ text: "sow(): void", status: "new" }, { text: "dig(): void", status: "removed" }] });
+    const doc = await svgDoc(input);
+
+    const legend = allElements(doc).filter((el) => el.getAttribute("class") === "legend-item");
+    expect(legend.map((item) => item.getAttribute("data-status"))).toEqual(["new", "changed", "removed"]);
+  });
+
+  it("lists a status rows only take from their card once in the legend", async () => {
+    const doc = await svgDoc(packet({ status: "new", methods: [{ text: "sow(): void" }] }));
+
+    const legend = allElements(doc).filter((el) => el.getAttribute("class") === "legend-item");
+    expect(legend.map((item) => item.getAttribute("data-status"))).toEqual(["new"]);
   });
 });
 
