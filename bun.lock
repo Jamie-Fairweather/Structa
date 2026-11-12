@@ -12,6 +12,7 @@
         "@commitlint/config-conventional": "21.2.4",
         "@types/node": "20.19.43",
         "@xmldom/xmldom": "0.9.12",
+        "ajv": "8.20.0",
         "esbuild": "0.28.2",
         "harfbuzzjs": "1.6.4",
         "husky": "9.1.7",

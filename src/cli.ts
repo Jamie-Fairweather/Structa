@@ -1,21 +1,25 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { basename, extname } from "node:path";
+import { jsonSchema } from "./input";
 import { render } from "./render";
 import { THEME_NAMES, type ThemeName } from "./theme";
 
-interface Command {
-  /** A file path, or "-" for standard input. */
-  readonly input: string;
-  /** Where to write the SVG; standard output when absent. */
-  readonly output?: string;
-  /** Wins over the JSON's theme when given. */
-  readonly theme?: ThemeName;
-  /** False with --no-embed-fonts. */
-  readonly embedFonts: boolean;
-}
+type Command =
+  | {
+      readonly kind: "render";
+      /** A file path, or "-" for standard input. */
+      readonly input: string;
+      /** Where to write the SVG; standard output when absent. */
+      readonly output?: string;
+      /** Wins over the JSON's theme when given. */
+      readonly theme?: ThemeName;
+      /** False with --no-embed-fonts. */
+      readonly embedFonts: boolean;
+    }
+  | { readonly kind: "schema" };
 
 const THEMES = THEME_NAMES.join(" or ");
-const USAGE = `usage: node structa.mjs <diagram.json | -> [-o <diagram.svg>] [--theme ${THEME_NAMES.join("|")}] [--no-embed-fonts]`;
+const USAGE = `usage: node structa.mjs <diagram.json | -> [-o <diagram.svg>] [--theme ${THEME_NAMES.join("|")}] [--no-embed-fonts] | schema`;
 
 /** Runs the command line. Returns the exit code: 0 success, 1 bad input or a failed render, 2 bad usage. */
 export async function runCli(args: readonly string[]): Promise<number> {
@@ -24,6 +28,16 @@ export async function runCli(args: readonly string[]): Promise<number> {
     process.stderr.write(`${command}\n${USAGE}\n`);
     return 2;
   }
+  switch (command.kind) {
+    case "schema":
+      process.stdout.write(`${JSON.stringify(jsonSchema(), null, 2)}\n`);
+      return 0;
+    case "render":
+      return renderDiagram(command);
+  }
+}
+
+async function renderDiagram(command: Extract<Command, { kind: "render" }>): Promise<number> {
   let json: string;
   try {
     json = command.input === "-" ? await readStdin() : await readFile(command.input, "utf8");
@@ -48,12 +62,12 @@ export async function runCli(args: readonly string[]): Promise<number> {
   return 0;
 }
 
-/** The command the arguments describe, or what's wrong with them. */
+/** The command the arguments describe, or what's wrong with them. Commands win over file names. */
 function parseArgs(args: readonly string[]): Command | string {
-  let input: string | undefined;
   let output: string | undefined;
   let theme: ThemeName | undefined;
   let embedFonts = true;
+  const words: string[] = [];
   for (let i = 0; i < args.length; i++) {
     const arg = args[i]!;
     if (arg === "--no-embed-fonts") {
@@ -76,14 +90,20 @@ function parseArgs(args: readonly string[]): Command | string {
       theme = name as ThemeName;
     } else if (arg.startsWith("-") && arg !== "-") {
       return `unknown option ${JSON.stringify(arg)}`;
-    } else if (input !== undefined) {
-      return `give one input, not two (${JSON.stringify(input)} and ${JSON.stringify(arg)})`;
     } else {
-      input = arg;
+      words.push(arg);
     }
   }
+
+  const [input, ...rest] = words;
+  // The flags that only drawing takes.
+  const drawFlags = output !== undefined || theme !== undefined || !embedFonts;
+  if (input === "schema") {
+    return !drawFlags && rest.length === 0 ? { kind: "schema" } : "schema takes no other arguments";
+  }
   if (input === undefined) return "give the diagram's JSON file, or - to read it from standard input";
-  return { input, output, theme, embedFonts };
+  if (rest.length > 0) return `give one input, not two (${JSON.stringify(input)} and ${JSON.stringify(rest[0])})`;
+  return { kind: "render", input, output, theme, embedFonts };
 }
 
 async function readStdin(): Promise<string> {

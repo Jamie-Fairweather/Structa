@@ -1,8 +1,10 @@
 /**
  * Builds the skill folder: our code bundled into one ES module, elkjs's own
- * file copied beside it untouched, and a one-line package.json that makes the
- * folder CommonJS so elkjs's UMD file loads even inside an ESM project.
+ * file copied beside it untouched, a one-line package.json that makes the
+ * folder CommonJS so elkjs's UMD file loads even inside an ESM project, and
+ * the JSON Schema the module prints.
  */
+import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { copyFileSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -17,6 +19,7 @@ const repository = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 const MODULE_FILE = "structa.mjs";
 const ELK_FILE = "elk.bundled.js";
+const SCHEMA_FILE = "structa.schema.json";
 const PACKAGE_JSON = '{"type":"commonjs"}\n';
 
 /**
@@ -61,6 +64,11 @@ export async function buildSkill(outDir: string, project: string = repository): 
 
   const problems = checkSkill(outDir, project, elkPackage);
   if (problems.length > 0) throw new Error(`the skill folder failed its checks:\n${problems.join("\n")}`);
+
+  // The shipped schema is exactly what the shipped tool prints.
+  const schema = spawnSync("node", [join(outDir, MODULE_FILE), "schema"], { encoding: "utf8" });
+  if (schema.status !== 0) throw new Error(`node ${MODULE_FILE} schema failed: ${schema.error?.message ?? schema.stderr}`);
+  writeFileSync(join(outDir, SCHEMA_FILE), schema.stdout);
 }
 
 /** Text that only ELK's compiled code contains: its Java package names and GWT's runtime markers. */

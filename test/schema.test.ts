@@ -1,11 +1,20 @@
-import { describe, expect, it } from "vitest";
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+import Ajv2020 from "ajv/dist/2020";
+import { afterAll, describe, expect, it } from "vitest";
 import { render, StructaError, type Problem } from "../src/index";
-// The schema isn't public library API. Until `structa schema` (#6) can be run
-// from the built folder, these tests read it from the input module directly.
-import { jsonSchema as schema } from "../src/input";
+import { buildSkillForTest } from "./helpers/skill";
 
 // The schema is a plain JSON value; these tests walk it loosely.
 type Node = { [key: string]: any };
+
+// Seam 2: the schema is what `node structa.mjs schema` prints from the built
+// skill folder. The tests below check that it agrees with render().
+const skill = await buildSkillForTest();
+afterAll(() => skill.remove());
+const printed = skill.run(["schema"]);
+const examplesDir = fileURLToPath(new URL("../examples/", import.meta.url));
 
 const opts = { embedFonts: false } as const;
 
@@ -37,24 +46,49 @@ function resolve(root: Node, node: Node): Node {
   return { ...root.$defs[(node.$ref as string).replace("#/$defs/", "")], ...node };
 }
 
+describe("node structa.mjs schema", () => {
+  it("prints the schema on standard output, and nothing on standard error", () => {
+    expect(printed.status).toBe(0);
+    expect(printed.stderr).toBe("");
+  });
+
+  it("is valid JSON Schema, by the 2020-12 meta-schema", () => {
+    const ajv = new Ajv2020();
+
+    const valid = ajv.validateSchema(JSON.parse(printed.stdout));
+
+    expect(ajv.errors ?? []).toEqual([]);
+    expect(valid).toBe(true);
+  });
+
+  it("accepts every example, and compiles with no unknown or ignored keywords", () => {
+    const validate = new Ajv2020({ strict: true }).compile(JSON.parse(printed.stdout));
+    const examples = readdirSync(examplesDir).filter((file) => file.endsWith(".json"));
+
+    expect(examples.length).toBeGreaterThan(0);
+    for (const file of examples) {
+      validate(JSON.parse(readFileSync(join(examplesDir, file), "utf8")));
+      expect([file, validate.errors ?? []]).toEqual([file, []]);
+    }
+  });
+
+  it("ships the same schema in the skill folder, as structa.schema.json", () => {
+    expect(readFileSync(join(skill.dir, "structa.schema.json"), "utf8")).toBe(printed.stdout);
+  });
+});
+
 describe("the JSON Schema", () => {
-  const root = schema() as Node;
+  const root = JSON.parse(printed.stdout) as Node;
   const node = root.properties.nodes.items;
   const edge = root.properties.edges.items;
 
   it("is written down as a reviewable file", async () => {
-    await expect(`${JSON.stringify(schema(), null, 2)}\n`).toMatchFileSnapshot("__snapshots__/structa.schema.json");
+    await expect(printed.stdout).toMatchFileSnapshot("__snapshots__/structa.schema.json");
   });
 
   it("is a 2020-12 JSON Schema for one diagram object", () => {
     expect(root.$schema).toBe("https://json-schema.org/draft/2020-12/schema");
     expect(root.type).toBe("object");
-  });
-
-  it("gives a fresh copy each time, so callers can't change it for others", () => {
-    (schema() as Node).properties.nodes.maxItems = 1;
-
-    expect((schema() as Node).properties.nodes.maxItems).toBe(500);
   });
 
   it.each([
