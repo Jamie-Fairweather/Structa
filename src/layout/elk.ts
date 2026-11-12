@@ -31,5 +31,19 @@ function loadElk(): ElkConstructor {
   if (!existsSync(file)) {
     throw new Error(`can't find the layout engine: expected ${file} next to structa.mjs`);
   }
-  return require(file) as ElkConstructor;
+  // elkjs's UMD file only loads as CommonJS, which the skill folder's own
+  // package.json ensures. Without it, inside a "type": "module" project, older
+  // Node refuses to require the file and newer Node returns no constructor.
+  let loaded: unknown;
+  try {
+    loaded = require(file);
+  } catch (error) {
+    if ((error as { code?: unknown }).code !== "ERR_REQUIRE_ESM") throw error;
+  }
+  if (typeof loaded !== "function") {
+    throw new Error(
+      `can't load the layout engine: Node didn't load ${file} as CommonJS (keep the package.json that came with structa.mjs next to it)`,
+    );
+  }
+  return loaded as ElkConstructor;
 }

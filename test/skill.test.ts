@@ -60,7 +60,13 @@ describe("node structa.mjs", () => {
     rmSync(join(bare, "package.json"));
 
     expect(readFileSync(join(skill.dir, "package.json"), "utf8")).toBe('{"type":"commonjs"}\n');
-    expect(skill.run([flowPath], { dir: bare })).toMatchObject({ status: 1, stdout: "" });
+    expect(skill.run([flowPath], { dir: bare })).toEqual({
+      status: 1,
+      stdout: "",
+      stderr:
+        `can't load the layout engine: Node didn't load ${join(bare, "elk.bundled.js")} as CommonJS ` +
+        "(keep the package.json that came with structa.mjs next to it)\n",
+    });
   });
 });
 
