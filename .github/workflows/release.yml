@@ -1,16 +1,20 @@
 name: Release
 
 # Pushing a version tag such as v1.0.0 runs every check, builds the skill
-# folder and attaches it, as structa.zip, to that tag's GitHub Release.
+# folder and attaches it, as structa.zip, to that tag's GitHub Release. A tag
+# with a pre-release part, such as v1.1.0-rc.1, makes a pre-release.
 on:
   push:
-    tags: ["v*"]
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+-*"
 
 permissions:
   contents: read
 
 jobs:
-  # The same typecheck, tests and gallery build as every pull request, on each supported Node.
+  # The same checks as every pull request, on each supported Node: typecheck,
+  # tests, the release itself (zip tested with unzip) and the gallery.
   test:
     uses: ./.github/workflows/test.yml
 
@@ -44,9 +48,11 @@ jobs:
           GH_REPO: ${{ github.repository }}
           TAG: ${{ github.ref_name }}
         run: |
+          prerelease=false
+          case "$TAG" in *-*) prerelease=true ;; esac
           if gh release view "$TAG" > /dev/null 2>&1; then
             gh release upload "$TAG" dist/structa.zip --clobber
           else
             gh release create "$TAG" dist/structa.zip --verify-tag --title "Structa $TAG" \
-              --notes-file dist/release-notes.md --generate-notes
+              --prerelease="$prerelease" --notes-file dist/release-notes.md --generate-notes
           fi
