@@ -20,16 +20,16 @@ export {
   CLASS_NAME_FACE,
   CLASS_SECTIONS,
   DESCRIPTION_FACE,
-  ENUM_SECTIONS,
-  MEMBER_SECTIONS,
-  type ClassSection,
   DIAGRAM_TYPES,
+  ENUM_SECTIONS,
   LINE_LABEL_FACE,
+  MEMBER_SECTIONS,
   NOTE_LABEL_FACE,
   ROW_TEXT_FACE,
   STATUSES,
   STEP_LABEL_FACE,
   TITLE_FACE,
+  type ClassSection,
   type FlowShape,
   type Status,
 } from "./definitions";
@@ -94,7 +94,7 @@ export interface ClassNode {
   readonly methods: readonly ClassRow[];
   /** An enum's values. Only an enum has any. */
   readonly values: readonly ClassRow[];
-  /** How many members were left out on purpose. */
+  /** How many members or values were left out on purpose. */
   readonly more?: number;
 }
 
