@@ -308,6 +308,52 @@ describe("bun run build", () => {
     BUILD_TIMEOUT,
   );
 
+  /** Puts other font bytes in place of one face's font in the copy's generated font data. */
+  const replaceFont = (face: string, ttf: (project: string) => Buffer) => (project: string) => {
+    const file = join(project, "generated", "font-files.ts");
+    const source = readFileSync(file, "utf8");
+    const entry = new RegExp(`(\\["${face}", "data:font/ttf;base64,)[A-Za-z0-9+/=]+`);
+    expect(source).toMatch(entry);
+    writeFileSync(file, source.replace(entry, (_, start: string) => start + ttf(project).toString("base64")));
+  };
+  const trimmed = (file: string) => (project: string) => readFileSync(join(project, "generated", "fonts", file));
+
+  it("fails when a shipped font still has OpenType layout tables", async () => {
+    const untrimmed = () => readFileSync(fileURLToPath(new URL("../fonts/inter/Inter-SemiBold.ttf", import.meta.url)));
+
+    const message = await buildChangedProject(replaceFont("inter-semibold", untrimmed));
+
+    expect(message).toBe(failure('structa.mjs embeds "Inter" 600 normal with OpenType layout tables: GDEF, GPOS, GSUB'));
+  }, BUILD_TIMEOUT);
+
+  it.each([
+    ["family", "inter-regular", "JetBrainsMono-Regular.ttf", ['structa.mjs embeds no "Inter" 400 normal font', 'structa.mjs embeds 2 "JetBrains Mono" 400 normal fonts']],
+    ["weight", "inter-semibold", "Inter-Bold.ttf", ['structa.mjs embeds no "Inter" 600 normal font', 'structa.mjs embeds 2 "Inter" 700 normal fonts']],
+    ["style", "mono-italic", "JetBrainsMono-Regular.ttf", ['structa.mjs embeds 2 "JetBrains Mono" 400 normal fonts', 'structa.mjs embeds no "JetBrains Mono" 400 italic font']],
+  ])(
+    "fails when a shipped font has the wrong %s",
+    async (_name, face, file, problems) => {
+      const message = await buildChangedProject(replaceFont(face, trimmed(file)));
+
+      expect(message).toBe(failure(...problems));
+    },
+    BUILD_TIMEOUT,
+  );
+
+  it("fails when a shipped font lost its typographic family name, which tells SemiBold from Bold", async () => {
+    // Inter SemiBold's own family name is "Inter SemiBold"; only name id 16 says it is "Inter" at weight 600.
+    const withoutTypographicFamily = (project: string) => renumberNames(trimmed("Inter-SemiBold.ttf")(project), 16, 255);
+
+    const message = await buildChangedProject(replaceFont("inter-semibold", withoutTypographicFamily));
+
+    expect(message).toBe(
+      failure(
+        'structa.mjs embeds no "Inter" 600 normal font',
+        'structa.mjs embeds a "Inter SemiBold" 600 normal font, which is not one of its faces',
+      ),
+    );
+  }, BUILD_TIMEOUT);
+
   it("fails when structa.mjs would contain 100 characters copied from elk.bundled.js", async () => {
     // A run from the middle of ELK's file with nothing a string literal would escape.
     const elk = readFileSync(fileURLToPath(new URL("../node_modules/elkjs/lib/elk.bundled.js", import.meta.url)), "utf8");
@@ -320,6 +366,21 @@ describe("bun run build", () => {
     expect(message).toMatch(/^the skill folder failed its checks:\nstructa\.mjs contains \d+ characters copied from elk\.bundled\.js, starting ".{1,40}"$/);
   }, BUILD_TIMEOUT);
 });
+
+/** A copy of a TTF whose name records with id `from` have id `to` instead. */
+function renumberNames(ttf: Buffer, from: number, to: number): Buffer {
+  const font = Buffer.from(ttf);
+  for (let i = 0; i < font.readUInt16BE(4); i++) {
+    const record = 12 + 16 * i;
+    if (font.toString("latin1", record, record + 4) !== "name") continue;
+    const name = font.readUInt32BE(record + 8);
+    for (let r = 0; r < font.readUInt16BE(name + 2); r++) {
+      const nameId = name + 6 + 12 * r + 6;
+      if (font.readUInt16BE(nameId) === from) font.writeUInt16BE(to, nameId);
+    }
+  }
+  return font;
+}
 
 describe("exit code 2: bad usage", () => {
   it.each([

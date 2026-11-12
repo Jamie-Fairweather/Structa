@@ -15,6 +15,16 @@ export interface TtfFont {
   readonly characters: readonly number[];
   /** Every record in the name table, in table order. */
   readonly names: readonly NameRecord[];
+  /**
+   * The family a renderer groups this face under: the typographic family
+   * (name id 16) when there is one, else the family (name id 1). Undefined
+   * when the font names neither in US English on Windows.
+   */
+  readonly family: string | undefined;
+  /** OS/2 usWeightClass, e.g. 400 regular, 600 semibold, 700 bold. */
+  readonly weight: number;
+  /** From the OS/2 fsSelection italic and oblique bits. */
+  readonly style: "normal" | "italic" | "oblique";
   /** Advance width in font units, or undefined when the font has no glyph. */
   advance(codePoint: number): number | undefined;
 }
@@ -65,6 +75,12 @@ export function readTtf(bytes: Uint8Array): TtfFont {
     }
   }
 
+  const names = readNames(view, table("name"));
+  const english = (nameId: number) =>
+    names.find((n) => n.platformId === 3 && n.encodingId === 1 && n.languageId === 0x0409 && n.nameId === nameId)?.value;
+  const os2 = table("OS/2");
+  const fsSelection = view.getUint16(os2 + 62);
+
   return {
     tables: [...tableOffsets.keys()].sort(),
     unitsPerEm,
@@ -72,7 +88,10 @@ export function readTtf(bytes: Uint8Array): TtfFont {
     descender,
     missingAdvance: advanceOf(0),
     characters,
-    names: readNames(view, table("name")),
+    names,
+    family: english(16) ?? english(1),
+    weight: view.getUint16(os2 + 4),
+    style: fsSelection & 0x0001 ? "italic" : fsSelection & 0x0200 ? "oblique" : "normal",
     advance(codePoint) {
       const glyph = glyphOf(codePoint);
       return glyph === 0 ? undefined : advanceOf(glyph);
