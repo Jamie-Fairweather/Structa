@@ -30,6 +30,40 @@ export function pixel(picture: Picture, x: number, y: number): { color: string; 
   return { color: `#${hex}`, alpha: picture.rgba[at + 3]! };
 }
 
+export interface Region {
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
+}
+
+/**
+ * The left and right edges of the dark ink inside a region of a light
+ * background, in pixels, found to a fraction of a pixel: where the ink seen
+ * from each side first adds up to `ink` fully dark pixels. The same ink
+ * drawn at a different position gives edges moved by just that much.
+ */
+export function inkEdges(picture: Picture, region: Region, ink = 4): { left: number; right: number } {
+  const columns: number[] = [];
+  for (let x = region.x; x < region.x + region.width; x++) {
+    let sum = 0;
+    for (let y = region.y; y < region.y + region.height; y++) {
+      const at = 4 * (y * picture.width + x);
+      sum += 1 - (picture.rgba[at]! + picture.rgba[at + 1]! + picture.rgba[at + 2]!) / (3 * 255);
+    }
+    columns.push(sum);
+  }
+  const edge = (order: readonly number[]): number => {
+    let seen = 0;
+    for (const [i, column] of order.entries()) {
+      if (seen + column >= ink) return i + (ink - seen) / column;
+      seen += column;
+    }
+    throw new Error("the region has less ink than asked for");
+  };
+  return { left: region.x + edge(columns), right: region.x + region.width - edge([...columns].reverse()) };
+}
+
 /** The largest difference between two #rrggbb colours in any one channel. */
 export function colourDifference(a: string, b: string): number {
   const channels = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));

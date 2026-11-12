@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { readTtf } from "../scripts/lib/ttf";
 import { render, StructaError } from "../src/index";
-import { colourDifference, decodePng, pixel, pngSize, svgSize } from "./helpers/png";
-import { cardBox, cards, parseSvg } from "./helpers/svg";
+import { colourDifference, decodePng, inkEdges, pixel, pngSize, svgSize } from "./helpers/png";
+import { cardBox, cards, fontFaceRules, parseSvg } from "./helpers/svg";
 
 const pottingOn = {
   type: "flow",
@@ -66,6 +67,56 @@ describe("PNG output", () => {
     const size = svgSize(svg);
     expect([picture.width, picture.height]).toEqual([size.width * scale, size.height * scale]);
   });
+});
+
+describe("text in PNGs", () => {
+  const SCALE = 4;
+  const oneStep = (label: string) => ({ type: "flow", nodes: [{ id: "step", label, shape: "step" }] });
+
+  /**
+   * How wide one step's label is drawn in the PNG, in SVG px, from the left
+   * edge of its ink to the right; and how wide the font the SVG embeds for
+   * it says the label is, from its advance widths.
+   */
+  async function drawnLabel(label: string): Promise<{ ink: number; advances: number }> {
+    const { svg, png } = await render(oneStep(label), { formats: ["svg", "png"], scale: SCALE });
+    const doc = parseSvg(svg);
+    const [text] = Array.from(doc.getElementsByTagName("text"));
+    expect(text!.textContent).toBe(label);
+    const [rule] = fontFaceRules(doc);
+    const font = readTtf(Buffer.from(/base64,([^"]+)"/.exec(rule!.src)![1]!, "base64"));
+    const size = Number(text!.getAttribute("font-size"));
+    const advances = [...label].reduce((sum, ch) => sum + font.advance(ch.codePointAt(0)!)!, 0) * (size / font.unitsPerEm);
+
+    // Inside the card, clear of its border: only the label is drawn there, on the plain card fill.
+    const box = cardBox(cards(doc)[0]!);
+    const inset = 4;
+    const region = {
+      x: (box.x + inset) * SCALE,
+      y: (box.y + inset) * SCALE,
+      width: (box.width - 2 * inset) * SCALE,
+      height: (box.height - 2 * inset) * SCALE,
+    };
+    const { left, right } = inkEdges(decodePng(png), region);
+    return { ink: (right - left) / SCALE, advances };
+  }
+
+  // Kerning pairs (AV, To, Wa, ff), digits, accents and symbols: drawn with no kerning, each takes exactly its advance.
+  // Each sample fits on one line twice over.
+  it.each(["AVATAR Wave", "To do today", "Waffle office", "Mix 0-9 at 18°", "Café über Ærø", "→ ≠ … ≤ ≥ ×", "{x: 1, y: [2]}"])(
+    "draws %j in Inter SemiBold, as step labels are, as wide as the width tables within 0.5px",
+    async (sample) => {
+      const once = await drawnLabel(sample);
+      const twice = await drawnLabel(sample + sample);
+
+      // Drawn twice over, the ink is wider by exactly one drawing of the sample: its advance widths.
+      expect(twice.advances).toBeCloseTo(2 * once.advances, 6);
+      expect(Math.abs(twice.ink - once.ink - once.advances)).toBeLessThan(0.5);
+    },
+  );
+
+  it.todo("draws Inter Regular, Bold and SemiBold Italic and JetBrains Mono Regular and Italic as wide as the width tables (no field is drawn in them yet)");
+  it.todo("draws the same word at weights 400, 600 and 700 as three different images (only step labels, at 600, are drawn yet)");
 });
 
 /** A line of `length` short steps, left to right. */
