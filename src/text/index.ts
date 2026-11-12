@@ -1,4 +1,4 @@
-import { FONT_FILES } from "../../generated/font-files";
+import { FONT_DATA_URLS } from "../../generated/font-files";
 import { FONT_METRICS } from "../../generated/font-metrics";
 import { CHARACTER_RANGES, FACES, type FaceId, type FaceStyle } from "./faces";
 
@@ -36,7 +36,7 @@ export function faceStyle(face: FaceId): FaceStyle {
 
 /** The face's font file, the same one the width tables were read from, as a `data:font/ttf;base64,` URL. */
 export function fontDataUrl(face: FaceId): string {
-  const url = FONT_FILES.get(face);
+  const url = FONT_DATA_URLS.get(face);
   if (url === undefined) throw new Error(`no font file for ${face}: run "bun run generate"`);
   return url;
 }

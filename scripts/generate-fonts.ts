@@ -20,7 +20,8 @@ import { readTtf } from "./lib/ttf";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const generated = join(root, "generated");
 
-const FONT_FILES: readonly (readonly [FaceId, string])[] = [
+/** The unmodified TTF each face is trimmed from. */
+const SOURCE_FONTS: readonly (readonly [FaceId, string])[] = [
   ["inter-regular", "fonts/inter/Inter-Regular.ttf"],
   ["inter-semibold", "fonts/inter/Inter-SemiBold.ttf"],
   ["inter-bold", "fonts/inter/Inter-Bold.ttf"],
@@ -59,7 +60,7 @@ function faceMetrics(face: FaceId, bytes: Uint8Array): FaceMetricsData {
 }
 
 const fonts = FACES.map(({ id }) => {
-  const entry = FONT_FILES.find(([face]) => face === id);
+  const entry = SOURCE_FONTS.find(([face]) => face === id);
   if (!entry) throw new Error(`no font file listed for face ${id}`);
   const trimmed = `fonts/${basename(entry[1])}`;
   writeIfChanged(trimmed, trimFont(readFileSync(join(root, entry[1])), CHARACTER_RANGES));
@@ -107,7 +108,7 @@ writeIfChanged(
 import type { FaceId } from "../src/text/faces";
 
 /** Each face's trimmed TTF as a data: URL, for @font-face rules. */
-export const FONT_FILES: ReadonlyMap<FaceId, string> = new Map<FaceId, string>([
+export const FONT_DATA_URLS: ReadonlyMap<FaceId, string> = new Map<FaceId, string>([
 ${files}
 ]);
 `,

@@ -44,7 +44,7 @@ export function paint(scene: Scene<Card, Line>, theme: Theme, options: PaintOpti
 function fontFaces(used: ReadonlySet<FaceId>): string[] {
   const rules = FACES.filter(({ id }) => used.has(id)).map(
     ({ id, embeddedFamily, weight, style }) =>
-      `@font-face{font-family:"${embeddedFamily}";font-style:${style};font-weight:${weight};src:url("${fontDataUrl(id)}")}`,
+      `@font-face{font-family:"${embeddedFamily}";font-style:${style};font-weight:${num(weight)};src:url("${fontDataUrl(id)}")}`,
   );
   return rules.length === 0 ? [] : [el("style", [], escapeText(rules.join("")))];
 }
