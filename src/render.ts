@@ -115,10 +115,11 @@ function readEmbedFonts(embedFonts: unknown, problems: Problem[]): boolean {
   return true;
 }
 
-/** The PNG scale: 2 when left out. */
+/** The PNG scale: DEFAULT_SCALE when left out. */
 function readScale(scale: unknown, problems: Problem[]): Scale {
   if (scale === undefined) return DEFAULT_SCALE;
   if (SCALES.includes(scale as Scale)) return scale as Scale;
-  problems.push({ path: "options.scale", message: "must be a whole number from 1 to 4", hint: `leave it out for ${DEFAULT_SCALE}` });
+  const message = `must be a whole number from ${SCALES[0]} to ${SCALES.at(-1)}`;
+  problems.push({ path: "options.scale", message, hint: `leave it out for ${DEFAULT_SCALE}` });
   return DEFAULT_SCALE;
 }

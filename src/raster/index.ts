@@ -25,6 +25,9 @@ declare const STRUCTA_RESVG_WASM: string | undefined;
 /** resvg can be initialised only once per process, so every PNG render awaits this one promise. */
 let ready: Promise<void> | undefined;
 
+/** The six font files, decoded once and handed to every render. */
+let fonts: Uint8Array[] | undefined;
+
 /**
  * Draws `svg`, which must carry no fonts of its own, as a PNG `scale` times
  * its size. The SVG's width and height are whole pixels, so the PNG is
@@ -33,7 +36,8 @@ let ready: Promise<void> | undefined;
 export async function rasterise(svg: string, scale: Scale): Promise<Uint8Array> {
   ready ??= (async () => initWasm(wasm()))();
   await ready;
-  const resvg = new Resvg(svg, { fitTo: { mode: "zoom", value: scale }, font: { fontBuffers: FACES.map(({ id }) => fontFile(id)) } });
+  fonts ??= FACES.map(({ id }) => fontFile(id));
+  const resvg = new Resvg(svg, { fitTo: { mode: "zoom", value: scale }, font: { fontBuffers: fonts } });
   try {
     // resvg reads the SVG's own size before drawing anything.
     const tooLarge = sizeProblems(resvg.width, resvg.height, scale);
