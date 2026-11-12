@@ -311,6 +311,18 @@ describe("the JSON Schema", () => {
     }
   });
 
+  it("agrees with render() that more is a whole number from 1 to 9999", async () => {
+    const validate = new Ajv2020({ strict: true }).compile(root);
+    expect(items("class", "nodes").properties.more).toMatchObject({ type: "integer", minimum: 1, maximum: 9999 });
+
+    for (const more of [0, 1, 2.5, 12, 9999, 10000, "12", -1]) {
+      const input = toolShed();
+      input.nodes[0].more = more;
+      const accepted = validate(input);
+      expect([more, (await outcome(input)) === "ok"]).toEqual([more, accepted]);
+    }
+  });
+
   it("agrees with render() that row text may use what JetBrains Mono draws, not what Inter draws", async () => {
     const pattern = new RegExp(items("class", "nodes").properties.methods.items.properties.text.pattern, "u");
 

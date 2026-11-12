@@ -84,6 +84,11 @@ export function check(def: ObjectDef, input: unknown): { value: unknown; problem
       case "boolean":
         if (typeof value === "boolean") return value;
         return report(path, `${show(value)} is not true or false`, "write true or false, without quotes");
+      case "count": {
+        if (Number.isInteger(value) && (value as number) >= def.min && (value as number) <= def.max) return value;
+        const hint = `write a whole number without quotes${field?.required === false ? `, or leave ${field.name} out` : ""}`;
+        return report(path, `${show(value)} is not a whole number from ${def.min} to ${def.max}`, hint);
+      }
       case "const":
         if (value === def.value) return value;
         return report(

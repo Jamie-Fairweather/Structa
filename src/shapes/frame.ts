@@ -62,6 +62,8 @@ export interface CardBody {
   /** Thin lines right across the card between its sections, at these heights. */
   readonly dividers?: readonly number[];
   readonly rows?: readonly Row[];
+  /** The muted "… N more" line after the rows, for rows left out on purpose. */
+  readonly more?: TextLine;
 }
 
 /** A card sized before layout. Its box (`width` × `height`) is exactly what ELK is given. */
@@ -77,6 +79,7 @@ export interface Card {
   readonly texts: readonly TextLine[];
   readonly dividers: readonly number[];
   readonly rows: readonly Row[];
+  readonly more?: TextLine;
   readonly badge?: Badge;
 }
 
@@ -146,6 +149,7 @@ function frameCard<N extends Framed>(node: N, top: number, sizes: Sizes, build: 
       texts: row.texts.map((t) => moveText(t, row.status === "removed")),
       ...(row.badge ? { badge: { ...move(row.badge), word: move(row.badge.word) } } : {}),
     })),
+    ...(body.more ? { more: move(body.more) } : {}),
     ...(status === undefined
       ? {}
       : { badge: badge(status, width - sizes.badge.inset - measureBadge(status, sizes), top - sizes.badge.height / 2, sizes) }),

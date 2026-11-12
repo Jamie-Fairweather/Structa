@@ -103,8 +103,18 @@ export const SIZES = {
   line: { width: 1.5, emphasisWidth: 3, cornerRadius: 8, arrowLength: 9, arrowWidth: 9 },
   /** A line's label: text in a pill bordered in the line's colour, wrapped to `maxWidth`. */
   lineLabel: { fontSize: 12, lineHeight: 16, paddingX: 8, paddingY: 2, maxWidth: 180, borderWidth: 1 },
-  /** Class cards: one standard width, the name centred at the top, then each section of rows under a divider. */
-  classCard: { width: 360, paddingX: 14, paddingY: 12, nameSize: 15, nameLineHeight: 20, sectionPaddingY: 6 },
+  /** Class cards: one standard width, the name and description centred at the top, then each section of rows under a divider. */
+  classCard: {
+    width: 360,
+    paddingX: 14,
+    paddingY: 12,
+    nameSize: 15,
+    nameLineHeight: 20,
+    descriptionSize: 12,
+    descriptionLineHeight: 16,
+    descriptionGap: 2,
+    sectionPaddingY: 6,
+  },
   /** A card's rows, such as class members. A row's tint is inset from the card's sides by `tintInset`. */
   row: { fontSize: 12, lineHeight: 18, paddingY: 3, tintInset: 6, tintRadius: 4 },
   step: {

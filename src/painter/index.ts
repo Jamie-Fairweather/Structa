@@ -220,6 +220,7 @@ function card({ card, x: cardX, y: cardY }: PlacedCard<Card>, at: Point, pen: Pe
         ]),
       ),
       ...card.texts.flatMap((t) => text(t, x, y, colors[t.color], pen)),
+      ...(card.more ? [open("g", [["class", "more"]]), ...text(card.more, x, y, colors[card.more.color], pen), "</g>"] : []),
     ]),
     // Rows fade themselves, so a removed card's rows aren't faded twice.
     ...card.rows.flatMap((r) => row(r, x, y, pen)),

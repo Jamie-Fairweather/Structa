@@ -1,5 +1,13 @@
-import { CLASS_NAME_FACE, CLASS_SECTIONS, ROW_TEXT_FACE, type ClassNode, type ClassRow, type Visibility } from "../input";
-import { baseline, measure, wrap } from "../text";
+import {
+  CLASS_DESCRIPTION_FACE,
+  CLASS_NAME_FACE,
+  CLASS_SECTIONS,
+  ROW_TEXT_FACE,
+  type ClassNode,
+  type ClassRow,
+  type Visibility,
+} from "../input";
+import { baseline, measure, wrap, type FaceId } from "../text";
 import type { Sizes } from "../theme";
 import type { CardBody, Row, TextLine } from "./frame";
 
@@ -16,47 +24,76 @@ const ROW_KINDS = new Map<(typeof CLASS_SECTIONS)[number], Row["kind"]>([
 ]);
 
 /**
- * A class card, one standard width: the name centred at the top, then a
- * section for the properties and one for the methods, each under a divider.
- * A class without properties or methods has no section for them.
+ * A class card, one standard width: the name and any description centred at
+ * the top, then a section for the properties and one for the methods, each
+ * under a divider. A class without properties or methods has no section for
+ * them. The "… N more" line ends the last section, or has one of its own.
  */
 export function classBody(node: ClassNode, sizes: Sizes): CardBody {
   const c = sizes.classCard;
   const width = c.width;
-  const names = wrap(node.label, CLASS_NAME_FACE, c.nameSize, width - 2 * c.paddingX);
-  const offset = baseline(CLASS_NAME_FACE, c.nameSize, c.nameLineHeight);
-  const texts = names.map(
-    (text, i): TextLine => ({
-      text,
-      x: width / 2,
-      y: c.paddingY + i * c.nameLineHeight + offset,
-      face: CLASS_NAME_FACE,
-      size: c.nameSize,
-      anchor: "middle",
-      color: "text",
-      title: true,
-    }),
-  );
+  const name = centred(node.label, CLASS_NAME_FACE, c.nameSize, c.nameLineHeight, c.paddingY, width, sizes);
+  const texts: TextLine[] = name.texts.map((t) => ({ ...t, color: "text", title: true }));
+  let y = name.bottom;
+  if (node.description !== undefined) {
+    const description = centred(node.description, CLASS_DESCRIPTION_FACE, c.descriptionSize, c.descriptionLineHeight, y + c.descriptionGap, width, sizes);
+    texts.push(...description.texts.map((t): TextLine => ({ ...t, color: "mutedText" })));
+    y = description.bottom;
+  }
+  y += c.paddingY;
 
   // Once any row has a visibility, every row's text starts after the symbol's column, so they line up.
   const symbols = CLASS_SECTIONS.some((section) => node[section].some((row) => row.visibility !== undefined));
   const textX = c.paddingX + (symbols ? measure("+ ", ROW_TEXT_FACE, sizes.row.fontSize) : 0);
 
-  let y = 2 * c.paddingY + names.length * c.nameLineHeight;
+  const sections = CLASS_SECTIONS.filter((section) => node[section].length > 0);
+  // The "… N more" line ends the last section, or has a section of its own on a class with no rows.
+  const count = Math.max(sections.length, node.more === undefined ? 0 : 1);
   const dividers: number[] = [];
   const rows: Row[] = [];
-  for (const section of CLASS_SECTIONS) {
-    if (node[section].length === 0) continue;
+  let more: TextLine | undefined;
+  for (let i = 0; i < count; i++) {
     dividers.push(y);
     y += c.sectionPaddingY;
-    for (const member of node[section]) {
-      const row = classRow(member, ROW_KINDS.get(section)!, y, width, textX, sizes);
+    const section = sections[i];
+    for (const member of section ? node[section] : []) {
+      const row = classRow(member, ROW_KINDS.get(section!)!, y, width, textX, sizes);
       rows.push(row);
       y += row.box.height;
     }
+    if (i === count - 1 && node.more !== undefined) {
+      more = moreLine(node.more, y, textX, sizes);
+      y += 2 * sizes.row.paddingY + sizes.row.lineHeight;
+    }
     y += c.sectionPaddingY;
   }
-  return { kind: "class", width, height: y, tooltip: node.label, texts, dividers, rows };
+
+  const tooltip = node.description === undefined ? node.label : `${node.label}: ${node.description}`;
+  return { kind: "class", width, height: y, tooltip, texts, dividers, rows, ...(more ? { more } : {}) };
+}
+
+/** `text` wrapped to the card's width and centred on it, its lines from `top` down. */
+function centred(text: string, face: FaceId, size: number, lineHeight: number, top: number, width: number, sizes: Sizes) {
+  const lines = wrap(text, face, size, width - 2 * sizes.classCard.paddingX);
+  const offset = baseline(face, size, lineHeight);
+  return {
+    texts: lines.map((line, i) => ({ text: line, x: width / 2, y: top + i * lineHeight + offset, face, size, anchor: "middle" as const })),
+    bottom: top + lines.length * lineHeight,
+  };
+}
+
+/** The muted "… N more" line, placed like a one-line row from `top` down, in line with the rows' text. */
+function moreLine(count: number, top: number, textX: number, sizes: Sizes): TextLine {
+  const r = sizes.row;
+  return {
+    text: `… ${count} more`,
+    x: textX,
+    y: top + r.paddingY + baseline(ROW_TEXT_FACE, r.fontSize, r.lineHeight),
+    face: ROW_TEXT_FACE,
+    size: r.fontSize,
+    anchor: "start",
+    color: "mutedText",
+  };
 }
 
 /** One member's row, from `top` down: its text wrapped after its visibility symbol. */

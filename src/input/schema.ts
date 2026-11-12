@@ -72,6 +72,8 @@ function defSchema(def: Def): JsonSchema {
       return { enum: [...def.values] };
     case "boolean":
       return { type: "boolean" };
+    case "count":
+      return { type: "integer", minimum: def.min, maximum: def.max };
     case "const":
       return { const: def.value };
     case "any":

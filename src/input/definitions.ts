@@ -41,6 +41,8 @@ export type Def =
   | { readonly kind: "ref"; readonly to: "node" }
   | ChoiceDef
   | { readonly kind: "boolean" }
+  /** A whole number from `min` to `max`. */
+  | { readonly kind: "count"; readonly min: number; readonly max: number }
   | { readonly kind: "const"; readonly value: number }
   | { readonly kind: "any" };
 
@@ -148,6 +150,7 @@ export const DESCRIPTION_FACE: FaceId = "inter-regular";
 export const STEP_LABEL_FACE: FaceId = "inter-semibold";
 export const LINE_LABEL_FACE: FaceId = "inter-regular";
 export const CLASS_NAME_FACE: FaceId = "inter-semibold";
+export const CLASS_DESCRIPTION_FACE: FaceId = "inter-regular";
 export const ROW_TEXT_FACE: FaceId = "mono-regular";
 
 const FLOW_NODE: ObjectDef = {
@@ -211,6 +214,11 @@ const CLASS_NODE: ObjectDef = {
   fields: [
     required("id", { kind: "id", of: "node" }, "a unique id made of letters, digits and - _ . :"),
     required("label", { kind: "text", text: LABEL, faces: [CLASS_NAME_FACE] }, "the class name"),
+    optional(
+      "description",
+      { kind: "text", text: DESCRIPTION, faces: [CLASS_DESCRIPTION_FACE] },
+      "a short sentence drawn under the name",
+    ),
     optional("status", STATUS, "what the change does to this card; leave it out for no status"),
     optional(
       "properties",
@@ -223,6 +231,11 @@ const CLASS_NODE: ObjectDef = {
       { kind: "list", noun: "methods", items: classRow("methods", "method"), maxItems: ROWS_PER_CARD },
       "the class's methods, in order, drawn under the properties",
       [],
+    ),
+    optional(
+      "more",
+      { kind: "count", min: 1, max: 9999 },
+      'how many members were left out on purpose, drawn as a muted "… N more" row',
     ),
   ],
 };

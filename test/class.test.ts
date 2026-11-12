@@ -123,6 +123,92 @@ describe("class cards", () => {
     expect(textLines(card)).toEqual(["SeedPacket"]);
     expect(titleOf(card)).toBe("SeedPacket");
   });
+
+  it.each([
+    ["light", "#59636e"],
+    ["dark", "#8b949e"],
+  ] as const)("draws a description under the name, muted in %s, wrapped, and above the rows", async (theme, muted) => {
+    const description = "One packet of saved seed, lent to members and returned with seed saved from the crop it grew.";
+    const doc = await svgDoc(packet({ description, ...MEMBERS }), theme);
+
+    const card = cardById(doc, "packet");
+    const [name, ...rest] = texts(card).filter((t) => !rows(card).some((row) => texts(row).includes(t)));
+    const lines = rest.map((t) => t.textContent);
+    expect(lines.length).toBeGreaterThan(1);
+    expect(lines.join(" ")).toBe(description);
+    for (const t of rest) {
+      expect([t.getAttribute("font-weight"), t.getAttribute("fill")]).toEqual(["400", muted]);
+      expect(t.getAttribute("font-family")).toMatch(/^Structa Inter,/);
+      expect(numberAttr(t, "font-size")).toBeLessThan(numberAttr(name!, "font-size"));
+      expect(numberAttr(t, "y")).toBeGreaterThan(numberAttr(name!, "y"));
+      expect(numberAttr(t, "y")).toBeLessThan(numberAttr(byClassIn(card, "divider")[0]!, "y1"));
+    }
+    expect(titleOf(card)).toBe(`SeedPacket: ${description}`);
+  });
+
+  it("wraps a long name, never cutting it off", async () => {
+    const label = "SeasonalHeirloomVegetableSeedPacketExchangeRegistrationRequestHandlerFactory";
+    const doc = await svgDoc(packet({ label }));
+
+    const card = cardById(doc, "packet");
+    expect(textLines(card).length).toBeGreaterThan(1);
+    expect(textLines(card).join("")).toBe(label);
+    expect(cardBox(card).width).toBe(360);
+  });
+});
+
+describe("the more row", () => {
+  it.each([
+    ["methods", { ...MEMBERS, more: 12 }],
+    ["properties", { properties: MEMBERS.properties, more: 12 }],
+  ])("adds a muted '… 12 more' after the last row, in the %s", async (_section, fields) => {
+    const doc = await svgDoc(packet(fields));
+
+    const card = cardById(doc, "packet");
+    const [more] = byClassIn(card, "more");
+    expect(textLines(more!)).toEqual(["… 12 more"]);
+    const [t] = texts(more!);
+    expect(t!.getAttribute("fill")).toBe("#59636e");
+    expect(numberAttr(t!, "y")).toBeGreaterThan(numberAttr(texts(rows(card).at(-1)!)[0]!, "y"));
+    expect(numberAttr(t!, "y")).toBeLessThan(cardBox(card).y + cardBox(card).height);
+    // It lines up with the rows' text, after the first row's "+ ", and isn't one of the class's rows.
+    const firstRow = texts(rows(card)[0]!)[0]!;
+    expect(numberAttr(t!, "x") - numberAttr(firstRow, "x")).toBeCloseTo(2 * MONO_ADVANCE * numberAttr(t!, "font-size"), 5);
+    expect(rows(card)).toHaveLength(fields.properties.length + ("methods" in fields ? fields.methods.length : 0));
+  });
+
+  it("gets a section of its own on a class with no rows", async () => {
+    const doc = await svgDoc(packet({ more: 3 }));
+
+    const card = cardById(doc, "packet");
+    expect(byClassIn(card, "divider")).toHaveLength(1);
+    expect(textLines(byClassIn(card, "more")[0]!)).toEqual(["… 3 more"]);
+  });
+
+  it("is left out without more", async () => {
+    const doc = await svgDoc(packet(MEMBERS));
+
+    expect(byClassIn(cardById(doc, "packet"), "more")).toEqual([]);
+  });
+
+  it.each([1, 9999])("allows more: %i", async (more) => {
+    const doc = await svgDoc(packet({ more }));
+
+    expect(textLines(byClassIn(cardById(doc, "packet"), "more")[0]!)).toEqual([`… ${more} more`]);
+  });
+
+  it.each([
+    [0, "0 is not a whole number from 1 to 9999"],
+    [-2, "-2 is not a whole number from 1 to 9999"],
+    [2.5, "2.5 is not a whole number from 1 to 9999"],
+    [10000, "10000 is not a whole number from 1 to 9999"],
+    ["12", '"12" is not a whole number from 1 to 9999'],
+    [null, "null is not a whole number from 1 to 9999"],
+  ])("rejects more: %j", async (more, message) => {
+    expect(await problems(packet({ more }))).toEqual([
+      { path: "nodes[0].more", message, hint: "write a whole number without quotes, or leave more out" },
+    ]);
+  });
 });
 
 describe("class card rows", () => {
@@ -297,7 +383,11 @@ describe("class input", () => {
     input.nodes[0]!.shape = "step";
 
     expect(await problems(input)).toEqual([
-      { path: "nodes[0].shape", message: 'unknown field "shape"', hint: "allowed fields: id, label, status, properties, methods" },
+      {
+        path: "nodes[0].shape",
+        message: 'unknown field "shape"',
+        hint: "allowed fields: id, label, description, status, properties, methods, more",
+      },
     ]);
   });
 

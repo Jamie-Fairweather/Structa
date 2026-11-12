@@ -11,11 +11,13 @@
       "methods": [
         { "id": "borrow", "text": "borrow(packet: SeedPacket): Loan", "visibility": "public" },
         { "text": "loans(): Loan[]", "visibility": "public" }
-      ]
+      ],
+      "more": 4
     },
     {
       "id": "loan",
       "label": "Loan",
+      "description": "One packet lent to one member for a growing season.",
       "properties": [
         { "text": "startedOn: Date", "visibility": "public" },
         { "text": "returnedOn: Date?", "visibility": "public" }

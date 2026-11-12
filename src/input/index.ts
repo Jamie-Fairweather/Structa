@@ -5,6 +5,7 @@ import { CLASS_SECTIONS, diagramDefinition, type CLASS_EDGE_KINDS, type Status, 
 import { parseJson } from "./json";
 
 export {
+  CLASS_DESCRIPTION_FACE,
   CLASS_NAME_FACE,
   CLASS_SECTIONS,
   DESCRIPTION_FACE,
@@ -56,9 +57,12 @@ export interface ClassNode {
   readonly id: string;
   /** The class name, tidied. */
   readonly label: string;
+  readonly description?: string;
   readonly status?: Status;
   readonly properties: readonly ClassRow[];
   readonly methods: readonly ClassRow[];
+  /** How many members were left out on purpose. */
+  readonly more?: number;
 }
 
 /** Which way the diagram flows. */
