@@ -1,5 +1,8 @@
 export type ThemeName = "light" | "dark";
 
+/** Every theme, light (the default) first. The JSON, render() and the CLI all accept exactly these. */
+export const THEME_NAMES: readonly ThemeName[] = ["light", "dark"];
+
 /**
  * Every colour token. Both themes are typed with this one interface, so a
  * token can't be added to one theme and forgotten in the other.

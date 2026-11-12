@@ -1,4 +1,5 @@
 import type { Problem } from "../errors";
+import type { ThemeName } from "../theme";
 import { check } from "./check";
 import { diagramDefinition } from "./definitions";
 import { parseJson } from "./json";
@@ -25,6 +26,7 @@ export type Direction = "down" | "right";
 
 export interface FlowDiagram {
   readonly type: "flow";
+  readonly theme: ThemeName;
   readonly direction: Direction;
   readonly nodes: readonly FlowStep[];
   readonly edges: readonly FlowEdge[];
@@ -58,6 +60,7 @@ export function parseDiagram(input: unknown): ParseResult {
     ok: true,
     diagram: {
       type: diagram.type,
+      theme: diagram.theme,
       direction: diagram.direction,
       nodes: diagram.nodes,
       edges: diagram.edges.map((edge, i) => ({ id: edge.id ?? `edges[${i}]`, from: edge.from, to: edge.to })),

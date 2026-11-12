@@ -3,7 +3,7 @@ import { parseDiagram } from "./input";
 import { FLOW_PROFILE, layout } from "./layout";
 import { paint } from "./painter";
 import { buildLine, buildStep } from "./shapes";
-import { getTheme } from "./theme";
+import { getTheme, type ThemeName } from "./theme";
 
 interface Outputs {
   svg: string;
@@ -14,6 +14,8 @@ export type Format = keyof Outputs;
 export interface RenderOptions<F extends Format = Format> {
   /** Which outputs to make, from one layout pass. Default: svg only. */
   readonly formats?: readonly F[];
+  /** The colour theme. Wins over the diagram's own `theme`. Default: light. */
+  readonly theme?: ThemeName;
   /** Embed the used font faces in the SVG. Fonts aren't embedded yet, so this has no effect. */
   readonly embedFonts?: boolean;
 }
@@ -30,7 +32,7 @@ export async function render<F extends Format = "svg">(
   if (!parsed.ok) throw new StructaError("INVALID_INPUT", parsed.problems);
   const { diagram } = parsed;
 
-  const theme = getTheme("light");
+  const theme = getTheme(options.theme ?? diagram.theme);
   const cards = diagram.nodes.map((node, i) => ({ ...buildStep(node, theme.sizes), path: `nodes[${i}]` }));
   const index = new Map(diagram.nodes.map((node, i) => [node.id, i]));
   const lines = diagram.edges.map((edge, i) => {

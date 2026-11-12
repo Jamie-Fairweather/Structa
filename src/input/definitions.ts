@@ -4,6 +4,7 @@
  * from these, so they can't disagree. Every new field goes here.
  */
 import type { FaceId } from "../text";
+import { THEME_NAMES } from "../theme";
 
 /** One kind of text, with its length limit. Limits are set here once and shown in the schema. */
 export interface TextKind {
@@ -95,6 +96,12 @@ function diagram(node: Def, edge: Def, direction: "down" | "right"): ObjectDef {
     fields: [
       optional("version", { kind: "const", value: 1 }, "the format version; leave it out to mean the current one"),
       required("type", { kind: "choice", values: DIAGRAM_TYPES, later: true }, "the kind of diagram"),
+      optional(
+        "theme",
+        { kind: "choice", values: THEME_NAMES, later: false },
+        "the colours to draw in; the --theme flag and render()'s theme option win over it",
+        "light",
+      ),
       optional(
         "direction",
         { kind: "choice", values: ["down", "right"], later: false },
