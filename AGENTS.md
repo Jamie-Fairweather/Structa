@@ -8,7 +8,7 @@
 ## Development
 
 - Run tests with `bun run test` (add a file path to run one file). It runs Vitest under Node, the shipped runtime; Bun's own `bun test` is a different runner.
-- `bun run typecheck` and `bun run test` first regenerate the font width tables into `generated/` (gitignored) from the TTFs in `fonts/`. Run `bun run generate` before anything else that imports `src/text`.
+- `bun run typecheck`, `bun run test` and `bun run build` first run `bun run generate`. It trims the TTFs in `fonts/` with harfbuzzjs (dev-only) into `generated/fonts/` (gitignored), then reads the width tables and the embedded fonts' data URLs from those trimmed files into `generated/`. Run `bun run generate` before anything else that imports `src/text`.
 - Tests sit at two seams only: `render()` (JSON in, SVG/PNG out) and the built skill folder run with `node`. Snapshot and structural tests render with `embedFonts: false`. ELK is the one library a test may fake, at `src/layout/elk.ts`, the only module that loads it.
 - Skill-folder tests get their own fresh build from `buildSkillForTest()` in `test/helpers/skill.ts`, which builds inside a temporary `"type": "module"` project and runs `node structa.mjs` from another folder. `bun run build` writes `dist/structa/` and fails when the packaging checks in `scripts/lib/skill.ts` do. Those checks are tested through the build: `buildChangedProject()` builds a changed copy of the project and returns the build's error. When the build starts reading a new file or folder, add it to `BUILD_INPUTS` there.
 - Upgrading elkjs means updating `PUBLISHED_ELK` in `scripts/lib/skill.ts` too: the new version and the SHA-256 of `lib/elk.bundled.js` in its published npm package. Never patch or override elkjs.
