@@ -910,6 +910,28 @@ describe("bun run build", () => {
     expect(message).toBe(failure("structa.mjs doesn't start with its licence banner"));
   }, BUILD_TIMEOUT);
 
+  it("fails when structa.mjs bundles code from a package that no licence file covers", async () => {
+    const message = await buildChangedProject((project) => {
+      for (const [name, colour] of [["a-new-library", "teal"], ["@someone/new-library", "plum"]] as const) {
+        const dir = join(project, "node_modules", ...name.split("/"));
+        mkdirSync(dir, { recursive: true });
+        writeFileSync(join(dir, "package.json"), JSON.stringify({ name, version: "1.0.0", type: "module", main: "index.js" }));
+        writeFileSync(join(dir, "index.js"), `export const colour = ${JSON.stringify(colour)};\n`);
+      }
+      appendTo("src/structa.ts", 'export { colour as teal } from "a-new-library";\nexport { colour as plum } from "@someone/new-library";\n')(project);
+    });
+
+    const hint =
+      "To ship a new library on purpose, add its licence in licenceFiles() in scripts/lib/skill.ts with the package in its packages, " +
+      "and add it to the banner and to RELEASE_LICENSE";
+    expect(message).toBe(
+      failure(
+        `structa.mjs bundles @someone/new-library (node_modules/@someone/new-library/index.js), but nothing in licenses/ covers it: it may bundle only @resvg/resvg-wasm. ${hint}`,
+        `structa.mjs bundles a-new-library (node_modules/a-new-library/index.js), but nothing in licenses/ covers it: it may bundle only @resvg/resvg-wasm. ${hint}`,
+      ),
+    );
+  }, BUILD_TIMEOUT);
+
   it("fails when structa.mjs would contain 100 characters copied from elk.bundled.js", async () => {
     // A run from the middle of ELK's file with nothing a string literal would escape.
     const elk = readFileSync(fileURLToPath(new URL("../node_modules/elkjs/lib/elk.bundled.js", import.meta.url)), "utf8");

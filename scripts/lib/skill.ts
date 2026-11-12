@@ -50,13 +50,13 @@ export async function buildSkill(outDir: string, project: string = repository): 
 
   const resvg = readResvg(project);
   const elkPackage = dirname(createRequire(join(project, "package.json")).resolve("elkjs/package.json"));
-  const elkVersion = String((JSON.parse(readFileSync(join(elkPackage, "package.json"), "utf8")) as Manifest).version);
+  const elkVersion = versionOf(elkPackage);
   const notices: Notices = {
     licences: licenceFiles(project, elkPackage, elkVersion, resvg),
     banner: banner(elkVersion, resvg),
     legalComment: resvg.legalComment,
   };
-  await build({
+  const { metafile } = await build({
     absWorkingDir: project,
     entryPoints: ["src/structa.ts"],
     outfile: join(outDir, MODULE_FILE),
@@ -80,14 +80,20 @@ export async function buildSkill(outDir: string, project: string = repository): 
     // Keep legal comments where they are, so resvg's sits right before its glue.
     legalComments: "inline",
     plugins: [legalComment(resvg.glue, notices.legalComment)],
+    // Lists the files whose code ends up in structa.mjs, for the licence checks.
+    metafile: true,
     logLevel: "warning",
   });
+  // Paths relative to `project`, with forward slashes.
+  const bundled = Object.values(metafile.outputs).flatMap((output) =>
+    Object.entries(output.inputs).flatMap(([path, input]) => (input.bytesInOutput > 0 ? [path] : [])),
+  );
   copyFileSync(join(elkPackage, "lib", ELK_FILE), join(outDir, ELK_FILE));
   writeFileSync(join(outDir, "package.json"), PACKAGE_JSON);
   cpSync(join(project, EXAMPLES_DIR), join(outDir, EXAMPLES_DIR), { recursive: true });
   writeLicences(join(outDir, LICENSES_DIR), notices.licences);
 
-  const problems = [...checkSkill(outDir, project, elkPackage), ...checkLicences(outDir, project, notices)];
+  const problems = [...checkSkill(outDir, project, elkPackage), ...checkLicences(outDir, project, notices, bundled)];
   if (problems.length > 0) throw new Error(`the skill folder failed its checks:\n${problems.join("\n")}`);
 
   // The shipped schema is exactly what the shipped tool prints when Node runs
@@ -141,6 +147,14 @@ function filesIn(dir: string, prefix = ""): string[] {
   });
 }
 
+/** The version in the package.json of the package in the folder `dir`. */
+function versionOf(dir: string): string {
+  return String((JSON.parse(readFileSync(join(dir, "package.json"), "utf8")) as Manifest).version);
+}
+
+/** The package structa.mjs draws PNGs with. */
+const RESVG_PACKAGE = "@resvg/resvg-wasm";
+
 /** The pinned @resvg/resvg-wasm, as the build embeds it. */
 interface Resvg {
   /** Its folder, which holds its JavaScript glue. */
@@ -157,9 +171,9 @@ interface Resvg {
 /** The pinned @resvg/resvg-wasm in `project`. */
 function readResvg(project: string): Resvg {
   // The package exports only its entry point and its wasm, so find its folder from the wasm.
-  const wasmFile = createRequire(join(project, "package.json")).resolve("@resvg/resvg-wasm/index_bg.wasm");
+  const wasmFile = createRequire(join(project, "package.json")).resolve(`${RESVG_PACKAGE}/index_bg.wasm`);
   const glue = dirname(wasmFile);
-  const version = String((JSON.parse(readFileSync(join(glue, "package.json"), "utf8")) as Manifest).version);
+  const version = versionOf(glue);
   const compressed = brotliCompressSync(readFileSync(wasmFile), { params: { [zlib.BROTLI_PARAM_QUALITY]: 9 } });
   const source = `https://github.com/thx/resvg-js/tree/v${version}`;
   return {
@@ -167,7 +181,7 @@ function readResvg(project: string): Resvg {
     wasm: compressed.toString("base64"),
     version,
     source,
-    legalComment: `/*! @resvg/resvg-wasm ${version} | MPL-2.0 | ${source} */`,
+    legalComment: `/*! ${RESVG_PACKAGE} ${version} | MPL-2.0 | ${source} */`,
   };
 }
 
@@ -195,6 +209,11 @@ interface LicenceFile {
   readonly what: string;
   /** Phrases it must hold to be that. */
   readonly says: readonly string[];
+  /**
+   * The packages bundled into structa.mjs whose licence or source note this
+   * is. The build fails if structa.mjs holds code from any other package.
+   */
+  readonly packages?: readonly string[];
   /** The file the build copies there; otherwise `text` is what it writes. */
   readonly copy?: string;
   readonly text?: string;
@@ -242,14 +261,16 @@ function licenceFiles(project: string, elkPackage: string, elk: string, resvg: R
       name: "MPL-2.0.txt",
       what: "the MPL-2.0 text",
       says: ["Mozilla Public License Version 2.0"],
+      packages: [RESVG_PACKAGE],
       copy: join(project, LICENSES_DIR, "MPL-2.0.txt"),
     },
     {
       name: "resvg-source.txt",
       what: "resvg's source note",
       says: [resvg.source],
+      packages: [RESVG_PACKAGE],
       text: [
-        `${MODULE_FILE} carries index_bg.wasm from the published @resvg/resvg-wasm ${resvg.version} unmodified ` +
+        `${MODULE_FILE} carries index_bg.wasm from the published ${RESVG_PACKAGE} ${resvg.version} unmodified ` +
           "(brotli-compressed and base64-encoded, and unpacked with Node's zlib to draw a PNG), " +
           "and bundles its JavaScript glue, index.mjs, unminified, straight after a comment naming the package, version, licence and source.",
         "",
@@ -283,7 +304,7 @@ function banner(elk: string, resvg: Resvg): string {
   return [
     "/*!",
     ` * Structa, under the MIT licence (${licence("MIT.txt")}). This file also embeds:`,
-    ` * - @resvg/resvg-wasm ${resvg.version}, its wasm and JavaScript glue: MPL-2.0 (${licence("MPL-2.0.txt")}, ${licence("resvg-source.txt")})`,
+    ` * - ${RESVG_PACKAGE} ${resvg.version}, its wasm and JavaScript glue: MPL-2.0 (${licence("MPL-2.0.txt")}, ${licence("resvg-source.txt")})`,
     ` * - the Inter fonts, subset: OFL-1.1 (${licence("OFL-1.1-Inter.txt")})`,
     ` * - the JetBrains Mono fonts, subset: OFL-1.1 (${licence("OFL-1.1-JetBrains-Mono.txt")})`,
     ` * elkjs ${elk} is not in this file: it ships next to it as ${ELK_FILE},`,
@@ -313,11 +334,29 @@ interface Notices {
 
 /**
  * The release-blocking licence checks on the skill folder built from
- * `project`: every licence file is there and holds the right text,
- * structa.mjs starts with its banner, and resvg's legal comment is in it.
+ * `project`, whose structa.mjs holds code from the files `bundled` (paths
+ * relative to `project`, with forward slashes): every licence file is there
+ * and holds the right text, every package in structa.mjs has one, structa.mjs
+ * starts with its banner, and resvg's legal comment is in it.
  */
-function checkLicences(dir: string, project: string, notices: Notices): string[] {
+function checkLicences(dir: string, project: string, notices: Notices, bundled: readonly string[]): string[] {
   const problems: string[] = [];
+  const covered = [...new Set(notices.licences.flatMap((file) => file.packages ?? []))].sort();
+  // Each package once, named with the first of its files.
+  const packages = new Map<string, string>();
+  for (const path of [...bundled].sort()) {
+    const name = packageOf(path);
+    if (name !== undefined && !packages.has(name)) packages.set(name, path);
+  }
+  const allowed = covered.length === 0 ? "it may bundle no package" : `it may bundle only ${covered.join(", ")}`;
+  for (const name of [...packages.keys()].sort()) {
+    if (covered.includes(name)) continue;
+    problems.push(
+      `${MODULE_FILE} bundles ${name} (${packages.get(name)}), but nothing in ${LICENSES_DIR}/ covers it: ${allowed}. ` +
+        "To ship a new library on purpose, add its licence in licenceFiles() in scripts/lib/skill.ts with the package in its packages, " +
+        "and add it to the banner and to RELEASE_LICENSE",
+    );
+  }
   for (const file of notices.licences) {
     const shipped = `${LICENSES_DIR}/${file.name}`;
     const path = join(dir, LICENSES_DIR, file.name);
@@ -335,6 +374,15 @@ function checkLicences(dir: string, project: string, notices: Notices): string[]
   if (!module.startsWith(`${notices.banner}\n`)) problems.push(`${MODULE_FILE} doesn't start with its licence banner`);
   if (!module.includes(notices.legalComment)) problems.push(`${MODULE_FILE} has no legal comment for resvg's glue: ${notices.legalComment}`);
   return problems;
+}
+
+/** The npm package the file at `path` (with forward slashes) is from, or undefined if it isn't in a node_modules folder. */
+function packageOf(path: string): string | undefined {
+  const folder = "node_modules/";
+  const at = path.lastIndexOf(folder);
+  if (at === -1) return undefined;
+  const [first = "", second = ""] = path.slice(at + folder.length).split("/");
+  return first.startsWith("@") ? `${first}/${second}` : first;
 }
 
 /** Text that only ELK's compiled code contains: its Java package names and GWT's runtime markers. */
