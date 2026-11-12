@@ -10,11 +10,22 @@
     "node": ">=20"
   },
   "scripts": {
-    "prepare": "husky"
+    "prepare": "husky",
+    "generate": "bun scripts/generate-font-metrics.ts",
+    "typecheck": "bun run generate && tsc",
+    "test": "bun run generate && vitest run"
   },
   "devDependencies": {
     "@commitlint/cli": "21.2.4",
     "@commitlint/config-conventional": "21.2.4",
-    "husky": "9.1.7"
+    "@types/node": "20.19.43",
+    "@xmldom/xmldom": "0.9.12",
+    "esbuild": "0.28.2",
+    "husky": "9.1.7",
+    "typescript": "7.0.2",
+    "vitest": "4.1.12"
+  },
+  "dependencies": {
+    "elkjs": "0.12.1"
   }
 }

@@ -1,0 +1,19 @@
+{
+  "type": "flow",
+  "nodes": [
+    { "id": "scan", "label": "Scan the returned book", "shape": "step" },
+    { "id": "inspect", "label": "Check for damage", "shape": "step" },
+    { "id": "fee", "label": "Work out any late fee", "shape": "step" },
+    { "id": "close", "label": "Close the loan", "shape": "step" },
+    { "id": "receipt", "label": "Email the borrower a receipt, listing the return date and any fee owed", "shape": "step" },
+    { "id": "trolley", "label": "Put the book on the returns trolley", "shape": "step" }
+  ],
+  "edges": [
+    { "from": "scan", "to": "inspect" },
+    { "from": "scan", "to": "fee" },
+    { "from": "inspect", "to": "close" },
+    { "from": "fee", "to": "close" },
+    { "from": "close", "to": "receipt" },
+    { "from": "close", "to": "trolley" }
+  ]
+}
