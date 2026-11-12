@@ -1,15 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { render } from "../src/index";
 import {
+  allElements,
   cardBox,
   cardById,
   cards,
+  distanceOutside,
   distanceToOutline,
   lineGeometry,
   lines,
   parseSvg,
   textLines,
   titleOf,
+  type Point,
 } from "./helpers/svg";
 
 const opts = { embedFonts: false } as const;
@@ -129,25 +132,68 @@ describe("step-only flowcharts", () => {
     ]);
   });
 
+  /** Which way a move between two points goes: it must be horizontal or vertical. `undefined` for no move. */
+  function heading(from: Point, to: Point): "across" | "down" | undefined {
+    const dx = Math.abs(to.x - from.x);
+    const dy = Math.abs(to.y - from.y);
+    expect(Math.min(dx, dy)).toBeLessThanOrEqual(0.01);
+    if (Math.max(dx, dy) <= 0.01) return undefined;
+    return dx > dy ? "across" : "down";
+  }
+
   it("routes lines at right angles with rounded corners, from card edge to card edge", async () => {
     const doc = parseSvg((await render(repot, opts)).svg);
 
     for (const [i, edge] of repot.edges.entries()) {
-      const line = lines(doc)[i]!;
-      const { route, arrowTip } = lineGeometry(line);
+      const { route, arrowTip, arrowBase } = lineGeometry(lines(doc)[i]!);
+      const target = cardBox(cardById(doc, edge.to));
       expect(route[0]!.command).toBe("M");
       expect(distanceToOutline(route[0]!.points[0]!, cardBox(cardById(doc, edge.from)))).toBeLessThanOrEqual(1);
-      expect(distanceToOutline(arrowTip, cardBox(cardById(doc, edge.to)))).toBeLessThanOrEqual(1);
+      expect(distanceToOutline(arrowTip, target)).toBeLessThanOrEqual(1);
 
-      // Every straight run is horizontal or vertical; corners are curves whose control point is the bend.
+      // Straight runs are horizontal or vertical and never turn, so there are no sharp corners.
+      // Every turn is a curve whose control point is the bend: it comes in one way and leaves the other.
       let at = route[0]!.points[0]!;
+      let going: "across" | "down" | undefined;
       for (const { command, points } of route.slice(1)) {
         expect(["L", "Q"]).toContain(command);
-        for (const p of points) {
-          expect(Math.min(Math.abs(p.x - at.x), Math.abs(p.y - at.y))).toBeLessThanOrEqual(0.01);
-          at = p;
+        if (command === "L") {
+          for (const p of points) {
+            const run = heading(at, p);
+            if (going && run) expect(run).toBe(going);
+            going = run ?? going;
+            at = p;
+          }
+        } else {
+          const [bend, end] = points as [Point, Point];
+          const into = heading(at, bend);
+          const out = heading(bend, end);
+          expect(into).toBeDefined();
+          if (going) expect(into).toBe(going);
+          expect(out).toBeDefined();
+          expect(out).not.toBe(into);
+          going = out;
+          at = end;
         }
       }
+
+      // The route stops where the arrowhead's base sits, outside the target card, and the
+      // arrowhead carries on the same way into the card, its tip on the edge.
+      expect(Math.hypot(at.x - arrowBase.x, at.y - arrowBase.y)).toBeLessThanOrEqual(0.02);
+      expect(heading(arrowBase, arrowTip)).toBe(going);
+      expect(distanceOutside(arrowBase, target)).toBeGreaterThan(distanceOutside(arrowTip, target));
     }
+
+    // pick -> water skips two cards, so it bends, and its bends are curves.
+    expect(lineGeometry(lines(doc)[3]!).route.filter((c) => c.command === "Q").length).toBeGreaterThan(0);
+  });
+
+  it("paints lines over the cards", async () => {
+    const doc = parseSvg((await render(repot, opts)).svg);
+    const groups = allElements(doc)
+      .map((el) => el.getAttribute("class"))
+      .filter((kind) => kind === "card" || kind === "line");
+
+    expect(groups).toEqual(["card", "card", "card", "card", "line", "line", "line", "line"]);
   });
 });

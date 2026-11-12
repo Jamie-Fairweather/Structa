@@ -66,20 +66,33 @@ export function parsePath(d: string): PathCommand[] {
   return commands;
 }
 
-/** A line's stroked route and its filled arrowhead tip. */
-export function lineGeometry(line: Element): { route: PathCommand[]; arrowTip: Point } {
+/**
+ * A line's stroked route and its filled arrowhead (a triangle drawn tip first):
+ * the tip, and the middle of the side opposite it.
+ */
+export function lineGeometry(line: Element): { route: PathCommand[]; arrowTip: Point; arrowBase: Point } {
   const paths = Array.from(line.getElementsByTagName("path"));
   const route = paths.find((p) => p.getAttribute("fill") === "none");
   const arrow = paths.find((p) => p.getAttribute("fill") !== "none");
   if (!route || !arrow) throw new Error(`line ${line.getAttribute("data-id")} needs a route and an arrowhead`);
-  return { route: parsePath(route.getAttribute("d")!), arrowTip: parsePath(arrow.getAttribute("d")!)[0]!.points[0]! };
+  const [tip, left, right] = parsePath(arrow.getAttribute("d")!).map((c) => c.points[0]!);
+  return {
+    route: parsePath(route.getAttribute("d")!),
+    arrowTip: tip!,
+    arrowBase: { x: (left!.x + right!.x) / 2, y: (left!.y + right!.y) / 2 },
+  };
+}
+
+/** How far a point is outside a box (0 when on its outline or inside it). */
+export function distanceOutside(p: Point, box: Box): number {
+  const dx = Math.max(box.x - p.x, 0, p.x - (box.x + box.width));
+  const dy = Math.max(box.y - p.y, 0, p.y - (box.y + box.height));
+  return Math.hypot(dx, dy);
 }
 
 /** How far a point is from the outline of a box (0 when exactly on it). */
 export function distanceToOutline(p: Point, box: Box): number {
-  const dx = Math.max(box.x - p.x, 0, p.x - (box.x + box.width));
-  const dy = Math.max(box.y - p.y, 0, p.y - (box.y + box.height));
-  const outside = Math.hypot(dx, dy);
+  const outside = distanceOutside(p, box);
   if (outside > 0) return outside;
   return Math.min(p.x - box.x, box.x + box.width - p.x, p.y - box.y, box.y + box.height - p.y);
 }
