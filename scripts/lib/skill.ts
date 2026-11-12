@@ -7,9 +7,9 @@
  */
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { copyFileSync, cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import { dirname, join, sep } from "node:path";
+import { dirname, join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { brotliCompressSync, constants as zlib } from "node:zlib";
 import { build, type Plugin } from "esbuild";
@@ -49,6 +49,11 @@ export async function buildSkill(outDir: string, project: string = repository): 
   const resvg = readResvg(project);
   const elkPackage = dirname(createRequire(join(project, "package.json")).resolve("elkjs/package.json"));
   const elkVersion = String((JSON.parse(readFileSync(join(elkPackage, "package.json"), "utf8")) as Manifest).version);
+  const notices: Notices = {
+    licences: licenceFiles(project, elkPackage, elkVersion, resvg),
+    banner: banner(elkVersion, resvg),
+    legalComment: resvg.legalComment,
+  };
   await build({
     absWorkingDir: project,
     entryPoints: ["src/structa.ts"],
@@ -69,18 +74,18 @@ export async function buildSkill(outDir: string, project: string = repository): 
       STRUCTA_RESVG_WASM: JSON.stringify(resvg.wasm),
     },
     dropLabels: ["source"],
-    banner: { js: banner(elkVersion, resvg) },
+    banner: { js: notices.banner },
     // Keep legal comments where they are, so resvg's sits right before its glue.
     legalComments: "inline",
-    plugins: [legalComment(resvg.glue, resvg.legalComment)],
+    plugins: [legalComment(resvg.glue, notices.legalComment)],
     logLevel: "warning",
   });
   copyFileSync(join(elkPackage, "lib", ELK_FILE), join(outDir, ELK_FILE));
   writeFileSync(join(outDir, "package.json"), PACKAGE_JSON);
   cpSync(join(project, EXAMPLES_DIR), join(outDir, EXAMPLES_DIR), { recursive: true });
-  writeLicences(join(outDir, LICENSES_DIR), licenceFiles(project, elkPackage, elkVersion, resvg));
+  writeLicences(join(outDir, LICENSES_DIR), notices.licences);
 
-  const problems = checkSkill(outDir, project, elkPackage);
+  const problems = [...checkSkill(outDir, project, elkPackage), ...checkLicences(outDir, project, notices)];
   if (problems.length > 0) throw new Error(`the skill folder failed its checks:\n${problems.join("\n")}`);
 
   // The shipped schema is exactly what the shipped tool prints when Node runs
@@ -145,29 +150,45 @@ function legalComment(dir: string, comment: string): Plugin {
 interface LicenceFile {
   /** Its name in licenses/. */
   readonly name: string;
+  /** What it is, as the checks name it. */
+  readonly what: string;
+  /** Phrases it must hold to be that. */
+  readonly says: readonly string[];
   /** The file the build copies there; otherwise `text` is what it writes. */
   readonly copy?: string;
   readonly text?: string;
 }
 
+const OFL = "SIL OPEN FONT LICENSE Version 1.1";
+
 /**
  * The licence texts and source notes for everything the skill folder ships,
  * built from `project`, whose installed elkjs is version `elk` at `elkPackage`.
+ * The texts that no installed package carries live in the project's own
+ * licenses/ folder.
  */
 function licenceFiles(project: string, elkPackage: string, elk: string, resvg: Resvg): LicenceFile[] {
+  const elkSource = `https://github.com/kieler/elkjs/tree/${elk}`;
   return [
-    { name: "MIT.txt", copy: join(project, "LICENSE") },
-    { name: "EPL-2.0.md", copy: join(elkPackage, "LICENSE.md") },
-    { name: "Apache-2.0.txt", copy: join(project, LICENSES_DIR, "Apache-2.0.txt") },
+    { name: "MIT.txt", what: "Structa's MIT licence", says: ["MIT License"], copy: join(project, "LICENSE") },
+    { name: "EPL-2.0.md", what: "the EPL-2.0 text", says: ["Eclipse Public License - v 2.0"], copy: join(elkPackage, "LICENSE.md") },
+    {
+      name: "Apache-2.0.txt",
+      what: "the Apache-2.0 text",
+      says: ["Apache License", "Version 2.0, January 2004"],
+      copy: join(project, LICENSES_DIR, "Apache-2.0.txt"),
+    },
     {
       name: "elkjs-source.txt",
+      what: "elkjs's source note",
+      says: [elkSource],
       text: [
         `${ELK_FILE} is lib/${ELK_FILE} from the published elkjs ${elk}, byte for byte. It ships next to ${MODULE_FILE}, which loads it to lay out diagrams.`,
         "",
         "Licence: EPL-2.0 OR GPL-3.0-or-later. The EPL-2.0 text is in EPL-2.0.md. The GPL-3.0 text is at https://www.gnu.org/licenses/gpl-3.0-standalone.html.",
         "",
         "Source code:",
-        `- elkjs ${elk}: https://github.com/kieler/elkjs/tree/${elk}`,
+        `- elkjs ${elk}: ${elkSource}`,
         "- Eclipse ELK, the Java code elkjs is compiled from: https://github.com/eclipse-elk/elk",
         "",
         `${ELK_FILE} also holds Guava and GWT code, compiled into it along with ELK. That code is licensed Apache-2.0, and its text is in Apache-2.0.txt.`,
@@ -176,9 +197,16 @@ function licenceFiles(project: string, elkPackage: string, elk: string, resvg: R
         "",
       ].join("\n"),
     },
-    { name: "MPL-2.0.txt", copy: join(project, LICENSES_DIR, "MPL-2.0.txt") },
+    {
+      name: "MPL-2.0.txt",
+      what: "the MPL-2.0 text",
+      says: ["Mozilla Public License Version 2.0"],
+      copy: join(project, LICENSES_DIR, "MPL-2.0.txt"),
+    },
     {
       name: "resvg-source.txt",
+      what: "resvg's source note",
+      says: [resvg.source],
       text: [
         `${MODULE_FILE} carries index_bg.wasm from the published @resvg/resvg-wasm ${resvg.version} unmodified ` +
           "(brotli-compressed and base64-encoded, and unpacked with Node's zlib to draw a PNG), " +
@@ -190,8 +218,18 @@ function licenceFiles(project: string, elkPackage: string, elk: string, resvg: R
         "",
       ].join("\n"),
     },
-    { name: "OFL-1.1-Inter.txt", copy: join(project, "fonts", "inter", "OFL.txt") },
-    { name: "OFL-1.1-JetBrains-Mono.txt", copy: join(project, "fonts", "jetbrains-mono", "OFL.txt") },
+    {
+      name: "OFL-1.1-Inter.txt",
+      what: "Inter's OFL-1.1",
+      says: [OFL, "The Inter Project Authors"],
+      copy: join(project, "fonts", "inter", "OFL.txt"),
+    },
+    {
+      name: "OFL-1.1-JetBrains-Mono.txt",
+      what: "JetBrains Mono's OFL-1.1",
+      says: [OFL, "The JetBrains Mono Project Authors"],
+      copy: join(project, "fonts", "jetbrains-mono", "OFL.txt"),
+    },
   ];
 }
 
@@ -213,13 +251,49 @@ function banner(elk: string, resvg: Resvg): string {
   ].join("\n");
 }
 
-/** Writes `files` into the folder `dir`. */
+/** Writes `files` into the folder `dir`. A file to copy that isn't there is left for the checks to report. */
 function writeLicences(dir: string, files: readonly LicenceFile[]): void {
   mkdirSync(dir, { recursive: true });
   for (const file of files) {
-    if (file.copy !== undefined) copyFileSync(file.copy, join(dir, file.name));
-    else writeFileSync(join(dir, file.name), file.text ?? "");
+    if (file.copy === undefined) writeFileSync(join(dir, file.name), file.text ?? "");
+    else if (existsSync(file.copy)) copyFileSync(file.copy, join(dir, file.name));
   }
+}
+
+/** What the skill folder must carry for the licences of the parts it ships. */
+interface Notices {
+  /** The files in licenses/. */
+  readonly licences: readonly LicenceFile[];
+  /** The comment structa.mjs starts with. */
+  readonly banner: string;
+  /** The comment before resvg's glue in structa.mjs. */
+  readonly legalComment: string;
+}
+
+/**
+ * The release-blocking licence checks on the skill folder built from
+ * `project`: every licence file is there and holds the right text,
+ * structa.mjs starts with its banner, and resvg's legal comment is in it.
+ */
+function checkLicences(dir: string, project: string, notices: Notices): string[] {
+  const problems: string[] = [];
+  for (const file of notices.licences) {
+    const shipped = `${LICENSES_DIR}/${file.name}`;
+    const path = join(dir, LICENSES_DIR, file.name);
+    if (!existsSync(path)) {
+      const from = file.copy === undefined ? "" : ` (the build copies it from ${relative(project, file.copy).split(sep).join("/")})`;
+      problems.push(`${shipped} is missing${from}`);
+      continue;
+    }
+    const text = readFileSync(path, "utf8");
+    for (const phrase of file.says) {
+      if (!text.includes(phrase)) problems.push(`${shipped} is not ${file.what}: it doesn't say ${JSON.stringify(phrase)}`);
+    }
+  }
+  const module = readFileSync(join(dir, MODULE_FILE), "utf8");
+  if (!module.startsWith(`${notices.banner}\n`)) problems.push(`${MODULE_FILE} doesn't start with its licence banner`);
+  if (!module.includes(notices.legalComment)) problems.push(`${MODULE_FILE} has no legal comment for resvg's glue: ${notices.legalComment}`);
+  return problems;
 }
 
 /** Text that only ELK's compiled code contains: its Java package names and GWT's runtime markers. */

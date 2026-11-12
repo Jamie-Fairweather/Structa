@@ -787,6 +787,65 @@ describe("bun run build", () => {
     );
   }, BUILD_TIMEOUT);
 
+  it.each([
+    ["licenses/MIT.txt", "LICENSE"],
+    ["licenses/EPL-2.0.md", "node_modules/elkjs/LICENSE.md"],
+    ["licenses/Apache-2.0.txt", "licenses/Apache-2.0.txt"],
+    ["licenses/MPL-2.0.txt", "licenses/MPL-2.0.txt"],
+    ["licenses/OFL-1.1-Inter.txt", "fonts/inter/OFL.txt"],
+    ["licenses/OFL-1.1-JetBrains-Mono.txt", "fonts/jetbrains-mono/OFL.txt"],
+  ])(
+    "fails when %s is missing, because the project has no %s",
+    async (shipped, source) => {
+      const message = await buildChangedProject((project) => rmSync(join(project, source)));
+
+      expect(message).toBe(failure(`${shipped} is missing (the build copies it from ${source})`));
+    },
+    BUILD_TIMEOUT,
+  );
+
+  it.each([
+    [
+      "an empty Apache-2.0 text",
+      (project: string) => writeFileSync(join(project, "licenses", "Apache-2.0.txt"), ""),
+      ['licenses/Apache-2.0.txt is not the Apache-2.0 text: it doesn\'t say "Apache License"', 'licenses/Apache-2.0.txt is not the Apache-2.0 text: it doesn\'t say "Version 2.0, January 2004"'],
+    ],
+    [
+      "JetBrains Mono's OFL in place of Inter's",
+      (project: string) => cpSync(join(project, "fonts", "jetbrains-mono", "OFL.txt"), join(project, "fonts", "inter", "OFL.txt")),
+      ['licenses/OFL-1.1-Inter.txt is not Inter\'s OFL-1.1: it doesn\'t say "The Inter Project Authors"'],
+    ],
+  ])(
+    "fails when a licence file holds the wrong text: %s",
+    async (_name, change, problems) => {
+      const message = await buildChangedProject(change);
+
+      expect(message).toBe(failure(...problems));
+    },
+    BUILD_TIMEOUT,
+  );
+
+  it("fails when resvg's glue is bundled without its legal comment, as when it is copied into our source", async () => {
+    const message = await buildChangedProject((project) => {
+      cpSync(join(project, "node_modules", "@resvg", "resvg-wasm", "index.mjs"), join(project, "src", "raster", "resvg-glue.mjs"));
+      const raster = join(project, "src", "raster", "index.ts");
+      writeFileSync(raster, readFileSync(raster, "utf8").replace('from "@resvg/resvg-wasm";', 'from "./resvg-glue.mjs";'));
+    });
+
+    expect(message).toBe(
+      failure("structa.mjs has no legal comment for resvg's glue: /*! @resvg/resvg-wasm 2.6.2 | MPL-2.0 | https://github.com/thx/resvg-js/tree/v2.6.2 */"),
+    );
+  }, BUILD_TIMEOUT);
+
+  it("fails when structa.mjs doesn't start with its licence banner, as when the source starts with a hashbang", async () => {
+    const message = await buildChangedProject((project) => {
+      const entry = join(project, "src", "structa.ts");
+      writeFileSync(entry, `#!/usr/bin/env node\n${readFileSync(entry, "utf8")}`);
+    });
+
+    expect(message).toBe(failure("structa.mjs doesn't start with its licence banner"));
+  }, BUILD_TIMEOUT);
+
   it("fails when structa.mjs would contain 100 characters copied from elk.bundled.js", async () => {
     // A run from the middle of ELK's file with nothing a string literal would escape.
     const elk = readFileSync(fileURLToPath(new URL("../node_modules/elkjs/lib/elk.bundled.js", import.meta.url)), "utf8");
