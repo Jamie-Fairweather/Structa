@@ -1,7 +1,7 @@
 import type { Document, Element } from "@xmldom/xmldom";
 import { describe, expect, it } from "vitest";
 import { render } from "../src/index";
-import { allElements, badgeBox, byClassIn, cardBox, cards, lines, parseSvg } from "./helpers/svg";
+import { allElements, badgeBox, byClassIn, cardBox, cards, lines, svgDoc } from "./helpers/svg";
 
 const opts = { embedFonts: false } as const;
 
@@ -20,10 +20,6 @@ function jam(extra: Record<string, unknown> = {}) {
       { from: "boil", to: "jar" },
     ],
   };
-}
-
-async function svgDoc(input: object, theme?: "light" | "dark") {
-  return parseSvg((await render(input, { ...opts, ...(theme ? { theme } : {}) })).svg);
 }
 
 function group(doc: Document, className: string): Element | undefined {

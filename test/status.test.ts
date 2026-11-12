@@ -1,6 +1,5 @@
 import type { Element } from "@xmldom/xmldom";
 import { describe, expect, it } from "vitest";
-import { render } from "../src/index";
 import {
   alongRuns,
   badgeBox,
@@ -13,12 +12,10 @@ import {
   lineGeometry,
   lines,
   overlaps,
-  parseSvg,
+  svgDoc,
   textLines,
   type Point,
 } from "./helpers/svg";
-
-const opts = { embedFonts: false } as const;
 
 /** A short flowchart for planting a hedge; tests give its steps and lines statuses. */
 function hedge(statuses: readonly (string | undefined)[] = []) {
@@ -37,10 +34,6 @@ function hedge(statuses: readonly (string | undefined)[] = []) {
       { from: "plant", to: "mulch" },
     ],
   };
-}
-
-async function svgDoc(input: object, theme?: "light" | "dark") {
-  return parseSvg((await render(input, { ...opts, ...(theme ? { theme } : {}) })).svg);
 }
 
 describe("card status", () => {
