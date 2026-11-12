@@ -1,0 +1,132 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="755" height="796" viewBox="0 0 755 796">
+<defs>
+<pattern id="structa-grid-light" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="9" cy="9" r="1" fill="#8c959f" fill-opacity="0.5"/></pattern>
+<filter id="structa-shadow-light" x="-20%" y="-30%" width="140%" height="170%"><feDropShadow dx="0" dy="1" stdDeviation="3" flood-color="#1f2328" flood-opacity="0.1"/></filter>
+</defs>
+<rect width="755" height="796" fill="#f4f5f7"/>
+<rect width="755" height="796" fill="url(#structa-grid-light)"/>
+<g class="title">
+<text x="32" y="50.55" font-family="Structa Inter, Inter, sans-serif" font-size="18" font-weight="700" fill="#1f2328">Feeding a sourdough starter</text>
+</g>
+<g class="card" data-id="morning" data-kind="start">
+<title>Morning</title>
+<rect class="outline" x="536" y="80" width="100" height="44" rx="22" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<text x="586" y="107.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Morning</text>
+</g>
+<g class="card" data-id="discard" data-kind="step">
+<title>Discard half the starter
+Keep about 50 g in the jar</title>
+<rect class="outline" x="492" y="172" width="188" height="62" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<text x="586" y="199.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Discard half the starter</text>
+<text x="586" y="218.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#59636e" text-anchor="middle">Keep about 50 g in the jar</text>
+</g>
+<g class="card" data-id="weigh" data-kind="io">
+<title>Weigh out flour and water
+50 g of each</title>
+<path class="outline" d="M489 282 L697 282 L683 344 L475 344 Z" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)" stroke-linejoin="round"/>
+<text x="586" y="309.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Weigh out flour and water</text>
+<text x="586" y="328.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#59636e" text-anchor="middle">50 g of each</text>
+</g>
+<g class="card" data-id="stir" data-kind="step">
+<title>Stir and cover loosely</title>
+<rect class="outline" x="496.5" y="392" width="179" height="44" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<text x="586" y="419.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Stir and cover loosely</text>
+</g>
+<g class="card" data-id="doubled" data-kind="decision">
+<title>Doubled in six hours?</title>
+<path class="outline" d="M586 484 L690 536 L586 588 L482 536 Z" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)" stroke-linejoin="round"/>
+<text x="586" y="531.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Doubled in six</text>
+<text x="586" y="551.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">hours?</text>
+</g>
+<g class="card" data-id="warmer" data-kind="step">
+<title>Move it somewhere warmer</title>
+<rect class="outline" x="292.5" y="720" width="221" height="44" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<text x="403" y="747.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Move it somewhere warmer</text>
+</g>
+<g class="card" data-id="ready" data-kind="end">
+<title>Ready to bake with</title>
+<rect class="outline" x="553.5" y="720" width="169" height="44" rx="22" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<text x="638" y="747.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Ready to bake with</text>
+</g>
+<g class="card" data-id="pancakes" data-kind="note">
+<title>The discard makes good pancakes</title>
+<path class="outline" d="M292 175 L468 175 L468 221 L458 231 L292 231 Z" fill="#f6f8fa" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)" stroke-linejoin="round"/>
+<path class="marks" d="M458 231 L458 221 L468 221" fill="none" stroke="#d1d9e0" stroke-width="1"/>
+<text x="380" y="198.73" font-family="Structa Inter, Inter, sans-serif" font-size="13" font-weight="400" fill="#1f2328" text-anchor="middle">The discard makes good</text>
+<text x="380" y="216.73" font-family="Structa Inter, Inter, sans-serif" font-size="13" font-weight="400" fill="#1f2328" text-anchor="middle">pancakes</text>
+</g>
+<g class="card" data-id="band" data-kind="note">
+<title>Mark the level with a rubber band</title>
+<path class="outline" d="M262 508 L458 508 L458 554 L448 564 L262 564 Z" fill="#f6f8fa" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)" stroke-linejoin="round"/>
+<path class="marks" d="M448 564 L448 554 L458 554" fill="none" stroke="#d1d9e0" stroke-width="1"/>
+<text x="360" y="531.73" font-family="Structa Inter, Inter, sans-serif" font-size="13" font-weight="400" fill="#1f2328" text-anchor="middle">Mark the level with a rubber</text>
+<text x="360" y="549.73" font-family="Structa Inter, Inter, sans-serif" font-size="13" font-weight="400" fill="#1f2328" text-anchor="middle">band</text>
+</g>
+<g class="card" data-id="routine" data-kind="note">
+<title>Feed it at the same time every day</title>
+<path class="outline" d="M32 80 L242 80 L242 126 L232 136 L32 136 Z" fill="#f6f8fa" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)" stroke-linejoin="round"/>
+<path class="marks" d="M232 136 L232 126 L242 126" fill="none" stroke="#d1d9e0" stroke-width="1"/>
+<text x="137" y="103.73" font-family="Structa Inter, Inter, sans-serif" font-size="13" font-weight="400" fill="#1f2328" text-anchor="middle">Feed it at the same time every</text>
+<text x="137" y="121.73" font-family="Structa Inter, Inter, sans-serif" font-size="13" font-weight="400" fill="#1f2328" text-anchor="middle">day</text>
+</g>
+<g class="connector" data-kind="note" data-from="pancakes" data-to="discard">
+<title>The discard makes good pancakes (about Discard half the starter)</title>
+<path d="M468 203 L492 203" fill="none" stroke="#8c959f" stroke-width="1" stroke-dasharray="2 3"/>
+</g>
+<g class="connector" data-kind="note" data-from="band" data-to="doubled">
+<title>Mark the level with a rubber band (about Doubled in six hours?)</title>
+<path d="M458 536 L482 536" fill="none" stroke="#8c959f" stroke-width="1" stroke-dasharray="2 3"/>
+</g>
+<g class="line" data-id="edges[0]" data-kind="flow" data-from="morning" data-to="discard">
+<title>Morning → Discard half the starter</title>
+<path d="M586 124 L586 163" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M586 172 L581.5 163 L590.5 163 Z" fill="#8c959f"/>
+</g>
+<g class="line" data-id="edges[1]" data-kind="flow" data-from="discard" data-to="weigh">
+<title>Discard half the starter → Weigh out flour and water</title>
+<path d="M586 234 L586 273" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M586 282 L581.5 273 L590.5 273 Z" fill="#8c959f"/>
+</g>
+<g class="line" data-id="edges[2]" data-kind="flow" data-from="weigh" data-to="stir">
+<title>Weigh out flour and water → Stir and cover loosely</title>
+<path d="M586 344 L586 383" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M586 392 L581.5 383 L590.5 383 Z" fill="#8c959f"/>
+</g>
+<g class="line" data-id="edges[3]" data-kind="flow" data-from="stir" data-to="doubled">
+<title>Stir and cover loosely → Doubled in six hours?</title>
+<path d="M586 436 L586 475" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M586 484 L581.5 475 L590.5 475 Z" fill="#8c959f"/>
+</g>
+<g class="line" data-id="edges[4]" data-kind="flow" data-from="doubled" data-to="ready">
+<title>Doubled in six hours? → Ready to bake with: yes</title>
+<path d="M638 562 L638 711" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M638 720 L633.5 711 L642.5 711 Z" fill="#8c959f"/>
+</g>
+<g class="line" data-id="edges[5]" data-kind="flow" data-from="doubled" data-to="warmer">
+<title>Doubled in six hours? → Move it somewhere warmer: no</title>
+<path d="M534 562 L534 604 Q534 612 526 612 L372.33 612 Q364.33 612 364.33 620 L364.33 695.08 Q364.33 696 365.25 696 L365.25 696 Q366.17 696 366.17 696.92 L366.17 711" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M366.17 720 L361.67 711 L370.67 711 Z" fill="#8c959f"/>
+</g>
+<g class="line" data-id="edges[6]" data-kind="flow" data-from="warmer" data-to="doubled">
+<title>Move it somewhere warmer → Doubled in six hours?: an hour later</title>
+<path d="M439.83 720 L439.83 636 Q439.83 628 447.83 628 L578 628 Q586 628 586 620 L586 597" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M586 588 L590.5 597 L581.5 597 Z" fill="#8c959f"/>
+</g>
+<g class="line-labels">
+<g class="line-label" data-line="edges[4]">
+<title>Doubled in six hours? → Ready to bake with: yes</title>
+<rect x="619.5" y="652" width="37" height="20" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1"/>
+<text x="638" y="666.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">yes</text>
+</g>
+<g class="line-label" data-line="edges[5]">
+<title>Doubled in six hours? → Move it somewhere warmer: no</title>
+<rect x="348.83" y="652" width="31" height="20" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1"/>
+<text x="364.33" y="666.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">no</text>
+</g>
+<g class="line-label" data-line="edges[6]">
+<title>Move it somewhere warmer → Doubled in six hours?: an hour later</title>
+<rect x="395.83" y="652" width="88" height="20" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1"/>
+<text x="439.83" y="666.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">an hour later</text>
+</g>
+</g>
+</svg>

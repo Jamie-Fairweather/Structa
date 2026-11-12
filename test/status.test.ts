@@ -4,17 +4,16 @@ import {
   alongRuns,
   badgeBox,
   byClassIn,
-  cardBox,
   cardById,
   cards,
   depthInPill,
-  distanceToOutline,
+  distanceToDrawn,
   lineGeometry,
   lines,
+  outlineBox,
   overlaps,
   svgDoc,
   textLines,
-  type Point,
 } from "./helpers/svg";
 
 /** A short flowchart for planting a hedge; tests give its steps and lines statuses. */
@@ -47,7 +46,7 @@ describe("card status", () => {
 
     const card = cardById(doc, "trench");
     expect(card.getAttribute("data-status")).toBe(status);
-    const outline = cardBox(card);
+    const outline = outlineBox(card);
     const badge = badgeBox(card)!;
     expect(textLines(card)).toContain(word);
     // Centred on the top border, inside the card's width and nearer its right-hand end.
@@ -179,7 +178,7 @@ describe("card status", () => {
     const doc = await svgDoc(fanOut(direction));
 
     const extents = cards(doc).map((card) => {
-      const parts = [cardBox(card), badgeBox(card)].filter((box) => box !== undefined);
+      const parts = [outlineBox(card), badgeBox(card)].filter((box) => box !== undefined);
       const x = Math.min(...parts.map((b) => b.x));
       const y = Math.min(...parts.map((b) => b.y));
       const right = Math.max(...parts.map((b) => b.x + b.width));
@@ -219,18 +218,11 @@ describe("card status", () => {
       for (const [i, line] of lines(doc).entries()) {
         const { route, arrowTip } = lineGeometry(line);
         const edge = input.edges[i]!;
-        expect(distanceToCard(route[0]!.points[0]!, cardById(doc, edge.from)), `edges[${i}] start`).toBeLessThanOrEqual(1);
-        expect(distanceToCard(arrowTip, cardById(doc, edge.to)), `edges[${i}] end`).toBeLessThanOrEqual(1);
+        expect(distanceToDrawn(route[0]!.points[0]!, cardById(doc, edge.from)), `edges[${i}] start`).toBeLessThanOrEqual(1);
+        expect(distanceToDrawn(arrowTip, cardById(doc, edge.to)), `edges[${i}] end`).toBeLessThanOrEqual(1);
       }
     },
   );
-
-  /** How far a point is from what's drawn of a card: its outline, or the badge sitting on it. */
-  function distanceToCard(p: Point, card: Element): number {
-    const badge = badgeBox(card);
-    const onOutline = distanceToOutline(p, cardBox(card));
-    return badge ? Math.min(onOutline, Math.abs(depthInPill(p, badge))) : onOutline;
-  }
 
   it("stops a line that comes down onto a badge on top of it, never across it", async () => {
     // Three lines into a narrow card with a wide badge: some must land where the badge is.
@@ -260,7 +252,7 @@ describe("card status", () => {
         expect(deepest, `edges[${i}] crosses a badge`).toBeLessThanOrEqual(1);
       }
       const target = cardById(doc, input.edges[i]!.to);
-      expect(distanceToCard(arrowTip, target)).toBeLessThanOrEqual(1);
+      expect(distanceToDrawn(arrowTip, target)).toBeLessThanOrEqual(1);
       if (Math.abs(depthInPill(arrowTip, badgeBox(target)!)) <= 1) onBadge++;
     }
     expect(onBadge).toBeGreaterThan(0);
@@ -269,7 +261,7 @@ describe("card status", () => {
   it("lines up the outlines of cards side by side, with or without a badge", async () => {
     const doc = await svgDoc(fanOut("down"));
 
-    const tops = new Set(["beans", "peas", "kale", "leeks", "chard"].map((id) => cardBox(cardById(doc, id)).y));
+    const tops = new Set(["beans", "peas", "kale", "leeks", "chard"].map((id) => outlineBox(cardById(doc, id)).y));
     expect(tops.size).toBe(1);
   });
 

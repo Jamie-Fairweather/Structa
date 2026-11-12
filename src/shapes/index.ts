@@ -2,21 +2,22 @@
 import {
   DESCRIPTION_FACE,
   LINE_LABEL_FACE,
-  STEP_LABEL_FACE,
   TITLE_FACE,
   type ClassEdge,
   type Diagram,
   type FlowEdge,
-  type FlowStep,
+  type FlowNode,
   type Status,
 } from "../input";
 import { baseline, measure, wrap, type FaceId } from "../text";
 import type { Sizes } from "../theme";
 import { classBody } from "./class";
-import { frameCards, strikeThrough, type Card, type CardBody, type TextLine } from "./frame";
+import { shapeBody } from "./flow";
+import { frameCards, strikeThrough, type Card, type TextLine } from "./frame";
 
-export { topAt, type Badge, type Box, type Card, type Row, type Strike, type TextLine } from "./frame";
+export { type Badge, type Box, type Card, type Row, type Strike, type TextLine } from "./frame";
 export { buildLegend, type Legend, type LegendItem } from "./legend";
+export { entry, nearest, type Mark, type Outline, type Point } from "./outline";
 
 export interface Line {
   readonly id: string;
@@ -100,34 +101,28 @@ function block(
 /** Sizes every card of the diagram through the shared card frame. */
 export function buildCards(diagram: Diagram, sizes: Sizes): Card[] {
   if (diagram.type === "class") return frameCards(diagram.nodes, sizes, (node) => classBody(node, sizes));
-  return frameCards(diagram.nodes, sizes, (node, minWidth) => stepBody(node, sizes, minWidth));
+  return frameCards(diagram.nodes, sizes, (node, minWidth) => shapeBody(node, sizes, minWidth));
 }
 
-/** A step: a rounded box sized to its wrapped label between a minimum and maximum width, and at least `minWidth`. */
-function stepBody(node: FlowStep, sizes: Sizes, minWidth: number): CardBody {
-  const s = sizes.step;
-  const lines = wrap(node.label, STEP_LABEL_FACE, s.fontSize, s.maxWidth - 2 * s.paddingX);
-  const textWidth = Math.max(...lines.map((l) => measure(l, STEP_LABEL_FACE, s.fontSize)));
-  const width = Math.max(minWidth, Math.min(s.maxWidth, Math.max(s.minWidth, Math.ceil(textWidth + 2 * s.paddingX))));
-  const height = Math.max(s.minHeight, 2 * s.paddingY + lines.length * s.lineHeight);
-  const top = (height - lines.length * s.lineHeight) / 2;
-  const offset = baseline(STEP_LABEL_FACE, s.fontSize, s.lineHeight);
+/** A note's dotted line to the shape it's about: no arrow, no label and no status of its own. */
+export interface Connector {
+  readonly kind: "connector";
+  /** The note's id. */
+  readonly from: string;
+  /** The id of the shape it's about. */
+  readonly to: string;
+  /** Faded with its note when the note is removed. */
+  readonly faded: boolean;
+  readonly tooltip: string;
+}
 
+export function buildConnector(note: FlowNode, about: FlowNode): Connector {
   return {
-    kind: "step",
-    width,
-    height,
-    tooltip: node.label,
-    texts: lines.map((text, i) => ({
-      text,
-      x: width / 2,
-      y: top + i * s.lineHeight + offset,
-      face: STEP_LABEL_FACE,
-      size: s.fontSize,
-      anchor: "middle",
-      color: "text",
-      title: true,
-    })),
+    kind: "connector",
+    from: note.id,
+    to: about.id,
+    faded: note.status === "removed",
+    tooltip: `${note.label} (about ${about.label})`,
   };
 }
 

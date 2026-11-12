@@ -1,19 +1,28 @@
 {
   "type": "flow",
   "nodes": [
-    { "id": "scan", "label": "Scan the returned book", "shape": "step" },
-    { "id": "inspect", "label": "Check for damage", "shape": "step" },
-    { "id": "fee", "label": "Work out any late fee", "shape": "step" },
-    { "id": "close", "label": "Close the loan", "shape": "step" },
-    { "id": "receipt", "label": "Email the borrower a receipt, listing the return date and any fee owed", "shape": "step" },
-    { "id": "trolley", "label": "Put the book on the returns trolley", "shape": "step" }
+    { "id": "flat", "label": "Flat tyre", "shape": "start" },
+    { "id": "wheel", "label": "Take the wheel off", "shape": "step" },
+    { "id": "find", "label": "Find the puncture", "shape": "step" },
+    { "id": "big", "label": "Hole bigger than a patch?", "shape": "decision" },
+    { "id": "tube", "label": "Fit a new inner tube", "shape": "subprocess" },
+    { "id": "patch", "label": "Patch the tube", "shape": "step" },
+    { "id": "pump", "label": "Pump it up", "shape": "step" },
+    { "id": "holds", "label": "Holds air?", "shape": "decision" },
+    { "id": "log", "label": "Write the repair in the bike log", "shape": "io" },
+    { "id": "ride", "label": "Ride on", "shape": "end" }
   ],
   "edges": [
-    { "from": "scan", "to": "inspect" },
-    { "from": "scan", "to": "fee" },
-    { "from": "inspect", "to": "close" },
-    { "from": "fee", "to": "close" },
-    { "from": "close", "to": "receipt" },
-    { "from": "close", "to": "trolley" }
+    { "from": "flat", "to": "wheel" },
+    { "from": "wheel", "to": "find" },
+    { "from": "find", "to": "big" },
+    { "from": "big", "to": "tube", "label": "yes" },
+    { "from": "big", "to": "patch", "label": "no" },
+    { "from": "tube", "to": "pump" },
+    { "from": "patch", "to": "pump" },
+    { "from": "pump", "to": "holds" },
+    { "from": "holds", "to": "log", "label": "yes" },
+    { "from": "holds", "to": "find", "label": "no" },
+    { "from": "log", "to": "ride" }
   ]
 }

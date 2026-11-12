@@ -149,7 +149,7 @@ describe("unknown fields", () => {
 
   it("rejects an unknown node field", async () => {
     expect(await problems(pondWith((p) => (p.nodes[1]!.size = "large")))).toEqual([
-      { path: "nodes[1].size", message: 'unknown field "size"', hint: "allowed fields: id, label, status, shape" },
+      { path: "nodes[1].size", message: 'unknown field "size"', hint: "allowed fields: id, label, description, status, shape, about" },
     ]);
   });
 
@@ -192,7 +192,7 @@ describe("nodes and edges", () => {
   it.each([
     ["id", 'add "id": a unique id made of letters, digits and - _ . :'],
     ["label", 'add "label": the text shown in the shape'],
-    ["shape", 'add "shape": the shape drawn, "step"'],
+    ["shape", 'add "shape": the shape drawn, "start", "end", "step", "decision", "io", "subprocess" or "note"'],
   ])("requires a node's %s", async (field, hint) => {
     // Remove it from the last node, so no edge points at a node that lost its id.
     const input = pondWith((p) => p.edges.pop() && delete p.nodes[2]![field]);
@@ -201,17 +201,17 @@ describe("nodes and edges", () => {
   });
 
   it.each([
-    ["from", 'add "from": the id of the node the line starts at'],
-    ["to", 'add "to": the id of the node the line ends at'],
+    ["from", `add "from": the id of the node the line starts at, which can't be a note`],
+    ["to", `add "to": the id of the node the line ends at, which can't be a note`],
   ])("requires an edge's %s", async (field, hint) => {
     expect(await problems(pondWith((p) => delete p.edges[0]![field]))).toEqual([
       { path: `edges[0].${field}`, message: `missing required field "${field}"`, hint },
     ]);
   });
 
-  it("accepts only the shapes implemented so far", async () => {
-    expect(await problems(pondWith((p) => (p.nodes[0]!.shape = "decision")))).toEqual([
-      { path: "nodes[0].shape", message: '"decision" is not supported yet', hint: 'use "step"' },
+  it.each(["oval", "Step", "process", 3])("rejects the shape %j: only the seven flowchart shapes are drawn", async (shape) => {
+    expect(await problems(pondWith((p) => (p.nodes[0]!.shape = shape)))).toEqual([
+      { path: "nodes[0].shape", message: `${JSON.stringify(shape)} is not a valid shape`, hint: 'use "start", "end", "step", "decision", "io", "subprocess" or "note"' },
     ]);
   });
 
@@ -604,6 +604,32 @@ describe("text", () => {
       { path: field, message: "must be a string", hint: "write the text in double quotes" },
     ]);
   });
+
+  it("checks a node's description like any other text, up to 300 characters", async () => {
+    const doc = parseSvg((await render(pondWith((p) => (p.nodes[1]!.description = "  Overlap   the edges ")), opts)).svg);
+    expect(textLines(cardById(doc, "line"))).toEqual(["Lay the liner", "Overlap the edges"]);
+
+    await expect(render(pondWith((p) => (p.nodes[1]!.description = "e".repeat(300))), opts)).resolves.toHaveProperty("svg");
+    expect(await problems(pondWith((p) => (p.nodes[1]!.description = "e".repeat(301))))).toEqual([
+      { path: "nodes[1].description", message: "is 301 characters long; the limit is 300", hint: "shorten it" },
+    ]);
+    expect(await problems(pondWith((p) => (p.nodes[1]!.description = "  ")))).toEqual([
+      { path: "nodes[1].description", message: "must not be empty", hint: "write the text to show" },
+    ]);
+    expect(await problems(pondWith((p) => (p.nodes[1]!.description = "Overlap\nthe edges")))).toEqual([
+      { path: "nodes[1].description", message: "contains a line feed (U+000A)", hint: "use a space instead: text wraps by itself" },
+    ]);
+    expect(await problems(pondWith((p) => (p.nodes[1]!.description = "Overlap 🌊")))).toEqual([
+      {
+        path: "nodes[1].description",
+        message: 'contains "🌊" (U+1F30A), which Structa\'s fonts can\'t draw',
+        hint: "use Latin letters, digits and common symbols",
+      },
+    ]);
+    expect(await problems(pondWith((p) => (p.nodes[1]!.description = false)))).toEqual([
+      { path: "nodes[1].description", message: "must be a string", hint: "write the text in double quotes" },
+    ]);
+  });
 });
 
 describe("JSON syntax errors", () => {
@@ -719,11 +745,11 @@ describe("several problems", () => {
     expect(error.problems).toEqual([
       { path: "colour", message: 'unknown field "colour"', hint: "allowed fields: version, type, title, description, theme, direction, legend, nodes, edges" },
       { path: "version", message: "3 is not supported", hint: "use 1, or leave version out" },
-      { path: "nodes[1].size", message: 'unknown field "size"', hint: "allowed fields: id, label, status, shape" },
+      { path: "nodes[1].size", message: 'unknown field "size"', hint: "allowed fields: id, label, description, status, shape, about" },
       { path: "nodes[1].id", message: 'the id "dig" is already used by nodes[0]', hint: "give every node and edge its own id" },
       { path: "nodes[1].label", message: "contains a tab (U+0009)", hint: "use a space instead" },
       { path: "nodes[2].label", message: 'missing required field "label"', hint: 'add "label": the text shown in the shape' },
-      { path: "nodes[2].shape", message: '"oval" is not supported yet', hint: 'use "step"' },
+      { path: "nodes[2].shape", message: '"oval" is not a valid shape', hint: 'use "start", "end", "step", "decision", "io", "subprocess" or "note"' },
       { path: "edges[0].to", message: 'no node with id "pump"', hint: "use the id of one of the nodes" },
       { path: "edges[1].id", message: 'the id "fill" is already used by nodes[2]', hint: "give every node and edge its own id" },
       { path: "edges[1].from", message: 'no node with id "rake"', hint: "use the id of one of the nodes" },

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { render } from "../src/index";
-import { cardBox, cardById, parseSvg, type Box } from "./helpers/svg";
+import { cardById, outlineBox, parseSvg, type Box } from "./helpers/svg";
 
 const opts = { embedFonts: false } as const;
 
@@ -23,7 +23,7 @@ function chain(direction?: string) {
 
 async function boxes(input: object, ids: readonly string[]): Promise<Box[]> {
   const doc = parseSvg((await render(input, opts)).svg);
-  return ids.map((id) => cardBox(cardById(doc, id)));
+  return ids.map((id) => outlineBox(cardById(doc, id)));
 }
 
 describe("direction", () => {

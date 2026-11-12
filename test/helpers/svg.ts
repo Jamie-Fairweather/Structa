@@ -1,4 +1,5 @@
 import { DOMParser, type Document, type Element } from "@xmldom/xmldom";
+import { readTtf } from "../../scripts/lib/ttf";
 import { render } from "../../src/index";
 
 /** Parses SVG text, failing the test on anything that isn't well-formed XML. */
@@ -25,6 +26,8 @@ function byClass(doc: Document, className: string): Element[] {
 
 export const cards = (doc: Document): Element[] => byClass(doc, "card");
 export const lines = (doc: Document): Element[] => byClass(doc, "line");
+/** The dotted connectors joining notes to the shapes they're about. */
+export const connectors = (doc: Document): Element[] => byClass(doc, "connector");
 
 export function titleOf(el: Element): string | undefined {
   const title = Array.from(el.childNodes).find((n) => n.nodeName === "title");
@@ -45,13 +48,6 @@ export interface Box {
 export function rectBox(rect: Element): Box {
   const num = (name: string) => Number(rect.getAttribute(name));
   return { x: num("x"), y: num("y"), width: num("width"), height: num("height") };
-}
-
-/** The outline box of a card: its first rect. */
-export function cardBox(card: Element): Box {
-  const rect = card.getElementsByTagName("rect")[0];
-  if (!rect) throw new Error(`card ${card.getAttribute("data-id")} has no rect`);
-  return rectBox(rect);
 }
 
 /** Elements inside `root` with the given class. */
@@ -144,18 +140,32 @@ export function lineGeometry(line: Element): { route: PathCommand[]; arrowTip: P
   };
 }
 
+/** The start and end of a note's connector: its one path, with no arrowhead. */
+export function connectorEnds(connector: Element): [Point, Point] {
+  return pathEnds(connector.getElementsByTagName("path")[0]!);
+}
+
+/**
+ * Where a line starts and where it ends: the tip of its arrowhead, or the end
+ * of its one path when it has none, like a class association.
+ */
+export function lineEnds(line: Element): [Point, Point] {
+  const paths = Array.from(line.getElementsByTagName("path"));
+  if (paths.length === 1) return pathEnds(paths[0]!);
+  const { route, arrowTip } = lineGeometry(line);
+  return [route[0]!.points[0]!, arrowTip];
+}
+
+function pathEnds(path: Element): [Point, Point] {
+  const points = parsePath(path.getAttribute("d")!).flatMap((c) => c.points);
+  return [points[0]!, points.at(-1)!];
+}
+
 /** How far a point is outside a box (0 when on its outline or inside it). */
 export function distanceOutside(p: Point, box: Box): number {
   const dx = Math.max(box.x - p.x, 0, p.x - (box.x + box.width));
   const dy = Math.max(box.y - p.y, 0, p.y - (box.y + box.height));
   return Math.hypot(dx, dy);
-}
-
-/** How far a point is from the outline of a box (0 when exactly on it). */
-export function distanceToOutline(p: Point, box: Box): number {
-  const outside = distanceOutside(p, box);
-  if (outside > 0) return outside;
-  return Math.min(p.x - box.x, box.x + box.width - p.x, p.y - box.y, box.y + box.height - p.y);
 }
 
 /**
@@ -249,6 +259,31 @@ export function fontFaceRules(doc: Document): FontFaceRule[] {
   });
 }
 
+/**
+ * The box each <text> is drawn in: as wide as its characters' advances in the
+ * face the SVG embeds for it, from the face's ascender to its descender. The
+ * SVG must have been rendered with its fonts embedded.
+ */
+export function drawnTextBoxes(doc: Document): Map<Element, Box> {
+  const fonts = new Map(
+    fontFaceRules(doc).map((rule) => [rule.face, readTtf(Buffer.from(/base64,([^"')]+)/.exec(rule.src)![1]!, "base64"))]),
+  );
+  const boxes = new Map<Element, Box>();
+  for (const text of allElements(doc).filter((el) => el.localName === "text")) {
+    const family = (text.getAttribute("font-family") ?? "").split(",")[0]!.trim();
+    const face = `${family} ${text.getAttribute("font-weight") ?? "400"} ${text.getAttribute("font-style") ?? "normal"}`;
+    const font = fonts.get(face);
+    if (!font) throw new Error(`no embedded font for ${face}`);
+    const size = Number(text.getAttribute("font-size"));
+    const scale = size / font.unitsPerEm;
+    const width = [...(text.textContent ?? "")].reduce((sum, ch) => sum + (font.advance(ch.codePointAt(0)!) ?? font.missingAdvance), 0) * scale;
+    const x = Number(text.getAttribute("x")) - (text.getAttribute("text-anchor") === "middle" ? width / 2 : 0);
+    const baseline = Number(text.getAttribute("y"));
+    boxes.set(text, { x, y: baseline - font.ascender * scale, width, height: (font.ascender - font.descender) * scale });
+  }
+  return boxes;
+}
+
 /** Each face the SVG's text is drawn in, once, in order of first use. */
 export function textFaces(doc: Document): FaceName[] {
   const faces = allElements(doc)
@@ -258,6 +293,78 @@ export function textFaces(doc: Document): FaceName[] {
       return `${family} ${text.getAttribute("font-weight") ?? "400"} ${text.getAttribute("font-style") ?? "normal"}`;
     });
   return [...new Set(faces)];
+}
+
+/** A card's drawn outline: the element with class "outline". */
+export function outlineOf(card: Element): Element {
+  const outline = byClassIn(card, "outline")[0];
+  if (!outline) throw new Error(`card ${card.getAttribute("data-id")} has no outline`);
+  return outline;
+}
+
+/** The corners of a closed outline drawn as a path of straight runs (M, L, …, Z). */
+export function polygonOf(path: Element): Point[] {
+  const commands = parsePath(path.getAttribute("d") ?? "");
+  if (commands.at(-1)?.command !== "Z" || commands.some((c) => !["M", "L", "Z"].includes(c.command))) {
+    throw new Error(`not a closed path of straight runs: ${path.getAttribute("d")}`);
+  }
+  return commands.flatMap((c) => c.points);
+}
+
+/** The bounding box of some points. */
+export function boundsOf(points: readonly Point[]): Box {
+  const xs = points.map((p) => p.x);
+  const ys = points.map((p) => p.y);
+  return { x: Math.min(...xs), y: Math.min(...ys), width: Math.max(...xs) - Math.min(...xs), height: Math.max(...ys) - Math.min(...ys) };
+}
+
+/** The bounding box of a card's outline, whatever its shape. */
+export function outlineBox(card: Element): Box {
+  const outline = outlineOf(card);
+  return outline.localName === "rect" ? rectBox(outline) : boundsOf(polygonOf(outline));
+}
+
+/**
+ * How far a point is from a card's drawn outline, whatever its shape: a
+ * rounded rect (a pill when its corners are half its height) or a closed
+ * path of straight runs.
+ */
+export function distanceToShape(p: Point, card: Element): number {
+  const outline = outlineOf(card);
+  if (outline.localName === "rect") return Math.abs(roundedRectDepth(p, rectBox(outline), Number(outline.getAttribute("rx") ?? 0)));
+  const corners = polygonOf(outline);
+  return Math.min(...corners.map((a, i) => distanceToSegment(p, a, corners[(i + 1) % corners.length]!)));
+}
+
+/** How far a point is from what's drawn of a card: its outline, whatever its shape, or the badge sitting on it. */
+export function distanceToDrawn(p: Point, card: Element): number {
+  const badge = badgeBox(card);
+  const onOutline = distanceToShape(p, card);
+  return badge ? Math.min(onOutline, Math.abs(depthInPill(p, badge))) : onOutline;
+}
+
+/** How far a point is inside a card's drawn outline: positive inside, 0 on it, negative outside. */
+export function depthInShape(p: Point, card: Element): number {
+  const outline = outlineOf(card);
+  if (outline.localName === "rect") return roundedRectDepth(p, rectBox(outline), Number(outline.getAttribute("rx") ?? 0));
+  const corners = polygonOf(outline);
+  const distance = Math.min(...corners.map((a, i) => distanceToSegment(p, a, corners[(i + 1) % corners.length]!)));
+  // Inside a convex polygon, the point is on the same side of every edge.
+  const sides = corners.map((a, i) => {
+    const b = corners[(i + 1) % corners.length]!;
+    return Math.sign((b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x));
+  });
+  const inside = sides.every((s) => s >= 0) || sides.every((s) => s <= 0);
+  return inside ? distance : -distance;
+}
+
+/** How far a point is inside a rounded rect: positive inside, 0 on its outline, negative outside. */
+function roundedRectDepth(p: Point, box: Box, radius: number): number {
+  const r = Math.min(radius, box.width / 2, box.height / 2);
+  const qx = Math.abs(p.x - (box.x + box.width / 2)) - (box.width / 2 - r);
+  const qy = Math.abs(p.y - (box.y + box.height / 2)) - (box.height / 2 - r);
+  const outside = Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) + Math.min(Math.max(qx, qy), 0);
+  return r - outside;
 }
 
 export function cardById(doc: Document, id: string): Element {

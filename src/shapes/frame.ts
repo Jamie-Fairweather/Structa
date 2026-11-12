@@ -1,6 +1,7 @@
-import type { Status } from "../input";
+import type { FlowShape, Status } from "../input";
 import { baseline, measure, type FaceId } from "../text";
 import type { Sizes, ThemeColors } from "../theme";
+import { move, placeOutline, type Mark, type Outline, type OutlineShape, type Point } from "./outline";
 
 /** A line of text, positioned relative to the top-left corner of whatever holds it. */
 export interface TextLine {
@@ -57,11 +58,30 @@ export interface Row {
   readonly badge?: Badge;
 }
 
-/** What a card builder makes: the card's outline size and its contents, relative to the outline's top-left corner. */
+/** Where a card's status badge sits on its top border. */
+export type BadgePlace =
+  /** Toward the right-hand end, `inset` px in from it. */
+  | { readonly align: "end"; readonly inset: number }
+  /** Centred, as on the top corner of a diamond. */
+  | { readonly align: "middle" };
+
+/** The colour a card's outline is filled with. */
+export type CardFill = keyof Pick<ThemeColors, "cardFill" | "noteFill">;
+
+/**
+ * What a card builder makes: the card's outline size and its contents,
+ * relative to the outline's top-left corner. It should be at least the
+ * `minWidth` the frame asks for; a narrower one sits centred in a wider box.
+ */
 export interface CardBody {
-  readonly kind: "step" | "class";
+  readonly kind: FlowShape | "class";
   readonly width: number;
   readonly height: number;
+  readonly outline: OutlineShape;
+  readonly marks?: readonly Mark[];
+  readonly fill?: CardFill;
+  /** Default: toward the right-hand end, the theme's inset in from it. */
+  readonly badge?: BadgePlace;
   readonly tooltip: string;
   readonly texts: readonly TextLine[];
   /** Thin lines right across the card between its sections, at these heights. */
@@ -79,7 +99,9 @@ export interface Card {
   readonly width: number;
   readonly height: number;
   /** The card's drawn outline inside its box: below the band its badge overhangs. */
-  readonly outline: Box;
+  readonly outline: Outline;
+  readonly marks: readonly Mark[];
+  readonly fill: CardFill;
   readonly tooltip: string;
   readonly texts: readonly TextLine[];
   readonly dividers: readonly number[];
@@ -128,13 +150,12 @@ function frameCard<N extends Framed>(node: N, top: number, sizes: Sizes, build: 
   const { id, status } = node;
   const minWidth = borderWidth(node, sizes);
   const body = build(node, minWidth);
-  // A body narrower than its border needs is widened, its contents centred, so a badge never hangs off the card.
+  // A body narrower than its border needs sits centred in a wider box, so a badge never hangs off the card.
   const width = Math.max(body.width, minWidth);
-  const dx = (width - body.width) / 2;
-  const outline = { x: 0, y: top, width, height: body.height };
-  const move = <P extends { readonly x: number; readonly y: number }>(p: P): P => ({ ...p, x: p.x + dx, y: p.y + top });
-  const moveText = (t: TextLine, struck: boolean): TextLine => {
-    const moved = move(t);
+  const at = { x: (width - body.width) / 2, y: top };
+  const shift = <P extends Point>(p: P): P => ({ ...p, ...move(p, at) });
+  const shiftText = (t: TextLine, struck: boolean): TextLine => {
+    const moved = shift(t);
     return struck ? { ...moved, strike: strikeThrough(moved, sizes) } : moved;
   };
 
@@ -144,36 +165,29 @@ function frameCard<N extends Framed>(node: N, top: number, sizes: Sizes, build: 
     ...(status === undefined ? {} : { status }),
     width,
     height: top + body.height,
-    outline,
+    outline: placeOutline(body.outline, { ...at, width: body.width, height: body.height }),
+    marks: (body.marks ?? []).map((mark) => mark.map((p) => move(p, at))),
+    fill: body.fill ?? "cardFill",
     tooltip: body.tooltip,
-    texts: body.texts.map((t) => moveText(t, status === "removed" && t.title === true)),
+    texts: body.texts.map((t) => shiftText(t, status === "removed" && t.title === true)),
     dividers: (body.dividers ?? []).map((y) => y + top),
     rows: (body.rows ?? []).map((row) => ({
       ...row,
-      box: move(row.box),
-      ...(row.symbol ? { symbol: move(row.symbol) } : {}),
-      texts: row.texts.map((t) => moveText(t, row.status === "removed")),
-      ...(row.badge ? { badge: { ...move(row.badge), word: move(row.badge.word) } } : {}),
+      box: shift(row.box),
+      ...(row.symbol ? { symbol: shift(row.symbol) } : {}),
+      texts: row.texts.map((t) => shiftText(t, row.status === "removed")),
+      ...(row.badge ? { badge: { ...shift(row.badge), word: shift(row.badge.word) } } : {}),
     })),
-    ...(body.more ? { more: move(body.more) } : {}),
-    ...(status === undefined
-      ? {}
-      : { badge: badge(status, width - sizes.badge.inset - measureBadge(status, sizes), top - sizes.badge.height / 2, sizes) }),
+    ...(body.more ? { more: shift(body.more) } : {}),
+    ...(status === undefined ? {} : { badge: badge(status, badgeX(status, width, body.badge, sizes), top - sizes.badge.height / 2, sizes) }),
   };
 }
 
-/**
- * How far below the top of its box a card's drawn shape starts, `x` from the
- * box's left edge: the top of its badge where the badge is (following the
- * pill's rounded ends), otherwise its outline.
- */
-export function topAt(card: Card, x: number): number {
-  const { badge, outline } = card;
-  if (!badge) return outline.y;
-  const r = badge.height / 2;
-  const dx = x - Math.min(Math.max(x, badge.x + r), badge.x + badge.width - r);
-  if (Math.abs(dx) >= r) return outline.y;
-  return Math.min(outline.y, badge.y + r - Math.sqrt(r * r - dx * dx));
+/** Where the left end of a card's badge goes, kept at least the theme's inset inside the card's box. */
+function badgeX(status: Status, width: number, place: BadgePlace | undefined, sizes: Sizes): number {
+  const badgeWidth = measureBadge(status, sizes);
+  if (place?.align === "middle") return (width - badgeWidth) / 2;
+  return Math.max(sizes.badge.inset, width - (place?.inset ?? sizes.badge.inset) - badgeWidth);
 }
 
 /** A line through the middle of the letters of `t`, as wide as the text is drawn. */

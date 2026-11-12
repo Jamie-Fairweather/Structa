@@ -15,7 +15,7 @@ export function jsonSchema(): JsonSchema {
     $schema: "https://json-schema.org/draft/2020-12/schema",
     title: "Structa diagram",
     description:
-      'One diagram for Structa to draw. Text is plain text in Latin letters, digits and common symbols, with no control characters; runs of spaces collapse to one, and text can\'t be only spaces. Ids must be unique across nodes and edges, and a row\'s id within its card; "from" and "to" must name a node.',
+      'One diagram for Structa to draw. Text is plain text in Latin letters, digits and common symbols, with no control characters; runs of spaces collapse to one, and text can\'t be only spaces. Ids must be unique across nodes and edges, and a row\'s id within its card; "from", "to" and "about" must name a node that isn\'t a note.',
     ...objectSchema(SHARED),
     allOf: [...DEFINITIONS].map(([type, def]) => ({
       if: { properties: { type: { const: type } }, required: ["type"] },
@@ -41,11 +41,16 @@ function itemsSchema(def: ObjectDef, name: "nodes" | "edges"): JsonSchema {
 }
 
 function objectSchema(def: ObjectDef): JsonSchema {
+  // A field allowed only when another field has one value: when it's there, so must that value be.
+  const conditional = def.fields.flatMap((field) =>
+    field.onlyWhen ? [[field.name, { properties: { [field.onlyWhen.field]: { const: field.onlyWhen.value } } }] as const] : [],
+  );
   return {
     ...(def.description === undefined ? {} : { description: def.description }),
     type: "object",
     properties: Object.fromEntries(def.fields.map((field) => [field.name, fieldSchema(field)])),
     required: def.fields.filter((f) => f.required).map((f) => f.name),
+    ...(conditional.length === 0 ? {} : { dependentSchemas: Object.fromEntries(conditional) }),
     additionalProperties: def.otherFields === "allowed",
   };
 }

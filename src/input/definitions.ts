@@ -39,7 +39,7 @@ export type Def =
   | TextDef
   /** Node and edge ids are unique across the diagram; a row's id only within its card. */
   | { readonly kind: "id"; readonly of: "node" | "edge" | "row" }
-  | { readonly kind: "ref"; readonly to: "node" }
+  | RefDef
   | ChoiceDef
   | { readonly kind: "boolean" }
   /** A whole number from `min` to `max`. */
@@ -88,6 +88,18 @@ export interface TextDef {
   readonly faces: readonly FaceId[];
 }
 
+/** The id of a node. */
+export interface RefDef {
+  readonly kind: "ref";
+  readonly to: "node";
+  /**
+   * A kind of node it may not name: one whose `field` is `value`. The message
+   * reads `"<id>" is a <value>, and <reason>`. The schema can't say this; only
+   * the validator checks it.
+   */
+  readonly notTo?: { readonly field: string; readonly value: string; readonly reason: string; readonly hint: string };
+}
+
 /** One of a fixed list of words. With `later`, other values are "not supported yet". */
 export interface ChoiceDef {
   readonly kind: "choice";
@@ -102,6 +114,8 @@ export interface Field {
   /** Shown in the schema, and in the hint when a required field is missing. */
   readonly description: string;
   readonly default?: string | boolean | readonly [];
+  /** Allowed only when the object's `field` is `value`, as "about" is only for notes. */
+  readonly onlyWhen?: { readonly field: string; readonly value: string; readonly hint: string };
 }
 
 function required(name: string, def: Def, description: string): Field {
@@ -170,34 +184,86 @@ function diagram(node: Def, edge: Def, direction: "down" | "right"): ObjectDef {
 export const TITLE_FACE: FaceId = "inter-bold";
 export const DESCRIPTION_FACE: FaceId = "inter-regular";
 export const STEP_LABEL_FACE: FaceId = "inter-semibold";
+/** Notes are asides, so their labels are lighter than the shapes'. */
+export const NOTE_LABEL_FACE: FaceId = "inter-regular";
+/** A card's description, muted under its label. */
+export const CARD_DESCRIPTION_FACE: FaceId = "inter-regular";
 export const LINE_LABEL_FACE: FaceId = "inter-regular";
 export const CLASS_NAME_FACE: FaceId = "inter-semibold";
 export const CLASS_DESCRIPTION_FACE: FaceId = "inter-regular";
 export const ROW_TEXT_FACE: FaceId = "mono-regular";
+
+/**
+ * The flowchart shapes: start and end are pills, a step a rounded box, a
+ * decision a diamond, io (input or output) a slanted box, a subprocess a box
+ * with double side bars, and a note an aside with a folded corner.
+ */
+export const FLOW_SHAPES = ["start", "end", "step", "decision", "io", "subprocess", "note"] as const;
+export type FlowShape = (typeof FLOW_SHAPES)[number];
 
 const FLOW_NODE: ObjectDef = {
   kind: "object",
   noun: "node",
   fields: [
     required("id", { kind: "id", of: "node" }, "a unique id made of letters, digits and - _ . :"),
-    required("label", { kind: "text", text: LABEL, faces: [STEP_LABEL_FACE] }, "the text shown in the shape"),
+    required("label", { kind: "text", text: LABEL, faces: [STEP_LABEL_FACE, NOTE_LABEL_FACE] }, "the text shown in the shape"),
+    optional(
+      "description",
+      { kind: "text", text: DESCRIPTION, faces: [CARD_DESCRIPTION_FACE] },
+      "a sentence or two drawn smaller under the label, and shown in the tooltip",
+    ),
     optional("status", STATUS, "what the change does to this card; leave it out for no status"),
-    required("shape", { kind: "choice", values: ["step"], later: true }, "the shape drawn"),
+    required("shape", { kind: "choice", values: FLOW_SHAPES, later: false }, "the shape drawn"),
+    {
+      ...optional(
+        "about",
+        {
+          kind: "ref",
+          to: "node",
+          notTo: {
+            field: "shape",
+            value: "note",
+            reason: "a note can only be about a shape that isn't a note",
+            hint: "use the id of a shape that isn't a note",
+          },
+        },
+        "notes only: the id of the shape the note is about, joined to it by a dotted line; without it the note floats near the chart",
+      ),
+      onlyWhen: { field: "shape", value: "note", hint: 'remove "about", or make this node a note' },
+    },
   ],
 };
 
-const FLOW_EDGE: ObjectDef = {
-  kind: "object",
-  noun: "edge",
-  fields: [
-    optional("id", { kind: "id", of: "edge" }, "a unique id; without one the line is known as edges[N]"),
-    required("from", { kind: "ref", to: "node" }, "the id of the node the line starts at"),
-    required("to", { kind: "ref", to: "node" }, "the id of the node the line ends at"),
-    optional("label", { kind: "text", text: LINE_LABEL, faces: [LINE_LABEL_FACE] }, "a short label drawn in a pill on the line"),
-    optional("status", STATUS, "what the change does to this line, shown by its colour; leave it out for no status"),
-    optional("emphasis", BOOLEAN, "true draws the line thicker, to point out the main path", false),
-  ],
+/** Lines join shapes; a note is joined to its shape by its own "about" instead. */
+const LINE_END: RefDef = {
+  kind: "ref",
+  to: "node",
+  notTo: {
+    field: "shape",
+    value: "note",
+    reason: "lines can't start or end at a note",
+    hint: 'point the note at a shape with "about" instead',
+  },
 };
+
+/** A line: its ends are checked by `end` and described with `endNote` after them, and `extra` fields follow the shared ones. */
+function edge(end: RefDef, endNote: string, extra: readonly Field[]): ObjectDef {
+  return {
+    kind: "object",
+    noun: "edge",
+    fields: [
+      optional("id", { kind: "id", of: "edge" }, "a unique id; without one the line is known as edges[N]"),
+      required("from", end, `the id of the node the line starts at${endNote}`),
+      required("to", end, `the id of the node the line ends at${endNote}`),
+      optional("label", { kind: "text", text: LINE_LABEL, faces: [LINE_LABEL_FACE] }, "a short label drawn in a pill on the line"),
+      optional("status", STATUS, "what the change does to this line, shown by its colour; leave it out for no status"),
+      optional("emphasis", BOOLEAN, "true draws the line thicker, to point out the main path", false),
+      ...extra,
+    ],
+  };
+}
+
+const FLOW_EDGE = edge(LINE_END, ", which can't be a note", []);
 
 /** Who can use a class member, drawn before its text as + - # ~. */
 export const VISIBILITIES = ["public", "private", "protected", "package"] as const;
@@ -316,13 +382,9 @@ const CLASS_NODE: ObjectDef = {
 /** The relationship a class line shows. Only association is drawn so far. */
 export const CLASS_EDGE_KINDS = ["association"] as const;
 
-const CLASS_EDGE: ObjectDef = {
-  ...FLOW_EDGE,
-  fields: [
-    ...FLOW_EDGE.fields,
-    required("kind", { kind: "choice", values: CLASS_EDGE_KINDS, later: true }, "the relationship the line shows"),
-  ],
-};
+const CLASS_EDGE = edge({ kind: "ref", to: "node" }, "", [
+  required("kind", { kind: "choice", values: CLASS_EDGE_KINDS, later: true }, "the relationship the line shows"),
+]);
 
 /** Each implemented type's definition, in DIAGRAM_TYPES order. */
 export const DEFINITIONS: ReadonlyMap<string, ObjectDef> = new Map([

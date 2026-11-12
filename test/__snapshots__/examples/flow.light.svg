@@ -1,71 +1,137 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="555" height="424" viewBox="0 0 555 424">
+<svg xmlns="http://www.w3.org/2000/svg" width="456" height="1080" viewBox="0 0 456 1080">
 <defs>
 <pattern id="structa-grid-light" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="9" cy="9" r="1" fill="#8c959f" fill-opacity="0.5"/></pattern>
 <filter id="structa-shadow-light" x="-20%" y="-30%" width="140%" height="170%"><feDropShadow dx="0" dy="1" stdDeviation="3" flood-color="#1f2328" flood-opacity="0.1"/></filter>
 </defs>
-<rect width="555" height="424" fill="#f4f5f7"/>
-<rect width="555" height="424" fill="url(#structa-grid-light)"/>
-<g class="card" data-id="scan" data-kind="step">
-<title>Scan the returned book</title>
-<rect x="85.83" y="32" width="191" height="44" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
-<text x="181.33" y="59.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Scan the returned book</text>
+<rect width="456" height="1080" fill="#f4f5f7"/>
+<rect width="456" height="1080" fill="url(#structa-grid-light)"/>
+<g class="card" data-id="flat" data-kind="start">
+<title>Flat tyre</title>
+<rect class="outline" x="137.17" y="32" width="100" height="44" rx="22" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<text x="187.17" y="59.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Flat tyre</text>
 </g>
-<g class="card" data-id="inspect" data-kind="step">
-<title>Check for damage</title>
-<rect x="71" y="124" width="157" height="44" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
-<text x="149.5" y="151.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Check for damage</text>
+<g class="card" data-id="wheel" data-kind="step">
+<title>Take the wheel off</title>
+<rect class="outline" x="108.17" y="124" width="158" height="44" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<text x="187.17" y="151.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Take the wheel off</text>
 </g>
-<g class="card" data-id="fee" data-kind="step">
-<title>Work out any late fee</title>
-<rect x="268" y="124" width="177" height="44" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
-<text x="356.5" y="151.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Work out any late fee</text>
+<g class="card" data-id="find" data-kind="step">
+<title>Find the puncture</title>
+<rect class="outline" x="111.17" y="216" width="152" height="44" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<text x="187.17" y="243.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Find the puncture</text>
 </g>
-<g class="card" data-id="close" data-kind="step">
-<title>Close the loan</title>
-<rect x="106.5" y="216" width="129" height="44" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
-<text x="171" y="243.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Close the loan</text>
+<g class="card" data-id="big" data-kind="decision">
+<title>Hole bigger than a patch?</title>
+<path class="outline" d="M161.83 308 L279.83 367 L161.83 426 L43.83 367 Z" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)" stroke-linejoin="round"/>
+<text x="161.83" y="362.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Hole bigger than a</text>
+<text x="161.83" y="382.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">patch?</text>
 </g>
-<g class="card" data-id="receipt" data-kind="step">
-<title>Email the borrower a receipt, listing the return date and any fee owed</title>
-<rect x="32" y="308" width="235" height="84" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
-<text x="149.5" y="335.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Email the borrower a receipt,</text>
-<text x="149.5" y="355.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">listing the return date and any</text>
-<text x="149.5" y="375.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">fee owed</text>
+<g class="card" data-id="tube" data-kind="subprocess">
+<title>Fit a new inner tube</title>
+<rect class="outline" x="32" y="542" width="181" height="44" rx="4" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<path class="marks" d="M42 542 L42 586 M203 542 L203 586" fill="none" stroke="#d1d9e0" stroke-width="1"/>
+<text x="122.5" y="569.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Fit a new inner tube</text>
 </g>
-<g class="card" data-id="trolley" data-kind="step">
-<title>Put the book on the returns trolley</title>
-<rect x="307" y="308" width="216" height="64" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
-<text x="415" y="335.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Put the book on the returns</text>
-<text x="415" y="355.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">trolley</text>
+<g class="card" data-id="patch" data-kind="step">
+<title>Patch the tube</title>
+<rect class="outline" x="253" y="542" width="131" height="44" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<text x="318.5" y="569.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Patch the tube</text>
 </g>
-<g class="line" data-id="edges[0]" data-kind="flow" data-from="scan" data-to="inspect">
-<title>Scan the returned book → Check for damage</title>
-<path d="M149.5 76 L149.5 115" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
-<path d="M149.5 124 L145 115 L154 115 Z" fill="#8c959f"/>
+<g class="card" data-id="pump" data-kind="step">
+<title>Pump it up</title>
+<rect class="outline" x="82.5" y="634" width="120" height="44" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<text x="142.5" y="661.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Pump it up</text>
 </g>
-<g class="line" data-id="edges[1]" data-kind="flow" data-from="scan" data-to="fee">
-<title>Scan the returned book → Work out any late fee</title>
-<path d="M213.17 76 L213.17 92 Q213.17 100 221.17 100 L348.5 100 Q356.5 100 356.5 108 L356.5 115" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
-<path d="M356.5 124 L352 115 L361 115 Z" fill="#8c959f"/>
+<g class="card" data-id="holds" data-kind="decision">
+<title>Holds air?</title>
+<path class="outline" d="M165.83 726 L235.83 761 L165.83 796 L95.83 761 Z" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)" stroke-linejoin="round"/>
+<text x="165.83" y="766.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Holds air?</text>
 </g>
-<g class="line" data-id="edges[2]" data-kind="flow" data-from="inspect" data-to="close">
-<title>Check for damage → Close the loan</title>
-<path d="M149.5 168 L149.5 207" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
-<path d="M149.5 216 L145 207 L154 207 Z" fill="#8c959f"/>
+<g class="card" data-id="log" data-kind="io">
+<title>Write the repair in the bike log</title>
+<path class="outline" d="M54.83 912 L290.83 912 L276.83 956 L40.83 956 Z" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)" stroke-linejoin="round"/>
+<text x="165.83" y="939.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Write the repair in the bike log</text>
 </g>
-<g class="line" data-id="edges[3]" data-kind="flow" data-from="fee" data-to="close">
-<title>Work out any late fee → Close the loan</title>
-<path d="M356.5 168 L356.5 184 Q356.5 192 348.5 192 L200.5 192 Q192.5 192 192.5 200 L192.5 207" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
-<path d="M192.5 216 L188 207 L197 207 Z" fill="#8c959f"/>
+<g class="card" data-id="ride" data-kind="end">
+<title>Ride on</title>
+<rect class="outline" x="115.83" y="1004" width="100" height="44" rx="22" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<text x="165.83" y="1031.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Ride on</text>
 </g>
-<g class="line" data-id="edges[4]" data-kind="flow" data-from="close" data-to="receipt">
-<title>Close the loan → Email the borrower a receipt, listing the return date and any fee owed</title>
-<path d="M149.5 260 L149.5 299" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
-<path d="M149.5 308 L145 299 L154 299 Z" fill="#8c959f"/>
+<g class="line" data-id="edges[0]" data-kind="flow" data-from="flat" data-to="wheel">
+<title>Flat tyre → Take the wheel off</title>
+<path d="M187.17 76 L187.17 115" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M187.17 124 L182.67 115 L191.67 115 Z" fill="#8c959f"/>
 </g>
-<g class="line" data-id="edges[5]" data-kind="flow" data-from="close" data-to="trolley">
-<title>Close the loan → Put the book on the returns trolley</title>
-<path d="M192.5 260 L192.5 276 Q192.5 284 200.5 284 L407 284 Q415 284 415 292 L415 299" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
-<path d="M415 308 L410.5 299 L419.5 299 Z" fill="#8c959f"/>
+<g class="line" data-id="edges[1]" data-kind="flow" data-from="wheel" data-to="find">
+<title>Take the wheel off → Find the puncture</title>
+<path d="M187.17 168 L187.17 207" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M187.17 216 L182.67 207 L191.67 207 Z" fill="#8c959f"/>
+</g>
+<g class="line" data-id="edges[2]" data-kind="flow" data-from="find" data-to="big">
+<title>Find the puncture → Hole bigger than a patch?</title>
+<path d="M161.83 260 L161.83 299" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M161.83 308 L157.33 299 L166.33 299 Z" fill="#8c959f"/>
+</g>
+<g class="line" data-id="edges[3]" data-kind="flow" data-from="big" data-to="tube">
+<title>Hole bigger than a patch? → Fit a new inner tube: yes</title>
+<path d="M122.5 406.33 L122.5 533" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M122.5 542 L118 533 L127 533 Z" fill="#8c959f"/>
+</g>
+<g class="line" data-id="edges[4]" data-kind="flow" data-from="big" data-to="patch">
+<title>Hole bigger than a patch? → Patch the tube: no</title>
+<path d="M201.17 406.33 L201.17 442 Q201.17 450 209.17 450 L310.5 450 Q318.5 450 318.5 458 L318.5 533" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M318.5 542 L314 533 L323 533 Z" fill="#8c959f"/>
+</g>
+<g class="line" data-id="edges[5]" data-kind="flow" data-from="tube" data-to="pump">
+<title>Fit a new inner tube → Pump it up</title>
+<path d="M122.5 586 L122.5 625" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M122.5 634 L118 625 L127 625 Z" fill="#8c959f"/>
+</g>
+<g class="line" data-id="edges[6]" data-kind="flow" data-from="patch" data-to="pump">
+<title>Patch the tube → Pump it up</title>
+<path d="M318.5 586 L318.5 602 Q318.5 610 310.5 610 L170.5 610 Q162.5 610 162.5 618 L162.5 625" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M162.5 634 L158 625 L167 625 Z" fill="#8c959f"/>
+</g>
+<g class="line" data-id="edges[7]" data-kind="flow" data-from="pump" data-to="holds">
+<title>Pump it up → Holds air?</title>
+<path d="M142.5 678 L142.5 728.67" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M142.5 737.67 L138 728.67 L147 728.67 Z" fill="#8c959f"/>
+</g>
+<g class="line" data-id="edges[8]" data-kind="flow" data-from="holds" data-to="log">
+<title>Holds air? → Write the repair in the bike log: yes</title>
+<path d="M165.83 796 L165.83 903" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M165.83 912 L161.33 903 L170.33 903 Z" fill="#8c959f"/>
+</g>
+<g class="line" data-id="edges[9]" data-kind="flow" data-from="holds" data-to="find">
+<title>Holds air? → Find the puncture: no</title>
+<path d="M189.17 737.67 L189.17 710 Q189.17 702 197.17 702 L400 702 Q408 702 408 694 L408 292 Q408 284 400 284 L220.5 284 Q212.5 284 212.5 276 L212.5 269" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M212.5 260 L217 269 L208 269 Z" fill="#8c959f"/>
+</g>
+<g class="line" data-id="edges[10]" data-kind="flow" data-from="log" data-to="ride">
+<title>Write the repair in the bike log → Ride on</title>
+<path d="M165.83 956 L165.83 995" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M165.83 1004 L161.33 995 L170.33 995 Z" fill="#8c959f"/>
+</g>
+<g class="line-labels">
+<g class="line-label" data-line="edges[3]">
+<title>Hole bigger than a patch? → Fit a new inner tube: yes</title>
+<rect x="104" y="474" width="37" height="20" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1"/>
+<text x="122.5" y="488.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">yes</text>
+</g>
+<g class="line-label" data-line="edges[4]">
+<title>Hole bigger than a patch? → Patch the tube: no</title>
+<rect x="303" y="474" width="31" height="20" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1"/>
+<text x="318.5" y="488.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">no</text>
+</g>
+<g class="line-label" data-line="edges[8]">
+<title>Holds air? → Write the repair in the bike log: yes</title>
+<rect x="147.33" y="844" width="37" height="20" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1"/>
+<text x="165.83" y="858.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">yes</text>
+</g>
+<g class="line-label" data-line="edges[9]">
+<title>Holds air? → Find the puncture: no</title>
+<rect x="392.5" y="474" width="31" height="20" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1"/>
+<text x="408" y="488.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">no</text>
+</g>
 </g>
 </svg>

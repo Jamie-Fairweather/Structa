@@ -3,7 +3,7 @@ import { parseDiagram } from "./input";
 import { layout, PROFILES } from "./layout";
 import { paint } from "./painter";
 import { DEFAULT_SCALE, rasterise, SCALES, type Scale } from "./raster";
-import { buildCards, buildHeader, buildLegend, buildLine } from "./shapes";
+import { buildCards, buildConnector, buildHeader, buildLegend, buildLine } from "./shapes";
 import { getTheme, THEME_NAMES, type ThemeName } from "./theme";
 
 interface Outputs {
@@ -37,7 +37,7 @@ export async function render<F extends Format = "svg">(
   const { diagram } = parsed;
 
   const theme = getTheme(themeName ?? diagram.theme);
-  const cards = buildCards(diagram, theme.sizes).map((card, i) => ({ ...card, path: `nodes[${i}]` }));
+  const cards = buildCards(diagram, theme.sizes).map((card, i) => ({ ...card, path: `nodes[${i}]`, note: card.kind === "note" }));
   const nodes: readonly { readonly id: string; readonly label: string }[] = diagram.nodes;
   const index = new Map(nodes.map((node, i) => [node.id, i]));
   const lines = diagram.edges.map((edge, i) => {
@@ -46,7 +46,14 @@ export async function render<F extends Format = "svg">(
     const line = buildLine(edge, nodes[source]!.label, nodes[target]!.label, theme.sizes);
     return { ...line, source, target, path: `edges[${i}]` };
   });
-  const scene = await layout({ cards, lines }, PROFILES.get(diagram.type)!, diagram.direction);
+  // Only flowcharts have notes, each joined by a connector to the shape it's about.
+  const flowNodes = diagram.type === "flow" ? diagram.nodes : [];
+  const connectors = flowNodes.flatMap((node, i) => {
+    if (node.about === undefined) return [];
+    const target = index.get(node.about)!;
+    return [{ ...buildConnector(node, flowNodes[target]!), source: i, target, path: `nodes[${i}].about` }];
+  });
+  const scene = await layout({ cards, lines: [...connectors, ...lines] }, PROFILES.get(diagram.type)!, diagram.direction);
   const header = buildHeader(diagram.title, diagram.description, theme.sizes);
   // Every card's status, its rows' (taken from the card included) and every line's.
   const statuses = [...cards.flatMap((card) => [card.status, ...card.rows.map((row) => row.status)]), ...lines.map((line) => line.status)];

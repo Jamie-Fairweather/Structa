@@ -1,30 +1,44 @@
 import type { Problem } from "../errors";
 import type { ThemeName } from "../theme";
 import { check } from "./check";
-import { CLASS_SECTIONS, diagramDefinition, type CLASS_EDGE_KINDS, type Status, type VISIBILITIES } from "./definitions";
+import {
+  CLASS_SECTIONS,
+  diagramDefinition,
+  type CLASS_EDGE_KINDS,
+  type FlowShape,
+  type Status,
+  type VISIBILITIES,
+} from "./definitions";
 import { parseJson } from "./json";
 
 export {
+  CARD_DESCRIPTION_FACE,
   CLASS_DESCRIPTION_FACE,
   CLASS_NAME_FACE,
   CLASS_SECTIONS,
   DESCRIPTION_FACE,
   DIAGRAM_TYPES,
   LINE_LABEL_FACE,
+  NOTE_LABEL_FACE,
   ROW_TEXT_FACE,
   STATUSES,
   STEP_LABEL_FACE,
   TITLE_FACE,
+  type FlowShape,
   type Status,
 } from "./definitions";
 export { jsonSchema } from "./schema";
 
-export interface FlowStep {
+export interface FlowNode {
   readonly id: string;
   /** Tidied: runs of spaces collapsed and the ends trimmed. */
   readonly label: string;
+  /** Tidied, like every text field. */
+  readonly description?: string;
   readonly status?: Status;
-  readonly shape: "step";
+  readonly shape: FlowShape;
+  /** A note's subject: the id of a node that isn't a note. Only notes have one. */
+  readonly about?: string;
 }
 
 export interface FlowEdge {
@@ -82,7 +96,7 @@ interface DiagramBase<T extends string, N, E> {
   readonly edges: readonly E[];
 }
 
-export type FlowDiagram = DiagramBase<"flow", FlowStep, FlowEdge>;
+export type FlowDiagram = DiagramBase<"flow", FlowNode, FlowEdge>;
 export type ClassDiagram = DiagramBase<"class", ClassNode, ClassEdge>;
 export type Diagram = FlowDiagram | ClassDiagram;
 
@@ -108,7 +122,7 @@ export function parseDiagram(input: unknown): ParseResult {
 
   // Without problems, the checked value has exactly the shape the definitions describe, less the ids made here.
   const diagram = checked.value as Omit<Diagram, "nodes" | "edges"> & {
-    nodes: readonly (FlowStep | WithoutIds<ClassNode>)[];
+    nodes: readonly (FlowNode | WithoutIds<ClassNode>)[];
     edges: readonly (Omit<FlowEdge, "id"> & { id?: string })[];
   };
   return {

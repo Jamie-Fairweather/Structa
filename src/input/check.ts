@@ -1,7 +1,7 @@
 import type { Problem } from "../errors";
 import { undrawable } from "../text";
 import { describeChar } from "./chars";
-import { ID_PATTERN, type Def, type Field, type ObjectDef, type TextDef } from "./definitions";
+import { ID_PATTERN, type Def, type Field, type ObjectDef, type RefDef, type TextDef } from "./definitions";
 
 type Json = { readonly [key: string]: unknown };
 
@@ -37,9 +37,11 @@ export function check(def: ObjectDef, input: unknown): { value: unknown; problem
   let rowIds = new Map<string, string>();
   /** Every string a node gave as its id, valid or not, so lines to it aren't also reported. */
   const nodeIds = new Set<string>();
+  /** The first node with each id, as given, so a reference can check what kind of node it names. */
+  const nodes = new Map<string, Json>();
   /** References are only checked once a list of nodes was read: without one, nothing is known. */
   let nodesListed = false;
-  const refs: { path: string; target: string; seq: number }[] = [];
+  const refs: { path: string; target: string; seq: number; def: RefDef }[] = [];
 
   function walk(def: Def, value: unknown, path: string, field?: Field): unknown {
     switch (def.kind) {
@@ -70,7 +72,7 @@ export function check(def: ObjectDef, input: unknown): { value: unknown; problem
       }
       case "ref":
         if (typeof value !== "string") return report(path, "must be a node id", REF_HINT);
-        refs.push({ path, target: value, seq: seq++ });
+        refs.push({ path, target: value, seq: seq++, def });
         return value;
       case "choice": {
         if (typeof value === "string" && def.values.includes(value)) return value;
@@ -116,12 +118,21 @@ export function check(def: ObjectDef, input: unknown): { value: unknown; problem
       report(fieldPath(path, key), `unknown field ${JSON.stringify(key)}`, `allowed fields: ${allowed.join(", ")}`);
     }
 
+    const id = nodeIdField(def);
+    const given = (name: string) => (Object.hasOwn(value, name) ? value[name] : undefined);
+    const nodeId = id && given(id.name);
+    if (typeof nodeId === "string" && !nodes.has(nodeId)) nodes.set(nodeId, value);
+
     const result: { [key: string]: unknown } = {};
     for (const field of def.fields) {
       const at = fieldPath(path, field.name);
-      const given = Object.hasOwn(value, field.name) ? value[field.name] : undefined;
-      if (given !== undefined) result[field.name] = walk(field.def, given, at, field);
-      else if (field.required) report(at, `missing required field "${field.name}"`, missingHint(field));
+      const fieldValue = given(field.name);
+      if (fieldValue !== undefined) {
+        if (field.onlyWhen && !allowedHere(def, field.onlyWhen, given(field.onlyWhen.field))) {
+          const { field: other, value: needed, hint } = field.onlyWhen;
+          report(at, `only a ${def.noun} with "${other}": "${needed}" can have "${field.name}"`, hint);
+        } else result[field.name] = walk(field.def, fieldValue, at, field);
+      } else if (field.required) report(at, `missing required field "${field.name}"`, missingHint(field));
       else if (field.default !== undefined) result[field.name] = field.default;
     }
     for (const rule of def.rules ?? []) {
@@ -151,16 +162,37 @@ export function check(def: ObjectDef, input: unknown): { value: unknown; problem
   }
 
   const value = walk(def, input, "$");
-  for (const ref of refs) {
-    if (nodesListed && !nodeIds.has(ref.target)) report(ref.path, `no node with id ${show(ref.target)}`, REF_HINT, ref.seq);
+  for (const { path, target, seq: at, def: ref } of refs) {
+    if (!nodesListed) continue;
+    if (!nodeIds.has(target)) report(path, `no node with id ${show(target)}`, REF_HINT, at);
+    else if (ref.notTo && nodes.get(target)?.[ref.notTo.field] === ref.notTo.value) {
+      const { value: kind, reason, hint } = ref.notTo;
+      report(path, `${show(target)} is a ${kind}, and ${reason}`, hint, at);
+    }
   }
   found.sort((a, b) => a.seq - b.seq);
   return { value, problems: found.map((f) => f.problem) };
 }
 
+/** The field holding a node's id, when objects of this definition are nodes. */
+function nodeIdField(def: ObjectDef): Field | undefined {
+  return def.fields.find((f) => f.def.kind === "id" && f.def.of === "node");
+}
+
 /** Whether objects of this definition are nodes: they have a node id. */
 function isNode(def: ObjectDef): boolean {
-  return def.fields.some((f) => f.def.kind === "id" && f.def.of === "node");
+  return nodeIdField(def) !== undefined;
+}
+
+/**
+ * Whether a field kept for when `condition.field` is `condition.value` is
+ * allowed, given that field's value. Only a valid, different value rules it
+ * out: a missing or unknown one is reported on its own.
+ */
+function allowedHere(def: ObjectDef, condition: NonNullable<Field["onlyWhen"]>, actual: unknown): boolean {
+  const other = def.fields.find((f) => f.name === condition.field)?.def;
+  const valid = other?.kind === "choice" && typeof actual === "string" && other.values.includes(actual);
+  return !valid || actual === condition.value;
 }
 
 function isObject(value: unknown): value is Json {

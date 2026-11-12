@@ -1,9 +1,11 @@
 import type { Status } from "../input";
 import type { PlacedCard, Point, RoutedLine, Scene } from "../layout";
 import {
-  topAt,
+  entry,
+  nearest,
   type Badge,
   type Card,
+  type Connector,
   type Header,
   type Legend,
   type Line,
@@ -18,7 +20,7 @@ import { el, escapeText, num, open, type Attrs } from "./svg";
 
 /** Everything drawn: the laid-out scene, the title above it and the legend below it. */
 export interface Drawing {
-  readonly scene: Scene<Card, Line>;
+  readonly scene: Scene<Card, Line | Connector>;
   readonly header?: Header;
   readonly legend?: Legend;
 }
@@ -53,13 +55,15 @@ export function paint({ scene, header, legend }: Drawing, theme: Theme, options:
   const origin = { x: pad, y: sceneTop ?? pad };
   const placed = new Map(scene.cards.map((p) => [p.card.id, p]));
 
+  const routed = (l: Line | Connector, points: readonly Point[]) => ontoCards(points, placed.get(l.from)!, placed.get(l.to)!);
+  const lines = scene.lines.filter((l): l is RoutedLine<Line> => l.line.kind !== "connector");
   const content = [
     ...(header ? headerText(header, { x: pad, y: headerTop! }, pen) : []),
     ...scene.cards.flatMap((p) => card(p, origin, pen, ids.shadow)),
-    ...scene.lines.flatMap(({ line: l, points }) =>
-      line(l, ontoCards(points, placed.get(l.from)!, placed.get(l.to)!), origin, pen),
-    ),
-    ...lineLabels(scene.lines, origin, pen),
+    // Under the lines: a note's connector is an aside, not part of the flow.
+    ...scene.lines.flatMap(({ line: l, points }) => (l.kind === "connector" ? connector(l, routed(l, points), origin, pen) : [])),
+    ...lines.flatMap(({ line: l, points }) => line(l, routed(l, points), origin, pen)),
+    ...lineLabels(lines, origin, pen),
     ...(legend ? legendItems(legend, { x: pad, y: legendTop! }, pen) : []),
   ];
   return [
@@ -71,22 +75,31 @@ export function paint({ scene, header, legend }: Drawing, theme: Theme, options:
 }
 
 /**
- * ELK ends lines on a card's box, whose top is the band the card's badge
- * overhangs. A line ending on that top edge comes straight down into it, so
- * it carries on down until it meets what's drawn there: the badge, or the
- * card's outline beside it.
+ * ELK ends lines on a card's box, but what's drawn there is often inside it:
+ * the band the badge overhangs is above the outline, and a diamond, a slanted
+ * box or a pill don't fill their box. So each end's straight run is carried
+ * on, or cut back, until it meets what's drawn: the outline, or the badge on it.
  */
 function ontoCards(points: readonly Point[], from: PlacedCard<Card>, to: PlacedCard<Card>): Point[] {
   const route = [...points];
-  const land = (end: number, next: number, { card, x, y }: PlacedCard<Card>) => {
-    const p = route[end]!;
-    const q = route[next]!;
-    const comesDownOntoTop = Math.abs(p.y - y) < 1e-6 && Math.abs(q.x - p.x) < 1e-6 && q.y < p.y;
-    if (comesDownOntoTop) route[end] = { x: p.x, y: y + topAt(card, p.x - x) };
-  };
-  land(0, 1, from);
-  land(route.length - 1, route.length - 2, to);
+  route[0] = land(points, 0, 1, from);
+  route[route.length - 1] = land(points, points.length - 1, -1, to);
   return route;
+}
+
+/** Where the route's end at `end` meets its card, running on the way the route comes into it (`step` is +1 or -1). */
+function land(route: readonly Point[], end: number, step: 1 | -1, { card, x, y }: PlacedCard<Card>): Point {
+  const p = route[end]!;
+  // The route's next distinct point, so a repeated point doesn't hide the run's direction.
+  let i = end + step;
+  while (route[i + step] && Math.hypot(route[i]!.x - p.x, route[i]!.y - p.y) < 1e-6) i += step;
+  const q = route[i];
+  if (!q) return p;
+  const onCard = { x: p.x - x, y: p.y - y };
+  // A slanted run, like a connector among crowded notes, can pass just outside
+  // a corner of the outline. Then it ends at the nearest point of what's drawn.
+  const met = entry(card, { x: q.x - x, y: q.y - y }, onCard) ?? nearest(card, onCard);
+  return { x: met.x + x, y: met.y + y };
 }
 
 /** The tops of blocks of these heights, stacked `gap` apart from `top`, skipping absent ones, and where the last one ends. */
@@ -192,21 +205,30 @@ function card({ card, x: cardX, y: cardY }: PlacedCard<Card>, at: Point, pen: Pe
   const y = cardY + at.y;
   const { outline } = card;
   const borderWidth = card.status ? sizes.card.statusBorderWidth : sizes.card.borderWidth;
+  const stroke: Attrs = [
+    ["stroke", card.status ? colors.status[card.status].stroke : colors.cardBorder],
+    ["stroke-width", borderWidth],
+  ];
+  const look: Attrs = [["fill", colors[card.fill]], ...stroke, ["filter", `url(#${shadowId})`]];
+  const box = { x, y };
   return [
     open("g", [["class", "card"], ["data-id", card.id], ["data-kind", card.kind], ...statusAttr(card.status)]),
     el("title", [], escapeText(card.tooltip)),
     ...fadedIf(card.status === "removed", pen.theme, [
-      el("rect", [
-        ["x", x + outline.x],
-        ["y", y + outline.y],
-        ["width", outline.width],
-        ["height", outline.height],
-        ["rx", sizes.card.radius],
-        ["fill", colors.cardFill],
-        ["stroke", card.status ? colors.status[card.status].stroke : colors.cardBorder],
-        ["stroke-width", borderWidth],
-        ["filter", `url(#${shadowId})`],
-      ]),
+      outline.kind === "rounded"
+        ? el("rect", [
+            ["class", "outline"],
+            ["x", x + outline.x],
+            ["y", y + outline.y],
+            ["width", outline.width],
+            ["height", outline.height],
+            ["rx", outline.radius],
+            ...look,
+          ])
+        : el("path", [["class", "outline"], ["d", `${runs(outline.points, box)} Z`], ...look, ["stroke-linejoin", "round"]]),
+      ...(card.marks.length === 0
+        ? []
+        : [el("path", [["class", "marks"], ["d", card.marks.map((mark) => runs(mark, box)).join(" ")], ["fill", "none"], ...stroke])]),
       // Each divider stops at the inside of the border, so it never paints over a status colour.
       ...card.dividers.map((dividerY) =>
         el("line", [
@@ -228,6 +250,11 @@ function card({ card, x: cardX, y: cardY }: PlacedCard<Card>, at: Point, pen: Pe
     ...(card.badge ? badge(card.badge, x, y, pen) : []),
     "</g>",
   ];
+}
+
+/** Path data for straight runs through `points`, offset by `at`. */
+function runs(points: readonly Point[], at: Point): string {
+  return points.map((p, i) => `${i === 0 ? "M" : "L"}${num(p.x + at.x)} ${num(p.y + at.y)}`).join(" ");
 }
 
 /**
@@ -320,6 +347,26 @@ function badge(b: Badge, x: number, y: number, pen: Pen): string[] {
       ["stroke-width", sizes.badge.borderWidth],
     ]),
     ...text(b.word, x, y, look.badgeText, pen),
+    "</g>",
+  ];
+}
+
+/** A note's connector: a thin dotted line in the connector colour, with no arrowhead. */
+function connector(c: Connector, points: readonly Point[], at: Point, pen: Pen): string[] {
+  const { colors, sizes } = pen.theme;
+  const pts = points.map((p) => ({ x: p.x + at.x, y: p.y + at.y }));
+  return [
+    open("g", [["class", "connector"], ["data-kind", "note"], ["data-from", c.from], ["data-to", c.to]]),
+    el("title", [], escapeText(c.tooltip)),
+    ...fadedIf(c.faded, pen.theme, [
+      el("path", [
+        ["d", roundedRoute(pts, sizes.line.cornerRadius, 0)],
+        ["fill", "none"],
+        ["stroke", colors.connector],
+        ["stroke-width", sizes.connector.width],
+        ["stroke-dasharray", `${num(sizes.connector.dash)} ${num(sizes.connector.gap)}`],
+      ]),
+    ]),
     "</g>",
   ];
 }

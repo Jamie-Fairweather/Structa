@@ -11,21 +11,42 @@ import { render } from "../src/index";
 import { CHARACTER_RANGES } from "../src/text/faces";
 import { buildChangedProject, buildSkillForTest, type BuiltSkill } from "./helpers/skill";
 
-// Seam 2: the built skill folder, made by the release and unzipped from its
-// zip, run with `node structa.mjs` in a separate process, from a different
-// working folder, inside someone else's ESM project.
-let skill: BuiltSkill;
-beforeAll(async () => {
-  skill = await buildSkillForTest();
-}, 60_000);
-afterAll(() => skill?.remove());
-
 const examplesDir = fileURLToPath(new URL("../examples/", import.meta.url));
 const examples = readdirSync(examplesDir)
   .filter((file) => file.endsWith(".json"))
   .sort();
-const flowPath = join(examplesDir, "flow.json");
-const flowJson = readFileSync(flowPath, "utf8");
+
+// The runs below draw this small chart of their own, not an example: examples
+// grow, and every PNG run starts the rasteriser afresh in a new process.
+const diagramJson = `${JSON.stringify(
+  {
+    type: "flow",
+    nodes: [
+      { id: "fill", label: "Fill the kettle", shape: "start" },
+      { id: "boil", label: "Boil the water", shape: "step" },
+      { id: "pour", label: "Pour the tea", shape: "end" },
+    ],
+    edges: [
+      { from: "fill", to: "boil" },
+      { from: "boil", to: "pour", label: "when it clicks" },
+    ],
+  },
+  null,
+  2,
+)}\n`;
+
+// Seam 2: the built skill folder, made by the release and unzipped from its
+// zip, run with `node structa.mjs` in a separate process, from a different
+// working folder, inside someone else's ESM project.
+let skill: BuiltSkill;
+/** Where `diagramJson` is saved: beside the working folder, not in it. */
+let diagramPath: string;
+beforeAll(async () => {
+  skill = await buildSkillForTest();
+  diagramPath = join(dirname(skill.elsewhere), "kettle.json");
+  writeFileSync(diagramPath, diagramJson);
+}, 60_000);
+afterAll(() => skill?.remove());
 
 describe("node structa.mjs", () => {
   it.each(examples)("prints exactly render()'s SVG for examples/%s on standard output when there's no -o", async (file) => {
@@ -39,27 +60,27 @@ describe("node structa.mjs", () => {
   });
 
   it.each(["lower.svg", "UPPER.SVG", "Mixed.Svg"])("writes the SVG to -o %s, relative to the working folder", async (name) => {
-    const { svg } = await render(flowJson);
+    const { svg } = await render(diagramJson);
 
-    const result = skill.run([flowPath, "-o", name]);
+    const result = skill.run([diagramPath, "-o", name]);
 
     expect(result).toEqual({ status: 0, stdout: "", stderr: "" });
     expect(readFileSync(join(skill.elsewhere, name), "utf8")).toBe(svg);
   });
 
   it.each(["lower.png", "UPPER.PNG", "Mixed.Png"])("writes render()'s PNG, at scale 2, to -o %s", async (name) => {
-    const { png } = await render(flowJson, { formats: ["png"] });
+    const { png } = await render(diagramJson, { formats: ["png"] });
 
-    const result = skill.run([flowPath, "-o", name]);
+    const result = skill.run([diagramPath, "-o", name]);
 
     expect(result).toEqual({ status: 0, stdout: "", stderr: "" });
     expect(readFileSync(join(skill.elsewhere, name)).equals(Buffer.from(png))).toBe(true);
   });
 
   it("writes every -o from one run, in any mix of formats", async () => {
-    const { svg, png } = await render(flowJson, { formats: ["svg", "png"] });
+    const { svg, png } = await render(diagramJson, { formats: ["svg", "png"] });
 
-    const result = skill.run([flowPath, "-o", "both.svg", "-o", "both.png", "-o", "copy.SVG"]);
+    const result = skill.run([diagramPath, "-o", "both.svg", "-o", "both.png", "-o", "copy.SVG"]);
 
     expect(result).toEqual({ status: 0, stdout: "", stderr: "" });
     expect(readFileSync(join(skill.elsewhere, "both.svg"), "utf8")).toBe(svg);
@@ -68,63 +89,63 @@ describe("node structa.mjs", () => {
   });
 
   it("draws the PNG at the --scale asked for, wherever the flag goes", async () => {
-    const { png } = await render(flowJson, { formats: ["png"], scale: 3 });
+    const { png } = await render(diagramJson, { formats: ["png"], scale: 3 });
 
-    expect(skill.run([flowPath, "--scale", "3", "-o", "big.png"])).toEqual({ status: 0, stdout: "", stderr: "" });
+    expect(skill.run([diagramPath, "--scale", "3", "-o", "big.png"])).toEqual({ status: 0, stdout: "", stderr: "" });
     expect(readFileSync(join(skill.elsewhere, "big.png")).equals(Buffer.from(png))).toBe(true);
-    expect(skill.run(["--scale", "3", "-o", "big-too.png", flowPath])).toEqual({ status: 0, stdout: "", stderr: "" });
+    expect(skill.run(["--scale", "3", "-o", "big-too.png", diagramPath])).toEqual({ status: 0, stdout: "", stderr: "" });
     expect(readFileSync(join(skill.elsewhere, "big-too.png")).equals(Buffer.from(png))).toBe(true);
   });
 
   it("ignores --scale with no PNG output, and --no-embed-fonts with no SVG output", async () => {
-    const { svg, png } = await render(flowJson, { formats: ["svg", "png"] });
+    const { svg, png } = await render(diagramJson, { formats: ["svg", "png"] });
 
-    expect(skill.run([flowPath, "--scale", "4"])).toEqual({ status: 0, stdout: svg, stderr: "" });
-    expect(skill.run([flowPath, "--scale", "1", "-o", "scaled.svg"])).toEqual({ status: 0, stdout: "", stderr: "" });
+    expect(skill.run([diagramPath, "--scale", "4"])).toEqual({ status: 0, stdout: svg, stderr: "" });
+    expect(skill.run([diagramPath, "--scale", "1", "-o", "scaled.svg"])).toEqual({ status: 0, stdout: "", stderr: "" });
     expect(readFileSync(join(skill.elsewhere, "scaled.svg"), "utf8")).toBe(svg);
-    expect(skill.run([flowPath, "--no-embed-fonts", "-o", "fonts.png"])).toEqual({ status: 0, stdout: "", stderr: "" });
+    expect(skill.run([diagramPath, "--no-embed-fonts", "-o", "fonts.png"])).toEqual({ status: 0, stdout: "", stderr: "" });
     expect(readFileSync(join(skill.elsewhere, "fonts.png")).equals(Buffer.from(png))).toBe(true);
   });
 
   it("embeds the fonts by default, and leaves them out with --no-embed-fonts, wherever the flag goes", async () => {
-    const { svg } = await render(flowJson, { embedFonts: false });
+    const { svg } = await render(diagramJson, { embedFonts: false });
 
-    expect(skill.run([flowPath]).stdout).toContain("@font-face");
-    expect(skill.run([flowPath, "--no-embed-fonts"])).toEqual({ status: 0, stdout: svg, stderr: "" });
-    expect(skill.run(["--no-embed-fonts", flowPath, "-o", "plain.svg"])).toEqual({ status: 0, stdout: "", stderr: "" });
+    expect(skill.run([diagramPath]).stdout).toContain("@font-face");
+    expect(skill.run([diagramPath, "--no-embed-fonts"])).toEqual({ status: 0, stdout: svg, stderr: "" });
+    expect(skill.run(["--no-embed-fonts", diagramPath, "-o", "plain.svg"])).toEqual({ status: 0, stdout: "", stderr: "" });
     expect(readFileSync(join(skill.elsewhere, "plain.svg"), "utf8")).toBe(svg);
   });
 
   it("reads the JSON from standard input when the input is -", async () => {
-    const { svg } = await render(flowJson);
+    const { svg } = await render(diagramJson);
 
-    const result = skill.run(["-"], { stdin: flowJson });
+    const result = skill.run(["-"], { stdin: diagramJson });
 
     expect(result).toEqual({ status: 0, stdout: svg, stderr: "" });
   });
 
   it("reads a relative input path from the working folder", async () => {
-    const { svg } = await render(flowJson);
-    writeFileSync(join(skill.elsewhere, "library-returns.json"), flowJson);
+    const { svg } = await render(diagramJson);
+    writeFileSync(join(skill.elsewhere, "kettle.json"), diagramJson);
 
-    const result = skill.run(["library-returns.json"]);
+    const result = skill.run(["kettle.json"]);
 
     expect(result).toEqual({ status: 0, stdout: svg, stderr: "" });
   });
 
   it("draws the theme --theme asks for", async () => {
-    const light = await render(flowJson, { theme: "light" });
-    const dark = await render(flowJson, { theme: "dark" });
+    const light = await render(diagramJson, { theme: "light" });
+    const dark = await render(diagramJson, { theme: "dark" });
 
-    expect(skill.run([flowPath, "--theme", "dark"])).toEqual({ status: 0, stdout: dark.svg, stderr: "" });
-    expect(skill.run(["--theme", "light", flowPath])).toEqual({ status: 0, stdout: light.svg, stderr: "" });
+    expect(skill.run([diagramPath, "--theme", "dark"])).toEqual({ status: 0, stdout: dark.svg, stderr: "" });
+    expect(skill.run(["--theme", "light", diagramPath])).toEqual({ status: 0, stdout: light.svg, stderr: "" });
     expect(dark.svg).not.toBe(light.svg);
   });
 
   it("lets --theme win over the JSON's theme, either way round", async () => {
-    const withTheme = (theme: string) => JSON.stringify({ ...JSON.parse(flowJson), theme });
-    const light = await render(flowJson, { theme: "light" });
-    const dark = await render(flowJson, { theme: "dark" });
+    const withTheme = (theme: string) => JSON.stringify({ ...JSON.parse(diagramJson), theme });
+    const light = await render(diagramJson, { theme: "light" });
+    const dark = await render(diagramJson, { theme: "dark" });
 
     expect(skill.run(["-"], { stdin: withTheme("dark") })).toEqual({ status: 0, stdout: dark.svg, stderr: "" });
     expect(skill.run(["-", "--theme", "light"], { stdin: withTheme("dark") })).toEqual({ status: 0, stdout: light.svg, stderr: "" });
@@ -138,7 +159,7 @@ describe("node structa.mjs", () => {
     rmSync(join(bare, "package.json"));
 
     expect(readFileSync(join(skill.dir, "package.json"), "utf8")).toBe('{"type":"commonjs"}\n');
-    expect(skill.run([flowPath], { dir: bare })).toEqual({
+    expect(skill.run([diagramPath], { dir: bare })).toEqual({
       status: 1,
       stdout: "",
       stderr:
@@ -269,7 +290,7 @@ describe("node structa.mjs --help", () => {
   ])(
     "prints the short help for %j, and nothing else",
     (args) => {
-      const result = skill.run(args.map((arg) => (arg === "IN" ? flowPath : arg)));
+      const result = skill.run(args.map((arg) => (arg === "IN" ? diagramPath : arg)));
 
       expect(result).toEqual({ status: 0, stdout: help, stderr: "" });
       expect(existsSync(join(skill.elsewhere, "a.svg"))).toBe(false);
@@ -287,16 +308,16 @@ describe("node structa.mjs --help", () => {
 
 describe("commands win over file names", () => {
   it("prints the schema for schema, even with a file named schema here, and draws that file as ./schema", async () => {
-    writeFileSync(join(skill.elsewhere, "schema"), flowJson);
-    const { svg } = await render(flowJson);
+    writeFileSync(join(skill.elsewhere, "schema"), diagramJson);
+    const { svg } = await render(diagramJson);
 
     expect(skill.run(["schema"])).toEqual({ status: 0, stdout: readFileSync(join(skill.dir, "structa.schema.json"), "utf8"), stderr: "" });
     expect(skill.run(["./schema"])).toEqual({ status: 0, stdout: svg, stderr: "" });
   });
 
   it("asks for a type for example, even with a file named example here, and draws that file as ./example", async () => {
-    writeFileSync(join(skill.elsewhere, "example"), flowJson);
-    const { svg } = await render(flowJson);
+    writeFileSync(join(skill.elsewhere, "example"), diagramJson);
+    const { svg } = await render(diagramJson);
 
     expect(skill.run(["example"]).status).toBe(2);
     expect(skill.run(["./example"])).toEqual({ status: 0, stdout: svg, stderr: "" });
@@ -331,28 +352,28 @@ describe("input encodings", () => {
   });
 
   it("strips a UTF-8 byte-order mark from a file", async () => {
-    const { svg } = await render(flowJson);
-    writeFileSync(join(skill.elsewhere, "with-bom.json"), BOM + flowJson);
+    const { svg } = await render(diagramJson);
+    writeFileSync(join(skill.elsewhere, "with-bom.json"), BOM + diagramJson);
 
     expect(skill.run(["with-bom.json"])).toEqual({ status: 0, stdout: svg, stderr: "" });
   });
 
   it("strips a UTF-8 byte-order mark from standard input", async () => {
-    const { svg } = await render(flowJson);
+    const { svg } = await render(diagramJson);
 
-    expect(skill.run(["-"], { stdin: BOM + flowJson })).toEqual({ status: 0, stdout: svg, stderr: "" });
+    expect(skill.run(["-"], { stdin: BOM + diagramJson })).toEqual({ status: 0, stdout: svg, stderr: "" });
   });
 
   it.each([
-    ["UTF-16LE with a byte-order mark, as Windows PowerShell saves it", utf16le(BOM + flowJson), hint],
-    ["UTF-16BE with a byte-order mark", utf16be(BOM + flowJson), hint],
-    ["UTF-16LE without a byte-order mark", utf16le(flowJson), notUtf8],
-    ["UTF-16BE without a byte-order mark", utf16be(flowJson), notUtf8],
-    ["UTF-32LE with a byte-order mark", utf32(BOM + flowJson, "LE"), notUtf8],
-    ["UTF-32BE with a byte-order mark", utf32(BOM + flowJson, "BE"), notUtf8],
-    ["UTF-32LE without a byte-order mark", utf32(flowJson, "LE"), notUtf8],
-    ["UTF-32BE without a byte-order mark", utf32(flowJson, "BE"), notUtf8],
-    ["UTF-8 after a zero byte", Buffer.concat([Buffer.from([0]), Buffer.from(flowJson)]), notUtf8],
+    ["UTF-16LE with a byte-order mark, as Windows PowerShell saves it", utf16le(BOM + diagramJson), hint],
+    ["UTF-16BE with a byte-order mark", utf16be(BOM + diagramJson), hint],
+    ["UTF-16LE without a byte-order mark", utf16le(diagramJson), notUtf8],
+    ["UTF-16BE without a byte-order mark", utf16be(diagramJson), notUtf8],
+    ["UTF-32LE with a byte-order mark", utf32(BOM + diagramJson, "LE"), notUtf8],
+    ["UTF-32BE with a byte-order mark", utf32(BOM + diagramJson, "BE"), notUtf8],
+    ["UTF-32LE without a byte-order mark", utf32(diagramJson, "LE"), notUtf8],
+    ["UTF-32BE without a byte-order mark", utf32(diagramJson, "BE"), notUtf8],
+    ["UTF-8 after a zero byte", Buffer.concat([Buffer.from([0]), Buffer.from(diagramJson)]), notUtf8],
     ["the Windows ANSI code page, with a lone E9 byte for é", Buffer.from(cafe, "latin1"), notUtf8],
   ])("refuses a file in %s, with one line asking for UTF-8, and writes nothing", (_name, bytes, message) => {
     writeFileSync(join(skill.elsewhere, "wide.json"), bytes);
@@ -371,7 +392,7 @@ describe("input encodings", () => {
   });
 
   it.each([
-    ["UTF-16", utf16le(BOM + flowJson), hint],
+    ["UTF-16", utf16le(BOM + diagramJson), hint],
     ["ANSI", Buffer.from(cafe, "latin1"), notUtf8],
   ])("refuses %s on standard input the same way", (_name, bytes, message) => {
     const result = skill.run(["-"], { stdin: bytes });
@@ -562,7 +583,7 @@ describe("the release zip", () => {
 
 describe("import { render } from structa.mjs", () => {
   it("draws the same PNG as render() in this process", async () => {
-    const { png } = await render(flowJson, { formats: ["png"] });
+    const { png } = await render(diagramJson, { formats: ["png"] });
     const url = pathToFileURL(join(skill.dir, "structa.mjs")).href;
     const script = [
       `import { render } from ${JSON.stringify(url)};`,
@@ -572,7 +593,7 @@ describe("import { render } from structa.mjs", () => {
       'process.stdout.write(Buffer.from(png).toString("base64"));',
     ].join("\n");
 
-    const result = skill.node(["--input-type=module", "-e", script], { stdin: flowJson });
+    const result = skill.node(["--input-type=module", "-e", script], { stdin: diagramJson });
 
     expect(result.stderr).toBe("");
     expect(result.status).toBe(0);
@@ -580,7 +601,7 @@ describe("import { render } from structa.mjs", () => {
   });
 
   it("gives the same SVG as render() in this process, and importing doesn't start the command line", async () => {
-    const { svg } = await render(flowJson);
+    const { svg } = await render(diagramJson);
     const url = pathToFileURL(join(skill.dir, "structa.mjs")).href;
     const script = [
       `import { render } from ${JSON.stringify(url)};`,
@@ -589,7 +610,7 @@ describe("import { render } from structa.mjs", () => {
       "process.stdout.write((await render(json)).svg);",
     ].join("\n");
 
-    const result = skill.node(["--input-type=module", "-e", script], { stdin: flowJson });
+    const result = skill.node(["--input-type=module", "-e", script], { stdin: diagramJson });
 
     expect(result).toEqual({ status: 0, stdout: svg, stderr: "" });
   });
@@ -638,7 +659,7 @@ describe("exit code 1: bad input or a failed render", () => {
   it("writes no file at all when one of the files can't be written, and leaves files already there as they were", () => {
     writeFileSync(join(skill.elsewhere, "kept.svg"), "the old picture");
 
-    const result = skill.run([flowPath, "-o", "kept.svg", "-o", "fresh.png", "-o", join("no-such-folder", "lost.png")]);
+    const result = skill.run([diagramPath, "-o", "kept.svg", "-o", "fresh.png", "-o", join("no-such-folder", "lost.png")]);
 
     expect(result.status).toBe(1);
     expect(result.stdout).toBe("");
@@ -652,7 +673,7 @@ describe("exit code 1: bad input or a failed render", () => {
     writeFileSync(join(skill.elsewhere, "older.svg"), "the old picture");
     mkdirSync(join(skill.elsewhere, "shelf.png"));
 
-    const result = skill.run([flowPath, "-o", "older.svg", "-o", "shelf.png"]);
+    const result = skill.run([diagramPath, "-o", "older.svg", "-o", "shelf.png"]);
 
     expect(result).toEqual({ status: 1, stdout: "", stderr: "can't write shelf.png: it is a folder\n" });
     expect(readFileSync(join(skill.elsewhere, "older.svg"), "utf8")).toBe("the old picture");
@@ -666,7 +687,7 @@ describe("exit code 1: bad input or a failed render", () => {
     writeFileSync(locked, "the old picture");
     chmodSync(locked, 0o444);
     try {
-      const result = skill.run([flowPath, "-o", "unlocked.svg", "-o", "locked.png"]);
+      const result = skill.run([diagramPath, "-o", "unlocked.svg", "-o", "locked.png"]);
 
       expect(result.status).toBe(1);
       expect(result.stdout).toBe("");
@@ -701,14 +722,14 @@ describe("exit code 1: bad input or a failed render", () => {
     cpSync(skill.dir, noElk, { recursive: true });
     rmSync(join(noElk, "elk.bundled.js"));
 
-    const result = skill.run([flowPath, "-o", "returns.svg"], { dir: noElk });
+    const result = skill.run([diagramPath, "-o", "tea.svg"], { dir: noElk });
 
     expect(result).toEqual({
       status: 1,
       stdout: "",
       stderr: `can't find the layout engine: expected ${join(noElk, "elk.bundled.js")} next to structa.mjs\n`,
     });
-    expect(existsSync(join(skill.elsewhere, "returns.svg"))).toBe(false);
+    expect(existsSync(join(skill.elsewhere, "tea.svg"))).toBe(false);
   });
 });
 
@@ -1016,7 +1037,7 @@ describe("exit code 2: bad usage", () => {
     ["example with --no-embed-fonts", ["example", "flow", "--no-embed-fonts"], "example takes no other arguments"],
   ])("rejects %s, prints the usage line and writes nothing", (_name, args, message) => {
     const input = join(skill.elsewhere, "usage-input.json");
-    writeFileSync(input, flowJson);
+    writeFileSync(input, diagramJson);
 
     const result = skill.run(args.map((arg) => (arg === "IN" ? input : arg)));
 

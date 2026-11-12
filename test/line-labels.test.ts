@@ -4,11 +4,11 @@ import {
   allElements,
   alongRuns,
   byClassIn,
-  cardBox,
   cards,
   distanceToRoute,
   lineGeometry,
   lines,
+  outlineBox,
   overlaps,
   rectBox,
   svgDoc,
@@ -113,7 +113,7 @@ describe("line labels", () => {
   it.each(["down", "right"] as const)("lets ELK place each pill on its own line, clear of the cards, direction %s", async (direction) => {
     const doc = await svgDoc(tea(direction));
 
-    const boxes = cards(doc).map(cardBox);
+    const boxes = cards(doc).map(outlineBox);
     for (const line of lines(doc)) {
       const label = pillOf(doc, line);
       if (!label) continue;

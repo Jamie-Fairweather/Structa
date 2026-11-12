@@ -41,11 +41,17 @@ export const CLASS_PROFILE: LayoutProfile = {
 
 export const FLOW_PROFILE: LayoutProfile = {
   name: "flow",
-  version: 3,
+  version: 4,
   options: {
     ...LAYERED,
+    // A loop runs back against the flow from the line that closes it, walking
+    // from the start, so the steps stay in the order a reader follows them.
+    "elk.layered.cycleBreaking.strategy": "DEPTH_FIRST",
     "elk.spacing.nodeNode": "40",
     "elk.layered.spacing.nodeNodeBetweenLayers": "48",
+    // A note sits this far from the card it's about, and from the other notes about it.
+    "elk.spacing.commentNode": "24",
+    "elk.spacing.commentComment": "16",
   },
 };
 

@@ -1,0 +1,25 @@
+{
+  "type": "flow",
+  "title": "Feeding a sourdough starter",
+  "nodes": [
+    { "id": "morning", "label": "Morning", "shape": "start" },
+    { "id": "discard", "label": "Discard half the starter", "shape": "step", "description": "Keep about 50 g in the jar" },
+    { "id": "weigh", "label": "Weigh out flour and water", "shape": "io", "description": "50 g of each" },
+    { "id": "stir", "label": "Stir and cover loosely", "shape": "step" },
+    { "id": "doubled", "label": "Doubled in six hours?", "shape": "decision" },
+    { "id": "warmer", "label": "Move it somewhere warmer", "shape": "step" },
+    { "id": "ready", "label": "Ready to bake with", "shape": "end" },
+    { "id": "pancakes", "label": "The discard makes good pancakes", "shape": "note", "about": "discard" },
+    { "id": "band", "label": "Mark the level with a rubber band", "shape": "note", "about": "doubled" },
+    { "id": "routine", "label": "Feed it at the same time every day", "shape": "note" }
+  ],
+  "edges": [
+    { "from": "morning", "to": "discard" },
+    { "from": "discard", "to": "weigh" },
+    { "from": "weigh", "to": "stir" },
+    { "from": "stir", "to": "doubled" },
+    { "from": "doubled", "to": "ready", "label": "yes" },
+    { "from": "doubled", "to": "warmer", "label": "no" },
+    { "from": "warmer", "to": "doubled", "label": "an hour later" }
+  ]
+}
