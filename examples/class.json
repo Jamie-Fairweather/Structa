@@ -1,9 +1,37 @@
 {
   "type": "class",
   "nodes": [
-    { "id": "member", "label": "Member" },
-    { "id": "loan", "label": "Loan" },
-    { "id": "packet", "label": "SeedPacket" }
+    {
+      "id": "member",
+      "label": "Member",
+      "properties": [
+        { "text": "name: string", "visibility": "public" },
+        { "text": "joinedOn: Date", "visibility": "public" }
+      ],
+      "methods": [
+        { "id": "borrow", "text": "borrow(packet: SeedPacket): Loan", "visibility": "public" },
+        { "text": "loans(): Loan[]", "visibility": "public" }
+      ]
+    },
+    {
+      "id": "loan",
+      "label": "Loan",
+      "properties": [
+        { "text": "startedOn: Date", "visibility": "public" },
+        { "text": "returnedOn: Date?", "visibility": "public" }
+      ],
+      "methods": [{ "text": "close(on: Date): void", "visibility": "public" }]
+    },
+    {
+      "id": "packet",
+      "label": "SeedPacket",
+      "properties": [
+        { "text": "variety: string", "visibility": "public" },
+        { "text": "seedCount: int", "visibility": "private" },
+        { "text": "harvestYear: int", "visibility": "protected" }
+      ],
+      "methods": [{ "text": "split(into: int): SeedPacket[]", "visibility": "package" }]
+    }
   ],
   "edges": [
     { "from": "member", "to": "loan", "kind": "association", "label": "borrows" },

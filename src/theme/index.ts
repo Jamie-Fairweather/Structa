@@ -31,6 +31,8 @@ export interface ThemeColors {
   readonly cardBorder: string;
   readonly cardShadow: string;
   readonly cardShadowOpacity: number;
+  /** The thin lines between a card's sections. */
+  readonly divider: string;
   readonly text: string;
   readonly mutedText: string;
   /** Lines with no status, and unchanged lines. */
@@ -49,6 +51,7 @@ const COLORS: { readonly [name in ThemeName]: ThemeColors } = {
     cardBorder: "#d1d9e0",
     cardShadow: "#1f2328",
     cardShadowOpacity: 0.1,
+    divider: "#d1d9e0",
     text: "#1f2328",
     mutedText: "#59636e",
     line: "#8c959f",
@@ -68,6 +71,7 @@ const COLORS: { readonly [name in ThemeName]: ThemeColors } = {
     cardBorder: "#30363d",
     cardShadow: "#010409",
     cardShadowOpacity: 0.5,
+    divider: "#30363d",
     text: "#e6edf3",
     mutedText: "#8b949e",
     line: "#6e7681",
@@ -99,8 +103,10 @@ export const SIZES = {
   line: { width: 1.5, emphasisWidth: 3, cornerRadius: 8, arrowLength: 9, arrowWidth: 9 },
   /** A line's label: text in a pill bordered in the line's colour, wrapped to `maxWidth`. */
   lineLabel: { fontSize: 12, lineHeight: 16, paddingX: 8, paddingY: 2, maxWidth: 180, borderWidth: 1 },
-  /** Class cards: one standard width, the name centred at the top. */
-  classCard: { width: 360, paddingX: 14, paddingY: 12, nameSize: 15, nameLineHeight: 20 },
+  /** Class cards: one standard width, the name centred at the top, then each section of rows under a divider. */
+  classCard: { width: 360, paddingX: 14, paddingY: 12, nameSize: 15, nameLineHeight: 20, sectionPaddingY: 6 },
+  /** A card's rows, such as class members. A row's tint is inset from the card's sides by `tintInset`. */
+  row: { fontSize: 12, lineHeight: 18, paddingY: 3, tintInset: 6, tintRadius: 4 },
   step: {
     fontSize: 14,
     lineHeight: 20,

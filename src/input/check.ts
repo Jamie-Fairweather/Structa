@@ -32,6 +32,8 @@ export function check(def: ObjectDef, input: unknown): { value: unknown; problem
 
   /** Every explicit id (node or edge) with where it was first used. */
   const ids = new Map<string, string>();
+  /** The explicit row ids of the node being read, with where each was first used. Each node starts afresh. */
+  let rowIds = new Map<string, string>();
   /** Every string a node gave as its id, valid or not, so lines to it aren't also reported. */
   const nodeIds = new Set<string>();
   /** References are only checked once a list of nodes was read: without one, nothing is known. */
@@ -50,9 +52,7 @@ export function check(def: ObjectDef, input: unknown): { value: unknown; problem
         if (value.length > def.maxItems) {
           report(path, `has ${value.length} ${def.noun}; the limit is ${def.maxItems}`, "split the diagram into smaller ones");
         }
-        if (def.items.kind === "object" && def.items.fields.some((f) => f.def.kind === "id" && f.def.of === "node")) {
-          nodesListed = true;
-        }
+        if (def.items.kind === "object" && isNode(def.items)) nodesListed = true;
         return value.map((item: unknown, i) => walk(def.items, item, `${path}[${i}]`));
       }
       case "text":
@@ -60,11 +60,13 @@ export function check(def: ObjectDef, input: unknown): { value: unknown; problem
       case "id": {
         if (typeof value !== "string") return report(path, "must be a string", ID_HINT);
         if (def.of === "node") nodeIds.add(value);
+        const used = def.of === "row" ? rowIds : ids;
         if (value === "") report(path, "must not be empty", ID_HINT);
         else if (!ID.test(value)) report(path, `${show(value)} is not a valid id`, ID_HINT);
-        else if (ids.has(value)) {
-          report(path, `the id ${show(value)} is already used by ${ids.get(value)}`, "give every node and edge its own id");
-        } else ids.set(value, path.slice(0, path.lastIndexOf(".")));
+        else if (used.has(value)) {
+          const hint = def.of === "row" ? "give every row in a card its own id" : "give every node and edge its own id";
+          report(path, `the id ${show(value)} is already used by ${used.get(value)}`, hint);
+        } else used.set(value, path.slice(0, path.lastIndexOf(".")));
         return value;
       }
       case "ref":
@@ -100,6 +102,7 @@ export function check(def: ObjectDef, input: unknown): { value: unknown; problem
       report(path, `must be an object describing one ${def.noun}`, `write it as {${shape.join(", ")}}`);
       return {};
     }
+    if (isNode(def)) rowIds = new Map();
     const allowed = def.fields.map((f) => f.name);
     // Sorted by code units: plain-object key order isn't something to rely on.
     const unknown = Object.keys(value)
@@ -146,6 +149,11 @@ export function check(def: ObjectDef, input: unknown): { value: unknown; problem
   }
   found.sort((a, b) => a.seq - b.seq);
   return { value, problems: found.map((f) => f.problem) };
+}
+
+/** Whether objects of this definition are nodes: they have a node id. */
+function isNode(def: ObjectDef): boolean {
+  return def.fields.some((f) => f.def.kind === "id" && f.def.of === "node");
 }
 
 function isObject(value: unknown): value is Json {

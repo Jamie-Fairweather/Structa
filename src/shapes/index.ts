@@ -15,7 +15,7 @@ import type { Sizes } from "../theme";
 import { classBody } from "./class";
 import { frameCards, strikeThrough, type Card, type CardBody, type TextLine } from "./frame";
 
-export { topAt, type Badge, type Box, type Card, type Strike, type TextLine } from "./frame";
+export { topAt, type Badge, type Box, type Card, type Row, type Strike, type TextLine } from "./frame";
 export { buildLegend, type Legend, type LegendItem } from "./legend";
 
 export interface Line {

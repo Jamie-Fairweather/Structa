@@ -102,6 +102,92 @@
                     "removed",
                     "unchanged"
                   ]
+                },
+                "properties": {
+                  "description": "the class's properties, in order",
+                  "type": "array",
+                  "maxItems": 100,
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "text": {
+                        "description": "the member as you'd write it, such as a name and type or a signature",
+                        "$ref": "#/$defs/rowText",
+                        "type": "string",
+                        "pattern": "^[\\u0020-\\u007E\\u00A0-\\u0131\\u0134-\\u017F\\u2010\\u2013-\\u2014\\u2018-\\u2022\\u2026\\u2030\\u2032-\\u2033\\u2039-\\u203A\\u20AC\\u2122\\u2190-\\u2195\\u21D0-\\u21D4\\u2212\\u221E\\u2248\\u2260\\u2264-\\u2265]*$"
+                      },
+                      "id": {
+                        "description": "an id unique within the card; without one the row is known as properties[N]",
+                        "$ref": "#/$defs/id"
+                      },
+                      "visibility": {
+                        "description": "drawn before the text: + public, - private, # protected, ~ package",
+                        "enum": [
+                          "public",
+                          "private",
+                          "protected",
+                          "package"
+                        ]
+                      },
+                      "status": {
+                        "description": "what the change does to this row; leave it out for no status",
+                        "enum": [
+                          "new",
+                          "changed",
+                          "removed",
+                          "unchanged"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "text"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "default": []
+                },
+                "methods": {
+                  "description": "the class's methods, in order, drawn under the properties",
+                  "type": "array",
+                  "maxItems": 100,
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "text": {
+                        "description": "the member as you'd write it, such as a name and type or a signature",
+                        "$ref": "#/$defs/rowText",
+                        "type": "string",
+                        "pattern": "^[\\u0020-\\u007E\\u00A0-\\u0131\\u0134-\\u017F\\u2010\\u2013-\\u2014\\u2018-\\u2022\\u2026\\u2030\\u2032-\\u2033\\u2039-\\u203A\\u20AC\\u2122\\u2190-\\u2195\\u21D0-\\u21D4\\u2212\\u221E\\u2248\\u2260\\u2264-\\u2265]*$"
+                      },
+                      "id": {
+                        "description": "an id unique within the card; without one the row is known as methods[N]",
+                        "$ref": "#/$defs/id"
+                      },
+                      "visibility": {
+                        "description": "drawn before the text: + public, - private, # protected, ~ package",
+                        "enum": [
+                          "public",
+                          "private",
+                          "protected",
+                          "package"
+                        ]
+                      },
+                      "status": {
+                        "description": "what the change does to this row; leave it out for no status",
+                        "enum": [
+                          "new",
+                          "changed",
+                          "removed",
+                          "unchanged"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "text"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "default": []
                 }
               },
               "required": [
@@ -299,6 +385,13 @@
       "type": "string",
       "minLength": 1,
       "maxLength": 60,
+      "pattern": "[^ ]"
+    },
+    "rowText": {
+      "description": "one row of a card, such as a class member: plain text",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
       "pattern": "[^ ]"
     }
   }

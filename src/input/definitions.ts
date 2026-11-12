@@ -18,21 +18,26 @@ const TITLE: TextKind = { name: "title", maxLength: 100, description: "the diagr
 const LABEL: TextKind = { name: "label", maxLength: 100, description: "the name shown on a card" };
 const DESCRIPTION: TextKind = { name: "description", maxLength: 300, description: "a sentence or two about a diagram or card" };
 const LINE_LABEL: TextKind = { name: "lineLabel", maxLength: 60, description: "a short label on a line" };
-export const TEXT_KINDS: readonly TextKind[] = [TITLE, LABEL, DESCRIPTION, LINE_LABEL];
+const ROW_TEXT: TextKind = { name: "rowText", maxLength: 200, description: "one row of a card, such as a class member" };
+export const TEXT_KINDS: readonly TextKind[] = [TITLE, LABEL, DESCRIPTION, LINE_LABEL, ROW_TEXT];
 
 /** What a change does to a card, row or line: the same words the badges show. */
 export const STATUSES = ["new", "changed", "removed", "unchanged"] as const;
 export type Status = (typeof STATUSES)[number];
 const STATUS: Def = { kind: "choice", values: STATUSES, later: false };
 
-/** Node, edge and area ids: letters, digits and `-_.:`. Brackets can't appear, so `edges[N]` never clashes. */
+/**
+ * Node, edge, row and area ids: letters, digits and `-_.:`. Brackets can't
+ * appear, so `edges[N]` and `methods[N]` never clash with one.
+ */
 export const ID_PATTERN = "^[A-Za-z0-9_.:-]+$";
 
 export type Def =
   | ObjectDef
   | ListDef
   | TextDef
-  | { readonly kind: "id"; readonly of: "node" | "edge" }
+  /** Node and edge ids are unique across the diagram; a row's id only within its card. */
+  | { readonly kind: "id"; readonly of: "node" | "edge" | "row" }
   | { readonly kind: "ref"; readonly to: "node" }
   | ChoiceDef
   | { readonly kind: "boolean" }
@@ -143,6 +148,7 @@ export const DESCRIPTION_FACE: FaceId = "inter-regular";
 export const STEP_LABEL_FACE: FaceId = "inter-semibold";
 export const LINE_LABEL_FACE: FaceId = "inter-regular";
 export const CLASS_NAME_FACE: FaceId = "inter-semibold";
+export const ROW_TEXT_FACE: FaceId = "mono-regular";
 
 const FLOW_NODE: ObjectDef = {
   kind: "object",
@@ -168,6 +174,37 @@ const FLOW_EDGE: ObjectDef = {
   ],
 };
 
+/** Who can use a class member, drawn before its text as + - # ~. */
+export const VISIBILITIES = ["public", "private", "protected", "package"] as const;
+
+/** The two lists of a class card's rows, in the order they're drawn. */
+export const CLASS_SECTIONS = ["properties", "methods"] as const;
+
+/** The most rows one card may have. */
+const ROWS_PER_CARD = 100;
+
+/** One member of a class: a property or a method, called `noun` in messages. */
+function classRow(section: (typeof CLASS_SECTIONS)[number], noun: string): ObjectDef {
+  return {
+    kind: "object",
+    noun,
+    fields: [
+      required(
+        "text",
+        { kind: "text", text: ROW_TEXT, faces: [ROW_TEXT_FACE] },
+        "the member as you'd write it, such as a name and type or a signature",
+      ),
+      optional("id", { kind: "id", of: "row" }, `an id unique within the card; without one the row is known as ${section}[N]`),
+      optional(
+        "visibility",
+        { kind: "choice", values: VISIBILITIES, later: false },
+        "drawn before the text: + public, - private, # protected, ~ package",
+      ),
+      optional("status", STATUS, "what the change does to this row; leave it out for no status"),
+    ],
+  };
+}
+
 const CLASS_NODE: ObjectDef = {
   kind: "object",
   noun: "node",
@@ -175,6 +212,18 @@ const CLASS_NODE: ObjectDef = {
     required("id", { kind: "id", of: "node" }, "a unique id made of letters, digits and - _ . :"),
     required("label", { kind: "text", text: LABEL, faces: [CLASS_NAME_FACE] }, "the class name"),
     optional("status", STATUS, "what the change does to this card; leave it out for no status"),
+    optional(
+      "properties",
+      { kind: "list", noun: "properties", items: classRow("properties", "property"), maxItems: ROWS_PER_CARD },
+      "the class's properties, in order",
+      [],
+    ),
+    optional(
+      "methods",
+      { kind: "list", noun: "methods", items: classRow("methods", "method"), maxItems: ROWS_PER_CARD },
+      "the class's methods, in order, drawn under the properties",
+      [],
+    ),
   ],
 };
 

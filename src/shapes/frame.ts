@@ -37,6 +37,21 @@ export interface Badge extends Box {
   readonly word: Omit<TextLine, "color">;
 }
 
+/**
+ * A row inside a card, such as a class member, with its own tooltip, status
+ * and data attributes. The frame strikes through a removed row's text.
+ */
+export interface Row {
+  readonly id: string;
+  readonly kind: "property" | "method";
+  readonly status?: Status;
+  readonly tooltip: string;
+  /** The band the row's tint fills when it has a status. */
+  readonly box: Box;
+  readonly texts: readonly TextLine[];
+  readonly badge?: Badge;
+}
+
 /** What a card builder makes: the card's outline size and its contents, relative to the outline's top-left corner. */
 export interface CardBody {
   readonly kind: "step" | "class";
@@ -44,6 +59,9 @@ export interface CardBody {
   readonly height: number;
   readonly tooltip: string;
   readonly texts: readonly TextLine[];
+  /** Thin lines right across the card between its sections, at these heights. */
+  readonly dividers?: readonly number[];
+  readonly rows?: readonly Row[];
 }
 
 /** A card sized before layout. Its box (`width` × `height`) is exactly what ELK is given. */
@@ -57,6 +75,8 @@ export interface Card {
   readonly outline: Box;
   readonly tooltip: string;
   readonly texts: readonly TextLine[];
+  readonly dividers: readonly number[];
+  readonly rows: readonly Row[];
   readonly badge?: Badge;
 }
 
@@ -104,6 +124,11 @@ function frameCard<N extends Framed>(node: N, top: number, sizes: Sizes, build: 
   const width = Math.max(body.width, minWidth);
   const dx = (width - body.width) / 2;
   const outline = { x: 0, y: top, width, height: body.height };
+  const move = <P extends { readonly x: number; readonly y: number }>(p: P): P => ({ ...p, x: p.x + dx, y: p.y + top });
+  const moveText = (t: TextLine, struck: boolean): TextLine => {
+    const moved = move(t);
+    return struck ? { ...moved, strike: strikeThrough(moved, sizes) } : moved;
+  };
 
   return {
     id,
@@ -113,10 +138,14 @@ function frameCard<N extends Framed>(node: N, top: number, sizes: Sizes, build: 
     height: top + body.height,
     outline,
     tooltip: body.tooltip,
-    texts: body.texts.map((t) => {
-      const moved = { ...t, x: t.x + dx, y: t.y + top };
-      return status === "removed" && t.title ? { ...moved, strike: strikeThrough(moved, sizes) } : moved;
-    }),
+    texts: body.texts.map((t) => moveText(t, status === "removed" && t.title === true)),
+    dividers: (body.dividers ?? []).map((y) => y + top),
+    rows: (body.rows ?? []).map((row) => ({
+      ...row,
+      box: move(row.box),
+      texts: row.texts.map((t) => moveText(t, row.status === "removed")),
+      ...(row.badge ? { badge: { ...move(row.badge), word: move(row.badge.word) } } : {}),
+    })),
     ...(status === undefined
       ? {}
       : { badge: badge(status, width - sizes.badge.inset - measureBadge(status, sizes), top - sizes.badge.height / 2, sizes) }),

@@ -86,12 +86,15 @@ function toolShed() {
   return {
     type: "class",
     nodes: [
-      { id: "shed", label: "ToolShed" },
-      { id: "rake", label: "Rake" },
+      { id: "shed", label: "ToolShed", properties: [{ text: "floor: Area" }], methods: [{ text: "lock(key: Key): void" }] },
+      { id: "rake", label: "Rake", properties: [{ text: "tines: int" }], methods: [{ text: "gather(): Leaves" }] },
     ],
     edges: [{ id: "holds", from: "shed", to: "rake", kind: "association" }],
   } as Node;
 }
+
+/** A part of the schema: its name, the type of diagram it's in, where it is in the schema and in the input, and its path. */
+type Part = readonly [name: string, type: string, part: () => Node, target: (input: Node) => Node, prefix: string];
 
 /** A small valid diagram of each type. */
 const FIXTURES = new Map<string, () => Node>([
@@ -115,6 +118,17 @@ describe("the JSON Schema", () => {
     node = items("flow", "nodes");
     edge = items("flow", "edges");
   });
+
+  /** The class card's property and method rows, as parts of the schema, in the class node at `n`. */
+  function rowParts(n: number): Part[] {
+    return (["properties", "methods"] as const).map((section) => [
+      `a class row in ${section}`,
+      "class",
+      () => items("class", "nodes").properties[section].items,
+      (input: Node) => input.nodes[n][section][0],
+      `nodes[${n}].${section}[0].`,
+    ]);
+  }
 
   it("offers exactly the diagram types render() accepts, each with its own nodes and edges", async () => {
     const validate = new Ajv2020({ strict: true }).compile(root);
@@ -145,12 +159,13 @@ describe("the JSON Schema", () => {
     expect(root.type).toBe("object");
   });
 
-  it.each([
+  it.each<Part>([
     ["the top level", "flow", () => root, (input: Node) => input, ""],
     ["a flow node", "flow", () => node, (input: Node) => input.nodes[0], "nodes[0]."],
     ["a flow edge", "flow", () => edge, (input: Node) => input.edges[0], "edges[0]."],
     ["a class node", "class", () => items("class", "nodes"), (input: Node) => input.nodes[0], "nodes[0]."],
     ["a class edge", "class", () => items("class", "edges"), (input: Node) => input.edges[0], "edges[0]."],
+    ...rowParts(0),
   ])("lists exactly the fields render() allows on %s", async (_name, type, part, target, prefix) => {
     const input = FIXTURES.get(type)!();
     target(input).mulch = true;
@@ -161,12 +176,13 @@ describe("the JSON Schema", () => {
     ]);
   });
 
-  it.each([
+  it.each<Part>([
     ["the top level", "flow", () => root, (input: Node) => input, ""],
     ["a flow node", "flow", () => node, (input: Node) => input.nodes[1], "nodes[1]."],
     ["a flow edge", "flow", () => edge, (input: Node) => input.edges[0], "edges[0]."],
     ["a class node", "class", () => items("class", "nodes"), (input: Node) => input.nodes[1], "nodes[1]."],
     ["a class edge", "class", () => items("class", "edges"), (input: Node) => input.edges[0], "edges[0]."],
+    ...rowParts(1),
   ])("requires exactly the fields render() requires on %s", async (_name, type, part, target, prefix) => {
     for (const field of Object.keys(part().properties)) {
       const input = FIXTURES.get(type)!();
@@ -289,9 +305,20 @@ describe("the JSON Schema", () => {
     expect(label.minLength).toBe(1);
   });
 
-  it("sets the length limits for titles, labels, descriptions and line labels in one place, and rules out blank text", () => {
-    for (const kind of ["title", "label", "description", "lineLabel"]) {
+  it("sets the length limits for titles, labels, descriptions, line labels and row text in one place, and rules out blank text", () => {
+    for (const kind of ["title", "label", "description", "lineLabel", "rowText"]) {
       expect(root.$defs[kind]).toMatchObject({ type: "string", minLength: 1, maxLength: expect.any(Number), pattern: "[^ ]" });
+    }
+  });
+
+  it("agrees with render() that row text may use what JetBrains Mono draws, not what Inter draws", async () => {
+    const pattern = new RegExp(items("class", "nodes").properties.methods.items.properties.text.pattern, "u");
+
+    // JetBrains Mono can draw ⇑ but not Ĳ; Inter is the other way round.
+    for (const [text, drawable] of [["climb(): ⇑", true], ["Ĳssel(): void", false]] as const) {
+      const input = toolShed();
+      input.nodes[0].methods[0].text = text;
+      expect([text, pattern.test(text), (await outcome(input)) === "ok"]).toEqual([text, drawable, drawable]);
     }
   });
 
