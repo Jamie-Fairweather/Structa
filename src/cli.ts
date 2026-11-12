@@ -18,10 +18,40 @@ type Command =
       readonly embedFonts: boolean;
     }
   | { readonly kind: "schema" }
-  | { readonly kind: "example"; readonly type: string };
+  | { readonly kind: "example"; readonly type: string }
+  | { readonly kind: "help" };
 
 const THEMES = THEME_NAMES.join(" or ");
-const USAGE = `usage: node structa.mjs <diagram.json | -> [-o <diagram.svg>] [--theme ${THEME_NAMES.join("|")}] [--no-embed-fonts] | schema | example <type>`;
+const USAGE =
+  `usage: node structa.mjs <diagram.json | -> [-o <diagram.svg>] [--theme ${THEME_NAMES.join("|")}] [--no-embed-fonts]` +
+  " | schema | example <type> | --help";
+
+/** Short, for agents: the commands, every flag and the exit codes. Update it with every new flag or output. */
+const HELP = `Structa draws one diagram, described in JSON, as an SVG image.
+
+Usage:
+  node structa.mjs <diagram.json> [options]  draw the diagram
+  node structa.mjs - [options]               read the JSON from stdin
+  node structa.mjs schema                    print the input's JSON Schema
+  node structa.mjs example <type>            print a working example
+
+Diagram types: ${DIAGRAM_TYPES.join(", ")}
+
+Options:
+  -o <file.svg>       write the SVG to this file, not stdout (.svg in any case)
+  --theme ${THEME_NAMES.join("|")}  draw in this theme; wins over the JSON's "theme"
+  --no-embed-fonts    leave the fonts out of the SVG, for a smaller file
+  -h, --help          print this help
+
+Start from an example, and check your JSON against the schema.
+Commands win over file names: draw a file named schema as ./schema.
+Input is UTF-8; a byte-order mark is fine, UTF-16 is refused.
+
+Exit codes:
+  0  success
+  1  bad input or a failed render; each problem is one line on stderr
+  2  bad usage
+`;
 
 /** Set by the build (esbuild `define`) to "./examples/", the folder next to structa.mjs; undeclared in source runs. */
 declare const STRUCTA_EXAMPLES_DIR: string | undefined;
@@ -35,6 +65,9 @@ export async function runCli(args: readonly string[]): Promise<number> {
     return 2;
   }
   switch (command.kind) {
+    case "help":
+      process.stdout.write(HELP);
+      return 0;
     case "schema":
       process.stdout.write(`${JSON.stringify(jsonSchema(), null, 2)}\n`);
       return 0;
@@ -83,8 +116,12 @@ async function renderDiagram(command: Extract<Command, { kind: "render" }>): Pro
   return 0;
 }
 
-/** The command the arguments describe, or what's wrong with them. Commands win over file names. */
+/**
+ * The command the arguments describe, or what's wrong with them. --help wins
+ * over everything, and the commands win over file names.
+ */
 function parseArgs(args: readonly string[]): Command | string {
+  if (args.includes("--help") || args.includes("-h")) return { kind: "help" };
   let output: string | undefined;
   let theme: ThemeName | undefined;
   let embedFonts = true;

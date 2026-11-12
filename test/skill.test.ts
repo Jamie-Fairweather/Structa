@@ -184,6 +184,78 @@ describe("node structa.mjs example <type>", () => {
   });
 });
 
+describe("node structa.mjs --help", () => {
+  // Any new flag or output updates --help and this text.
+  const help = [
+    "Structa draws one diagram, described in JSON, as an SVG image.",
+    "",
+    "Usage:",
+    "  node structa.mjs <diagram.json> [options]  draw the diagram",
+    "  node structa.mjs - [options]               read the JSON from stdin",
+    "  node structa.mjs schema                    print the input's JSON Schema",
+    "  node structa.mjs example <type>            print a working example",
+    "",
+    "Diagram types: flow",
+    "",
+    "Options:",
+    "  -o <file.svg>       write the SVG to this file, not stdout (.svg in any case)",
+    '  --theme light|dark  draw in this theme; wins over the JSON\'s "theme"',
+    "  --no-embed-fonts    leave the fonts out of the SVG, for a smaller file",
+    "  -h, --help          print this help",
+    "",
+    "Start from an example, and check your JSON against the schema.",
+    "Commands win over file names: draw a file named schema as ./schema.",
+    "Input is UTF-8; a byte-order mark is fine, UTF-16 is refused.",
+    "",
+    "Exit codes:",
+    "  0  success",
+    "  1  bad input or a failed render; each problem is one line on stderr",
+    "  2  bad usage",
+    "",
+  ].join("\n");
+
+  it.each([
+    [["--help"]],
+    [["-h"]],
+    [["IN", "-o", "a.svg", "--help"]],
+    [["IN", "--theme", "dark", "--no-embed-fonts", "-h"]],
+    [["example", "pie", "-h"]],
+  ])(
+    "prints the short help for %j, and nothing else",
+    (args) => {
+      const result = skill.run(args.map((arg) => (arg === "IN" ? flowPath : arg)));
+
+      expect(result).toEqual({ status: 0, stdout: help, stderr: "" });
+      expect(existsSync(join(skill.elsewhere, "a.svg"))).toBe(false);
+    },
+  );
+
+  it("stays short: at most 25 lines, none wider than 80 columns", () => {
+    const lines = skill.run(["--help"]).stdout.trimEnd().split("\n");
+
+    expect(lines.length).toBeLessThanOrEqual(25);
+    expect(lines.filter((line) => line.length > 80)).toEqual([]);
+  });
+});
+
+describe("commands win over file names", () => {
+  it("prints the schema for schema, even with a file named schema here, and draws that file as ./schema", async () => {
+    writeFileSync(join(skill.elsewhere, "schema"), flowJson);
+    const { svg } = await render(flowJson);
+
+    expect(skill.run(["schema"])).toEqual({ status: 0, stdout: readFileSync(join(skill.dir, "structa.schema.json"), "utf8"), stderr: "" });
+    expect(skill.run(["./schema"])).toEqual({ status: 0, stdout: svg, stderr: "" });
+  });
+
+  it("asks for a type for example, even with a file named example here, and draws that file as ./example", async () => {
+    writeFileSync(join(skill.elsewhere, "example"), flowJson);
+    const { svg } = await render(flowJson);
+
+    expect(skill.run(["example"]).status).toBe(2);
+    expect(skill.run(["./example"])).toEqual({ status: 0, stdout: svg, stderr: "" });
+  });
+});
+
 describe("import { render } from structa.mjs", () => {
   it("gives the same SVG as render() in this process, and importing doesn't start the command line", async () => {
     const { svg } = await render(flowJson);
@@ -478,7 +550,8 @@ describe("exit code 2: bad usage", () => {
     const [, usage] = skill.run([]).stderr.split("\n");
 
     expect(usage).toBe(
-      "usage: node structa.mjs <diagram.json | -> [-o <diagram.svg>] [--theme light|dark] [--no-embed-fonts] | schema | example <type>",
+      "usage: node structa.mjs <diagram.json | -> [-o <diagram.svg>] [--theme light|dark] [--no-embed-fonts]" +
+        " | schema | example <type> | --help",
     );
   });
 });
