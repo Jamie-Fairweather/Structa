@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { readTtf } from "../scripts/lib/ttf";
 import { render, StructaError } from "../src/index";
 import { badlyFormattedNumbers, fontFaceRules, parseSvg, passiveSvgViolations, textFaces } from "./helpers/svg";
 
@@ -33,6 +34,16 @@ describe("fonts embedded in SVGs", () => {
     expect(bytes.toString("base64")).toBe(base64);
     // A TrueType font starts with version 1.0.
     expect([...bytes.subarray(0, 4)]).toEqual([0, 1, 0, 0]);
+  });
+
+  it("embeds the trimmed face: the shared characters only, and no OpenType layout data", async () => {
+    const [rule] = fontFaceRules(parseSvg((await render(rakeLeaves)).svg));
+    const font = readTtf(Buffer.from(DATA_URL.exec(rule!.src)![1]!, "base64"));
+
+    // Latin letters, punctuation and the common symbols stay; Cyrillic and Greek, which Inter also draws, go.
+    for (const kept of "Aéł…→≠") expect(font.advance(kept.codePointAt(0)!), kept).toBeDefined();
+    for (const dropped of "ЖΩ") expect(font.advance(dropped.codePointAt(0)!), dropped).toBeUndefined();
+    expect(font.tables.filter((table) => ["GDEF", "GPOS", "GSUB", "kern"].includes(table))).toEqual([]);
   });
 
   it("embeds no font, and writes no <style>, when no text is drawn", async () => {
