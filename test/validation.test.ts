@@ -144,19 +144,19 @@ describe("the top level", () => {
 describe("unknown fields", () => {
   it("rejects an unknown top-level field", async () => {
     expect(await problems({ ...pond(), colour: "green" })).toEqual([
-      { path: "colour", message: 'unknown field "colour"', hint: "allowed fields: version, type, theme, direction, nodes, edges" },
+      { path: "colour", message: 'unknown field "colour"', hint: "allowed fields: version, type, title, description, theme, direction, legend, nodes, edges" },
     ]);
   });
 
   it("rejects an unknown node field", async () => {
     expect(await problems(pondWith((p) => (p.nodes[1]!.size = "large")))).toEqual([
-      { path: "nodes[1].size", message: 'unknown field "size"', hint: "allowed fields: id, label, shape" },
+      { path: "nodes[1].size", message: 'unknown field "size"', hint: "allowed fields: id, label, status, shape" },
     ]);
   });
 
   it("rejects an unknown edge field", async () => {
     expect(await problems(pondWith((p) => (p.edges[0]!.colour = "blue")))).toEqual([
-      { path: "edges[0].colour", message: 'unknown field "colour"', hint: "allowed fields: id, from, to" },
+      { path: "edges[0].colour", message: 'unknown field "colour"', hint: "allowed fields: id, from, to, label, status, emphasis" },
     ]);
   });
 
@@ -165,7 +165,7 @@ describe("unknown fields", () => {
       {
         path: '["line colour"]',
         message: 'unknown field "line colour"',
-        hint: "allowed fields: version, type, theme, direction, nodes, edges",
+        hint: "allowed fields: version, type, title, description, theme, direction, legend, nodes, edges",
       },
     ]);
   });
@@ -219,6 +219,58 @@ describe("nodes and edges", () => {
   it("requires a label to be a string", async () => {
     expect(await problems(pondWith((p) => (p.nodes[0]!.label = 42)))).toEqual([
       { path: "nodes[0].label", message: "must be a string", hint: "write the text in double quotes" },
+    ]);
+  });
+});
+
+describe("statuses and emphasis", () => {
+  const STATUS_HINT = 'use "new", "changed", "removed" or "unchanged"';
+
+  it("accepts the four statuses on nodes and edges, and no status at all", async () => {
+    for (const status of ["new", "changed", "removed", "unchanged"]) {
+      const input = pondWith((p) => {
+        p.nodes[0]!.status = status;
+        p.edges[0]!.status = status;
+      });
+      await expect(render(input, opts)).resolves.toHaveProperty("svg");
+    }
+    await expect(render(pond(), opts)).resolves.toHaveProperty("svg");
+  });
+
+  it.each([
+    ["nodes[1].status", (p: ReturnType<typeof pond>) => (p.nodes[1]!.status = "deleted"), '"deleted" is not a valid status'],
+    ["nodes[1].status", (p: ReturnType<typeof pond>) => (p.nodes[1]!.status = "New"), '"New" is not a valid status'],
+    ["edges[0].status", (p: ReturnType<typeof pond>) => (p.edges[0]!.status = true), "true is not a valid status"],
+  ])("rejects a status other than the four at %s", async (path, change, message) => {
+    expect(await problems(pondWith(change))).toEqual([{ path, message, hint: STATUS_HINT }]);
+  });
+
+  it("accepts emphasis true or false, and treats a missing one as false", async () => {
+    const without = await render(pond(), opts);
+    const off = await render(pondWith((p) => (p.edges[0]!.emphasis = false)), opts);
+    const on = await render(pondWith((p) => (p.edges[0]!.emphasis = true)), opts);
+
+    expect(off.svg).toBe(without.svg);
+    expect(on.svg).not.toBe(without.svg);
+  });
+
+  it.each([
+    ["yes", '"yes" is not true or false'],
+    ["true", '"true" is not true or false'],
+    [1, "1 is not true or false"],
+    [null, "null is not true or false"],
+  ])("rejects emphasis %j", async (emphasis, message) => {
+    expect(await problems(pondWith((p) => (p.edges[1]!.emphasis = emphasis)))).toEqual([
+      { path: "edges[1].emphasis", message, hint: "write true or false, without quotes" },
+    ]);
+  });
+
+  it.each([
+    ["no", '"no" is not true or false'],
+    [0, "0 is not true or false"],
+  ])("rejects legend %j", async (legend, message) => {
+    expect(await problems({ ...pond(), legend })).toEqual([
+      { path: "legend", message, hint: "write true or false, without quotes" },
     ]);
   });
 });
@@ -381,6 +433,23 @@ describe("limits", () => {
       { path: "nodes[0].label", message: "is 101 characters long; the limit is 100", hint: "shorten it" },
     ]);
   });
+
+  it("allows a line label of 60 characters and rejects one of 61", async () => {
+    await expect(render(pondWith((p) => (p.edges[0]!.label = "w".repeat(60))), opts)).resolves.toHaveProperty("svg");
+    expect(await problems(pondWith((p) => (p.edges[0]!.label = "w".repeat(61))))).toEqual([
+      { path: "edges[0].label", message: "is 61 characters long; the limit is 60", hint: "shorten it" },
+    ]);
+  });
+
+  it.each([
+    ["title", 100],
+    ["description", 300],
+  ])("allows a %s of %i characters and rejects a longer one", async (field, limit) => {
+    await expect(render({ ...pond(), [field]: "P".repeat(limit) }, opts)).resolves.toHaveProperty("svg");
+    expect(await problems({ ...pond(), [field]: "P".repeat(limit + 1) })).toEqual([
+      { path: field, message: `is ${limit + 1} characters long; the limit is ${limit}`, hint: "shorten it" },
+    ]);
+  });
 });
 
 describe("text", () => {
@@ -499,6 +568,43 @@ describe("text", () => {
 
     expect((await stepText(label)).title).toBe(label);
   });
+
+  it("checks a line label like any other text: tidied, never blank, only drawable characters", async () => {
+    const doc = parseSvg((await render(pondWith((p) => (p.edges[0]!.label = "  when   dry ")), opts)).svg);
+    expect(titleOf(lines(doc)[0]!)).toBe("Dig the hole → Lay the liner: when dry");
+
+    expect(await problems(pondWith((p) => (p.edges[0]!.label = "   ")))).toEqual([
+      { path: "edges[0].label", message: "must not be empty", hint: "write the text to show" },
+    ]);
+    expect(await problems(pondWith((p) => (p.edges[1]!.label = "rain 🌧")))).toEqual([
+      {
+        path: "edges[1].label",
+        message: 'contains "🌧" (U+1F327), which Structa\'s fonts can\'t draw',
+        hint: "use Latin letters, digits and common symbols",
+      },
+    ]);
+    expect(await problems(pondWith((p) => (p.edges[1]!.label = 3)))).toEqual([
+      { path: "edges[1].label", message: "must be a string", hint: "write the text in double quotes" },
+    ]);
+  });
+
+  it.each(["title", "description"])("checks the diagram's %s like any other text", async (field) => {
+    const doc = parseSvg((await render({ ...pond(), [field]: "  Garden   pond " }, opts)).svg);
+    expect(Array.from(doc.getElementsByTagName("text")).map((t) => t.textContent)).toContain("Garden pond");
+
+    expect(await problems({ ...pond(), [field]: " " })).toEqual([
+      { path: field, message: "must not be empty", hint: "write the text to show" },
+    ]);
+    expect(await problems({ ...pond(), [field]: "Pond\tplan" })).toEqual([
+      { path: field, message: "contains a tab (U+0009)", hint: "use a space instead" },
+    ]);
+    expect(await problems({ ...pond(), [field]: "池 pond" })).toEqual([
+      { path: field, message: 'contains "池" (U+6C60), which Structa\'s fonts can\'t draw', hint: "use Latin letters, digits and common symbols" },
+    ]);
+    expect(await problems({ ...pond(), [field]: ["Garden pond"] })).toEqual([
+      { path: field, message: "must be a string", hint: "write the text in double quotes" },
+    ]);
+  });
 });
 
 describe("JSON syntax errors", () => {
@@ -612,9 +718,9 @@ describe("several problems", () => {
     });
 
     expect(error.problems).toEqual([
-      { path: "colour", message: 'unknown field "colour"', hint: "allowed fields: version, type, theme, direction, nodes, edges" },
+      { path: "colour", message: 'unknown field "colour"', hint: "allowed fields: version, type, title, description, theme, direction, legend, nodes, edges" },
       { path: "version", message: "3 is not supported", hint: "use 1, or leave version out" },
-      { path: "nodes[1].size", message: 'unknown field "size"', hint: "allowed fields: id, label, shape" },
+      { path: "nodes[1].size", message: 'unknown field "size"', hint: "allowed fields: id, label, status, shape" },
       { path: "nodes[1].id", message: 'the id "dig" is already used by nodes[0]', hint: "give every node and edge its own id" },
       { path: "nodes[1].label", message: "contains a tab (U+0009)", hint: "use a space instead" },
       { path: "nodes[2].label", message: 'missing required field "label"', hint: 'add "label": the text shown in the shape' },

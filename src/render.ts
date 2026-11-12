@@ -2,7 +2,7 @@ import { StructaError, type Problem } from "./errors";
 import { parseDiagram } from "./input";
 import { FLOW_PROFILE, layout } from "./layout";
 import { paint } from "./painter";
-import { buildLine, buildStep } from "./shapes";
+import { buildCards, buildHeader, buildLegend, buildLine } from "./shapes";
 import { getTheme, THEME_NAMES, type ThemeName } from "./theme";
 
 interface Outputs {
@@ -33,16 +33,19 @@ export async function render<F extends Format = "svg">(
   const { diagram } = parsed;
 
   const theme = getTheme(themeName ?? diagram.theme);
-  const cards = diagram.nodes.map((node, i) => ({ ...buildStep(node, theme.sizes), path: `nodes[${i}]` }));
+  const cards = buildCards(diagram.nodes, theme.sizes).map((card, i) => ({ ...card, path: `nodes[${i}]` }));
   const index = new Map(diagram.nodes.map((node, i) => [node.id, i]));
   const lines = diagram.edges.map((edge, i) => {
     const source = index.get(edge.from)!;
     const target = index.get(edge.to)!;
-    const line = buildLine(edge, diagram.nodes[source]!.label, diagram.nodes[target]!.label);
+    const line = buildLine(edge, diagram.nodes[source]!.label, diagram.nodes[target]!.label, theme.sizes);
     return { ...line, source, target, path: `edges[${i}]` };
   });
   const scene = await layout({ cards, lines }, FLOW_PROFILE, diagram.direction);
-  const outputs: Outputs = { svg: paint(scene, theme, { embedFonts }) };
+  const header = buildHeader(diagram.title, diagram.description, theme.sizes);
+  const statuses = [...diagram.nodes, ...diagram.edges].map((item) => item.status);
+  const legend = diagram.legend ? buildLegend(statuses, theme.sizes) : undefined;
+  const outputs: Outputs = { svg: paint({ scene, header, legend }, theme, { embedFonts }) };
 
   const result: Partial<Outputs> = {};
   for (const format of formats) result[format] = outputs[format];

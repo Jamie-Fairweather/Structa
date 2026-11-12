@@ -1,39 +1,96 @@
-import type { PlacedCard, RoutedLine, Scene } from "../layout";
-import type { Card, CardText, Line } from "../shapes";
+import type { Status } from "../input";
+import type { PlacedCard, Point, RoutedLine, Scene } from "../layout";
+import { topAt, type Badge, type Card, type Header, type Legend, type Line, type LineLabel, type TextLine } from "../shapes";
 import { FACES, faceStyle, fontDataUrl, type FaceId } from "../text";
 import type { Theme } from "../theme";
 import { arrowhead, roundedRoute } from "./route";
 import { el, escapeText, num, open, type Attrs } from "./svg";
+
+/** Everything drawn: the laid-out scene, the title above it and the legend below it. */
+export interface Drawing {
+  readonly scene: Scene<Card, Line>;
+  readonly header?: Header;
+  readonly legend?: Legend;
+}
 
 export interface PaintOptions {
   /** Embed the font faces the text is drawn in, as @font-face rules. */
   readonly embedFonts: boolean;
 }
 
-/** Turns a positioned scene into a passive SVG string. */
-export function paint(scene: Scene<Card, Line>, theme: Theme, options: PaintOptions): string {
-  const pad = theme.sizes.canvasPadding;
-  const width = wholePixels(scene.width + 2 * pad);
-  const height = wholePixels(scene.height + 2 * pad);
+/** What drawing needs: the theme, and every face text has been written in so far. */
+interface Pen {
+  readonly theme: Theme;
+  readonly faces: Set<FaceId>;
+}
+
+/**
+ * Turns a drawing into a passive SVG string. The title, the scene and the
+ * legend are stacked top to bottom, left-aligned, with the canvas padding
+ * around them all.
+ */
+export function paint({ scene, header, legend }: Drawing, theme: Theme, options: PaintOptions): string {
+  const { canvasPadding: pad, sectionGap } = theme.sizes;
+  const sceneHeight = scene.cards.length > 0 ? scene.height : undefined;
+  const { tops, bottom } = stack([header?.height, sceneHeight, legend?.height], pad, sectionGap);
+  const [headerTop, sceneTop, legendTop] = tops;
+  const width = wholePixels(Math.max(scene.width, header?.width ?? 0, legend?.width ?? 0) + 2 * pad);
+  const height = wholePixels(bottom + pad);
   // Ids carry the theme name, so a light and a dark SVG inlined in one page can't clash.
   const ids = { grid: `structa-grid-${theme.name}`, shadow: `structa-shadow-${theme.name}` };
-  // Every text element is written through text(), which records its face here.
-  const faces = new Set<FaceId>();
-  const text = (t: CardText, x: number, y: number) => {
-    faces.add(t.face);
-    return textElement(t, x, y, theme);
-  };
+  // Every text element is written through text(), which records its face in the pen.
+  const pen: Pen = { theme, faces: new Set() };
+  const origin = { x: pad, y: sceneTop ?? pad };
+  const placed = new Map(scene.cards.map((p) => [p.card.id, p]));
 
   const content = [
-    ...scene.cards.flatMap((placed) => card(placed, pad, theme, ids.shadow, text)),
-    ...scene.lines.flatMap((routed) => line(routed, pad, theme)),
+    ...(header ? headerText(header, { x: pad, y: headerTop! }, pen) : []),
+    ...scene.cards.flatMap((p) => card(p, origin, pen, ids.shadow)),
+    ...scene.lines.flatMap(({ line: l, points }) =>
+      line(l, ontoCards(points, placed.get(l.from)!, placed.get(l.to)!), origin, pen),
+    ),
+    ...lineLabels(scene.lines, origin, pen),
+    ...(legend ? legendItems(legend, { x: pad, y: legendTop! }, pen) : []),
   ];
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" width="${num(width)}" height="${num(height)}" viewBox="0 0 ${num(width)} ${num(height)}">`,
-    ...background(width, height, theme, ids, options.embedFonts ? fontFaces(faces) : []),
+    ...background(width, height, theme, ids, options.embedFonts ? fontFaces(pen.faces) : []),
     ...content,
     "</svg>",
   ].join("\n") + "\n";
+}
+
+/**
+ * ELK ends lines on a card's box, whose top is the band the card's badge
+ * overhangs. A line ending on that top edge comes straight down into it, so
+ * it carries on down until it meets what's drawn there: the badge, or the
+ * card's outline beside it.
+ */
+function ontoCards(points: readonly Point[], from: PlacedCard<Card>, to: PlacedCard<Card>): Point[] {
+  const route = [...points];
+  const land = (end: number, next: number, { card, x, y }: PlacedCard<Card>) => {
+    const p = route[end]!;
+    const q = route[next]!;
+    const comesDownOntoTop = Math.abs(p.y - y) < 1e-6 && Math.abs(q.x - p.x) < 1e-6 && q.y < p.y;
+    if (comesDownOntoTop) route[end] = { x: p.x, y: y + topAt(card, p.x - x) };
+  };
+  land(0, 1, from);
+  land(route.length - 1, route.length - 2, to);
+  return route;
+}
+
+/** The tops of blocks of these heights, stacked `gap` apart from `top`, skipping absent ones, and where the last one ends. */
+function stack(heights: readonly (number | undefined)[], top: number, gap: number) {
+  let y = top;
+  let bottom = top;
+  const tops = heights.map((height) => {
+    if (height === undefined) return undefined;
+    const at = y;
+    bottom = at + height;
+    y = bottom + gap;
+    return at;
+  });
+  return { tops, bottom };
 }
 
 /**
@@ -89,10 +146,77 @@ function background(
   ];
 }
 
-type TextWriter = (t: CardText, x: number, y: number) => string;
+function headerText(header: Header, at: Point, pen: Pen): string[] {
+  const part = (name: string, texts: readonly TextLine[]) =>
+    texts.length === 0
+      ? []
+      : [open("g", [["class", name]]), ...texts.flatMap((t) => text(t, at.x, at.y, pen.theme.colors[t.color], pen)), "</g>"];
+  return [...part("title", header.title), ...part("description", header.description)];
+}
 
-/** One line of text, its position relative to (x, y). */
-function textElement(t: CardText, x: number, y: number, theme: Theme): string {
+function legendItems(legend: Legend, at: Point, pen: Pen): string[] {
+  return [
+    open("g", [["class", "legend"]]),
+    ...legend.items.flatMap((item) => [
+      open("g", [["class", "legend-item"], ...statusAttr(item.status)]),
+      el("line", [
+        ["class", "swatch"],
+        ["x1", at.x + item.swatch.x1],
+        ["y1", at.y + item.swatch.y],
+        ["x2", at.x + item.swatch.x2],
+        ["y2", at.y + item.swatch.y],
+        ["stroke", lineColour(item.status, pen.theme)],
+        ["stroke-width", pen.theme.sizes.line.width],
+        ["stroke-linecap", "round"],
+      ]),
+      ...badge(item.badge, at.x, at.y, pen),
+      "</g>",
+    ]),
+    "</g>",
+  ];
+}
+
+function card({ card, x: cardX, y: cardY }: PlacedCard<Card>, at: Point, pen: Pen, shadowId: string): string[] {
+  const { colors, sizes } = pen.theme;
+  const x = cardX + at.x;
+  const y = cardY + at.y;
+  const { outline } = card;
+  return [
+    open("g", [["class", "card"], ["data-id", card.id], ["data-kind", card.kind], ...statusAttr(card.status)]),
+    el("title", [], escapeText(card.tooltip)),
+    ...fadedIf(card.status === "removed", pen.theme, [
+      el("rect", [
+        ["x", x + outline.x],
+        ["y", y + outline.y],
+        ["width", outline.width],
+        ["height", outline.height],
+        ["rx", sizes.card.radius],
+        ["fill", colors.cardFill],
+        ["stroke", card.status ? colors.status[card.status].stroke : colors.cardBorder],
+        ["stroke-width", card.status ? sizes.card.statusBorderWidth : sizes.card.borderWidth],
+        ["filter", `url(#${shadowId})`],
+      ]),
+      ...card.texts.flatMap((t) => text(t, x, y, colors[t.color], pen)),
+    ]),
+    // The badge stays at full strength, so a removed card's REMOVED reads clearly.
+    ...(card.badge ? badge(card.badge, x, y, pen) : []),
+    "</g>",
+  ];
+}
+
+function statusAttr(status: Status | undefined): Attrs {
+  return status === undefined ? [] : [["data-status", status]];
+}
+
+/** Removed parts are drawn faded: wrapped in a see-through group. */
+function fadedIf(removed: boolean, theme: Theme, parts: string[]): string[] {
+  if (!removed) return parts;
+  return [open("g", [["class", "faded"], ["opacity", theme.colors.fadedOpacity]]), ...parts, "</g>"];
+}
+
+/** One line of text offset by (x, y), and the line through it when it's struck out. Records its face. */
+function text(t: Omit<TextLine, "color">, x: number, y: number, fill: string, pen: Pen): string[] {
+  pen.faces.add(t.face);
   const face = faceStyle(t.face);
   const attrs: Attrs = [
     ["x", x + t.x],
@@ -101,59 +225,122 @@ function textElement(t: CardText, x: number, y: number, theme: Theme): string {
     ["font-size", t.size],
     ["font-weight", face.weight],
     ...(face.style === "italic" ? ([["font-style", "italic"]] as const) : []),
-    ["fill", theme.colors[t.color]],
+    ["fill", fill],
     ...(t.anchor === "middle" ? ([["text-anchor", "middle"]] as const) : []),
   ];
-  return el("text", attrs, escapeText(t.text));
+  const drawn = el("text", attrs, escapeText(t.text));
+  if (!t.strike) return [drawn];
+  const { x1, x2, y: strikeY } = t.strike;
+  return [
+    drawn,
+    el("line", [
+      ["class", "strike"],
+      ["x1", x + x1],
+      ["y1", y + strikeY],
+      ["x2", x + x2],
+      ["y2", y + strikeY],
+      ["stroke", fill],
+      ["stroke-width", pen.theme.sizes.strike.width],
+    ]),
+  ];
 }
 
-function card(
-  { card, x: cardX, y: cardY }: PlacedCard<Card>,
-  pad: number,
-  theme: Theme,
-  shadowId: string,
-  text: TextWriter,
-): string[] {
-  const { colors, sizes } = theme;
-  const x = cardX + pad;
-  const y = cardY + pad;
-  const texts = card.texts.map((t) => text(t, x, y));
+/**
+ * A status badge offset by (x, y). An opaque backing in the card colour keeps
+ * the border it sits on from showing through a see-through fill.
+ */
+function badge(b: Badge, x: number, y: number, pen: Pen): string[] {
+  const { colors, sizes } = pen.theme;
+  const look = colors.status[b.status];
+  const box: Attrs = [["x", x + b.x], ["y", y + b.y], ["width", b.width], ["height", b.height], ["rx", b.height / 2]];
   return [
-    open("g", [["class", "card"], ["data-id", card.id], ["data-kind", card.kind]]),
-    el("title", [], escapeText(card.tooltip)),
+    open("g", [["class", "badge"]]),
+    el("rect", [...box, ["fill", colors.cardFill]]),
     el("rect", [
-      ["x", x],
-      ["y", y],
-      ["width", card.width],
-      ["height", card.height],
-      ["rx", sizes.card.radius],
-      ["fill", colors.cardFill],
-      ["stroke", colors.cardBorder],
-      ["stroke-width", sizes.card.borderWidth],
-      ["filter", `url(#${shadowId})`],
+      ...box,
+      ["fill", look.badgeFill],
+      ...(look.badgeFillOpacity === 1 ? [] : ([["fill-opacity", look.badgeFillOpacity]] as const)),
+      ["stroke", look.stroke],
+      ["stroke-width", sizes.badge.borderWidth],
     ]),
-    ...texts,
+    ...text(b.word, x, y, look.badgeText, pen),
     "</g>",
   ];
 }
 
-function line({ line, points }: RoutedLine<Line>, pad: number, theme: Theme): string[] {
-  const { colors, sizes } = theme;
-  const pts = points.map((p) => ({ x: p.x + pad, y: p.y + pad }));
-  const { width, cornerRadius, arrowLength, arrowWidth } = sizes.line;
+function line(line: Line, points: readonly Point[], at: Point, pen: Pen): string[] {
+  const { sizes } = pen.theme;
+  const pts = points.map((p) => ({ x: p.x + at.x, y: p.y + at.y }));
+  const { cornerRadius, arrowLength, arrowWidth } = sizes.line;
+  const colour = lineColour(line.status, pen.theme);
   return [
-    open("g", [["class", "line"], ["data-id", line.id], ["data-kind", line.kind], ["data-from", line.from], ["data-to", line.to]]),
-    el("title", [], escapeText(line.tooltip)),
-    el("path", [
-      ["d", roundedRoute(pts, cornerRadius, arrowLength)],
-      ["fill", "none"],
-      ["stroke", colors.line],
-      ["stroke-width", width],
-      ["stroke-linejoin", "round"],
+    open("g", [
+      ["class", "line"],
+      ["data-id", line.id],
+      ["data-kind", line.kind],
+      ["data-from", line.from],
+      ["data-to", line.to],
+      ...statusAttr(line.status),
     ]),
-    el("path", [["d", arrowhead(pts, arrowLength, arrowWidth)], ["fill", colors.line]]),
+    el("title", [], escapeText(line.tooltip)),
+    ...fadedIf(line.status === "removed", pen.theme, [
+      el("path", [
+        ["d", roundedRoute(pts, cornerRadius, arrowLength)],
+        ["fill", "none"],
+        ["stroke", colour],
+        ["stroke-width", line.emphasis ? sizes.line.emphasisWidth : sizes.line.width],
+        ["stroke-linejoin", "round"],
+      ]),
+      el("path", [["d", arrowhead(pts, arrowLength, arrowWidth)], ["fill", colour]]),
+    ]),
     "</g>",
   ];
+}
+
+/**
+ * Every line's label pill, in one layer drawn after all the lines, so a pill
+ * covers whatever runs under it: its own line, or another line ELK routed
+ * across it (it does that with loops nested on one card).
+ */
+function lineLabels(lines: readonly RoutedLine<Line>[], at: Point, pen: Pen): string[] {
+  const pills = lines.flatMap(({ line, label }) =>
+    line.label && label ? [pill(line, line.label, { x: label.x + at.x, y: label.y + at.y }, pen)] : [],
+  );
+  return pills.length === 0 ? [] : [open("g", [["class", "line-labels"]]), ...pills.flat(), "</g>"];
+}
+
+/**
+ * A line's label with its top-left corner at `at`: a rounded pill bordered in
+ * the line's colour, showing the line's tooltip. A removed line's pill is
+ * faded, over an opaque backing in the canvas colour so the lines it covers
+ * don't show through.
+ */
+function pill(line: Line, label: LineLabel, at: Point, pen: Pen): string[] {
+  const { colors, sizes } = pen.theme;
+  const single = sizes.lineLabel.lineHeight + 2 * sizes.lineLabel.paddingY;
+  const removed = line.status === "removed";
+  // Fully round on one line; a wrapped label keeps the same corners.
+  const box: Attrs = [["x", at.x], ["y", at.y], ["width", label.width], ["height", label.height], ["rx", Math.min(label.height, single) / 2]];
+  return [
+    open("g", [["class", "line-label"], ["data-line", line.id]]),
+    el("title", [], escapeText(line.tooltip)),
+    ...(removed ? [el("rect", [...box, ["fill", colors.background]])] : []),
+    ...fadedIf(removed, pen.theme, [
+      el("rect", [
+        ...box,
+        ["fill", colors.cardFill],
+        ["stroke", lineColour(line.status, pen.theme)],
+        ["stroke-width", sizes.lineLabel.borderWidth],
+      ]),
+      ...label.texts.flatMap((t) => text(t, at.x, at.y, colors[t.color], pen)),
+    ]),
+    "</g>",
+  ];
+}
+
+/** A line's status shows by colour only. Unchanged lines look like lines with no status. */
+function lineColour(status: Status | undefined, theme: Theme): string {
+  return status === undefined || status === "unchanged" ? theme.colors.line : theme.colors.status[status].stroke;
 }
 
 /** Rounds a canvas size up to whole pixels, ignoring floating-point noise. */

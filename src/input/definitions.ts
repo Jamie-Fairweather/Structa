@@ -14,11 +14,16 @@ export interface TextKind {
   readonly description: string;
 }
 
+const TITLE: TextKind = { name: "title", maxLength: 100, description: "the diagram's title" };
 const LABEL: TextKind = { name: "label", maxLength: 100, description: "the name shown on a card" };
-// No field uses these two yet: descriptions and line labels arrive with their drawing.
-const DESCRIPTION: TextKind = { name: "description", maxLength: 300, description: "a sentence about a card" };
+const DESCRIPTION: TextKind = { name: "description", maxLength: 300, description: "a sentence or two about a diagram or card" };
 const LINE_LABEL: TextKind = { name: "lineLabel", maxLength: 60, description: "a short label on a line" };
-export const TEXT_KINDS: readonly TextKind[] = [LABEL, DESCRIPTION, LINE_LABEL];
+export const TEXT_KINDS: readonly TextKind[] = [TITLE, LABEL, DESCRIPTION, LINE_LABEL];
+
+/** What a change does to a card, row or line: the same words the badges show. */
+export const STATUSES = ["new", "changed", "removed", "unchanged"] as const;
+export type Status = (typeof STATUSES)[number];
+const STATUS: Def = { kind: "choice", values: STATUSES, later: false };
 
 /** Node, edge and area ids: letters, digits and `-_.:`. Brackets can't appear, so `edges[N]` never clashes. */
 export const ID_PATTERN = "^[A-Za-z0-9_.:-]+$";
@@ -30,8 +35,11 @@ export type Def =
   | { readonly kind: "id"; readonly of: "node" | "edge" }
   | { readonly kind: "ref"; readonly to: "node" }
   | ChoiceDef
+  | { readonly kind: "boolean" }
   | { readonly kind: "const"; readonly value: number }
   | { readonly kind: "any" };
+
+const BOOLEAN: Def = { kind: "boolean" };
 
 export interface ObjectDef {
   readonly kind: "object";
@@ -70,7 +78,7 @@ export interface Field {
   readonly required: boolean;
   /** Shown in the schema, and in the hint when a required field is missing. */
   readonly description: string;
-  readonly default?: string | readonly [];
+  readonly default?: string | boolean | readonly [];
 }
 
 function required(name: string, def: Def, description: string): Field {
@@ -96,6 +104,12 @@ function diagram(node: Def, edge: Def, direction: "down" | "right"): ObjectDef {
     fields: [
       optional("version", { kind: "const", value: 1 }, "the format version; leave it out to mean the current one"),
       required("type", { kind: "choice", values: DIAGRAM_TYPES, later: true }, "the kind of diagram"),
+      optional("title", { kind: "text", text: TITLE, faces: [TITLE_FACE] }, "a title drawn at the top-left"),
+      optional(
+        "description",
+        { kind: "text", text: DESCRIPTION, faces: [DESCRIPTION_FACE] },
+        "a sentence or two drawn under the title",
+      ),
       optional(
         "theme",
         { kind: "choice", values: THEME_NAMES, later: false },
@@ -108,6 +122,7 @@ function diagram(node: Def, edge: Def, direction: "down" | "right"): ObjectDef {
         "which way the diagram flows: top to bottom or left to right",
         direction,
       ),
+      optional("legend", BOOLEAN, "false leaves out the legend of statuses at the bottom", true),
       required(
         "nodes",
         { kind: "list", noun: "nodes", items: node, maxItems: LIMITS.nodes },
@@ -123,7 +138,10 @@ function diagram(node: Def, edge: Def, direction: "down" | "right"): ObjectDef {
  * text field below registers the same ones, so its characters are checked
  * against the faces that really draw it.
  */
+export const TITLE_FACE: FaceId = "inter-bold";
+export const DESCRIPTION_FACE: FaceId = "inter-regular";
 export const STEP_LABEL_FACE: FaceId = "inter-semibold";
+export const LINE_LABEL_FACE: FaceId = "inter-regular";
 
 const FLOW_NODE: ObjectDef = {
   kind: "object",
@@ -131,6 +149,7 @@ const FLOW_NODE: ObjectDef = {
   fields: [
     required("id", { kind: "id", of: "node" }, "a unique id made of letters, digits and - _ . :"),
     required("label", { kind: "text", text: LABEL, faces: [STEP_LABEL_FACE] }, "the text shown in the shape"),
+    optional("status", STATUS, "what the change does to this card; leave it out for no status"),
     required("shape", { kind: "choice", values: ["step"], later: true }, "the shape drawn"),
   ],
 };
@@ -142,6 +161,9 @@ const FLOW_EDGE: ObjectDef = {
     optional("id", { kind: "id", of: "edge" }, "a unique id; without one the line is known as edges[N]"),
     required("from", { kind: "ref", to: "node" }, "the id of the node the line starts at"),
     required("to", { kind: "ref", to: "node" }, "the id of the node the line ends at"),
+    optional("label", { kind: "text", text: LINE_LABEL, faces: [LINE_LABEL_FACE] }, "a short label drawn in a pill on the line"),
+    optional("status", STATUS, "what the change does to this line, shown by its colour; leave it out for no status"),
+    optional("emphasis", BOOLEAN, "true draws the line thicker, to point out the main path", false),
   ],
 };
 

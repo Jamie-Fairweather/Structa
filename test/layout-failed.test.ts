@@ -39,7 +39,7 @@ const compost = {
     { id: "collect", label: "Collect peelings", shape: "step" },
     { id: "layer", label: "Layer with cardboard", shape: "step" },
   ],
-  edges: [{ from: "collect", to: "layer" }],
+  edges: [{ from: "collect", to: "layer", label: "weekly" }],
 };
 
 const hint = "this is a bug in Structa: please report it with the input JSON";
@@ -70,6 +70,14 @@ describe("render() when the layout engine misbehaves", () => {
       (g) => void (g.edges![0]!.sections![0]!.bendPoints = [{ x: Number.POSITIVE_INFINITY, y: 0 }]),
       "edges[0]",
       "the layout engine gave this line no usable route",
+    ],
+    ["drops a label", (g) => void (g.edges![0]!.labels = []), "edges[0].label", "the layout engine dropped this label"],
+    ["resizes a label", (g) => void (g.edges![0]!.labels![0]!.height! += 2), "edges[0].label", "the layout engine changed this label's size"],
+    [
+      "loses a label's position",
+      (g) => delete g.edges![0]!.labels![0]!.x,
+      "edges[0].label",
+      "the layout engine gave this label no position",
     ],
     ["repeats a card", (g) => void g.children!.push({ ...g.children![0]! }), "$", 'the layout engine repeated "n0"'],
     [

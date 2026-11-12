@@ -1,4 +1,5 @@
 import { DOMParser, type Document, type Element } from "@xmldom/xmldom";
+import { render } from "../../src/index";
 
 /** Parses SVG text, failing the test on anything that isn't well-formed XML. */
 export function parseSvg(svg: string): Document {
@@ -7,6 +8,11 @@ export function parseSvg(svg: string): Document {
       throw new Error(`SVG is not well-formed (${level}): ${message}`);
     },
   }).parseFromString(svg, "image/svg+xml");
+}
+
+/** Renders a diagram without embedded fonts, as snapshot and structural tests do, and parses the SVG. */
+export async function svgDoc(input: object, theme?: "light" | "dark"): Promise<Document> {
+  return parseSvg((await render(input, { embedFonts: false, ...(theme ? { theme } : {}) })).svg);
 }
 
 export function allElements(root: Document | Element): Element[] {
@@ -36,12 +42,67 @@ export interface Box {
   height: number;
 }
 
+export function rectBox(rect: Element): Box {
+  const num = (name: string) => Number(rect.getAttribute(name));
+  return { x: num("x"), y: num("y"), width: num("width"), height: num("height") };
+}
+
 /** The outline box of a card: its first rect. */
 export function cardBox(card: Element): Box {
   const rect = card.getElementsByTagName("rect")[0];
   if (!rect) throw new Error(`card ${card.getAttribute("data-id")} has no rect`);
-  const num = (name: string) => Number(rect.getAttribute(name));
-  return { x: num("x"), y: num("y"), width: num("width"), height: num("height") };
+  return rectBox(rect);
+}
+
+/** Elements inside `root` with the given class. */
+export function byClassIn(root: Element, className: string): Element[] {
+  return allElements(root).filter((el) => el.getAttribute("class") === className);
+}
+
+/** The status badge on a card or legend item: the box of its pill. */
+export function badgeBox(el: Element): Box | undefined {
+  const badge = byClassIn(el, "badge")[0];
+  const rect = badge?.getElementsByTagName("rect")[0];
+  return rect ? rectBox(rect) : undefined;
+}
+
+function distanceToSegment(p: Point, a: Point, b: Point): number {
+  const length = Math.hypot(b.x - a.x, b.y - a.y);
+  const t = length === 0 ? 0 : Math.max(0, Math.min(1, ((p.x - a.x) * (b.x - a.x) + (p.y - a.y) * (b.y - a.y)) / length ** 2));
+  return Math.hypot(a.x + t * (b.x - a.x) - p.x, a.y + t * (b.y - a.y) - p.y);
+}
+
+/** How far a point is from a path of straight runs. */
+export function distanceToRoute(p: Point, points: readonly Point[]): number {
+  let best = Number.POSITIVE_INFINITY;
+  for (let i = 0; i + 1 < points.length; i++) best = Math.min(best, distanceToSegment(p, points[i]!, points[i + 1]!));
+  return best;
+}
+
+/**
+ * How far a point is inside a pill drawn in `box` (rounded ends of radius
+ * height / 2): positive inside, 0 on its outline, negative outside.
+ */
+export function depthInPill(p: Point, box: Box): number {
+  const r = box.height / 2;
+  const cy = box.y + r;
+  return r - distanceToSegment(p, { x: box.x + r, y: cy }, { x: box.x + box.width - r, y: cy });
+}
+
+/** Points every half pixel along a path of straight runs, ends included. */
+export function alongRuns(points: readonly Point[]): Point[] {
+  const found: Point[] = [];
+  for (let i = 0; i + 1 < points.length; i++) {
+    const [a, b] = [points[i]!, points[i + 1]!];
+    const steps = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) * 2));
+    for (let s = 0; s <= steps; s++) found.push({ x: a.x + ((b.x - a.x) * s) / steps, y: a.y + ((b.y - a.y) * s) / steps });
+  }
+  return found;
+}
+
+/** Whether two boxes share any area (touching edges don't count). */
+export function overlaps(a: Box, b: Box): boolean {
+  return a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
 }
 
 export interface Point {

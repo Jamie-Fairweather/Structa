@@ -16,6 +16,23 @@ describe("examples", () => {
     expect(examples.length).toBeGreaterThan(0);
   });
 
+  it("includes one that uses every status on cards and lines, with labels, emphasis and a title", () => {
+    const used = examples.map(({ json }) => JSON.parse(json) as { title?: string; nodes: object[]; edges?: object[] });
+    const statuses = (items: readonly object[]) => new Set(items.map((item) => (item as { status?: string }).status));
+    const all = ["new", "changed", "removed", "unchanged"];
+
+    expect(
+      used.some(
+        (d) =>
+          d.title !== undefined &&
+          all.every((s) => statuses(d.nodes).has(s)) &&
+          statuses(d.edges ?? []).size > 2 &&
+          (d.edges ?? []).some((e) => "label" in e) &&
+          (d.edges ?? []).some((e) => "emphasis" in e),
+      ),
+    ).toBe(true);
+  });
+
   // Every example in both themes. The theme option wins over any theme in the example's JSON.
   describe.each(examples)("$name", ({ name, json }) => {
     describe.each(["light", "dark"] as const)("in %s", (theme) => {

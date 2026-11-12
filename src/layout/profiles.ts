@@ -14,7 +14,7 @@ export interface LayoutProfile {
 
 export const FLOW_PROFILE: LayoutProfile = {
   name: "flow",
-  version: 2,
+  version: 3,
   options: {
     "elk.algorithm": "layered",
     "elk.edgeRouting": "ORTHOGONAL",
@@ -27,6 +27,8 @@ export const FLOW_PROFILE: LayoutProfile = {
     "elk.layered.spacing.edgeNodeBetweenLayers": "24",
     "elk.spacing.edgeEdge": "16",
     "elk.layered.spacing.edgeEdgeBetweenLayers": "16",
+    // Line labels are pills drawn on top of their line, so ELK centres them on it.
+    "elk.edgeLabels.inline": "true",
     "elk.padding": "[top=0,left=0,bottom=0,right=0]",
   },
 };

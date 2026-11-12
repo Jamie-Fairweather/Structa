@@ -1,16 +1,25 @@
 import type { Problem } from "../errors";
 import type { ThemeName } from "../theme";
 import { check } from "./check";
-import { diagramDefinition } from "./definitions";
+import { diagramDefinition, type Status } from "./definitions";
 import { parseJson } from "./json";
 
-export { DIAGRAM_TYPES, STEP_LABEL_FACE } from "./definitions";
+export {
+  DESCRIPTION_FACE,
+  DIAGRAM_TYPES,
+  LINE_LABEL_FACE,
+  STATUSES,
+  STEP_LABEL_FACE,
+  TITLE_FACE,
+  type Status,
+} from "./definitions";
 export { jsonSchema } from "./schema";
 
 export interface FlowStep {
   readonly id: string;
   /** Tidied: runs of spaces collapsed and the ends trimmed. */
   readonly label: string;
+  readonly status?: Status;
   readonly shape: "step";
 }
 
@@ -19,6 +28,10 @@ export interface FlowEdge {
   readonly id: string;
   readonly from: string;
   readonly to: string;
+  /** Tidied, like every text field. */
+  readonly label?: string;
+  readonly status?: Status;
+  readonly emphasis: boolean;
 }
 
 /** Which way the diagram flows. */
@@ -26,8 +39,12 @@ export type Direction = "down" | "right";
 
 export interface FlowDiagram {
   readonly type: "flow";
+  readonly title?: string;
+  readonly description?: string;
   readonly theme: ThemeName;
   readonly direction: Direction;
+  /** Whether to draw the legend of the statuses used. */
+  readonly legend: boolean;
   readonly nodes: readonly FlowStep[];
   readonly edges: readonly FlowEdge[];
 }
@@ -60,10 +77,13 @@ export function parseDiagram(input: unknown): ParseResult {
     ok: true,
     diagram: {
       type: diagram.type,
+      ...(diagram.title === undefined ? {} : { title: diagram.title }),
+      ...(diagram.description === undefined ? {} : { description: diagram.description }),
       theme: diagram.theme,
       direction: diagram.direction,
+      legend: diagram.legend,
       nodes: diagram.nodes,
-      edges: diagram.edges.map((edge, i) => ({ id: edge.id ?? `edges[${i}]`, from: edge.from, to: edge.to })),
+      edges: diagram.edges.map((edge, i) => ({ ...edge, id: edge.id ?? `edges[${i}]` })),
     },
   };
 }

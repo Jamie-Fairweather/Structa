@@ -59,6 +59,21 @@ describe("fonts embedded in SVGs", () => {
     expect([font.family, font.weight, font.style]).toEqual(["Inter", 600, "normal"]);
   });
 
+  it("embeds the faces of badges, line labels, the title and the legend too, and only those used", async () => {
+    const changed = {
+      ...rakeLeaves,
+      title: "Autumn leaves",
+      nodes: rakeLeaves.nodes.map((node, i) => (i === 1 ? { ...node, status: "new" } : node)),
+      edges: [{ ...rakeLeaves.edges[0]!, label: "when dry" }, rakeLeaves.edges[1]!],
+    };
+    const doc = parseSvg((await render(changed)).svg);
+
+    // Badges and the title are Inter Bold, line labels Inter Regular, step labels Inter SemiBold.
+    const used = ["Structa Inter 400 normal", "Structa Inter 600 normal", "Structa Inter 700 normal"];
+    expect([...textFaces(doc)].sort()).toEqual(used);
+    expect(fontFaceRules(doc).map((rule) => rule.face)).toEqual(used);
+  });
+
   it("embeds no font, and writes no <style>, when no text is drawn", async () => {
     const { svg } = await render({ type: "flow", nodes: [] });
 

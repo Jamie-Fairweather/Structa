@@ -40,7 +40,7 @@ function objectSchema(def: ObjectDef): JsonSchema {
 
 function fieldSchema(field: Field): JsonSchema {
   const schema: JsonSchema = { description: field.description, ...defSchema(field.def) };
-  if (field.default !== undefined) schema.default = typeof field.default === "string" ? field.default : [];
+  if (field.default !== undefined) schema.default = typeof field.default === "object" ? [] : field.default;
   return schema;
 }
 
@@ -58,6 +58,8 @@ function defSchema(def: Def): JsonSchema {
       return { $ref: "#/$defs/id" };
     case "choice":
       return { enum: [...def.values] };
+    case "boolean":
+      return { type: "boolean" };
     case "const":
       return { const: def.value };
     case "any":

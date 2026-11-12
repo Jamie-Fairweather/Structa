@@ -131,12 +131,14 @@ describe("the JSON Schema", () => {
   });
 
   it.each([
-    ["type", (input: Node, value: string) => (input.type = value)],
-    ["theme", (input: Node, value: string) => (input.theme = value)],
-    ["direction", (input: Node, value: string) => (input.direction = value)],
-    ["shape", (input: Node, value: string) => (input.nodes[0].shape = value)],
-  ])("offers exactly the %s values render() accepts", async (field, set) => {
-    const values: string[] = (field === "shape" ? node : root).properties[field].enum;
+    ["type", () => root, (input: Node, value: string) => (input.type = value)],
+    ["theme", () => root, (input: Node, value: string) => (input.theme = value)],
+    ["direction", () => root, (input: Node, value: string) => (input.direction = value)],
+    ["shape", () => node, (input: Node, value: string) => (input.nodes[0].shape = value)],
+    ["node status", () => node, (input: Node, value: string) => (input.nodes[0].status = value)],
+    ["edge status", () => edge, (input: Node, value: string) => (input.edges[0].status = value)],
+  ])("offers exactly the %s values render() accepts", async (name, part, set) => {
+    const values: string[] = part().properties[name.split(" ").at(-1)!].enum;
 
     for (const value of values) {
       const input = greenhouse();
@@ -145,9 +147,25 @@ describe("the JSON Schema", () => {
     }
     const input = greenhouse();
     set(input, "sideways");
-    expect(await outcome(input)).toEqual([
-      expect.objectContaining({ hint: `use ${values.map((v) => JSON.stringify(v)).join(" or ")}` }),
-    ]);
+    const quoted = values.map((v) => JSON.stringify(v));
+    const choices = quoted.length <= 2 ? quoted.join(" or ") : `${quoted.slice(0, -1).join(", ")} or ${quoted.at(-1)}`;
+    expect(await outcome(input)).toEqual([expect.objectContaining({ hint: `use ${choices}` })]);
+  });
+
+  it.each([
+    ["legend", () => root, (input: Node, value: unknown) => (input.legend = value)],
+    ["emphasis", () => edge, (input: Node, value: unknown) => (input.edges[0].emphasis = value)],
+  ])("agrees with render() that %s is true or false", async (name, part, set) => {
+    expect(part().properties[name].type).toBe("boolean");
+
+    for (const value of [true, false]) {
+      const input = greenhouse();
+      set(input, value);
+      expect(await outcome(input)).toBe("ok");
+    }
+    const input = greenhouse();
+    set(input, "true");
+    expect(await outcome(input)).not.toBe("ok");
   });
 
   it("documents the defaults render() uses", async () => {
@@ -160,6 +178,22 @@ describe("the JSON Schema", () => {
     expect((await render(withoutEdges, opts)).svg).toBe(bare.svg);
     expect((await render({ ...greenhouse(), direction: "down" }, opts)).svg).toBe((await render(greenhouse(), opts)).svg);
     expect((await render({ ...greenhouse(), theme: "light" }, opts)).svg).toBe((await render(greenhouse(), opts)).svg);
+  });
+
+  it("documents that emphasis is off unless asked for", async () => {
+    expect(edge.properties.emphasis.default).toBe(false);
+
+    const off = greenhouse();
+    off.edges[0].emphasis = false;
+    expect((await render(off, opts)).svg).toBe((await render(greenhouse(), opts)).svg);
+  });
+
+  it("documents that the legend is on unless turned off", async () => {
+    expect(root.properties.legend.default).toBe(true);
+
+    const changed = greenhouse();
+    changed.nodes[0].status = "changed";
+    expect((await render({ ...changed, legend: true }, opts)).svg).toBe((await render(changed, opts)).svg);
   });
 
   it("accepts version 1 only", async () => {
@@ -207,8 +241,8 @@ describe("the JSON Schema", () => {
     expect(label.minLength).toBe(1);
   });
 
-  it("sets the length limits for labels, descriptions and line labels in one place, and rules out blank text", () => {
-    for (const kind of ["label", "description", "lineLabel"]) {
+  it("sets the length limits for titles, labels, descriptions and line labels in one place, and rules out blank text", () => {
+    for (const kind of ["title", "label", "description", "lineLabel"]) {
       expect(root.$defs[kind]).toMatchObject({ type: "string", minLength: 1, maxLength: expect.any(Number), pattern: "[^ ]" });
     }
   });
