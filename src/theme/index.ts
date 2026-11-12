@@ -78,7 +78,11 @@ const COLORS: { readonly [name in ThemeName]: ThemeColors } = {
 /** Sizes, radii, font sizes and spacing, shared by both themes. */
 export const SIZES = {
   canvasPadding: 32,
+  /** Space between the title, the diagram and the legend. */
+  sectionGap: 24,
   grid: { spacing: 18, dotRadius: 1 },
+  /** The title and description at the top-left, wrapped to `maxWidth`, `gap` apart. */
+  header: { titleSize: 18, titleLineHeight: 24, descriptionSize: 13, descriptionLineHeight: 18, gap: 4, maxWidth: 640 },
   card: { radius: 10, borderWidth: 1, statusBorderWidth: 1.5, shadowOffsetY: 1, shadowBlur: 3 },
   /** The status badge: a pill centred on the card's top border, `inset` from its right-hand end. */
   badge: { fontSize: 10, height: 16, paddingX: 6, inset: 12, borderWidth: 1 },

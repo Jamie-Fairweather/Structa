@@ -186,8 +186,8 @@ describe("the JSON Schema", () => {
     expect(label.minLength).toBe(1);
   });
 
-  it("sets the length limits for labels, descriptions and line labels in one place, and rules out blank text", () => {
-    for (const kind of ["label", "description", "lineLabel"]) {
+  it("sets the length limits for titles, labels, descriptions and line labels in one place, and rules out blank text", () => {
+    for (const kind of ["title", "label", "description", "lineLabel"]) {
       expect(root.$defs[kind]).toMatchObject({ type: "string", minLength: 1, maxLength: expect.any(Number), pattern: "[^ ]" });
     }
   });

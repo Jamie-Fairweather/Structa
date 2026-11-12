@@ -2,7 +2,7 @@ import { StructaError } from "./errors";
 import { parseDiagram } from "./input";
 import { FLOW_PROFILE, layout } from "./layout";
 import { paint } from "./painter";
-import { buildCards, buildLine } from "./shapes";
+import { buildCards, buildHeader, buildLine } from "./shapes";
 import { getTheme, THEME_NAMES, type ThemeName } from "./theme";
 
 interface Outputs {
@@ -43,7 +43,8 @@ export async function render<F extends Format = "svg">(
     return { ...line, source, target, path: `edges[${i}]` };
   });
   const scene = await layout({ cards, lines }, FLOW_PROFILE, diagram.direction);
-  const outputs: Outputs = { svg: paint(scene, theme) };
+  const header = buildHeader(diagram.title, diagram.description, theme.sizes);
+  const outputs: Outputs = { svg: paint({ scene, ...(header ? { header } : {}) }, theme) };
 
   const result: Partial<Outputs> = {};
   for (const format of formats) result[format] = outputs[format];

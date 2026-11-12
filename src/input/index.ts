@@ -3,7 +3,7 @@ import { check } from "./check";
 import { diagramDefinition, type Status } from "./definitions";
 import { parseJson } from "./json";
 
-export { LINE_LABEL_FACE, STATUSES, STEP_LABEL_FACE, type Status } from "./definitions";
+export { DESCRIPTION_FACE, LINE_LABEL_FACE, STATUSES, STEP_LABEL_FACE, TITLE_FACE, type Status } from "./definitions";
 export { jsonSchema } from "./schema";
 
 export interface FlowStep {
@@ -30,6 +30,8 @@ export type Direction = "down" | "right";
 
 export interface FlowDiagram {
   readonly type: "flow";
+  readonly title?: string;
+  readonly description?: string;
   readonly direction: Direction;
   readonly nodes: readonly FlowStep[];
   readonly edges: readonly FlowEdge[];
@@ -63,6 +65,8 @@ export function parseDiagram(input: unknown): ParseResult {
     ok: true,
     diagram: {
       type: diagram.type,
+      ...(diagram.title === undefined ? {} : { title: diagram.title }),
+      ...(diagram.description === undefined ? {} : { description: diagram.description }),
       direction: diagram.direction,
       nodes: diagram.nodes,
       edges: diagram.edges.map((edge, i) => ({ ...edge, id: edge.id ?? `edges[${i}]` })),

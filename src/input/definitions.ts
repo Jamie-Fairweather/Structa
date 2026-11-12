@@ -13,11 +13,11 @@ export interface TextKind {
   readonly description: string;
 }
 
+const TITLE: TextKind = { name: "title", maxLength: 100, description: "the diagram's title" };
 const LABEL: TextKind = { name: "label", maxLength: 100, description: "the name shown on a card" };
-// No field uses this yet: descriptions arrive with their drawing.
-const DESCRIPTION: TextKind = { name: "description", maxLength: 300, description: "a sentence about a card" };
+const DESCRIPTION: TextKind = { name: "description", maxLength: 300, description: "a sentence or two about the diagram or a card" };
 const LINE_LABEL: TextKind = { name: "lineLabel", maxLength: 60, description: "a short label on a line" };
-export const TEXT_KINDS: readonly TextKind[] = [LABEL, DESCRIPTION, LINE_LABEL];
+export const TEXT_KINDS: readonly TextKind[] = [TITLE, LABEL, DESCRIPTION, LINE_LABEL];
 
 /** What a change does to a card, row or line: the same words the badges show. */
 export const STATUSES = ["new", "changed", "removed", "unchanged"] as const;
@@ -103,6 +103,12 @@ function diagram(node: Def, edge: Def, direction: "down" | "right"): ObjectDef {
     fields: [
       optional("version", { kind: "const", value: 1 }, "the format version; leave it out to mean the current one"),
       required("type", { kind: "choice", values: DIAGRAM_TYPES, later: true }, "the kind of diagram"),
+      optional("title", { kind: "text", text: TITLE, faces: [TITLE_FACE] }, "a title drawn at the top-left"),
+      optional(
+        "description",
+        { kind: "text", text: DESCRIPTION, faces: [DESCRIPTION_FACE] },
+        "a sentence or two drawn under the title",
+      ),
       optional(
         "direction",
         { kind: "choice", values: ["down", "right"], later: false },
@@ -124,6 +130,8 @@ function diagram(node: Def, edge: Def, direction: "down" | "right"): ObjectDef {
  * text field below registers the same ones, so its characters are checked
  * against the faces that really draw it.
  */
+export const TITLE_FACE: FaceId = "inter-bold";
+export const DESCRIPTION_FACE: FaceId = "inter-regular";
 export const STEP_LABEL_FACE: FaceId = "inter-semibold";
 export const LINE_LABEL_FACE: FaceId = "inter-regular";
 

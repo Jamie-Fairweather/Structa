@@ -135,7 +135,7 @@ describe("the top level", () => {
 describe("unknown fields", () => {
   it("rejects an unknown top-level field", async () => {
     expect(await problems({ ...pond(), colour: "green" })).toEqual([
-      { path: "colour", message: 'unknown field "colour"', hint: "allowed fields: version, type, direction, nodes, edges" },
+      { path: "colour", message: 'unknown field "colour"', hint: "allowed fields: version, type, title, description, direction, nodes, edges" },
     ]);
   });
 
@@ -156,7 +156,7 @@ describe("unknown fields", () => {
       {
         path: '["line colour"]',
         message: 'unknown field "line colour"',
-        hint: "allowed fields: version, type, direction, nodes, edges",
+        hint: "allowed fields: version, type, title, description, direction, nodes, edges",
       },
     ]);
   });
@@ -422,6 +422,16 @@ describe("limits", () => {
       { path: "edges[0].label", message: "is 61 characters long; the limit is 60", hint: "shorten it" },
     ]);
   });
+
+  it.each([
+    ["title", 100],
+    ["description", 300],
+  ])("allows a %s of %i characters and rejects a longer one", async (field, limit) => {
+    await expect(render({ ...pond(), [field]: "P".repeat(limit) }, opts)).resolves.toHaveProperty("svg");
+    expect(await problems({ ...pond(), [field]: "P".repeat(limit + 1) })).toEqual([
+      { path: field, message: `is ${limit + 1} characters long; the limit is ${limit}`, hint: "shorten it" },
+    ]);
+  });
 });
 
 describe("text", () => {
@@ -559,6 +569,24 @@ describe("text", () => {
       { path: "edges[1].label", message: "must be a string", hint: "write the text in double quotes" },
     ]);
   });
+
+  it.each(["title", "description"])("checks the diagram's %s like any other text", async (field) => {
+    const doc = parseSvg((await render({ ...pond(), [field]: "  Garden   pond " }, opts)).svg);
+    expect(Array.from(doc.getElementsByTagName("text")).map((t) => t.textContent)).toContain("Garden pond");
+
+    expect(await problems({ ...pond(), [field]: " " })).toEqual([
+      { path: field, message: "must not be empty", hint: "write the text to show" },
+    ]);
+    expect(await problems({ ...pond(), [field]: "Pond\tplan" })).toEqual([
+      { path: field, message: "contains a tab (U+0009)", hint: "use a space instead" },
+    ]);
+    expect(await problems({ ...pond(), [field]: "池 pond" })).toEqual([
+      { path: field, message: 'contains "池" (U+6C60), which Structa\'s fonts can\'t draw', hint: "use Latin letters, digits and common symbols" },
+    ]);
+    expect(await problems({ ...pond(), [field]: ["Garden pond"] })).toEqual([
+      { path: field, message: "must be a string", hint: "write the text in double quotes" },
+    ]);
+  });
 });
 
 describe("JSON syntax errors", () => {
@@ -672,7 +700,7 @@ describe("several problems", () => {
     });
 
     expect(error.problems).toEqual([
-      { path: "colour", message: 'unknown field "colour"', hint: "allowed fields: version, type, direction, nodes, edges" },
+      { path: "colour", message: 'unknown field "colour"', hint: "allowed fields: version, type, title, description, direction, nodes, edges" },
       { path: "version", message: "3 is not supported", hint: "use 1, or leave version out" },
       { path: "nodes[1].size", message: 'unknown field "size"', hint: "allowed fields: id, label, status, shape" },
       { path: "nodes[1].id", message: 'the id "dig" is already used by nodes[0]', hint: "give every node and edge its own id" },

@@ -1,26 +1,61 @@
 import type { Status } from "../input";
-import type { PlacedCard, RoutedLine, Scene } from "../layout";
-import type { Badge, Card, Line, LineLabel, TextLine } from "../shapes";
+import type { PlacedCard, Point, RoutedLine, Scene } from "../layout";
+import type { Badge, Card, Header, Line, LineLabel, TextLine } from "../shapes";
 import { faceStyle } from "../text";
 import type { Theme } from "../theme";
 import { arrowhead, roundedRoute } from "./route";
 import { el, escapeText, num, open, type Attrs } from "./svg";
 
-/** Turns a positioned scene into a passive SVG string. */
-export function paint(scene: Scene<Card, Line>, theme: Theme): string {
-  const pad = theme.sizes.canvasPadding;
-  const width = wholePixels(scene.width + 2 * pad);
-  const height = wholePixels(scene.height + 2 * pad);
+/** Everything drawn: the laid-out scene, and the title above it. */
+export interface Drawing {
+  readonly scene: Scene<Card, Line>;
+  readonly header?: Header;
+}
+
+/**
+ * Turns a drawing into a passive SVG string. The title, the scene and the
+ * legend are stacked top to bottom, left-aligned, with the canvas padding
+ * around them all.
+ */
+export function paint({ scene, header }: Drawing, theme: Theme): string {
+  const { canvasPadding: pad, sectionGap } = theme.sizes;
+  const sections = stack([header?.height, scene.cards.length > 0 ? scene.height : undefined], pad, sectionGap);
+  const width = wholePixels(Math.max(scene.width, header?.width ?? 0) + 2 * pad);
+  const height = wholePixels(sections.bottom + pad);
+  const origin = { x: pad, y: sections.tops[1] ?? pad };
   // Ids carry the theme name, so a light and a dark SVG inlined in one page can't clash.
   const ids = { grid: `structa-grid-${theme.name}`, shadow: `structa-shadow-${theme.name}` };
 
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" width="${num(width)}" height="${num(height)}" viewBox="0 0 ${num(width)} ${num(height)}">`,
     ...background(width, height, theme, ids),
-    ...scene.cards.flatMap((placed) => card(placed, pad, theme, ids.shadow)),
-    ...scene.lines.flatMap((routed) => line(routed, pad, theme)),
+    ...(header ? headerText(header, { x: pad, y: sections.tops[0]! }, theme) : []),
+    ...scene.cards.flatMap((placed) => card(placed, origin, theme, ids.shadow)),
+    ...scene.lines.flatMap((routed) => line(routed, origin, theme)),
     "</svg>",
   ].join("\n") + "\n";
+}
+
+/** The tops of blocks of these heights, stacked `gap` apart from `top`, skipping absent ones, and where the last one ends. */
+function stack(heights: readonly (number | undefined)[], top: number, gap: number): { tops: (number | undefined)[]; bottom: number } {
+  let y = top;
+  let bottom = top;
+  const tops = heights.map((height) => {
+    if (height === undefined) return undefined;
+    const at = y;
+    bottom = at + height;
+    y = bottom + gap;
+    return at;
+  });
+  return { tops, bottom };
+}
+
+function headerText(header: Header, at: Point, theme: Theme): string[] {
+  const part = (name: string, texts: readonly TextLine[]) =>
+    texts.length === 0
+      ? []
+      : [open("g", [["class", name]]), ...texts.flatMap((t) => text(t, at.x, at.y, theme.colors[t.color], theme)), "</g>"];
+  return [...part("title", header.title), ...part("description", header.description)];
 }
 
 function background(width: number, height: number, theme: Theme, ids: { grid: string; shadow: string }): string[] {
@@ -56,10 +91,10 @@ function background(width: number, height: number, theme: Theme, ids: { grid: st
   ];
 }
 
-function card({ card, x: cardX, y: cardY }: PlacedCard<Card>, pad: number, theme: Theme, shadowId: string): string[] {
+function card({ card, x: cardX, y: cardY }: PlacedCard<Card>, at: Point, theme: Theme, shadowId: string): string[] {
   const { colors, sizes } = theme;
-  const x = cardX + pad;
-  const y = cardY + pad;
+  const x = cardX + at.x;
+  const y = cardY + at.y;
   const { outline } = card;
   return [
     open("g", [["class", "card"], ["data-id", card.id], ["data-kind", card.kind], ...statusAttr(card.status)]),
@@ -147,9 +182,9 @@ function badge(b: Badge, x: number, y: number, theme: Theme): string[] {
   ];
 }
 
-function line({ line, points, label }: RoutedLine<Line>, pad: number, theme: Theme): string[] {
+function line({ line, points, label }: RoutedLine<Line>, at: Point, theme: Theme): string[] {
   const { colors, sizes } = theme;
-  const pts = points.map((p) => ({ x: p.x + pad, y: p.y + pad }));
+  const pts = points.map((p) => ({ x: p.x + at.x, y: p.y + at.y }));
   const { cornerRadius, arrowLength, arrowWidth } = sizes.line;
   const colour = lineColour(line.status, theme);
   return [
@@ -171,7 +206,7 @@ function line({ line, points, label }: RoutedLine<Line>, pad: number, theme: The
         ["stroke-linejoin", "round"],
       ]),
       el("path", [["d", arrowhead(pts, arrowLength, arrowWidth)], ["fill", colour]]),
-      ...(line.label && label ? pill(line.label, label.x + pad, label.y + pad, colour, theme) : []),
+      ...(line.label && label ? pill(line.label, label.x + at.x, label.y + at.y, colour, theme) : []),
     ]),
     "</g>",
   ];

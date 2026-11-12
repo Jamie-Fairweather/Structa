@@ -14,6 +14,18 @@
         "flow"
       ]
     },
+    "title": {
+      "description": "a title drawn at the top-left",
+      "$ref": "#/$defs/title",
+      "type": "string",
+      "pattern": "^[\\u0020-\\u007E\\u00A0-\\u00AC\\u00AE-\\u0148\\u014A-\\u017F\\u2010-\\u2015\\u2018-\\u2022\\u2026\\u2030\\u2032-\\u2033\\u2039-\\u203A\\u20AC\\u2122\\u2190-\\u2195\\u21D0\\u21D2\\u21D4\\u2212\\u221E\\u2248\\u2260\\u2264-\\u2265]*$"
+    },
+    "description": {
+      "description": "a sentence or two drawn under the title",
+      "$ref": "#/$defs/description",
+      "type": "string",
+      "pattern": "^[\\u0020-\\u007E\\u00A0-\\u00AC\\u00AE-\\u0148\\u014A-\\u017F\\u2010-\\u2015\\u2018-\\u2022\\u2026\\u2030\\u2032-\\u2033\\u2039-\\u203A\\u20AC\\u2122\\u2190-\\u2195\\u21D0\\u21D2\\u21D4\\u2212\\u221E\\u2248\\u2260\\u2264-\\u2265]*$"
+    },
     "direction": {
       "description": "which way the diagram flows: top to bottom or left to right",
       "enum": [
@@ -123,6 +135,13 @@
       "type": "string",
       "pattern": "^[A-Za-z0-9_.:-]+$"
     },
+    "title": {
+      "description": "the diagram's title: plain text",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "pattern": "[^ ]"
+    },
     "label": {
       "description": "the name shown on a card: plain text",
       "type": "string",
@@ -131,7 +150,7 @@
       "pattern": "[^ ]"
     },
     "description": {
-      "description": "a sentence about a card: plain text",
+      "description": "a sentence or two about the diagram or a card: plain text",
       "type": "string",
       "minLength": 1,
       "maxLength": 300,

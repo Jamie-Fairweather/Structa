@@ -1,6 +1,14 @@
 // Text faces come from the input definitions, which check each field's text against them.
-import { LINE_LABEL_FACE, STEP_LABEL_FACE, type FlowEdge, type FlowStep, type Status } from "../input";
-import { baseline, measure, wrap } from "../text";
+import {
+  DESCRIPTION_FACE,
+  LINE_LABEL_FACE,
+  STEP_LABEL_FACE,
+  TITLE_FACE,
+  type FlowEdge,
+  type FlowStep,
+  type Status,
+} from "../input";
+import { baseline, measure, wrap, type FaceId } from "../text";
 import type { Sizes } from "../theme";
 import { frameCard, strikeThrough, type Card, type CardBody, type TextLine } from "./frame";
 
@@ -23,6 +31,45 @@ export interface LineLabel {
   readonly width: number;
   readonly height: number;
   readonly texts: readonly TextLine[];
+}
+
+/** The diagram's title and description, relative to the header's top-left corner. */
+export interface Header {
+  readonly width: number;
+  readonly height: number;
+  readonly title: readonly TextLine[];
+  readonly description: readonly TextLine[];
+}
+
+/** The title, then the description under it, each wrapped. Nothing when the diagram has neither. */
+export function buildHeader(title: string | undefined, description: string | undefined, sizes: Sizes): Header | undefined {
+  if (title === undefined && description === undefined) return undefined;
+  const h = sizes.header;
+  const lines = (text: string | undefined, face: FaceId, size: number) => (text === undefined ? [] : wrap(text, face, size, h.maxWidth));
+  const titleLines = lines(title, TITLE_FACE, h.titleSize);
+  const descriptionLines = lines(description, DESCRIPTION_FACE, h.descriptionSize);
+  const descriptionTop = titleLines.length === 0 ? 0 : titleLines.length * h.titleLineHeight + h.gap;
+
+  const place = (texts: string[], face: FaceId, size: number, lineHeight: number, top: number, color: TextLine["color"]) =>
+    texts.map((text, i): TextLine => ({
+      text,
+      x: 0,
+      y: top + i * lineHeight + baseline(face, size, lineHeight),
+      face,
+      size,
+      anchor: "start",
+      color,
+    }));
+  const widths = [
+    ...titleLines.map((line) => measure(line, TITLE_FACE, h.titleSize)),
+    ...descriptionLines.map((line) => measure(line, DESCRIPTION_FACE, h.descriptionSize)),
+  ];
+  return {
+    width: Math.ceil(Math.max(...widths)),
+    height: descriptionLines.length === 0 ? titleLines.length * h.titleLineHeight : descriptionTop + descriptionLines.length * h.descriptionLineHeight,
+    title: place(titleLines, TITLE_FACE, h.titleSize, h.titleLineHeight, 0, "text"),
+    description: place(descriptionLines, DESCRIPTION_FACE, h.descriptionSize, h.descriptionLineHeight, descriptionTop, "mutedText"),
+  };
 }
 
 /** Sizes every card, each through the shared card frame. */
