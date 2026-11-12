@@ -60,6 +60,33 @@ export function badgeBox(el: Element): Box | undefined {
   return rect ? rectBox(rect) : undefined;
 }
 
+function distanceToSegment(p: Point, a: Point, b: Point): number {
+  const length = Math.hypot(b.x - a.x, b.y - a.y);
+  const t = length === 0 ? 0 : Math.max(0, Math.min(1, ((p.x - a.x) * (b.x - a.x) + (p.y - a.y) * (b.y - a.y)) / length ** 2));
+  return Math.hypot(a.x + t * (b.x - a.x) - p.x, a.y + t * (b.y - a.y) - p.y);
+}
+
+/**
+ * How far a point is inside a pill drawn in `box` (rounded ends of radius
+ * height / 2): positive inside, 0 on its outline, negative outside.
+ */
+export function depthInPill(p: Point, box: Box): number {
+  const r = box.height / 2;
+  const cy = box.y + r;
+  return r - distanceToSegment(p, { x: box.x + r, y: cy }, { x: box.x + box.width - r, y: cy });
+}
+
+/** Points every half pixel along a path of straight runs, ends included. */
+export function alongRuns(points: readonly Point[]): Point[] {
+  const found: Point[] = [];
+  for (let i = 0; i + 1 < points.length; i++) {
+    const [a, b] = [points[i]!, points[i + 1]!];
+    const steps = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) * 2));
+    for (let s = 0; s <= steps; s++) found.push({ x: a.x + ((b.x - a.x) * s) / steps, y: a.y + ((b.y - a.y) * s) / steps });
+  }
+  return found;
+}
+
 /** Whether two boxes share any area (touching edges don't count). */
 export function overlaps(a: Box, b: Box): boolean {
   return a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;

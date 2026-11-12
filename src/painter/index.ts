@@ -1,6 +1,6 @@
 import type { Status } from "../input";
 import type { PlacedCard, Point, RoutedLine, Scene } from "../layout";
-import type { Badge, Card, Header, Legend, Line, LineLabel, TextLine } from "../shapes";
+import { topAt, type Badge, type Card, type Header, type Legend, type Line, type LineLabel, type TextLine } from "../shapes";
 import { faceStyle } from "../text";
 import type { Theme } from "../theme";
 import { arrowhead, roundedRoute } from "./route";
@@ -27,16 +27,38 @@ export function paint({ scene, header, legend }: Drawing, theme: Theme): string 
   // Ids carry the theme name, so a light and a dark SVG inlined in one page can't clash.
   const ids = { grid: `structa-grid-${theme.name}`, shadow: `structa-shadow-${theme.name}` };
   const origin = { x: pad, y: sceneTop ?? pad };
+  const placed = new Map(scene.cards.map((p) => [p.card.id, p]));
 
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" width="${num(width)}" height="${num(height)}" viewBox="0 0 ${num(width)} ${num(height)}">`,
     ...background(width, height, theme, ids),
     ...(header ? headerText(header, { x: pad, y: headerTop! }, theme) : []),
-    ...scene.cards.flatMap((placed) => card(placed, origin, theme, ids.shadow)),
-    ...scene.lines.flatMap((routed) => line(routed, origin, theme)),
+    ...scene.cards.flatMap((p) => card(p, origin, theme, ids.shadow)),
+    ...scene.lines.flatMap((routed) => {
+      const points = ontoCards(routed.points, placed.get(routed.line.from)!, placed.get(routed.line.to)!);
+      return line({ ...routed, points }, origin, theme);
+    }),
     ...(legend ? legendItems(legend, { x: pad, y: legendTop! }, theme) : []),
     "</svg>",
   ].join("\n") + "\n";
+}
+
+/**
+ * ELK ends lines on a card's box, whose top is the band the card's badge
+ * overhangs. A line ending on that top edge comes straight down into it, so
+ * it carries on down until it meets what's drawn there: the badge, or the
+ * card's outline beside it.
+ */
+function ontoCards(points: readonly Point[], from: PlacedCard<Card>, to: PlacedCard<Card>): Point[] {
+  const route = [...points];
+  const land = (end: number, next: number, { card, x, y }: PlacedCard<Card>) => {
+    const p = route[end]!;
+    const q = route[next]!;
+    if (Math.abs(p.y - y) < 1e-6 && Math.abs(q.x - p.x) < 1e-6 && q.y < p.y) route[end] = { x: p.x, y: y + topAt(card, p.x - x) };
+  };
+  land(0, 1, from);
+  land(route.length - 1, route.length - 2, to);
+  return route;
 }
 
 /** The tops of blocks of these heights, stacked `gap` apart from `top`, skipping absent ones, and where the last one ends. */

@@ -1,7 +1,22 @@
 import type { Element } from "@xmldom/xmldom";
 import { describe, expect, it } from "vitest";
 import { render } from "../src/index";
-import { badgeBox, byClassIn, cardBox, cardById, cards, lines, overlaps, parseSvg, textLines } from "./helpers/svg";
+import {
+  alongRuns,
+  badgeBox,
+  byClassIn,
+  cardBox,
+  cardById,
+  cards,
+  depthInPill,
+  distanceToOutline,
+  lineGeometry,
+  lines,
+  overlaps,
+  parseSvg,
+  textLines,
+  type Point,
+} from "./helpers/svg";
 
 const opts = { embedFonts: false } as const;
 
@@ -181,6 +196,81 @@ describe("card status", () => {
     for (const a of extents) {
       for (const b of extents) if (a !== b) expect(overlaps(a.box, b.box), `${a.id} and ${b.id}`).toBe(false);
     }
+  });
+
+  it.each(["down", "right"] as const)(
+    "ends every line on a card's drawn outline, not in the band above it, direction %s",
+    async (direction) => {
+      // Eight lines into one card crowd its side, the loops use its sides or top, and the line back up uses a top.
+      const sources = ["oak", "ash", "elm", "yew", "box", "fir", "lime", "pine"];
+      const input = {
+        type: "flow",
+        direction,
+        nodes: [
+          ...sources.map((id, i) => ({ id, label: `Plant the ${id}`, shape: "step", ...(i % 2 ? { status: "new" } : {}) })),
+          { id: "water", label: "Water the new trees", shape: "step", status: "changed" },
+          { id: "stake", label: "Stake them", shape: "step" },
+        ],
+        edges: [
+          ...sources.map((id) => ({ from: id, to: "water" })),
+          { from: "water", to: "water", label: "again" },
+          { from: "water", to: "water" },
+          { from: "water", to: "water" },
+          { from: "water", to: "water" },
+          { from: "water", to: "stake" },
+          { from: "stake", to: "oak" },
+        ],
+      };
+      const doc = await svgDoc(input);
+
+      for (const [i, line] of lines(doc).entries()) {
+        const { route, arrowTip } = lineGeometry(line);
+        const edge = input.edges[i]!;
+        expect(distanceToCard(route[0]!.points[0]!, cardById(doc, edge.from)), `edges[${i}] start`).toBeLessThanOrEqual(1);
+        expect(distanceToCard(arrowTip, cardById(doc, edge.to)), `edges[${i}] end`).toBeLessThanOrEqual(1);
+      }
+    },
+  );
+
+  /** How far a point is from what's drawn of a card: its outline, or the badge sitting on it. */
+  function distanceToCard(p: Point, card: Element): number {
+    const badge = badgeBox(card);
+    const onOutline = distanceToOutline(p, cardBox(card));
+    return badge ? Math.min(onOutline, Math.abs(depthInPill(p, badge))) : onOutline;
+  }
+
+  it("stops a line that comes down onto a badge on top of it, never across it", async () => {
+    // Three lines into a narrow card with a wide badge: some must land where the badge is.
+    const input = {
+      type: "flow",
+      nodes: [
+        { id: "cut", label: "Cut back", shape: "step" },
+        { id: "feed", label: "Feed", shape: "step", status: "new" },
+        { id: "tie", label: "Tie in", shape: "step" },
+        { id: "rest", label: "Rest", shape: "step", status: "unchanged" },
+      ],
+      edges: [
+        { from: "cut", to: "rest" },
+        { from: "feed", to: "rest", status: "new" },
+        { from: "tie", to: "rest", emphasis: true },
+      ],
+    };
+    const doc = await svgDoc(input);
+
+    const badges = cards(doc).flatMap((card) => badgeBox(card) ?? []);
+    let onBadge = 0;
+    for (const [i, line] of lines(doc).entries()) {
+      const { route, arrowTip } = lineGeometry(line);
+      const runs = [...route.flatMap((c) => c.points), arrowTip];
+      for (const badge of badges) {
+        const deepest = Math.max(...alongRuns(runs).map((p) => depthInPill(p, badge)));
+        expect(deepest, `edges[${i}] crosses a badge`).toBeLessThanOrEqual(1);
+      }
+      const target = cardById(doc, input.edges[i]!.to);
+      expect(distanceToCard(arrowTip, target)).toBeLessThanOrEqual(1);
+      if (Math.abs(depthInPill(arrowTip, badgeBox(target)!)) <= 1) onBadge++;
+    }
+    expect(onBadge).toBeGreaterThan(0);
   });
 
   it("lines up the outlines of cards side by side, with or without a badge", async () => {

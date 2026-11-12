@@ -6,10 +6,15 @@ import type { LayoutProfile } from "./profiles";
 
 export { FLOW_PROFILE, type LayoutProfile } from "./profiles";
 
-/** What layout needs from a card: its fixed size, and its input path for error messages. */
+/**
+ * What layout needs from a card: its fixed size, how far below the top of
+ * that box its drawn outline starts (the band its badge overhangs), and its
+ * input path for error messages.
+ */
 export interface LayoutCard {
   readonly width: number;
   readonly height: number;
+  readonly outline: { readonly y: number };
   readonly path: string;
 }
 
@@ -55,8 +60,20 @@ const ELK_DIRECTION = new Map<Direction, string>([
 ]);
 
 /**
+ * Keeps lines that end on a card's left or right side below the band its
+ * badge overhangs. ELK reads this margin as if the diagram ran left to right,
+ * so for "down" the top of each side is its "left". It only works as a global
+ * option, so it is given when any card has a band.
+ */
+const BAND_CLEARANCE = new Map<Direction, (band: number) => string>([
+  ["down", (band) => `[top=0,left=${band},bottom=0,right=0]`],
+  ["right", (band) => `[top=${band},left=0,bottom=0,right=0]`],
+]);
+
+/**
  * Lays the cards and lines out with ELK. Only generated ids (n0, e0, …) reach
- * ELK. The whole profile goes in as global options, plus the direction.
+ * ELK. The whole profile goes in as global options, plus the direction and,
+ * when cards have a band, the clearance that keeps lines off it.
  */
 export async function layout<C extends LayoutCard, L extends LayoutLine>(
   graph: { readonly cards: readonly C[]; readonly lines: readonly L[] },
@@ -78,7 +95,12 @@ export async function layout<C extends LayoutCard, L extends LayoutLine>(
   const elk = createElk();
   let result: ElkNode;
   try {
-    const layoutOptions = { ...profile.options, "elk.direction": ELK_DIRECTION.get(direction)! };
+    const band = Math.max(0, ...graph.cards.map((card) => card.outline.y));
+    const layoutOptions = {
+      ...profile.options,
+      "elk.direction": ELK_DIRECTION.get(direction)!,
+      ...(band > 0 ? { "elk.spacing.portsSurrounding": BAND_CLEARANCE.get(direction)!(band) } : {}),
+    };
     result = await elk.layout(elkGraph, { layoutOptions });
   } catch (error) {
     throw layoutFailed([{ path: "$", message: `the layout engine failed: ${(error as Error)?.message ?? error}` }]);

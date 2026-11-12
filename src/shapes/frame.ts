@@ -110,6 +110,20 @@ export function frameCard(
   };
 }
 
+/**
+ * How far below the top of its box a card's drawn shape starts, `x` from the
+ * box's left edge: the top of its badge where the badge is (following the
+ * pill's rounded ends), otherwise its outline.
+ */
+export function topAt(card: Card, x: number): number {
+  const { badge, outline } = card;
+  if (!badge) return outline.y;
+  const r = badge.height / 2;
+  const dx = x - Math.min(Math.max(x, badge.x + r), badge.x + badge.width - r);
+  if (Math.abs(dx) >= r) return outline.y;
+  return Math.min(outline.y, badge.y + r - Math.sqrt(r * r - dx * dx));
+}
+
 /** A line through the middle of the letters of `t`, as wide as the text is drawn. */
 export function strikeThrough(t: TextLine, sizes: Sizes): Strike {
   const width = measure(t.text, t.face, t.size);
