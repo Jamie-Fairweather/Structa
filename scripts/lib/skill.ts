@@ -2,8 +2,9 @@
  * Builds the skill folder: our code bundled into one ES module, with resvg's
  * glue and wasm inside it, elkjs's own file copied beside it untouched, a
  * one-line package.json that makes the folder CommonJS so elkjs's UMD file
- * loads even inside an ESM project, the examples folder, and the JSON Schema
- * the module prints.
+ * loads even inside an ESM project, the examples folder, the JSON Schema
+ * the module prints, and the licences of everything in it. Also zips the
+ * folder for release.
  */
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
