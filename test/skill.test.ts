@@ -53,6 +53,16 @@ describe("node structa.mjs", () => {
 
     expect(result).toEqual({ status: 0, stdout: svg, stderr: "" });
   });
+
+  it("relies on its one-line CommonJS package.json to load elkjs inside an ESM project", () => {
+    // The same folder without it: Node then treats elk.bundled.js as an ES module, and it can't load.
+    const bare = join(dirname(skill.dir), "structa-without-package-json");
+    cpSync(skill.dir, bare, { recursive: true });
+    rmSync(join(bare, "package.json"));
+
+    expect(readFileSync(join(skill.dir, "package.json"), "utf8")).toBe('{"type":"commonjs"}\n');
+    expect(skill.run([flowPath], { dir: bare })).toMatchObject({ status: 1, stdout: "" });
+  });
 });
 
 describe("import { render } from structa.mjs", () => {
