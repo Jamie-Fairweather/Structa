@@ -1,0 +1,20 @@
+{
+  "type": "flow",
+  "direction": "right",
+  "nodes": [
+    { "id": "book-in", "label": "Book in the broken lamp", "shape": "step" },
+    { "id": "find", "label": "Find the fault", "shape": "step" },
+    { "id": "order", "label": "Order a new switch", "shape": "step" },
+    { "id": "fix", "label": "Fix it at the bench", "shape": "step" },
+    { "id": "test", "label": "Test it with the owner watching", "shape": "step" },
+    { "id": "hand-back", "label": "Hand it back", "shape": "step" }
+  ],
+  "edges": [
+    { "from": "book-in", "to": "find" },
+    { "from": "find", "to": "order" },
+    { "from": "find", "to": "fix" },
+    { "from": "order", "to": "fix" },
+    { "from": "fix", "to": "test" },
+    { "from": "test", "to": "hand-back" }
+  ]
+}
