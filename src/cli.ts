@@ -1,7 +1,6 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { extname } from "node:path";
 import { render } from "./render";
-import { StructaError } from "./errors";
 
 interface Command {
   /** A file path, or "-" for standard input. */

@@ -12,7 +12,6 @@ export interface RunResult {
 
 export interface RunOptions {
   readonly stdin?: string;
-  readonly cwd?: string;
 }
 
 export interface BuiltSkill {
@@ -20,9 +19,9 @@ export interface BuiltSkill {
   readonly dir: string;
   /** A folder outside the skill folder, where every run starts. */
   readonly elsewhere: string;
-  /** Runs `node <dir>/structa.mjs ...args` from `elsewhere` (or `cwd`) with this Node. */
+  /** Runs `node <dir>/structa.mjs ...args` from `elsewhere` with this Node. */
   run(args: readonly string[], options?: RunOptions & { readonly dir?: string }): RunResult;
-  /** Runs `node ...args` from `elsewhere` (or `cwd`) with this Node. */
+  /** Runs `node ...args` from `elsewhere` with this Node. */
   node(args: readonly string[], options?: RunOptions): RunResult;
   /** Removes everything the build made. */
   remove(): void;
@@ -50,7 +49,7 @@ export async function buildSkillForTest(): Promise<BuiltSkill> {
 
   const node = (args: readonly string[], options: RunOptions = {}): RunResult => {
     const result = spawnSync(process.execPath, args, {
-      cwd: options.cwd ?? elsewhere,
+      cwd: elsewhere,
       input: options.stdin ?? "",
       encoding: "utf8",
     });
