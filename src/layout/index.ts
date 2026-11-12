@@ -13,10 +13,11 @@ export interface LayoutCard {
   readonly path: string;
 }
 
-/** A line between two cards, given as indexes into the card list. */
+/** A line between two cards, given as indexes into the card list, with its label's fixed size. */
 export interface LayoutLine {
   readonly source: number;
   readonly target: number;
+  readonly label?: { readonly width: number; readonly height: number };
   readonly path: string;
 }
 
@@ -35,6 +36,8 @@ export interface RoutedLine<L> {
   readonly line: L;
   /** Start point, bend points and end point, at right angles. */
   readonly points: readonly Point[];
+  /** The top-left corner of the line's label, when it has one. */
+  readonly label?: Point;
 }
 
 /** Positioned cards and routed lines, with the content's top-left corner at (0, 0). */
@@ -63,7 +66,13 @@ export async function layout<C extends LayoutCard, L extends LayoutLine>(
   const elkGraph: ElkNode = {
     id: "root",
     children: graph.cards.map((card, i) => ({ id: `n${i}`, width: card.width, height: card.height })),
-    edges: graph.lines.map((line, i) => ({ id: `e${i}`, sources: [`n${line.source}`], targets: [`n${line.target}`] })),
+    edges: graph.lines.map((line, i) => ({
+      id: `e${i}`,
+      sources: [`n${line.source}`],
+      targets: [`n${line.target}`],
+      // ELK skips a label with no text, so the label's generated id stands in for its text.
+      ...(line.label ? { labels: [{ id: `l${i}`, text: `l${i}`, width: line.label.width, height: line.label.height }] } : {}),
+    })),
   };
   // Outside the try: a missing elk.bundled.js is a broken install, not a layout failure.
   const elk = createElk();
@@ -126,7 +135,11 @@ function readScene<C extends LayoutCard, L extends LayoutLine>(
     if (sections.length !== 1 || !points.every((p) => isFiniteNumber(p?.x) && isFiniteNumber(p?.y))) {
       return problems.push({ path: line.path, message: "the layout engine gave this line no usable route" });
     }
-    lines.push({ line, points: points.map(({ x, y }) => ({ x, y })) });
+    const route = points.map(({ x, y }) => ({ x, y }));
+    if (!line.label) return lines.push({ line, points: route });
+    const label = readLabel(edge, i, line.label);
+    if (typeof label === "string") return problems.push({ path: `${line.path}.label`, message: label });
+    lines.push({ line, points: route, label });
   });
 
   for (const id of returned.keys()) {
@@ -136,13 +149,27 @@ function readScene<C extends LayoutCard, L extends LayoutLine>(
   return normalise(cards, lines);
 }
 
+/** Where ELK put line `i`'s one label, or what went wrong with it. */
+function readLabel(edge: ElkExtendedEdge, i: number, size: { width: number; height: number }): Point | string {
+  const labels = edge.labels ?? [];
+  const label = labels[0];
+  if (labels.length !== 1 || label?.id !== `l${i}`) return "the layout engine dropped this label";
+  if (label.width !== size.width || label.height !== size.height) return "the layout engine changed this label's size";
+  if (!isFiniteNumber(label.x) || !isFiniteNumber(label.y)) return "the layout engine gave this label no position";
+  return { x: label.x, y: label.y };
+}
+
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
 }
 
-function normalise<C extends LayoutCard, L>(cards: PlacedCard<C>[], lines: RoutedLine<L>[]): Scene<C, L> {
-  const xs = [...cards.flatMap((c) => [c.x, c.x + c.card.width]), ...lines.flatMap((l) => l.points.map((p) => p.x))];
-  const ys = [...cards.flatMap((c) => [c.y, c.y + c.card.height]), ...lines.flatMap((l) => l.points.map((p) => p.y))];
+function normalise<C extends LayoutCard, L extends LayoutLine>(cards: PlacedCard<C>[], lines: RoutedLine<L>[]): Scene<C, L> {
+  const boxes = [
+    ...cards.map((c) => ({ x: c.x, y: c.y, width: c.card.width, height: c.card.height })),
+    ...lines.flatMap((l) => (l.label && l.line.label ? [{ ...l.label, ...l.line.label }] : [])),
+  ];
+  const xs = [...boxes.flatMap((b) => [b.x, b.x + b.width]), ...lines.flatMap((l) => l.points.map((p) => p.x))];
+  const ys = [...boxes.flatMap((b) => [b.y, b.y + b.height]), ...lines.flatMap((l) => l.points.map((p) => p.y))];
   if (xs.length === 0) return { width: 0, height: 0, cards: [], lines: [] };
   const minX = Math.min(...xs);
   const minY = Math.min(...ys);
@@ -151,6 +178,6 @@ function normalise<C extends LayoutCard, L>(cards: PlacedCard<C>[], lines: Route
     width: Math.max(...xs) - minX,
     height: Math.max(...ys) - minY,
     cards: cards.map((c) => ({ card: c.card, ...move(c) })),
-    lines: lines.map((l) => ({ line: l.line, points: l.points.map(move) })),
+    lines: lines.map((l) => ({ line: l.line, points: l.points.map(move), ...(l.label ? { label: move(l.label) } : {}) })),
   };
 }

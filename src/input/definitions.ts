@@ -14,7 +14,7 @@ export interface TextKind {
 }
 
 const LABEL: TextKind = { name: "label", maxLength: 100, description: "the name shown on a card" };
-// No field uses these two yet: descriptions and line labels arrive with their drawing.
+// No field uses this yet: descriptions arrive with their drawing.
 const DESCRIPTION: TextKind = { name: "description", maxLength: 300, description: "a sentence about a card" };
 const LINE_LABEL: TextKind = { name: "lineLabel", maxLength: 60, description: "a short label on a line" };
 export const TEXT_KINDS: readonly TextKind[] = [LABEL, DESCRIPTION, LINE_LABEL];
@@ -125,6 +125,7 @@ function diagram(node: Def, edge: Def, direction: "down" | "right"): ObjectDef {
  * against the faces that really draw it.
  */
 export const STEP_LABEL_FACE: FaceId = "inter-semibold";
+export const LINE_LABEL_FACE: FaceId = "inter-regular";
 
 const FLOW_NODE: ObjectDef = {
   kind: "object",
@@ -144,6 +145,7 @@ const FLOW_EDGE: ObjectDef = {
     optional("id", { kind: "id", of: "edge" }, "a unique id; without one the line is known as edges[N]"),
     required("from", { kind: "ref", to: "node" }, "the id of the node the line starts at"),
     required("to", { kind: "ref", to: "node" }, "the id of the node the line ends at"),
+    optional("label", { kind: "text", text: LINE_LABEL, faces: [LINE_LABEL_FACE] }, "a short label drawn in a pill on the line"),
     optional("status", STATUS, "what the change does to this line, shown by its colour; leave it out for no status"),
     optional("emphasis", BOOLEAN, "true draws the line thicker, to point out the main path", false),
   ],

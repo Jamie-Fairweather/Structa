@@ -3,7 +3,7 @@ import { check } from "./check";
 import { diagramDefinition, type Status } from "./definitions";
 import { parseJson } from "./json";
 
-export { STATUSES, STEP_LABEL_FACE, type Status } from "./definitions";
+export { LINE_LABEL_FACE, STATUSES, STEP_LABEL_FACE, type Status } from "./definitions";
 export { jsonSchema } from "./schema";
 
 export interface FlowStep {
@@ -19,6 +19,8 @@ export interface FlowEdge {
   readonly id: string;
   readonly from: string;
   readonly to: string;
+  /** Tidied, like every text field. */
+  readonly label?: string;
   readonly status?: Status;
   readonly emphasis: boolean;
 }

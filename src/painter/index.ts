@@ -1,6 +1,6 @@
 import type { Status } from "../input";
 import type { PlacedCard, RoutedLine, Scene } from "../layout";
-import type { Badge, Card, Line, TextLine } from "../shapes";
+import type { Badge, Card, Line, LineLabel, TextLine } from "../shapes";
 import { faceStyle } from "../text";
 import type { Theme } from "../theme";
 import { arrowhead, roundedRoute } from "./route";
@@ -147,7 +147,7 @@ function badge(b: Badge, x: number, y: number, theme: Theme): string[] {
   ];
 }
 
-function line({ line, points }: RoutedLine<Line>, pad: number, theme: Theme): string[] {
+function line({ line, points, label }: RoutedLine<Line>, pad: number, theme: Theme): string[] {
   const { colors, sizes } = theme;
   const pts = points.map((p) => ({ x: p.x + pad, y: p.y + pad }));
   const { cornerRadius, arrowLength, arrowWidth } = sizes.line;
@@ -171,7 +171,30 @@ function line({ line, points }: RoutedLine<Line>, pad: number, theme: Theme): st
         ["stroke-linejoin", "round"],
       ]),
       el("path", [["d", arrowhead(pts, arrowLength, arrowWidth)], ["fill", colour]]),
+      ...(line.label && label ? pill(line.label, label.x + pad, label.y + pad, colour, theme) : []),
     ]),
+    "</g>",
+  ];
+}
+
+/** A line's label at (x, y): a rounded pill bordered in the line's colour, over the line. */
+function pill(label: LineLabel, x: number, y: number, border: string, theme: Theme): string[] {
+  const { colors, sizes } = theme;
+  const single = sizes.lineLabel.lineHeight + 2 * sizes.lineLabel.paddingY;
+  return [
+    open("g", [["class", "line-label"]]),
+    el("rect", [
+      ["x", x],
+      ["y", y],
+      ["width", label.width],
+      ["height", label.height],
+      // Fully round on one line; a wrapped label keeps the same corners.
+      ["rx", Math.min(label.height, single) / 2],
+      ["fill", colors.cardFill],
+      ["stroke", border],
+      ["stroke-width", sizes.lineLabel.borderWidth],
+    ]),
+    ...label.texts.flatMap((t) => text(t, x, y, colors[t.color], theme)),
     "</g>",
   ];
 }

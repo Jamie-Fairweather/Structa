@@ -82,6 +82,12 @@
             "description": "the id of the node the line ends at",
             "$ref": "#/$defs/id"
           },
+          "label": {
+            "description": "a short label drawn in a pill on the line",
+            "$ref": "#/$defs/lineLabel",
+            "type": "string",
+            "pattern": "^[\\u0020-\\u007E\\u00A0-\\u00AC\\u00AE-\\u0148\\u014A-\\u017F\\u2010-\\u2015\\u2018-\\u2022\\u2026\\u2030\\u2032-\\u2033\\u2039-\\u203A\\u20AC\\u2122\\u2190-\\u2195\\u21D0\\u21D2\\u21D4\\u2212\\u221E\\u2248\\u2260\\u2264-\\u2265]*$"
+          },
           "status": {
             "description": "what the change does to this line, shown by its colour; leave it out for no status",
             "enum": [

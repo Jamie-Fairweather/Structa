@@ -147,7 +147,7 @@ describe("unknown fields", () => {
 
   it("rejects an unknown edge field", async () => {
     expect(await problems(pondWith((p) => (p.edges[0]!.colour = "blue")))).toEqual([
-      { path: "edges[0].colour", message: 'unknown field "colour"', hint: "allowed fields: id, from, to, status, emphasis" },
+      { path: "edges[0].colour", message: 'unknown field "colour"', hint: "allowed fields: id, from, to, label, status, emphasis" },
     ]);
   });
 
@@ -415,6 +415,13 @@ describe("limits", () => {
       { path: "nodes[0].label", message: "is 101 characters long; the limit is 100", hint: "shorten it" },
     ]);
   });
+
+  it("allows a line label of 60 characters and rejects one of 61", async () => {
+    await expect(render(pondWith((p) => (p.edges[0]!.label = "w".repeat(60))), opts)).resolves.toHaveProperty("svg");
+    expect(await problems(pondWith((p) => (p.edges[0]!.label = "w".repeat(61))))).toEqual([
+      { path: "edges[0].label", message: "is 61 characters long; the limit is 60", hint: "shorten it" },
+    ]);
+  });
 });
 
 describe("text", () => {
@@ -532,6 +539,25 @@ describe("text", () => {
     const label = "Étang → filtre … 5 € ≤ 10 ⇒ “ok” Ĳ";
 
     expect((await stepText(label)).title).toBe(label);
+  });
+
+  it("checks a line label like any other text: tidied, never blank, only drawable characters", async () => {
+    const doc = parseSvg((await render(pondWith((p) => (p.edges[0]!.label = "  when   dry ")), opts)).svg);
+    expect(titleOf(lines(doc)[0]!)).toBe("Dig the hole → Lay the liner: when dry");
+
+    expect(await problems(pondWith((p) => (p.edges[0]!.label = "   ")))).toEqual([
+      { path: "edges[0].label", message: "must not be empty", hint: "write the text to show" },
+    ]);
+    expect(await problems(pondWith((p) => (p.edges[1]!.label = "rain 🌧")))).toEqual([
+      {
+        path: "edges[1].label",
+        message: 'contains "🌧" (U+1F327), which Structa\'s fonts can\'t draw',
+        hint: "use Latin letters, digits and common symbols",
+      },
+    ]);
+    expect(await problems(pondWith((p) => (p.edges[1]!.label = 3)))).toEqual([
+      { path: "edges[1].label", message: "must be a string", hint: "write the text in double quotes" },
+    ]);
   });
 });
 

@@ -85,6 +85,8 @@ export const SIZES = {
   /** A line through struck-out text, `rise` font sizes above the baseline. */
   strike: { width: 1.25, rise: 0.3 },
   line: { width: 1.5, emphasisWidth: 3, cornerRadius: 8, arrowLength: 9, arrowWidth: 9 },
+  /** A line's label: text in a pill bordered in the line's colour, wrapped to `maxWidth`. */
+  lineLabel: { fontSize: 12, lineHeight: 16, paddingX: 8, paddingY: 2, maxWidth: 180, borderWidth: 1 },
   step: {
     fontSize: 14,
     lineHeight: 20,
