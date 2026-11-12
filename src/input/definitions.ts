@@ -16,7 +16,7 @@ export interface TextKind {
 
 const TITLE: TextKind = { name: "title", maxLength: 100, description: "the diagram's title" };
 const LABEL: TextKind = { name: "label", maxLength: 100, description: "the name shown on a card" };
-const DESCRIPTION: TextKind = { name: "description", maxLength: 300, description: "a sentence or two about the diagram or a card" };
+const DESCRIPTION: TextKind = { name: "description", maxLength: 300, description: "a sentence or two about a diagram or card" };
 const LINE_LABEL: TextKind = { name: "lineLabel", maxLength: 60, description: "a short label on a line" };
 export const TEXT_KINDS: readonly TextKind[] = [TITLE, LABEL, DESCRIPTION, LINE_LABEL];
 

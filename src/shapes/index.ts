@@ -46,30 +46,48 @@ export interface Header {
 export function buildHeader(title: string | undefined, description: string | undefined, sizes: Sizes): Header | undefined {
   if (title === undefined && description === undefined) return undefined;
   const h = sizes.header;
-  const lines = (text: string | undefined, face: FaceId, size: number) => (text === undefined ? [] : wrap(text, face, size, h.maxWidth));
-  const titleLines = lines(title, TITLE_FACE, h.titleSize);
-  const descriptionLines = lines(description, DESCRIPTION_FACE, h.descriptionSize);
-  const descriptionTop = titleLines.length === 0 ? 0 : titleLines.length * h.titleLineHeight + h.gap;
+  const titleBlock = block(title, TITLE_FACE, h.titleSize, h.titleLineHeight, 0, "text", h.maxWidth);
+  const descriptionTop = titleBlock.height === 0 ? 0 : titleBlock.height + h.gap;
+  const descriptionBlock = block(
+    description,
+    DESCRIPTION_FACE,
+    h.descriptionSize,
+    h.descriptionLineHeight,
+    descriptionTop,
+    "mutedText",
+    h.maxWidth,
+  );
+  return {
+    width: Math.ceil(Math.max(titleBlock.width, descriptionBlock.width)),
+    height: descriptionBlock.height === 0 ? titleBlock.height : descriptionTop + descriptionBlock.height,
+    title: titleBlock.texts,
+    description: descriptionBlock.texts,
+  };
+}
 
-  const place = (texts: string[], face: FaceId, size: number, lineHeight: number, top: number, color: TextLine["color"]) =>
-    texts.map((text, i): TextLine => ({
-      text,
+/** `text` wrapped to `maxWidth`, left-aligned, its lines from `top` down; nothing at all without text. */
+function block(
+  text: string | undefined,
+  face: FaceId,
+  size: number,
+  lineHeight: number,
+  top: number,
+  color: TextLine["color"],
+  maxWidth: number,
+): { width: number; height: number; texts: TextLine[] } {
+  const lines = text === undefined ? [] : wrap(text, face, size, maxWidth);
+  return {
+    width: Math.max(0, ...lines.map((line) => measure(line, face, size))),
+    height: lines.length * lineHeight,
+    texts: lines.map((line, i) => ({
+      text: line,
       x: 0,
       y: top + i * lineHeight + baseline(face, size, lineHeight),
       face,
       size,
       anchor: "start",
       color,
-    }));
-  const widths = [
-    ...titleLines.map((line) => measure(line, TITLE_FACE, h.titleSize)),
-    ...descriptionLines.map((line) => measure(line, DESCRIPTION_FACE, h.descriptionSize)),
-  ];
-  return {
-    width: Math.ceil(Math.max(...widths)),
-    height: descriptionLines.length === 0 ? titleLines.length * h.titleLineHeight : descriptionTop + descriptionLines.length * h.descriptionLineHeight,
-    title: place(titleLines, TITLE_FACE, h.titleSize, h.titleLineHeight, 0, "text"),
-    description: place(descriptionLines, DESCRIPTION_FACE, h.descriptionSize, h.descriptionLineHeight, descriptionTop, "mutedText"),
+    })),
   };
 }
 

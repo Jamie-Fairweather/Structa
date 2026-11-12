@@ -31,7 +31,8 @@ interface Pen {
  */
 export function paint({ scene, header, legend }: Drawing, theme: Theme, options: PaintOptions): string {
   const { canvasPadding: pad, sectionGap } = theme.sizes;
-  const { tops, bottom } = stack([header?.height, scene.cards.length > 0 ? scene.height : undefined, legend?.height], pad, sectionGap);
+  const sceneHeight = scene.cards.length > 0 ? scene.height : undefined;
+  const { tops, bottom } = stack([header?.height, sceneHeight, legend?.height], pad, sectionGap);
   const [headerTop, sceneTop, legendTop] = tops;
   const width = wholePixels(Math.max(scene.width, header?.width ?? 0, legend?.width ?? 0) + 2 * pad);
   const height = wholePixels(bottom + pad);
@@ -70,7 +71,8 @@ function ontoCards(points: readonly Point[], from: PlacedCard<Card>, to: PlacedC
   const land = (end: number, next: number, { card, x, y }: PlacedCard<Card>) => {
     const p = route[end]!;
     const q = route[next]!;
-    if (Math.abs(p.y - y) < 1e-6 && Math.abs(q.x - p.x) < 1e-6 && q.y < p.y) route[end] = { x: p.x, y: y + topAt(card, p.x - x) };
+    const comesDownOntoTop = Math.abs(p.y - y) < 1e-6 && Math.abs(q.x - p.x) < 1e-6 && q.y < p.y;
+    if (comesDownOntoTop) route[end] = { x: p.x, y: y + topAt(card, p.x - x) };
   };
   land(0, 1, from);
   land(route.length - 1, route.length - 2, to);
@@ -78,7 +80,7 @@ function ontoCards(points: readonly Point[], from: PlacedCard<Card>, to: PlacedC
 }
 
 /** The tops of blocks of these heights, stacked `gap` apart from `top`, skipping absent ones, and where the last one ends. */
-function stack(heights: readonly (number | undefined)[], top: number, gap: number): { tops: (number | undefined)[]; bottom: number } {
+function stack(heights: readonly (number | undefined)[], top: number, gap: number) {
   let y = top;
   let bottom = top;
   const tops = heights.map((height) => {
