@@ -54,8 +54,8 @@ export async function buildSkill(outDir: string, project: string = repository): 
     // Our code only imports elkjs types. Keep it external anyway, so a stray
     // value import can't pull ELK into the bundle (the checks would catch it).
     external: ["elkjs", "elkjs/*"],
-    // The loader's path to the sibling elkjs file, and no source-only fallback.
-    // The examples folder sits next to structa.mjs too.
+    // The paths to the elkjs file and the examples folder next to structa.mjs,
+    // and no source-only fallbacks.
     define: { STRUCTA_ELK_FILE: JSON.stringify(`./${ELK_FILE}`), STRUCTA_EXAMPLES_DIR: JSON.stringify(`./${EXAMPLES_DIR}/`) },
     dropLabels: ["source"],
     logLevel: "warning",
@@ -68,9 +68,15 @@ export async function buildSkill(outDir: string, project: string = repository): 
   const problems = checkSkill(outDir, project, elkPackage);
   if (problems.length > 0) throw new Error(`the skill folder failed its checks:\n${problems.join("\n")}`);
 
-  // The shipped schema is exactly what the shipped tool prints.
-  const schema = spawnSync("node", [join(outDir, MODULE_FILE), "schema"], { encoding: "utf8" });
-  if (schema.status !== 0) throw new Error(`node ${MODULE_FILE} schema failed: ${schema.error?.message ?? schema.stderr}`);
+  // The shipped schema is exactly what the shipped tool prints when Node runs
+  // it: this Node when the build runs under Node (as in the tests), otherwise
+  // the node on PATH.
+  const node = process.versions.bun === undefined ? process.execPath : "node";
+  const schema = spawnSync(node, [join(outDir, MODULE_FILE), "schema"], { encoding: "utf8" });
+  if (schema.error) {
+    throw new Error(`can't run node to write ${SCHEMA_FILE}: ${schema.error.message} (the build needs Node 20 or later on PATH)`);
+  }
+  if (schema.status !== 0) throw new Error(`node ${MODULE_FILE} schema failed: ${schema.stderr}`);
   writeFileSync(join(outDir, SCHEMA_FILE), schema.stdout);
 }
 
