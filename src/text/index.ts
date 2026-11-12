@@ -1,5 +1,5 @@
 import { FONT_METRICS } from "../../generated/font-metrics";
-import { FACES, type FaceId, type FaceStyle } from "./faces";
+import { CHARACTER_RANGES, FACES, type FaceId, type FaceStyle } from "./faces";
 
 export type { FaceId, FaceStyle } from "./faces";
 
@@ -30,6 +30,38 @@ function table(face: FaceId): FaceTable {
 
 export function faceStyle(face: FaceId): FaceStyle {
   return FACES.find((f) => f.id === face)!;
+}
+
+/** A text field may use only characters every face it is drawn in has in its width table. */
+function drawnByAll(codePoint: number, faces: readonly FaceId[]): boolean {
+  return faces.every((face) => table(face).widths.has(codePoint));
+}
+
+/** The distinct characters in `text` that at least one of `faces` can't draw, in order of first appearance. */
+export function undrawable(text: string, faces: readonly FaceId[]): string[] {
+  const found = new Set<string>();
+  for (const ch of text) {
+    if (!found.has(ch) && !drawnByAll(ch.codePointAt(0)!, faces)) found.add(ch);
+  }
+  return [...found];
+}
+
+/**
+ * The characters every one of `faces` can draw, as inclusive code-point
+ * ranges in ascending order: exactly what `undrawable` lets through.
+ */
+export function drawableRanges(faces: readonly FaceId[]): [first: number, last: number][] {
+  const ranges: [number, number][] = [];
+  // The width tables hold only characters from these ranges.
+  for (const [first, last] of CHARACTER_RANGES) {
+    for (let codePoint = first; codePoint <= last; codePoint++) {
+      if (!drawnByAll(codePoint, faces)) continue;
+      const previous = ranges.at(-1);
+      if (previous && previous[1] === codePoint - 1) previous[1] = codePoint;
+      else ranges.push([codePoint, codePoint]);
+    }
+  }
+  return ranges;
 }
 
 /** Width of `text` in px: the sum of its advance widths, with no kerning. */

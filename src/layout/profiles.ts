@@ -2,8 +2,9 @@ import type { LayoutOptions } from "elkjs/lib/elk-api";
 
 /**
  * A fixed ELK option profile for one diagram type, passed whole as global
- * layout options. Bump `version` whenever an option changes: every snapshot
- * of that type must then be re-reviewed.
+ * layout options. The direction isn't part of it: it comes from the input.
+ * Bump `version` whenever an option changes: every snapshot of that type must
+ * then be re-reviewed.
  */
 export interface LayoutProfile {
   readonly name: string;
@@ -13,12 +14,13 @@ export interface LayoutProfile {
 
 export const FLOW_PROFILE: LayoutProfile = {
   name: "flow",
-  version: 1,
+  version: 2,
   options: {
     "elk.algorithm": "layered",
-    "elk.direction": "DOWN",
     "elk.edgeRouting": "ORTHOGONAL",
     "elk.randomSeed": "1",
+    // JSON node order is a soft hint: ELK keeps it unless that adds crossings.
+    "elk.layered.considerModelOrder.strategy": "PREFER_NODES",
     "elk.spacing.nodeNode": "40",
     "elk.layered.spacing.nodeNodeBetweenLayers": "48",
     "elk.spacing.edgeNode": "24",

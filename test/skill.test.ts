@@ -116,12 +116,12 @@ describe("exit code 1: bad input or a failed render", () => {
     expect(existsSync(join(skill.elsewhere, "bread.svg"))).toBe(false);
   });
 
-  it("reports a JSON syntax error", () => {
+  it("reports a JSON syntax error at $ with its line and column", () => {
     const result = skill.run(["-"], { stdin: '{ "type": "flow", ' });
 
     expect(result.status).toBe(1);
     expect(result.stdout).toBe("");
-    expect(result.stderr).toMatch(/^\$: invalid JSON: .+\n$/);
+    expect(result.stderr).toBe("$: invalid JSON at line 1, column 19: the input ends too soon (close every open list and object)\n");
   });
 
   it("names an input file it can't read", () => {

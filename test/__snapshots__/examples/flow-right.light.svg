@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1235" height="135" viewBox="0 0 1235 135">
+<defs>
+<pattern id="structa-grid-light" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="9" cy="9" r="1" fill="#8c959f" fill-opacity="0.5"/></pattern>
+<filter id="structa-shadow-light" x="-20%" y="-30%" width="140%" height="170%"><feDropShadow dx="0" dy="1" stdDeviation="3" flood-color="#1f2328" flood-opacity="0.1"/></filter>
+</defs>
+<rect width="1235" height="135" fill="#f4f5f7"/>
+<rect width="1235" height="135" fill="url(#structa-grid-light)"/>
+<g class="card" data-id="book-in" data-kind="step">
+<title>Book in the broken lamp</title>
+<rect x="32" y="42" width="196" height="44" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<text x="130" y="69.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Book in the broken lamp</text>
+</g>
+<g class="card" data-id="find" data-kind="step">
+<title>Find the fault</title>
+<rect x="276" y="42" width="121" height="44" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<text x="336.5" y="69.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Find the fault</text>
+</g>
+<g class="card" data-id="order" data-kind="step">
+<title>Order a new switch</title>
+<rect x="445" y="34.67" width="163" height="44" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<text x="526.5" y="61.76" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Order a new switch</text>
+</g>
+<g class="card" data-id="fix" data-kind="step">
+<title>Fix it at the bench</title>
+<rect x="656" y="42" width="152" height="44" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<text x="732" y="69.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Fix it at the bench</text>
+</g>
+<g class="card" data-id="test" data-kind="step">
+<title>Test it with the owner watching</title>
+<rect x="856" y="32" width="179" height="64" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<text x="945.5" y="59.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Test it with the owner</text>
+<text x="945.5" y="79.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">watching</text>
+</g>
+<g class="card" data-id="hand-back" data-kind="step">
+<title>Hand it back</title>
+<rect x="1083" y="42" width="120" height="44" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<text x="1143" y="69.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Hand it back</text>
+</g>
+<g class="line" data-id="edges[0]" data-kind="flow" data-from="book-in" data-to="find">
+<title>Book in the broken lamp → Find the fault</title>
+<path d="M228 64 L267 64" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M276 64 L267 68.5 L267 59.5 Z" fill="#8c959f"/>
+</g>
+<g class="line" data-id="edges[1]" data-kind="flow" data-from="find" data-to="order">
+<title>Find the fault → Order a new switch</title>
+<path d="M397 56.67 L436 56.67" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M445 56.67 L436 61.17 L436 52.17 Z" fill="#8c959f"/>
+</g>
+<g class="line" data-id="edges[2]" data-kind="flow" data-from="find" data-to="fix">
+<title>Find the fault → Fix it at the bench</title>
+<path d="M397 71.33 L413 71.33 Q421 71.33 421 79.33 L421 94.67 Q421 102.67 429 102.67 L624 102.67 Q632 102.67 632 94.67 L632 79.33 Q632 71.33 640 71.33 L647 71.33" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M656 71.33 L647 75.83 L647 66.83 Z" fill="#8c959f"/>
+</g>
+<g class="line" data-id="edges[3]" data-kind="flow" data-from="order" data-to="fix">
+<title>Order a new switch → Fix it at the bench</title>
+<path d="M608 56.67 L647 56.67" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M656 56.67 L647 61.17 L647 52.17 Z" fill="#8c959f"/>
+</g>
+<g class="line" data-id="edges[4]" data-kind="flow" data-from="fix" data-to="test">
+<title>Fix it at the bench → Test it with the owner watching</title>
+<path d="M808 64 L847 64" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M856 64 L847 68.5 L847 59.5 Z" fill="#8c959f"/>
+</g>
+<g class="line" data-id="edges[5]" data-kind="flow" data-from="test" data-to="hand-back">
+<title>Test it with the owner watching → Hand it back</title>
+<path d="M1035 64 L1074 64" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M1083 64 L1074 68.5 L1074 59.5 Z" fill="#8c959f"/>
+</g>
+</svg>

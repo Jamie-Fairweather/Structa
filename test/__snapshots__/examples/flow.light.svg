@@ -12,13 +12,13 @@
 </g>
 <g class="card" data-id="inspect" data-kind="step">
 <title>Check for damage</title>
-<rect x="278" y="124" width="157" height="44" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
-<text x="356.5" y="151.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Check for damage</text>
+<rect x="71" y="124" width="157" height="44" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<text x="149.5" y="151.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Check for damage</text>
 </g>
 <g class="card" data-id="fee" data-kind="step">
 <title>Work out any late fee</title>
-<rect x="61" y="124" width="177" height="44" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
-<text x="149.5" y="151.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Work out any late fee</text>
+<rect x="268" y="124" width="177" height="44" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<text x="356.5" y="151.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Work out any late fee</text>
 </g>
 <g class="card" data-id="close" data-kind="step">
 <title>Close the loan</title>
@@ -40,23 +40,23 @@
 </g>
 <g class="line" data-id="edges[0]" data-kind="flow" data-from="scan" data-to="inspect">
 <title>Scan the returned book → Check for damage</title>
-<path d="M213.17 76 L213.17 92 Q213.17 100 221.17 100 L348.5 100 Q356.5 100 356.5 108 L356.5 115" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
-<path d="M356.5 124 L352 115 L361 115 Z" fill="#8c959f"/>
-</g>
-<g class="line" data-id="edges[1]" data-kind="flow" data-from="scan" data-to="fee">
-<title>Scan the returned book → Work out any late fee</title>
 <path d="M149.5 76 L149.5 115" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
 <path d="M149.5 124 L145 115 L154 115 Z" fill="#8c959f"/>
 </g>
+<g class="line" data-id="edges[1]" data-kind="flow" data-from="scan" data-to="fee">
+<title>Scan the returned book → Work out any late fee</title>
+<path d="M213.17 76 L213.17 92 Q213.17 100 221.17 100 L348.5 100 Q356.5 100 356.5 108 L356.5 115" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M356.5 124 L352 115 L361 115 Z" fill="#8c959f"/>
+</g>
 <g class="line" data-id="edges[2]" data-kind="flow" data-from="inspect" data-to="close">
 <title>Check for damage → Close the loan</title>
-<path d="M356.5 168 L356.5 184 Q356.5 192 348.5 192 L200.5 192 Q192.5 192 192.5 200 L192.5 207" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
-<path d="M192.5 216 L188 207 L197 207 Z" fill="#8c959f"/>
+<path d="M149.5 168 L149.5 207" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M149.5 216 L145 207 L154 207 Z" fill="#8c959f"/>
 </g>
 <g class="line" data-id="edges[3]" data-kind="flow" data-from="fee" data-to="close">
 <title>Work out any late fee → Close the loan</title>
-<path d="M149.5 168 L149.5 207" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
-<path d="M149.5 216 L145 207 L154 207 Z" fill="#8c959f"/>
+<path d="M356.5 168 L356.5 184 Q356.5 192 348.5 192 L200.5 192 Q192.5 192 192.5 200 L192.5 207" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M192.5 216 L188 207 L197 207 Z" fill="#8c959f"/>
 </g>
 <g class="line" data-id="edges[4]" data-kind="flow" data-from="close" data-to="receipt">
 <title>Close the loan → Email the borrower a receipt, listing the return date and any fee owed</title>
