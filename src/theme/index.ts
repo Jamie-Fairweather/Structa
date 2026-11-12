@@ -1,4 +1,17 @@
-export type ThemeName = "light" | "dark";
+import type { Status } from "../input";
+
+export const THEME_NAMES = ["light", "dark"] as const;
+export type ThemeName = (typeof THEME_NAMES)[number];
+
+/** How one status looks: GitHub Primer colours. */
+export interface StatusColors {
+  /** Card borders, lines and their label pills. */
+  readonly stroke: string;
+  readonly badgeFill: string;
+  /** The dark theme lays its badge fill over the card colour at reduced strength. */
+  readonly badgeFillOpacity: number;
+  readonly badgeText: string;
+}
 
 /**
  * Every colour token. Both themes are typed with this one interface, so a
@@ -14,7 +27,9 @@ export interface ThemeColors {
   readonly cardShadowOpacity: number;
   readonly text: string;
   readonly mutedText: string;
+  /** Lines with no status, and unchanged lines. */
   readonly line: string;
+  readonly status: { readonly [status in Status]: StatusColors };
 }
 
 const COLORS: { readonly [name in ThemeName]: ThemeColors } = {
@@ -29,6 +44,12 @@ const COLORS: { readonly [name in ThemeName]: ThemeColors } = {
     text: "#1f2328",
     mutedText: "#59636e",
     line: "#8c959f",
+    status: {
+      new: { stroke: "#1f883d", badgeFill: "#b9f0c4", badgeFillOpacity: 1, badgeText: "#116329" },
+      changed: { stroke: "#bf8700", badgeFill: "#fae17d", badgeFillOpacity: 1, badgeText: "#7d4e00" },
+      removed: { stroke: "#cf222e", badgeFill: "#ffcecb", badgeFillOpacity: 1, badgeText: "#a40e26" },
+      unchanged: { stroke: "#8c959f", badgeFill: "#eaeef2", badgeFillOpacity: 1, badgeText: "#59636e" },
+    },
   },
   dark: {
     background: "#0d1117",
@@ -41,6 +62,12 @@ const COLORS: { readonly [name in ThemeName]: ThemeColors } = {
     text: "#e6edf3",
     mutedText: "#8b949e",
     line: "#6e7681",
+    status: {
+      new: { stroke: "#3fb950", badgeFill: "#3fb950", badgeFillOpacity: 0.25, badgeText: "#56d364" },
+      changed: { stroke: "#d29922", badgeFill: "#d29922", badgeFillOpacity: 0.25, badgeText: "#e3b341" },
+      removed: { stroke: "#f85149", badgeFill: "#f85149", badgeFillOpacity: 0.25, badgeText: "#ff7b72" },
+      unchanged: { stroke: "#6e7681", badgeFill: "#6e7681", badgeFillOpacity: 0.25, badgeText: "#8b949e" },
+    },
   },
 };
 
@@ -48,7 +75,9 @@ const COLORS: { readonly [name in ThemeName]: ThemeColors } = {
 export const SIZES = {
   canvasPadding: 32,
   grid: { spacing: 18, dotRadius: 1 },
-  card: { radius: 10, borderWidth: 1, shadowOffsetY: 1, shadowBlur: 3 },
+  card: { radius: 10, borderWidth: 1, statusBorderWidth: 1.5, shadowOffsetY: 1, shadowBlur: 3 },
+  /** The status badge: a pill centred on the card's top border, `inset` from its right-hand end. */
+  badge: { fontSize: 10, height: 16, paddingX: 6, inset: 12, borderWidth: 1 },
   line: { width: 1.5, cornerRadius: 8, arrowLength: 9, arrowWidth: 9 },
   step: {
     fontSize: 14,

@@ -141,7 +141,7 @@ describe("unknown fields", () => {
 
   it("rejects an unknown node field", async () => {
     expect(await problems(pondWith((p) => (p.nodes[1]!.size = "large")))).toEqual([
-      { path: "nodes[1].size", message: 'unknown field "size"', hint: "allowed fields: id, label, shape" },
+      { path: "nodes[1].size", message: 'unknown field "size"', hint: "allowed fields: id, label, status, shape" },
     ]);
   });
 
@@ -605,7 +605,7 @@ describe("several problems", () => {
     expect(error.problems).toEqual([
       { path: "colour", message: 'unknown field "colour"', hint: "allowed fields: version, type, direction, nodes, edges" },
       { path: "version", message: "3 is not supported", hint: "use 1, or leave version out" },
-      { path: "nodes[1].size", message: 'unknown field "size"', hint: "allowed fields: id, label, shape" },
+      { path: "nodes[1].size", message: 'unknown field "size"', hint: "allowed fields: id, label, status, shape" },
       { path: "nodes[1].id", message: 'the id "dig" is already used by nodes[0]', hint: "give every node and edge its own id" },
       { path: "nodes[1].label", message: "contains a tab (U+0009)", hint: "use a space instead" },
       { path: "nodes[2].label", message: 'missing required field "label"', hint: 'add "label": the text shown in the shape' },

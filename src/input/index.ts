@@ -1,15 +1,16 @@
 import type { Problem } from "../errors";
 import { check } from "./check";
-import { diagramDefinition } from "./definitions";
+import { diagramDefinition, type Status } from "./definitions";
 import { parseJson } from "./json";
 
-export { STEP_LABEL_FACE } from "./definitions";
+export { STATUSES, STEP_LABEL_FACE, type Status } from "./definitions";
 export { jsonSchema } from "./schema";
 
 export interface FlowStep {
   readonly id: string;
   /** Tidied: runs of spaces collapsed and the ends trimmed. */
   readonly label: string;
+  readonly status?: Status;
   readonly shape: "step";
 }
 

@@ -1,5 +1,6 @@
+import type { Status } from "../input";
 import type { PlacedCard, RoutedLine, Scene } from "../layout";
-import type { Card, Line } from "../shapes";
+import type { Badge, Card, Line, TextLine } from "../shapes";
 import { faceStyle } from "../text";
 import type { Theme } from "../theme";
 import { arrowhead, roundedRoute } from "./route";
@@ -59,35 +60,66 @@ function card({ card, x: cardX, y: cardY }: PlacedCard<Card>, pad: number, theme
   const { colors, sizes } = theme;
   const x = cardX + pad;
   const y = cardY + pad;
-  const texts = card.texts.map((t) => {
-    const face = faceStyle(t.face);
-    const attrs: Attrs = [
-      ["x", x + t.x],
-      ["y", y + t.y],
-      ["font-family", face.fontFamily],
-      ["font-size", t.size],
-      ["font-weight", face.weight],
-      ...(face.style === "italic" ? ([["font-style", "italic"]] as const) : []),
-      ["fill", colors[t.color]],
-      ...(t.anchor === "middle" ? ([["text-anchor", "middle"]] as const) : []),
-    ];
-    return el("text", attrs, escapeText(t.text));
-  });
+  const { outline } = card;
   return [
-    open("g", [["class", "card"], ["data-id", card.id], ["data-kind", card.kind]]),
+    open("g", [["class", "card"], ["data-id", card.id], ["data-kind", card.kind], ...statusAttr(card.status)]),
     el("title", [], escapeText(card.tooltip)),
     el("rect", [
-      ["x", x],
-      ["y", y],
-      ["width", card.width],
-      ["height", card.height],
+      ["x", x + outline.x],
+      ["y", y + outline.y],
+      ["width", outline.width],
+      ["height", outline.height],
       ["rx", sizes.card.radius],
       ["fill", colors.cardFill],
-      ["stroke", colors.cardBorder],
-      ["stroke-width", sizes.card.borderWidth],
+      ["stroke", card.status ? colors.status[card.status].stroke : colors.cardBorder],
+      ["stroke-width", card.status ? sizes.card.statusBorderWidth : sizes.card.borderWidth],
       ["filter", `url(#${shadowId})`],
     ]),
-    ...texts,
+    ...card.texts.map((t) => text(t, x, y, colors[t.color])),
+    ...(card.badge ? badge(card.badge, x, y, theme) : []),
+    "</g>",
+  ];
+}
+
+function statusAttr(status: Status | undefined): Attrs {
+  return status === undefined ? [] : [["data-status", status]];
+}
+
+/** One line of text, offset by (x, y). */
+function text(t: Omit<TextLine, "color">, x: number, y: number, fill: string): string {
+  const face = faceStyle(t.face);
+  const attrs: Attrs = [
+    ["x", x + t.x],
+    ["y", y + t.y],
+    ["font-family", face.fontFamily],
+    ["font-size", t.size],
+    ["font-weight", face.weight],
+    ...(face.style === "italic" ? ([["font-style", "italic"]] as const) : []),
+    ["fill", fill],
+    ...(t.anchor === "middle" ? ([["text-anchor", "middle"]] as const) : []),
+  ];
+  return el("text", attrs, escapeText(t.text));
+}
+
+/**
+ * A status badge offset by (x, y). An opaque backing in the card colour keeps
+ * the border it sits on from showing through a see-through fill.
+ */
+function badge(b: Badge, x: number, y: number, theme: Theme): string[] {
+  const { colors, sizes } = theme;
+  const look = colors.status[b.status];
+  const box: Attrs = [["x", x + b.x], ["y", y + b.y], ["width", b.width], ["height", b.height], ["rx", b.height / 2]];
+  return [
+    open("g", [["class", "badge"]]),
+    el("rect", [...box, ["fill", colors.cardFill]]),
+    el("rect", [
+      ...box,
+      ["fill", look.badgeFill],
+      ...(look.badgeFillOpacity === 1 ? [] : ([["fill-opacity", look.badgeFillOpacity]] as const)),
+      ["stroke", look.stroke],
+      ["stroke-width", sizes.badge.borderWidth],
+    ]),
+    text(b.word, x, y, look.badgeText),
     "</g>",
   ];
 }

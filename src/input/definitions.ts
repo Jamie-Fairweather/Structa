@@ -19,6 +19,11 @@ const DESCRIPTION: TextKind = { name: "description", maxLength: 300, description
 const LINE_LABEL: TextKind = { name: "lineLabel", maxLength: 60, description: "a short label on a line" };
 export const TEXT_KINDS: readonly TextKind[] = [LABEL, DESCRIPTION, LINE_LABEL];
 
+/** What a change does to a card, row or line: the same words the badges show. */
+export const STATUSES = ["new", "changed", "removed", "unchanged"] as const;
+export type Status = (typeof STATUSES)[number];
+const STATUS: Def = { kind: "choice", values: STATUSES, later: false };
+
 /** Node, edge and area ids: letters, digits and `-_.:`. Brackets can't appear, so `edges[N]` never clashes. */
 export const ID_PATTERN = "^[A-Za-z0-9_.:-]+$";
 
@@ -124,6 +129,7 @@ const FLOW_NODE: ObjectDef = {
   fields: [
     required("id", { kind: "id", of: "node" }, "a unique id made of letters, digits and - _ . :"),
     required("label", { kind: "text", text: LABEL, faces: [STEP_LABEL_FACE] }, "the text shown in the shape"),
+    optional("status", STATUS, "what the change does to this card; leave it out for no status"),
     required("shape", { kind: "choice", values: ["step"], later: true }, "the shape drawn"),
   ],
 };

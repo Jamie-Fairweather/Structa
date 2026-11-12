@@ -46,6 +46,23 @@ describe("render()", () => {
     expect(error.message).toBe(`${path}: ${message} (use ["svg"])`);
   });
 
+  it("draws the light theme by default and the dark theme when asked", async () => {
+    const background = (svg: string) => /<rect width="\d+" height="\d+" fill="(#[0-9a-f]{6})"\/>/.exec(svg)![1];
+
+    expect(background((await render(tidyShed)).svg)).toBe("#f4f5f7");
+    expect(background((await render(tidyShed, { theme: "light" })).svg)).toBe("#f4f5f7");
+    expect(background((await render(tidyShed, { theme: "dark" })).svg)).toBe("#0d1117");
+  });
+
+  it.each(["sepia", "Dark", 1])("rejects the theme %j with INVALID_OPTIONS", async (theme) => {
+    const error = await rejection(render(tidyShed, { theme } as never));
+
+    expect(error.code).toBe("INVALID_OPTIONS");
+    expect(error.problems).toEqual([
+      { path: "options.theme", message: `${JSON.stringify(theme)} is not a theme`, hint: 'use "light" or "dark"' },
+    ]);
+  });
+
   it("reports a JSON syntax error at $ as INVALID_INPUT", async () => {
     const error = await rejection(render('{ "type": "flow", "nodes": [ }'));
 

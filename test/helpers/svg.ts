@@ -36,12 +36,33 @@ export interface Box {
   height: number;
 }
 
+function rectBox(rect: Element): Box {
+  const num = (name: string) => Number(rect.getAttribute(name));
+  return { x: num("x"), y: num("y"), width: num("width"), height: num("height") };
+}
+
 /** The outline box of a card: its first rect. */
 export function cardBox(card: Element): Box {
   const rect = card.getElementsByTagName("rect")[0];
   if (!rect) throw new Error(`card ${card.getAttribute("data-id")} has no rect`);
-  const num = (name: string) => Number(rect.getAttribute(name));
-  return { x: num("x"), y: num("y"), width: num("width"), height: num("height") };
+  return rectBox(rect);
+}
+
+/** Elements inside `root` with the given class. */
+export function byClassIn(root: Element, className: string): Element[] {
+  return allElements(root).filter((el) => el.getAttribute("class") === className);
+}
+
+/** The status badge on a card or legend item: the box of its pill. */
+export function badgeBox(el: Element): Box | undefined {
+  const badge = byClassIn(el, "badge")[0];
+  const rect = badge?.getElementsByTagName("rect")[0];
+  return rect ? rectBox(rect) : undefined;
+}
+
+/** Whether two boxes share any area (touching edges don't count). */
+export function overlaps(a: Box, b: Box): boolean {
+  return a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
 }
 
 export interface Point {

@@ -2,8 +2,8 @@ import { StructaError } from "./errors";
 import { parseDiagram } from "./input";
 import { FLOW_PROFILE, layout } from "./layout";
 import { paint } from "./painter";
-import { buildLine, buildStep } from "./shapes";
-import { getTheme } from "./theme";
+import { buildCards, buildLine } from "./shapes";
+import { getTheme, THEME_NAMES, type ThemeName } from "./theme";
 
 interface Outputs {
   svg: string;
@@ -16,6 +16,8 @@ export interface RenderOptions<F extends Format = Format> {
   readonly formats?: readonly F[];
   /** Embed the used font faces in the SVG. Fonts aren't embedded yet, so this has no effect. */
   readonly embedFonts?: boolean;
+  /** The colour theme. Default: light. */
+  readonly theme?: ThemeName;
 }
 
 export type RenderResult<F extends Format = "svg"> = Pick<Outputs, F>;
@@ -26,12 +28,13 @@ export async function render<F extends Format = "svg">(
   options: RenderOptions<F> = {},
 ): Promise<RenderResult<F>> {
   const formats = readFormats(options?.formats);
+  const themeName = readTheme(options?.theme);
   const parsed = parseDiagram(input);
   if (!parsed.ok) throw new StructaError("INVALID_INPUT", parsed.problems);
   const { diagram } = parsed;
 
-  const theme = getTheme("light");
-  const cards = diagram.nodes.map((node, i) => ({ ...buildStep(node, theme.sizes), path: `nodes[${i}]` }));
+  const theme = getTheme(themeName);
+  const cards = buildCards(diagram.nodes, theme.sizes).map((card, i) => ({ ...card, path: `nodes[${i}]` }));
   const index = new Map(diagram.nodes.map((node, i) => [node.id, i]));
   const lines = diagram.edges.map((edge, i) => {
     const source = index.get(edge.from)!;
@@ -62,4 +65,12 @@ function readFormats(formats: unknown): readonly Format[] {
   );
   if (problems.length > 0) throw new StructaError("INVALID_OPTIONS", problems);
   return FORMATS.filter((format) => formats.includes(format));
+}
+
+function readTheme(theme: unknown): ThemeName {
+  if (theme === undefined) return "light";
+  if (THEME_NAMES.includes(theme as ThemeName)) return theme as ThemeName;
+  throw new StructaError("INVALID_OPTIONS", [
+    { path: "options.theme", message: `${JSON.stringify(theme)} is not a theme`, hint: 'use "light" or "dark"' },
+  ]);
 }
