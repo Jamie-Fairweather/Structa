@@ -36,7 +36,8 @@ export function classBody(node: ClassNode, sizes: Sizes): CardBody {
   const texts: TextLine[] = name.texts.map((t) => ({ ...t, color: "text", title: true }));
   let y = name.bottom;
   if (node.description !== undefined) {
-    const description = centred(node.description, CLASS_DESCRIPTION_FACE, c.descriptionSize, c.descriptionLineHeight, y + c.descriptionGap, width, sizes);
+    const top = y + c.descriptionGap;
+    const description = centred(node.description, CLASS_DESCRIPTION_FACE, c.descriptionSize, c.descriptionLineHeight, top, width, sizes);
     texts.push(...description.texts.map((t): TextLine => ({ ...t, color: "mutedText" })));
     y = description.bottom;
   }

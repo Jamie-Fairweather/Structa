@@ -214,12 +214,11 @@ type CheckedRows = { readonly status?: Status } & {
   readonly [section in (typeof CLASS_SECTIONS)[number]]?: readonly { readonly status?: Status }[];
 };
 
-/** The row statuses each card status allows, and what to do about any other. */
-const ROW_STATUSES = new Map<Status, { readonly allowed: readonly Status[]; readonly hint: string }>([
-  ["new", { allowed: ["new"], hint: 'leave it out, as rows in a new card are new, or make the card "changed"' }],
-  ["removed", { allowed: ["removed"], hint: 'leave it out, as rows in a removed card are removed, or make the card "changed"' }],
-  ["unchanged", { allowed: ["unchanged"], hint: 'make the card "changed", or leave the row\'s status out' }],
-  ["changed", { allowed: STATUSES, hint: "" }],
+/** What to do about a row whose status differs from its card's. A changed card can hold rows of any status. */
+const ROW_STATUS_HINTS = new Map<Status, string>([
+  ["new", 'leave it out, as rows in a new card are new, or make the card "changed"'],
+  ["removed", 'leave it out, as rows in a removed card are removed, or make the card "changed"'],
+  ["unchanged", 'make the card "changed", or leave the row\'s status out'],
 ]);
 
 /**
@@ -239,10 +238,11 @@ const rowStatusRule: Rule = (checked, given, path) => {
     const hint = 'give the card a status, such as "changed", or take the statuses off its rows';
     return [{ path: `${path}.status`, message: "missing: a card needs a status when any of its rows has one", hint }];
   }
-  const { allowed, hint } = ROW_STATUSES.get(card.status)!;
+  const hint = ROW_STATUS_HINTS.get(card.status);
+  if (hint === undefined) return [];
   const article = card.status === "unchanged" ? "an" : "a";
   return rows
-    .filter((row) => !allowed.includes(row.status))
+    .filter((row) => row.status !== card.status)
     .map((row) => ({ path: row.path, message: `a row in ${article} ${card.status} card can't be "${row.status}"`, hint }));
 };
 
