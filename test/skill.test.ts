@@ -1,10 +1,9 @@
-import { cpSync, existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { appendFileSync, cpSync, existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { checkSkill, installedElkFile } from "../scripts/lib/skill";
 import { render } from "../src/index";
-import { buildSkillForTest, type BuiltSkill } from "./helpers/skill";
+import { buildChangedProject, buildSkillForTest, type BuiltSkill } from "./helpers/skill";
 
 // Seam 2: the built skill folder, run with `node structa.mjs` in a separate
 // process, from a different working folder, inside someone else's ESM project.
@@ -140,71 +139,115 @@ describe("exit code 1: bad input or a failed render", () => {
   });
 });
 
-describe("build checks", () => {
-  const elk = readFileSync(installedElkFile(), "utf8");
-  let copies = 0;
+describe("bun run build", () => {
+  // Each test builds a changed copy of the project, and the build must fail with exactly that problem.
+  const BUILD_TIMEOUT = 30_000;
+  const failure = (...problems: string[]) => `the skill folder failed its checks:\n${problems.join("\n")}`;
+  const appendTo = (file: string, text: string) => (project: string) => appendFileSync(join(project, file), text);
+  const editJson = (file: string, edit: (json: Record<string, unknown>) => void) => (project: string) => {
+    const json = JSON.parse(readFileSync(join(project, file), "utf8")) as Record<string, unknown>;
+    edit(json);
+    writeFileSync(join(project, file), JSON.stringify(json));
+  };
+  const setElkjsVersion = (version: string) => editJson("node_modules/elkjs/package.json", (json) => (json.version = version));
 
-  /** A copy of the built folder with one thing broken. */
-  function tampered(change: (dir: string) => void): string {
-    const dir = join(dirname(skill.dir), `tampered-${copies++}`);
-    cpSync(skill.dir, dir, { recursive: true });
-    change(dir);
-    return dir;
-  }
-  const appendTo = (file: string, text: string) => (dir: string) =>
-    writeFileSync(join(dir, file), readFileSync(join(dir, file), "utf8") + text);
+  it("builds an unchanged copy of the project", async () => {
+    expect(await buildChangedProject(() => {})).toBe("");
+  }, BUILD_TIMEOUT);
 
-  it("passes on the built folder", () => {
-    expect(checkSkill(skill.dir)).toEqual([]);
-  });
+  it("fails when elk.bundled.js in node_modules differs from the published elkjs", async () => {
+    const message = await buildChangedProject(appendTo("node_modules/elkjs/lib/elk.bundled.js", "\n// patched\n"));
 
-  it.each<[string, (dir: string) => void, string]>([
-    ["structa.mjs is missing", (dir) => rmSync(join(dir, "structa.mjs")), "structa.mjs is missing"],
-    ["elk.bundled.js is missing", (dir) => rmSync(join(dir, "elk.bundled.js")), "elk.bundled.js is missing"],
-    ["package.json is missing", (dir) => rmSync(join(dir, "package.json")), "package.json is missing"],
+    const sha256 = /its SHA-256 is ([0-9a-f]{64}),/.exec(message)?.[1];
+    expect(sha256).toBeDefined();
+    expect(message).toBe(
+      failure(
+        "elk.bundled.js is not byte-for-byte lib/elk.bundled.js from the published elkjs 0.12.1: " +
+          `its SHA-256 is ${sha256}, not b1032b7cfd2a57c54c6f0e8369d7665e19a579954f7cd20a6dae28f1912ea0d7`,
+      ),
+    );
+  }, BUILD_TIMEOUT);
+
+  it("fails when node_modules holds a different elkjs version than package.json pins", async () => {
+    const message = await buildChangedProject(setElkjsVersion("0.12.0"));
+
+    expect(message).toBe(failure("node_modules has elkjs 0.12.0, but package.json pins 0.12.1: run bun install --frozen-lockfile"));
+  }, BUILD_TIMEOUT);
+
+  it("fails when package.json pins an elkjs whose published file the build doesn't know", async () => {
+    // An upgrade that changes the pin but not the expected SHA-256.
+    const message = await buildChangedProject((project) => {
+      editJson("package.json", (json) => ((json.dependencies as Record<string, string>).elkjs = "0.13.0"))(project);
+      setElkjsVersion("0.13.0")(project);
+    });
+
+    expect(message).toBe(
+      failure(
+        "package.json pins elkjs 0.13.0, but the build only knows the published elk.bundled.js of elkjs 0.12.1: " +
+          "to upgrade, update PUBLISHED_ELK in scripts/lib/skill.ts with the new version and its file's SHA-256",
+      ),
+    );
+  }, BUILD_TIMEOUT);
+
+  it.each<[string, Record<string, string>, string]>([
+    ["patchedDependencies", { "elkjs@0.12.1": "patches/elkjs@0.12.1.patch" }, '"elkjs@0.12.1"'],
+    ["overrides", { elkjs: "0.12.1" }, '"elkjs"'],
+    ["resolutions", { "**/elkjs": "0.12.1" }, '"**/elkjs"'],
+  ])(
+    "fails when package.json %s changes elkjs",
+    async (field, value, key) => {
+      const message = await buildChangedProject(editJson("package.json", (json) => (json[field] = value)));
+
+      expect(message).toBe(failure(`package.json ${field} changes elkjs (${key}): ship the published elkjs unchanged`));
+    },
+    BUILD_TIMEOUT,
+  );
+
+  it("fails when structa.mjs would contain ELK's Java package names or GWT markers", async () => {
+    const leaked = ["org.eclipse.elk.layered", "$clinit_Layer", "gwtOnLoad", "$wnd.Math", "com.google.gwt.core"];
+    const source = leaked.map((text, i) => `export const leaked${i} = ${JSON.stringify(text)};\n`).join("");
+
+    const message = await buildChangedProject(appendTo("src/structa.ts", source));
+
+    expect(message).toBe(
+      failure(
+        'structa.mjs contains elkjs code: "org.eclipse.elk."',
+        'structa.mjs contains elkjs code: "$clinit_"',
+        'structa.mjs contains elkjs code: "gwtOnLoad"',
+        'structa.mjs contains elkjs code: "$wnd."',
+        'structa.mjs contains elkjs code: "com.google.gwt."',
+      ),
+    );
+  }, BUILD_TIMEOUT);
+
+  it.each([
+    ["imports", 'import "elkjs";\n', '"elkjs"'],
     [
-      "elk.bundled.js differs from the pinned package",
-      appendTo("elk.bundled.js", "\n"),
-      "elk.bundled.js is not byte-for-byte the same as lib/elk.bundled.js in elkjs 0.12.1",
+      "requires",
+      'import { createRequire as leak } from "node:module";\nexport const load = () => leak(import.meta.url)("elkjs/lib/elk.bundled.js");\n',
+      '"elkjs/lib/elk.bundled.js"',
     ],
-    [
-      "package.json declares ESM",
-      (dir) => writeFileSync(join(dir, "package.json"), '{"type":"module"}\n'),
-      'package.json must be the one line {"type":"commonjs"}',
-    ],
-    [
-      "package.json takes more than one line",
-      (dir) => writeFileSync(join(dir, "package.json"), '{\n  "type": "commonjs"\n}\n'),
-      'package.json must be the one line {"type":"commonjs"}',
-    ],
-    [
-      "structa.mjs has an ELK class name",
-      appendTo("structa.mjs", '\nconst algorithm = "org.eclipse.elk.layered";\n'),
-      'structa.mjs contains elkjs code: "org.eclipse.elk."',
-    ],
-    ["structa.mjs has a GWT $clinit_", appendTo("structa.mjs", "\nfunction $clinit_Layer() {}\n"), 'structa.mjs contains elkjs code: "$clinit_"'],
-    ["structa.mjs has GWT's gwtOnLoad", appendTo("structa.mjs", "\nvar gwtOnLoad = 1;\n"), 'structa.mjs contains elkjs code: "gwtOnLoad"'],
-    ["structa.mjs has GWT's $wnd", appendTo("structa.mjs", "\nvar a = $wnd.Math.abs(-1);\n"), 'structa.mjs contains elkjs code: "$wnd."'],
-    [
-      "structa.mjs requires elkjs",
-      appendTo("structa.mjs", '\nconst Elk = createRequire(import.meta.url)("elkjs/lib/elk.bundled.js");\n'),
-      'structa.mjs names the elkjs package: "elkjs/lib/elk.bundled.js"',
-    ],
-    ["structa.mjs imports elkjs", appendTo("structa.mjs", "\nimport 'elkjs';\n"), "structa.mjs names the elkjs package: 'elkjs'"],
-  ])("fails when %s", (_name, change, problem) => {
-    expect(checkSkill(tampered(change))).toEqual([problem]);
-  });
+  ])(
+    "fails when structa.mjs %s elkjs",
+    async (_name, source, specifier) => {
+      const message = await buildChangedProject(appendTo("src/structa.ts", source));
 
-  it("fails when structa.mjs has a long run copied from elk.bundled.js", () => {
-    const start = elk.length / 2;
-    const copied = elk.slice(start, start + 120);
+      expect(message).toBe(failure(`structa.mjs names the elkjs package: ${specifier}`));
+    },
+    BUILD_TIMEOUT,
+  );
 
-    const problems = checkSkill(tampered(appendTo("structa.mjs", `\n${copied}\n`)));
+  it("fails when structa.mjs would contain 100 characters copied from elk.bundled.js", async () => {
+    // A run from the middle of ELK's file with nothing a string literal would escape.
+    const elk = readFileSync(fileURLToPath(new URL("../node_modules/elkjs/lib/elk.bundled.js", import.meta.url)), "utf8");
+    const copied = /[ !#-;=-[\]-~]{100}/.exec(elk.slice(elk.length / 2))![0];
 
-    expect(problems).toHaveLength(1);
-    expect(problems[0]).toMatch(/^structa\.mjs contains \d+ characters copied from elk\.bundled\.js, starting ".{1,40}"$/);
-    expect(Number(/contains (\d+)/.exec(problems[0]!)![1])).toBeGreaterThanOrEqual(120);
-  });
+    const message = await buildChangedProject(appendTo("src/structa.ts", `export const copied = ${JSON.stringify(copied)};\n`));
+
+    const length = Number(/contains (\d+) characters/.exec(message)?.[1]);
+    expect(length).toBeGreaterThanOrEqual(100);
+    expect(message).toMatch(/^the skill folder failed its checks:\nstructa\.mjs contains \d+ characters copied from elk\.bundled\.js, starting ".{1,40}"$/);
+  }, BUILD_TIMEOUT);
 });
 
 describe("exit code 2: bad usage", () => {

@@ -1,8 +1,14 @@
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { buildSkill } from "../../scripts/lib/skill";
+
+const repository = fileURLToPath(new URL("../..", import.meta.url));
+
+/** Everything the build reads from the project. Add to this when the build starts reading something new. */
+const BUILD_INPUTS = ["src", "generated", "package.json", "tsconfig.json", "node_modules/elkjs/package.json", "node_modules/elkjs/lib/elk.bundled.js"];
 
 export interface RunResult {
   readonly status: number | null;
@@ -52,6 +58,7 @@ export async function buildSkillForTest(): Promise<BuiltSkill> {
       cwd: elsewhere,
       input: options.stdin ?? "",
       encoding: "utf8",
+      timeout: 30_000,
     });
     if (result.error) throw result.error;
     return { status: result.status, stdout: result.stdout, stderr: result.stderr };
@@ -66,4 +73,26 @@ export async function buildSkillForTest(): Promise<BuiltSkill> {
       rmSync(root, { recursive: true, force: true });
     },
   };
+}
+
+/**
+ * Copies the build's inputs from this repository into a temporary project,
+ * lets `change` alter the copy, and builds the skill folder from it, as
+ * `bun run build` would. Returns the build's error message, or "" when the
+ * build succeeds.
+ */
+export async function buildChangedProject(change: (project: string) => void): Promise<string> {
+  const project = realpathSync(mkdtempSync(join(tmpdir(), "structa-project-")));
+  try {
+    for (const input of BUILD_INPUTS) cpSync(join(repository, input), join(project, input), { recursive: true });
+    change(project);
+    try {
+      await buildSkill(join(project, "dist", "structa"), project);
+      return "";
+    } catch (error) {
+      return (error as Error).message;
+    }
+  } finally {
+    rmSync(project, { recursive: true, force: true });
+  }
 }
