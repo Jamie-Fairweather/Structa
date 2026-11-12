@@ -1,10 +1,11 @@
 import type { Problem } from "../errors";
 import type { ThemeName } from "../theme";
 import { check } from "./check";
-import { diagramDefinition, type Status } from "./definitions";
+import { diagramDefinition, type CLASS_EDGE_KINDS, type Status } from "./definitions";
 import { parseJson } from "./json";
 
 export {
+  CLASS_NAME_FACE,
   DESCRIPTION_FACE,
   DIAGRAM_TYPES,
   LINE_LABEL_FACE,
@@ -34,22 +35,36 @@ export interface FlowEdge {
   readonly emphasis: boolean;
 }
 
+export interface ClassEdge extends FlowEdge {
+  readonly kind: (typeof CLASS_EDGE_KINDS)[number];
+}
+
+export interface ClassNode {
+  readonly id: string;
+  /** The class name, tidied. */
+  readonly label: string;
+  readonly status?: Status;
+}
+
 /** Which way the diagram flows. */
 export type Direction = "down" | "right";
 
-export interface FlowDiagram {
-  readonly type: "flow";
+/** What every diagram type shares at the top level. */
+interface DiagramBase<T extends string, N, E> {
+  readonly type: T;
   readonly title?: string;
   readonly description?: string;
   readonly theme: ThemeName;
   readonly direction: Direction;
   /** Whether to draw the legend of the statuses used. */
   readonly legend: boolean;
-  readonly nodes: readonly FlowStep[];
-  readonly edges: readonly FlowEdge[];
+  readonly nodes: readonly N[];
+  readonly edges: readonly E[];
 }
 
-export type Diagram = FlowDiagram;
+export type FlowDiagram = DiagramBase<"flow", FlowStep, FlowEdge>;
+export type ClassDiagram = DiagramBase<"class", ClassNode, ClassEdge>;
+export type Diagram = FlowDiagram | ClassDiagram;
 
 export type ParseResult =
   | { readonly ok: true; readonly diagram: Diagram }
@@ -72,7 +87,7 @@ export function parseDiagram(input: unknown): ParseResult {
   if (checked.problems.length > 0) return { ok: false, problems: checked.problems };
 
   // Without problems, the checked value has exactly the shape the definitions describe.
-  const diagram = checked.value as Omit<FlowDiagram, "edges"> & { edges: readonly (Omit<FlowEdge, "id"> & { id?: string })[] };
+  const diagram = checked.value as Omit<Diagram, "edges"> & { edges: readonly (Omit<FlowEdge, "id"> & { id?: string })[] };
   return {
     ok: true,
     diagram: {
@@ -84,6 +99,6 @@ export function parseDiagram(input: unknown): ParseResult {
       legend: diagram.legend,
       nodes: diagram.nodes,
       edges: diagram.edges.map((edge, i) => ({ ...edge, id: edge.id ?? `edges[${i}]` })),
-    },
+    } as Diagram,
   };
 }

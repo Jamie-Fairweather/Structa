@@ -81,14 +81,59 @@ describe("node structa.mjs schema", () => {
   });
 });
 
+/** A small valid class diagram. */
+function toolShed() {
+  return {
+    type: "class",
+    nodes: [
+      { id: "shed", label: "ToolShed" },
+      { id: "rake", label: "Rake" },
+    ],
+    edges: [{ id: "holds", from: "shed", to: "rake", kind: "association" }],
+  } as Node;
+}
+
+/** A small valid diagram of each type. */
+const FIXTURES = new Map<string, () => Node>([
+  ["class", toolShed],
+  ["flow", greenhouse],
+]);
+
 describe("the JSON Schema", () => {
   let root: Node;
+  /** The schema of one node or one edge in a diagram of this type. */
+  let items: (type: string, list: "nodes" | "edges") => Node;
   let node: Node;
   let edge: Node;
   beforeAll(() => {
     root = JSON.parse(printed.stdout) as Node;
-    node = root.properties.nodes.items;
-    edge = root.properties.edges.items;
+    items = (type, list) => {
+      const branches = (root.allOf as Node[]).filter((branch) => branch.if.properties.type.const === type);
+      expect(branches).toHaveLength(1);
+      return branches[0]!.then.properties[list].items;
+    };
+    node = items("flow", "nodes");
+    edge = items("flow", "edges");
+  });
+
+  it("offers exactly the diagram types render() accepts, each with its own nodes and edges", async () => {
+    const validate = new Ajv2020({ strict: true }).compile(root);
+    expect(root.properties.type.enum).toEqual(["class", "flow"]);
+
+    for (const [type, fixture] of FIXTURES) {
+      expect([type, await outcome(fixture())]).toEqual([type, "ok"]);
+      expect([type, validate(fixture())]).toEqual([type, true]);
+      // The other type's nodes don't fit this type.
+      for (const [other, otherFixture] of FIXTURES) {
+        if (other === type) continue;
+        const mixed = { ...fixture(), nodes: otherFixture().nodes, edges: [] };
+        expect([type, other, await outcome(mixed)]).not.toEqual([type, other, "ok"]);
+        expect([type, other, validate(mixed)]).toEqual([type, other, false]);
+      }
+    }
+    expect(await outcome({ ...greenhouse(), type: "sideways" })).toEqual([
+      expect.objectContaining({ path: "type", hint: 'use "class" or "flow"' }),
+    ]);
   });
 
   it("is written down as a reviewable file", async () => {
@@ -101,11 +146,13 @@ describe("the JSON Schema", () => {
   });
 
   it.each([
-    ["the top level", () => root, (input: Node) => input, ""],
-    ["a node", () => node, (input: Node) => input.nodes[0], "nodes[0]."],
-    ["an edge", () => edge, (input: Node) => input.edges[0], "edges[0]."],
-  ])("lists exactly the fields render() allows on %s", async (_name, part, target, prefix) => {
-    const input = greenhouse();
+    ["the top level", "flow", () => root, (input: Node) => input, ""],
+    ["a flow node", "flow", () => node, (input: Node) => input.nodes[0], "nodes[0]."],
+    ["a flow edge", "flow", () => edge, (input: Node) => input.edges[0], "edges[0]."],
+    ["a class node", "class", () => items("class", "nodes"), (input: Node) => input.nodes[0], "nodes[0]."],
+    ["a class edge", "class", () => items("class", "edges"), (input: Node) => input.edges[0], "edges[0]."],
+  ])("lists exactly the fields render() allows on %s", async (_name, type, part, target, prefix) => {
+    const input = FIXTURES.get(type)!();
     target(input).mulch = true;
 
     expect(part().additionalProperties).toBe(false);
@@ -115,12 +162,14 @@ describe("the JSON Schema", () => {
   });
 
   it.each([
-    ["the top level", () => root, (input: Node) => input, ""],
-    ["a node", () => node, (input: Node) => input.nodes[1], "nodes[1]."],
-    ["an edge", () => edge, (input: Node) => input.edges[0], "edges[0]."],
-  ])("requires exactly the fields render() requires on %s", async (_name, part, target, prefix) => {
+    ["the top level", "flow", () => root, (input: Node) => input, ""],
+    ["a flow node", "flow", () => node, (input: Node) => input.nodes[1], "nodes[1]."],
+    ["a flow edge", "flow", () => edge, (input: Node) => input.edges[0], "edges[0]."],
+    ["a class node", "class", () => items("class", "nodes"), (input: Node) => input.nodes[1], "nodes[1]."],
+    ["a class edge", "class", () => items("class", "edges"), (input: Node) => input.edges[0], "edges[0]."],
+  ])("requires exactly the fields render() requires on %s", async (_name, type, part, target, prefix) => {
     for (const field of Object.keys(part().properties)) {
-      const input = greenhouse();
+      const input = FIXTURES.get(type)!();
       delete target(input)[field];
 
       const result = await outcome(input);
@@ -131,7 +180,6 @@ describe("the JSON Schema", () => {
   });
 
   it.each([
-    ["type", () => root, (input: Node, value: string) => (input.type = value)],
     ["theme", () => root, (input: Node, value: string) => (input.theme = value)],
     ["direction", () => root, (input: Node, value: string) => (input.direction = value)],
     ["shape", () => node, (input: Node, value: string) => (input.nodes[0].shape = value)],

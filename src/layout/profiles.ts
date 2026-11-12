@@ -12,6 +12,27 @@ export interface LayoutProfile {
   readonly options: LayoutOptions;
 }
 
+export const CLASS_PROFILE: LayoutProfile = {
+  name: "class",
+  version: 1,
+  options: {
+    "elk.algorithm": "layered",
+    "elk.edgeRouting": "ORTHOGONAL",
+    "elk.randomSeed": "1",
+    // JSON node order is a soft hint: ELK keeps it unless that adds crossings.
+    "elk.layered.considerModelOrder.strategy": "PREFER_NODES",
+    "elk.spacing.nodeNode": "48",
+    "elk.layered.spacing.nodeNodeBetweenLayers": "64",
+    "elk.spacing.edgeNode": "24",
+    "elk.layered.spacing.edgeNodeBetweenLayers": "24",
+    "elk.spacing.edgeEdge": "16",
+    "elk.layered.spacing.edgeEdgeBetweenLayers": "16",
+    // Line labels are pills drawn on top of their line, so ELK centres them on it.
+    "elk.edgeLabels.inline": "true",
+    "elk.padding": "[top=0,left=0,bottom=0,right=0]",
+  },
+};
+
 export const FLOW_PROFILE: LayoutProfile = {
   name: "flow",
   version: 3,

@@ -285,13 +285,14 @@ function line(line: Line, points: readonly Point[], at: Point, pen: Pen): string
     el("title", [], escapeText(line.tooltip)),
     ...fadedIf(line.status === "removed", pen.theme, [
       el("path", [
-        ["d", roundedRoute(pts, cornerRadius, arrowLength)],
+        // A line with an arrowhead stops short of its end, where the arrowhead's tip is.
+        ["d", roundedRoute(pts, cornerRadius, line.arrow ? arrowLength : 0)],
         ["fill", "none"],
         ["stroke", colour],
         ["stroke-width", line.emphasis ? sizes.line.emphasisWidth : sizes.line.width],
         ["stroke-linejoin", "round"],
       ]),
-      el("path", [["d", arrowhead(pts, arrowLength, arrowWidth)], ["fill", colour]]),
+      ...(line.arrow ? [el("path", [["d", arrowhead(pts, arrowLength, arrowWidth)], ["fill", colour]])] : []),
     ]),
     "</g>",
   ];

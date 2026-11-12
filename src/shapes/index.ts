@@ -4,12 +4,15 @@ import {
   LINE_LABEL_FACE,
   STEP_LABEL_FACE,
   TITLE_FACE,
+  type ClassEdge,
+  type Diagram,
   type FlowEdge,
   type FlowStep,
   type Status,
 } from "../input";
 import { baseline, measure, wrap, type FaceId } from "../text";
 import type { Sizes } from "../theme";
+import { classBody } from "./class";
 import { frameCards, strikeThrough, type Card, type CardBody, type TextLine } from "./frame";
 
 export { topAt, type Badge, type Box, type Card, type Strike, type TextLine } from "./frame";
@@ -17,9 +20,12 @@ export { buildLegend, type Legend, type LegendItem } from "./legend";
 
 export interface Line {
   readonly id: string;
-  readonly kind: "flow";
+  /** A flowchart's line, or the relationship a class line shows. */
+  readonly kind: "flow" | ClassEdge["kind"];
   readonly from: string;
   readonly to: string;
+  /** Whether an arrowhead is drawn where the line meets `to`. */
+  readonly arrow: boolean;
   readonly status?: Status;
   readonly emphasis: boolean;
   /** Sized here; ELK places it. */
@@ -91,9 +97,10 @@ function block(
   };
 }
 
-/** Sizes every card through the shared card frame. */
-export function buildCards(nodes: readonly FlowStep[], sizes: Sizes): Card[] {
-  return frameCards(nodes, sizes, (node, minWidth) => stepBody(node, sizes, minWidth));
+/** Sizes every card of the diagram through the shared card frame. */
+export function buildCards(diagram: Diagram, sizes: Sizes): Card[] {
+  if (diagram.type === "class") return frameCards(diagram.nodes, sizes, (node) => classBody(node, sizes));
+  return frameCards(diagram.nodes, sizes, (node, minWidth) => stepBody(node, sizes, minWidth));
 }
 
 /** A step: a rounded box sized to its wrapped label between a minimum and maximum width, and at least `minWidth`. */
@@ -124,13 +131,20 @@ function stepBody(node: FlowStep, sizes: Sizes, minWidth: number): CardBody {
   };
 }
 
-export function buildLine(edge: FlowEdge, fromLabel: string, toLabel: string, sizes: Sizes): Line {
-  const ends = `${fromLabel} → ${toLabel}`;
+/**
+ * A line between two cards. A flowchart's line has an arrow at `to`; an
+ * association is a plain line, so its tooltip names the two ends without one.
+ */
+export function buildLine(edge: FlowEdge | ClassEdge, fromLabel: string, toLabel: string, sizes: Sizes): Line {
+  const kind = "kind" in edge ? edge.kind : "flow";
+  const arrow = kind === "flow";
+  const ends = `${fromLabel} ${arrow ? "→" : "–"} ${toLabel}`;
   return {
     id: edge.id,
-    kind: "flow",
+    kind,
     from: edge.from,
     to: edge.to,
+    arrow,
     ...(edge.status === undefined ? {} : { status: edge.status }),
     emphasis: edge.emphasis,
     ...(edge.label === undefined ? {} : { label: lineLabel(edge.label, edge.status === "removed", sizes) }),

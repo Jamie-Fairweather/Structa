@@ -1,0 +1,12 @@
+{
+  "type": "class",
+  "nodes": [
+    { "id": "member", "label": "Member" },
+    { "id": "loan", "label": "Loan" },
+    { "id": "packet", "label": "SeedPacket" }
+  ],
+  "edges": [
+    { "from": "member", "to": "loan", "kind": "association", "label": "borrows" },
+    { "from": "loan", "to": "packet", "kind": "association" }
+  ]
+}

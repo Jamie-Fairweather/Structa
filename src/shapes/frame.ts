@@ -39,7 +39,7 @@ export interface Badge extends Box {
 
 /** What a card builder makes: the card's outline size and its contents, relative to the outline's top-left corner. */
 export interface CardBody {
-  readonly kind: "step";
+  readonly kind: "step" | "class";
   readonly width: number;
   readonly height: number;
   readonly tooltip: string;

@@ -99,6 +99,8 @@ export const SIZES = {
   line: { width: 1.5, emphasisWidth: 3, cornerRadius: 8, arrowLength: 9, arrowWidth: 9 },
   /** A line's label: text in a pill bordered in the line's colour, wrapped to `maxWidth`. */
   lineLabel: { fontSize: 12, lineHeight: 16, paddingX: 8, paddingY: 2, maxWidth: 180, borderWidth: 1 },
+  /** Class cards: one standard width, the name centred at the top. */
+  classCard: { width: 360, paddingX: 14, paddingY: 12, nameSize: 15, nameLineHeight: 20 },
   step: {
     fontSize: 14,
     lineHeight: 20,

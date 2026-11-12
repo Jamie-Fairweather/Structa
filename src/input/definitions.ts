@@ -91,8 +91,8 @@ function optional(name: string, def: Def, description: string, defaultValue?: Fi
     : { name, def, required: false, description, default: defaultValue };
 }
 
-/** The diagram types implemented so far. Each has an example, examples/<type>.json. */
-export const DIAGRAM_TYPES: readonly string[] = ["flow"];
+/** The diagram types implemented so far, in the spec's order. Each has an example, examples/<type>.json. */
+export const DIAGRAM_TYPES: readonly string[] = ["class", "flow"];
 
 const LIMITS = { nodes: 500, edges: 1000 } as const;
 
@@ -142,6 +142,7 @@ export const TITLE_FACE: FaceId = "inter-bold";
 export const DESCRIPTION_FACE: FaceId = "inter-regular";
 export const STEP_LABEL_FACE: FaceId = "inter-semibold";
 export const LINE_LABEL_FACE: FaceId = "inter-regular";
+export const CLASS_NAME_FACE: FaceId = "inter-semibold";
 
 const FLOW_NODE: ObjectDef = {
   kind: "object",
@@ -167,16 +168,44 @@ const FLOW_EDGE: ObjectDef = {
   ],
 };
 
-export const FLOW: ObjectDef = diagram(FLOW_NODE, FLOW_EDGE, "down");
+const CLASS_NODE: ObjectDef = {
+  kind: "object",
+  noun: "node",
+  fields: [
+    required("id", { kind: "id", of: "node" }, "a unique id made of letters, digits and - _ . :"),
+    required("label", { kind: "text", text: LABEL, faces: [CLASS_NAME_FACE] }, "the class name"),
+    optional("status", STATUS, "what the change does to this card; leave it out for no status"),
+  ],
+};
+
+/** The relationship a class line shows. Only association is drawn so far. */
+export const CLASS_EDGE_KINDS = ["association"] as const;
+
+const CLASS_EDGE: ObjectDef = {
+  ...FLOW_EDGE,
+  fields: [
+    ...FLOW_EDGE.fields,
+    required("kind", { kind: "choice", values: CLASS_EDGE_KINDS, later: true }, "the relationship the line shows"),
+  ],
+};
+
+/** Each implemented type's definition, in DIAGRAM_TYPES order. */
+export const DEFINITIONS: ReadonlyMap<string, ObjectDef> = new Map([
+  ["class", diagram(CLASS_NODE, CLASS_EDGE, "down")],
+  ["flow", diagram(FLOW_NODE, FLOW_EDGE, "down")],
+]);
+
+/** The fields every type shares, with its nodes and edges left unchecked. The schema's top level shows these. */
+export const SHARED: ObjectDef = diagram({ kind: "any" }, { kind: "any" }, "down");
 
 /**
  * When the type isn't one we implement, only the fields every type shares can
  * be checked: its other fields, and everything inside its nodes and edges,
  * aren't known.
  */
-const ANY_TYPE: ObjectDef = { ...diagram({ kind: "any" }, { kind: "any" }, "down"), otherFields: "allowed" };
+const ANY_TYPE: ObjectDef = { ...SHARED, otherFields: "allowed" };
 
 /** The definition to check a diagram against, chosen by its `type`. */
 export function diagramDefinition(type: unknown): ObjectDef {
-  return type === "flow" ? FLOW : ANY_TYPE;
+  return (typeof type === "string" && DEFINITIONS.get(type)) || ANY_TYPE;
 }
