@@ -112,6 +112,8 @@ export const SIZES = {
   legend: { swatchLength: 20, swatchGap: 6, itemGap: 20 },
   /** A line through struck-out text, `rise` font sizes above the baseline. */
   strike: { width: 1.25, rise: 0.3 },
+  /** A line under underlined text, such as a static class member, `drop` font sizes below the baseline. */
+  underline: { width: 1, drop: 0.15 },
   line: { width: 1.5, emphasisWidth: 3, cornerRadius: 8, arrowLength: 9, arrowWidth: 9 },
   /** A note's connector: thinner than a line, in `dash` px dots `gap` px apart. */
   connector: { width: 1, dash: 2, gap: 3 },

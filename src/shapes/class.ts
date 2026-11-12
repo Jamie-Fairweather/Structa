@@ -1,5 +1,6 @@
 import {
   ABSTRACT_CLASS_NAME_FACE,
+  ABSTRACT_ROW_TEXT_FACE,
   CLASS_DESCRIPTION_FACE,
   CLASS_NAME_FACE,
   CLASS_SECTIONS,
@@ -10,7 +11,7 @@ import {
 } from "../input";
 import { baseline, measure, wrap, type FaceId } from "../text";
 import type { Sizes } from "../theme";
-import { badge, measureBadge, type CardBody, type Row, type TextLine } from "./frame";
+import { badge, measureBadge, underline, type CardBody, type Row, type TextLine } from "./frame";
 
 const SYMBOLS = new Map<Visibility, string>([
   ["public", "+"],
@@ -112,6 +113,8 @@ function moreLine(count: number, top: number, textX: number, sizes: Sizes): Text
 /**
  * One member's row, from `top` down: its text wrapped after its visibility
  * symbol and, when it has a status, clear of the badge at its right-hand end.
+ * An abstract member's text is italic and a static member's is underlined;
+ * its symbol, a mark in its own column, stays upright and plain.
  */
 function classRow(
   member: ClassRow,
@@ -127,8 +130,9 @@ function classRow(
   const symbol = member.visibility === undefined ? undefined : SYMBOLS.get(member.visibility)!;
   const badgeWidth = status === undefined ? 0 : measureBadge(status, sizes);
   const room = width - left - textX - (status === undefined ? 0 : badgeWidth + r.badgeGap);
-  const lines = wrap(member.text, ROW_TEXT_FACE, r.fontSize, room);
-  const offset = baseline(ROW_TEXT_FACE, r.fontSize, r.lineHeight);
+  const face = member.abstract ? ABSTRACT_ROW_TEXT_FACE : ROW_TEXT_FACE;
+  const lines = wrap(member.text, face, r.fontSize, room);
+  const offset = baseline(face, r.fontSize, r.lineHeight);
   const height = 2 * r.paddingY + lines.length * r.lineHeight;
   const row: Row = {
     id: member.id,
@@ -144,13 +148,18 @@ function classRow(
     // A tint never quite touches the next row's, so a run of rows with a status reads as separate rows.
     box: { x: r.tintInset, y: top + r.tintGap / 2, width: width - 2 * r.tintInset, height: height - r.tintGap },
     // The symbol sits in its own column, level with the first line, so a removed row's strike starts after it.
-    ...(symbol === undefined ? {} : { symbol: rowText(symbol, left, top + r.paddingY + offset, sizes) }),
-    texts: lines.map((line, i) => rowText(line, textX, top + r.paddingY + i * r.lineHeight + offset, sizes)),
+    ...(symbol === undefined
+      ? {}
+      : { symbol: rowText(symbol, left, top + r.paddingY + baseline(ROW_TEXT_FACE, r.fontSize, r.lineHeight), sizes) }),
+    texts: lines.map((line, i) => {
+      const t = rowText(line, textX, top + r.paddingY + i * r.lineHeight + offset, sizes, face);
+      return member.static ? { ...t, underline: underline(t, sizes) } : t;
+    }),
   };
   return { row, height };
 }
 
 /** A line of row text with its baseline at `y`. */
-function rowText(text: string, x: number, y: number, sizes: Sizes): TextLine {
-  return { text, x, y, face: ROW_TEXT_FACE, size: sizes.row.fontSize, anchor: "start", color: "text" };
+function rowText(text: string, x: number, y: number, sizes: Sizes, face: FaceId = ROW_TEXT_FACE): TextLine {
+  return { text, x, y, face, size: sizes.row.fontSize, anchor: "start", color: "text" };
 }

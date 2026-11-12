@@ -194,6 +194,8 @@ export const CLASS_NAME_FACE: FaceId = "inter-semibold";
 export const ABSTRACT_CLASS_NAME_FACE: FaceId = "inter-semibold-italic";
 export const CLASS_DESCRIPTION_FACE: FaceId = "inter-regular";
 export const ROW_TEXT_FACE: FaceId = "mono-regular";
+/** An abstract member's text: real italics, as UML draws it. */
+export const ABSTRACT_ROW_TEXT_FACE: FaceId = "mono-italic";
 
 /**
  * The flowchart shapes: start and end are pills, a step a rounded box, a
@@ -333,7 +335,7 @@ function classRow(section: (typeof CLASS_SECTIONS)[number], noun: string): Objec
     fields: [
       required(
         "text",
-        { kind: "text", text: ROW_TEXT, faces: [ROW_TEXT_FACE] },
+        { kind: "text", text: ROW_TEXT, faces: [ROW_TEXT_FACE, ABSTRACT_ROW_TEXT_FACE] },
         "the member as you'd write it, such as a name and type or a signature",
       ),
       optional("id", { kind: "id", of: "row" }, `an id unique within the card; without one the row is known as ${section}[N]`),
@@ -342,6 +344,8 @@ function classRow(section: (typeof CLASS_SECTIONS)[number], noun: string): Objec
         { kind: "choice", values: VISIBILITIES, later: false },
         "drawn before the text: + public, - private, # protected, ~ package",
       ),
+      optional("static", BOOLEAN, "true underlines the member's text", false),
+      optional("abstract", BOOLEAN, "true draws the member's text in italics", false),
       optional("status", STATUS, "what the change does to this row; leave it out for no status"),
     ],
   };

@@ -150,6 +150,16 @@
                           "package"
                         ]
                       },
+                      "static": {
+                        "description": "true underlines the member's text",
+                        "type": "boolean",
+                        "default": false
+                      },
+                      "abstract": {
+                        "description": "true draws the member's text in italics",
+                        "type": "boolean",
+                        "default": false
+                      },
                       "status": {
                         "description": "what the change does to this row; leave it out for no status",
                         "enum": [
@@ -192,6 +202,16 @@
                           "protected",
                           "package"
                         ]
+                      },
+                      "static": {
+                        "description": "true underlines the member's text",
+                        "type": "boolean",
+                        "default": false
+                      },
+                      "abstract": {
+                        "description": "true draws the member's text in italics",
+                        "type": "boolean",
+                        "default": false
                       },
                       "status": {
                         "description": "what the change does to this row; leave it out for no status",

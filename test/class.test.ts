@@ -348,6 +348,115 @@ describe("abstract classes", () => {
   });
 });
 
+/** The face a text element is drawn in, as "family weight style". */
+function faceOf(t: Element): string {
+  return `${t.getAttribute("font-family")!.split(",")[0]} ${t.getAttribute("font-weight")} ${t.getAttribute("font-style") ?? "normal"}`;
+}
+
+describe("abstract rows", () => {
+  const text = "germinate(tray: SeedTray, warmth: Celsius, light: Lux, water: Millilitres): Seedling[]";
+
+  it.each(["properties", "methods"])("draws every line of an abstract row in %s in JetBrains Mono Italic, and the other rows upright", async (section) => {
+    const doc = await svgDoc(packet({ [section]: [{ text, visibility: "public", abstract: true }, { text: "count: int", visibility: "public" }] }));
+
+    const [abstract, plain] = rows(cardById(doc, "packet"));
+    const wrapped = memberTexts(abstract!);
+    expect(wrapped.length).toBeGreaterThan(1);
+    expect(wrapped.map(faceOf)).toEqual(wrapped.map(() => "Structa JetBrains Mono 400 italic"));
+    expect(memberTexts(plain!).map(faceOf)).toEqual(["Structa JetBrains Mono 400 normal"]);
+    // The symbol is a mark in its own column, not the member's text: it stays upright, and the text still lines up.
+    expect(faceOf(symbolOf(abstract!)!)).toBe("Structa JetBrains Mono 400 normal");
+    expect(numberAttr(wrapped[0]!, "x")).toBe(numberAttr(memberTexts(plain!)[0]!, "x"));
+    expect(titleOf(abstract!)).toBe(`+ ${text}`);
+  });
+
+  it("leaves rows with abstract: false upright", async () => {
+    const doc = await svgDoc(packet({ methods: [{ text: "sow(): void", abstract: false }] }));
+
+    expect(memberTexts(rows(cardById(doc, "packet"))[0]!).map(faceOf)).toEqual(["Structa JetBrains Mono 400 normal"]);
+  });
+
+  it("strikes a removed abstract row through as wide as its italic text", async () => {
+    const doc = await svgDoc(packet({ status: "changed", methods: [{ text: "sow(): void", abstract: true, status: "removed" }] }));
+
+    const row = rows(cardById(doc, "packet"))[0]!;
+    const [t] = memberTexts(row);
+    const [strike] = byClassIn(row, "strike");
+    expect(faceOf(t!)).toBe("Structa JetBrains Mono 400 italic");
+    expect(numberAttr(strike!, "x2") - numberAttr(strike!, "x1")).toBeCloseTo(MONO_ADVANCE * numberAttr(t!, "font-size") * "sow(): void".length, 1);
+  });
+
+  it.each(["yes", 0, null])("rejects abstract: %j on a row", async (abstract) => {
+    expect(await problems(packet({ methods: [{ text: "sow(): void", abstract }] }))).toEqual([
+      { path: "nodes[0].methods[0].abstract", message: `${JSON.stringify(abstract)} is not true or false`, hint: "write true or false, without quotes" },
+    ]);
+  });
+});
+
+describe("static rows", () => {
+  const text = "fromHarvest(crop: Crop, year: int, saver: Member, notes: string): SeedPacket";
+
+  it.each([
+    ["light", "#1f2328"],
+    ["dark", "#e6edf3"],
+  ] as const)("underlines every line of a static row's text in its colour, in %s, but not its symbol", async (theme, colour) => {
+    const doc = await svgDoc(packet({ methods: [{ text, visibility: "public", static: true }, { text: "sow(): void", visibility: "public" }] }), theme);
+
+    const [stat, plain] = rows(cardById(doc, "packet"));
+    const wrapped = memberTexts(stat!);
+    expect(wrapped.length).toBeGreaterThan(1);
+    const underlines = byClassIn(stat!, "underline");
+    expect(underlines).toHaveLength(wrapped.length);
+    wrapped.forEach((t, i) => {
+      const line = underlines[i]!;
+      const baseline = numberAttr(t, "y");
+      const size = numberAttr(t, "font-size");
+      // Level, just under the letters' baseline and above the next line, from where the text starts to where it ends.
+      expect(numberAttr(line, "y1")).toBe(numberAttr(line, "y2"));
+      expect(numberAttr(line, "y1")).toBeGreaterThan(baseline);
+      expect(numberAttr(line, "y1")).toBeLessThan(baseline + size * 0.3);
+      expect(numberAttr(line, "x1")).toBeCloseTo(numberAttr(t, "x"), 5);
+      expect(numberAttr(line, "x2") - numberAttr(line, "x1")).toBeCloseTo(MONO_ADVANCE * size * t.textContent!.length, 1);
+      expect([line.getAttribute("stroke"), t.getAttribute("fill")]).toEqual([colour, colour]);
+    });
+    // The underline starts where the text does, after the symbol's column.
+    expect(numberAttr(underlines[0]!, "x1")).toBeGreaterThan(numberAttr(symbolOf(stat!)!, "x"));
+    expect(byClassIn(plain!, "underline")).toEqual([]);
+    expect(titleOf(stat!)).toBe(`+ ${text}`);
+  });
+
+  it("leaves rows with static: false plain", async () => {
+    const doc = await svgDoc(packet({ properties: [{ text: "count: int", static: false }] }));
+
+    expect(byClassIn(rows(cardById(doc, "packet"))[0]!, "underline")).toEqual([]);
+  });
+
+  it("underlines a static abstract row in italics", async () => {
+    const doc = await svgDoc(packet({ methods: [{ text: "sow(): void", static: true, abstract: true }] }));
+
+    const row = rows(cardById(doc, "packet"))[0]!;
+    expect(memberTexts(row).map(faceOf)).toEqual(["Structa JetBrains Mono 400 italic"]);
+    expect(byClassIn(row, "underline")).toHaveLength(1);
+  });
+
+  it("underlines and strikes through a removed static row, faded", async () => {
+    const doc = await svgDoc(packet({ status: "changed", methods: [{ text: "sow(): void", static: true, status: "removed" }] }));
+
+    const [faded] = byClassIn(rows(cardById(doc, "packet"))[0]!, "faded");
+    const [underline] = byClassIn(faded!, "underline");
+    const [strike] = byClassIn(faded!, "strike");
+    expect(numberAttr(underline!, "y1")).toBeGreaterThan(numberAttr(strike!, "y1"));
+    expect(numberAttr(underline!, "x1")).toBe(numberAttr(strike!, "x1"));
+    expect(numberAttr(underline!, "x2")).toBe(numberAttr(strike!, "x2"));
+  });
+
+  it.each(["yes", 1, null])("rejects static: %j", async (value) => {
+    expect(await problems(packet({ properties: [{ text: "count: int", static: value }] }))).toEqual([
+      { path: "nodes[0].properties[0].static", message: `${JSON.stringify(value)} is not true or false`, hint: "write true or false, without quotes" },
+    ]);
+  });
+});
+
 describe("the more row", () => {
   it.each([
     ["methods", { ...MEMBERS, more: 12 }],
@@ -967,7 +1076,7 @@ describe("class input", () => {
     input.nodes[0]![section][0]!.colour = "green";
 
     expect(await problems(input)).toEqual([
-      { path: `nodes[0].${section}[0].colour`, message: 'unknown field "colour"', hint: "allowed fields: text, id, visibility, status" },
+      { path: `nodes[0].${section}[0].colour`, message: 'unknown field "colour"', hint: "allowed fields: text, id, visibility, static, abstract, status" },
     ]);
   });
 

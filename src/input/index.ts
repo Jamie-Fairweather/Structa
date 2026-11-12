@@ -14,6 +14,7 @@ import { parseJson } from "./json";
 
 export {
   ABSTRACT_CLASS_NAME_FACE,
+  ABSTRACT_ROW_TEXT_FACE,
   CARD_DESCRIPTION_FACE,
   CLASS_DESCRIPTION_FACE,
   CLASS_NAME_FACE,
@@ -68,6 +69,10 @@ export interface ClassRow {
   readonly id: string;
   readonly text: string;
   readonly visibility?: Visibility;
+  /** Drawn underlined. */
+  readonly static: boolean;
+  /** Drawn in italics. */
+  readonly abstract: boolean;
   /** Its own status, or, when it has none, its card's when the card is new or removed. */
   readonly status?: Status;
 }

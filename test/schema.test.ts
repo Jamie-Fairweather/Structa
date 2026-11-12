@@ -242,20 +242,37 @@ describe("the JSON Schema", () => {
     expect(await outcome(input)).toEqual([expect.objectContaining({ hint: `use ${choices}` })]);
   });
 
-  it.each([
-    ["legend", () => root, (input: Node, value: unknown) => (input.legend = value)],
-    ["emphasis", () => edge, (input: Node, value: unknown) => (input.edges[0].emphasis = value)],
-  ])("agrees with render() that %s is true or false", async (name, part, set) => {
-    expect(part().properties[name].type).toBe("boolean");
+  it.each<readonly [name: string, type: string, part: () => Node, set: (input: Node, value: unknown) => void]>([
+    ["legend", "flow", () => root, (input, value) => (input.legend = value)],
+    ["emphasis", "flow", () => edge, (input, value) => (input.edges[0].emphasis = value)],
+    ["class abstract", "class", () => items("class", "nodes"), (input, value) => (input.nodes[0].abstract = value)],
+    ...(["properties", "methods"] as const).flatMap((section) =>
+      (["static", "abstract"] as const).map(
+        (flag) =>
+          [
+            `${section} row ${flag}`,
+            "class",
+            () => items("class", "nodes").properties[section].items,
+            (input: Node, value: unknown) => (input.nodes[0][section][0][flag] = value),
+          ] as const,
+      ),
+    ),
+  ])("agrees with render() that %s is true or false, and false when left out", async (name, type, part, set) => {
+    const field = part().properties[name.split(" ").at(-1)!];
+    expect(field.type).toBe("boolean");
 
     for (const value of [true, false]) {
-      const input = greenhouse();
+      const input = FIXTURES.get(type)!();
       set(input, value);
       expect(await outcome(input)).toBe("ok");
     }
-    const input = greenhouse();
+    const input = FIXTURES.get(type)!();
     set(input, "true");
     expect(await outcome(input)).not.toBe("ok");
+    // The default the schema documents draws the same as leaving the field out.
+    const given = FIXTURES.get(type)!();
+    set(given, field.default);
+    expect((await render(given, opts)).svg).toBe((await render(FIXTURES.get(type)!(), opts)).svg);
   });
 
   it("agrees with render() that only a note can be about another node", async () => {

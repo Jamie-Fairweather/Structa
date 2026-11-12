@@ -17,8 +17,11 @@ export interface TextLine {
   readonly title?: boolean;
   /** A level line through the text, in its colour. */
   readonly strike?: Strike;
+  /** A level line under the text, in its colour. */
+  readonly underline?: Strike;
 }
 
+/** A level line through or under a line of text. */
 export interface Strike {
   readonly x1: number;
   readonly x2: number;
@@ -156,7 +159,12 @@ function frameCard<N extends Framed>(node: N, top: number, sizes: Sizes, build: 
   const shift = <P extends Point>(p: P): P => ({ ...p, ...move(p, at) });
   const shiftText = (t: TextLine, struck: boolean): TextLine => {
     const moved = shift(t);
-    return struck ? { ...moved, strike: strikeThrough(moved, sizes) } : moved;
+    const { underline } = t;
+    return {
+      ...moved,
+      ...(underline ? { underline: { ...underline, x1: underline.x1 + at.x, x2: underline.x2 + at.x, y: underline.y + at.y } } : {}),
+      ...(struck ? { strike: strikeThrough(moved, sizes) } : {}),
+    };
   };
 
   return {
@@ -192,9 +200,18 @@ function badgeX(status: Status, width: number, place: BadgePlace | undefined, si
 
 /** A line through the middle of the letters of `t`, as wide as the text is drawn. */
 export function strikeThrough(t: TextLine, sizes: Sizes): Strike {
+  return levelLine(t, t.y - t.size * sizes.strike.rise);
+}
+
+/** A line just under the baseline of `t`, as wide as the text is drawn. */
+export function underline(t: TextLine, sizes: Sizes): Strike {
+  return levelLine(t, t.y + t.size * sizes.underline.drop);
+}
+
+function levelLine(t: TextLine, y: number): Strike {
   const width = measure(t.text, t.face, t.size);
   const x1 = t.anchor === "middle" ? t.x - width / 2 : t.x;
-  return { x1, x2: x1 + width, y: t.y - t.size * sizes.strike.rise };
+  return { x1, x2: x1 + width, y };
 }
 
 function badgeWord(status: Status): string {
