@@ -74,6 +74,19 @@ describe("fonts embedded in SVGs", () => {
     expect(fontFaceRules(doc).map((rule) => rule.face)).toEqual(used);
   });
 
+  it("embeds the regular face for a note's label and a shape's description", async () => {
+    for (const extra of [
+      { nodes: [...rakeLeaves.nodes, { id: "tip", label: "Leave some for the hedgehogs", shape: "note", about: "rake" }] },
+      { nodes: rakeLeaves.nodes.map((node, i) => (i === 0 ? { ...node, description: "Before the rain" } : node)) },
+    ]) {
+      const doc = parseSvg((await render({ ...rakeLeaves, ...extra })).svg);
+
+      const used = ["Structa Inter 400 normal", "Structa Inter 600 normal"];
+      expect([...textFaces(doc)].sort()).toEqual(used);
+      expect(fontFaceRules(doc).map((rule) => rule.face)).toEqual(used);
+    }
+  });
+
   it("embeds no font, and writes no <style>, when no text is drawn", async () => {
     const { svg } = await render({ type: "flow", nodes: [] });
 

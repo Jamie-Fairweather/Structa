@@ -28,6 +28,8 @@ export interface ThemeColors {
   readonly gridDot: string;
   readonly gridDotOpacity: number;
   readonly cardFill: string;
+  /** Notes: an aside, filled apart from the cards. */
+  readonly noteFill: string;
   readonly cardBorder: string;
   readonly cardShadow: string;
   readonly cardShadowOpacity: number;
@@ -37,6 +39,8 @@ export interface ThemeColors {
   readonly mutedText: string;
   /** Lines with no status, and unchanged lines. */
   readonly line: string;
+  /** A note's dotted line to the shape it's about. */
+  readonly connector: string;
   /** How strongly removed cards, rows and lines are drawn. */
   readonly fadedOpacity: number;
   /** How strongly a row with a status is tinted with its badge's fill: less than the badge itself. */
@@ -50,6 +54,7 @@ const COLORS: { readonly [name in ThemeName]: ThemeColors } = {
     gridDot: "#8c959f",
     gridDotOpacity: 0.5,
     cardFill: "#ffffff",
+    noteFill: "#f6f8fa",
     cardBorder: "#d1d9e0",
     cardShadow: "#1f2328",
     cardShadowOpacity: 0.1,
@@ -57,6 +62,7 @@ const COLORS: { readonly [name in ThemeName]: ThemeColors } = {
     text: "#1f2328",
     mutedText: "#59636e",
     line: "#8c959f",
+    connector: "#8c959f",
     fadedOpacity: 0.55,
     rowTintOpacity: 0.45,
     status: {
@@ -71,6 +77,7 @@ const COLORS: { readonly [name in ThemeName]: ThemeColors } = {
     gridDot: "#6e7681",
     gridDotOpacity: 0.4,
     cardFill: "#161b22",
+    noteFill: "#0d1117",
     cardBorder: "#30363d",
     cardShadow: "#010409",
     cardShadowOpacity: 0.5,
@@ -78,6 +85,7 @@ const COLORS: { readonly [name in ThemeName]: ThemeColors } = {
     text: "#e6edf3",
     mutedText: "#8b949e",
     line: "#6e7681",
+    connector: "#6e7681",
     fadedOpacity: 0.5,
     rowTintOpacity: 0.12,
     status: {
@@ -105,6 +113,8 @@ export const SIZES = {
   /** A line through struck-out text, `rise` font sizes above the baseline. */
   strike: { width: 1.25, rise: 0.3 },
   line: { width: 1.5, emphasisWidth: 3, cornerRadius: 8, arrowLength: 9, arrowWidth: 9 },
+  /** A note's connector: thinner than a line, in `dash` px dots `gap` px apart. */
+  connector: { width: 1, dash: 2, gap: 3 },
   /** A line's label: text in a pill bordered in the line's colour, wrapped to `maxWidth`. */
   lineLabel: { fontSize: 12, lineHeight: 16, paddingX: 8, paddingY: 2, maxWidth: 180, borderWidth: 1 },
   /** Class cards: one standard width, the name and description centred at the top, then each section of rows under a divider. */
@@ -125,15 +135,25 @@ export const SIZES = {
    * tint, with its badge `badgeGap` after its text.
    */
   row: { fontSize: 12, lineHeight: 18, paddingY: 4, tintInset: 6, tintGap: 2, tintRadius: 4, badgeGap: 8 },
-  step: {
-    fontSize: 14,
-    lineHeight: 20,
-    paddingX: 16,
-    paddingY: 12,
-    minWidth: 120,
-    maxWidth: 240,
-    minHeight: 44,
-  },
+  /** The label of every flowchart shape but a note. */
+  shapeText: { fontSize: 14, lineHeight: 20 },
+  /** A shape's or note's description: muted text under its label, `gap` below it. */
+  shapeDescription: { fontSize: 12, lineHeight: 16, gap: 2 },
+  /*
+   * Each flowchart shape below wraps its text to fit `maxWidth`, with the
+   * padding round it, and sizes to the text between `minWidth` and `maxWidth`.
+   */
+  step: { paddingX: 16, paddingY: 12, minWidth: 120, maxWidth: 240, minHeight: 44 },
+  /** Start and end: a pill. Its ends are rounded up to `maxRadius`, so many lines of text don't need huge ends. */
+  terminal: { paddingX: 20, paddingY: 12, minWidth: 100, maxWidth: 240, minHeight: 44, maxRadius: 32 },
+  /** A diamond `aspect` times as wide as tall round its padded text, which wraps at half `maxWidth`. */
+  decision: { paddingX: 8, paddingY: 4, minWidth: 120, maxWidth: 280, minHeight: 64, aspect: 2 },
+  /** A box leaning right: its top edge sits `slant` px right of its bottom edge. */
+  io: { paddingX: 16, paddingY: 12, minWidth: 120, maxWidth: 260, minHeight: 44, slant: 14 },
+  /** A box with an upright bar `barInset` px inside each side; the text sits between the bars. */
+  subprocess: { paddingX: 14, paddingY: 12, minWidth: 140, maxWidth: 260, minHeight: 44, barInset: 10, radius: 4 },
+  /** An aside: its label smaller and lighter than a shape's, its bottom-right corner folded over by `fold` px. */
+  note: { fontSize: 13, lineHeight: 18, paddingX: 12, paddingY: 10, minWidth: 100, maxWidth: 220, minHeight: 38, fold: 10 },
 } as const;
 
 export type Sizes = typeof SIZES;

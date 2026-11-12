@@ -6,12 +6,11 @@ import {
   allElements,
   badgeBox,
   byClassIn,
-  cardBox,
   cardById,
   cards,
-  depthInPill,
-  distanceToOutline,
+  distanceToDrawn,
   lines,
+  outlineBox,
   overlaps,
   parsePath,
   rectBox,
@@ -101,8 +100,8 @@ describe("class lines", () => {
     expect(paths[0]!.hasAttribute("stroke-dasharray")).toBe(false);
     // The line runs all the way from one card's outline to the other's.
     const points = parsePath(paths[0]!.getAttribute("d")!).flatMap((c) => c.points);
-    expect(distanceToOutline(points[0]!, cardBox(cardById(doc, "bench")))).toBeLessThanOrEqual(1);
-    expect(distanceToOutline(points.at(-1)!, cardBox(cardById(doc, "tray")))).toBeLessThanOrEqual(1);
+    expect(distanceToDrawn(points[0]!, cardById(doc, "bench"))).toBeLessThanOrEqual(1);
+    expect(distanceToDrawn(points.at(-1)!, cardById(doc, "tray"))).toBeLessThanOrEqual(1);
   });
 
   it("names both classes in the line's tooltip, with its label", async () => {
@@ -150,7 +149,7 @@ describe("class layout", () => {
     async (order) => {
       const doc = await svgDoc(greenhouse(order));
 
-      const [a, b, c] = order.map((id) => cardBox(cardById(doc, id)));
+      const [a, b, c] = order.map((id) => outlineBox(cardById(doc, id)));
       expect(b!.x).toBeGreaterThan(a!.x);
       expect(c!.x).toBeGreaterThan(b!.x);
     },
@@ -163,7 +162,7 @@ describe("class layout", () => {
     const doc = await svgDoc({ ...example, direction });
 
     const extents = cards(doc).map((card) => {
-      const parts = [cardBox(card), badgeBox(card)].filter((box) => box !== undefined);
+      const parts = [outlineBox(card), badgeBox(card)].filter((box) => box !== undefined);
       const x = Math.min(...parts.map((b) => b.x));
       const y = Math.min(...parts.map((b) => b.y));
       const width = Math.max(...parts.map((b) => b.x + b.width)) - x;
@@ -174,16 +173,10 @@ describe("class layout", () => {
       for (const b of extents) if (a !== b) expect(overlaps(a.box, b.box), `${a.id} and ${b.id}`).toBe(false);
     }
     // A plain line has no arrowhead: both its ends meet what's drawn of a card, its outline or the badge on it.
-    const onCard = (p: { x: number; y: number }, id: string) => {
-      const card = cardById(doc, id);
-      const badge = badgeBox(card);
-      const onOutline = distanceToOutline(p, cardBox(card));
-      return badge ? Math.min(onOutline, Math.abs(depthInPill(p, badge))) : onOutline;
-    };
     lines(doc).forEach((line, i) => {
       const points = parsePath(line.getElementsByTagName("path")[0]!.getAttribute("d")!).flatMap((c) => c.points);
-      expect(onCard(points[0]!, example.edges[i]!.from), `edges[${i}] start`).toBeLessThanOrEqual(1);
-      expect(onCard(points.at(-1)!, example.edges[i]!.to), `edges[${i}] end`).toBeLessThanOrEqual(1);
+      expect(distanceToDrawn(points[0]!, cardById(doc, example.edges[i]!.from)), `edges[${i}] start`).toBeLessThanOrEqual(1);
+      expect(distanceToDrawn(points.at(-1)!, cardById(doc, example.edges[i]!.to)), `edges[${i}] end`).toBeLessThanOrEqual(1);
     });
   });
 
@@ -191,9 +184,9 @@ describe("class layout", () => {
     const down = await svgDoc(greenhouse(["bench"]));
     const right = await svgDoc(greenhouse(["bench"], "right"));
 
-    const [house, bench] = ["house", "bench"].map((id) => cardBox(cardById(down, id)));
+    const [house, bench] = ["house", "bench"].map((id) => outlineBox(cardById(down, id)));
     expect(bench!.y).toBeGreaterThanOrEqual(house!.y + house!.height);
-    const [houseRight, benchRight] = ["house", "bench"].map((id) => cardBox(cardById(right, id)));
+    const [houseRight, benchRight] = ["house", "bench"].map((id) => outlineBox(cardById(right, id)));
     expect(benchRight!.x).toBeGreaterThanOrEqual(houseRight!.x + houseRight!.width);
   });
 });
@@ -237,7 +230,7 @@ describe("class cards", () => {
     const card = cardById(doc, "packet");
     expect(textLines(card).length).toBeGreaterThan(1);
     expect(textLines(card).join("")).toBe(label);
-    expect(cardBox(card).width).toBe(360);
+    expect(outlineBox(card).width).toBe(360);
   });
 });
 
@@ -254,7 +247,7 @@ describe("the more row", () => {
     const [t] = texts(more!);
     expect(t!.getAttribute("fill")).toBe("#59636e");
     expect(numberAttr(t!, "y")).toBeGreaterThan(numberAttr(texts(rows(card).at(-1)!)[0]!, "y"));
-    expect(numberAttr(t!, "y")).toBeLessThan(cardBox(card).y + cardBox(card).height);
+    expect(numberAttr(t!, "y")).toBeLessThan(outlineBox(card).y + outlineBox(card).height);
     // It lines up with the rows' text, after the first row's "+ ", and isn't one of the class's rows.
     const firstRow = texts(rows(card)[0]!)[0]!;
     expect(numberAttr(t!, "x") - numberAttr(firstRow, "x")).toBeCloseTo(2 * MONO_ADVANCE * numberAttr(t!, "font-size"), 5);
@@ -380,7 +373,7 @@ describe("class card rows", () => {
     const doc = await svgDoc(packet(MEMBERS));
 
     const card = cardById(doc, "packet");
-    const box = cardBox(card);
+    const box = outlineBox(card);
     expect(box.width).toBe(360);
     const dividers = byClassIn(card, "divider");
     expect(dividers).toHaveLength(2);
@@ -451,7 +444,7 @@ describe("class card rows", () => {
     });
     expect(numberAttr(texts(short!)[0]!, "y")).toBeGreaterThan(numberAttr(wrapped.at(-1)!, "y"));
     // Every line fits inside the card.
-    const box = cardBox(cardById(doc, "packet"));
+    const box = outlineBox(cardById(doc, "packet"));
     for (const t of wrapped) {
       const right = numberAttr(t, "x") + MONO_ADVANCE * size * t.textContent!.length;
       expect(right).toBeLessThanOrEqual(box.x + box.width);
@@ -484,7 +477,7 @@ describe("row status", () => {
     const [word] = texts(byClassIn(row, "badge")[0]!);
     expect(word!.textContent).toBe("NEW");
     // The tint spans the card inside its border; the badge sits inside it, at the right.
-    const box = cardBox(card);
+    const box = outlineBox(card);
     expect(band.x).toBeGreaterThan(box.x);
     expect(band.x + band.width).toBeLessThan(box.x + box.width);
     expect(band.width).toBeGreaterThan(box.width * 0.9);

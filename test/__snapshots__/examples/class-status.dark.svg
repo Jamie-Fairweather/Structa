@@ -14,7 +14,7 @@
 </g>
 <g class="card" data-id="member" data-kind="class" data-status="changed">
 <title>Member</title>
-<rect x="92" y="128" width="360" height="260" rx="10" fill="#161b22" stroke="#d29922" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
+<rect class="outline" x="92" y="128" width="360" height="260" rx="10" fill="#161b22" stroke="#d29922" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
 <line class="divider" x1="92.75" y1="172" x2="451.25" y2="172" stroke="#30363d" stroke-width="1"/>
 <line class="divider" x1="92.75" y1="262" x2="451.25" y2="262" stroke="#30363d" stroke-width="1"/>
 <text x="272" y="155.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">Member</text>
@@ -107,7 +107,7 @@
 </g>
 <g class="card" data-id="loan" data-kind="class" data-status="new">
 <title>Loan: One packet lent to one member until a due date.</title>
-<rect x="440" y="544" width="360" height="190" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
+<rect class="outline" x="440" y="544" width="360" height="190" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
 <line class="divider" x1="440.75" y1="606" x2="799.25" y2="606" stroke="#30363d" stroke-width="1"/>
 <line class="divider" x1="440.75" y1="670" x2="799.25" y2="670" stroke="#30363d" stroke-width="1"/>
 <text x="620" y="571.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">Loan</text>
@@ -172,7 +172,7 @@
 </g>
 <g class="card" data-id="packet" data-kind="class" data-status="unchanged">
 <title>SeedPacket</title>
-<rect x="440" y="806" width="360" height="134" rx="10" fill="#161b22" stroke="#6e7681" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
+<rect class="outline" x="440" y="806" width="360" height="134" rx="10" fill="#161b22" stroke="#6e7681" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
 <line class="divider" x1="440.75" y1="850" x2="799.25" y2="850" stroke="#30363d" stroke-width="1"/>
 <text x="620" y="833.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">SeedPacket</text>
 <g class="more">
@@ -201,7 +201,7 @@
 <g class="card" data-id="paper-card" data-kind="class" data-status="removed">
 <title>PaperCard: The card members carried, stamped at every loan.</title>
 <g class="faded" opacity="0.5">
-<rect x="32" y="544" width="360" height="138" rx="10" fill="#161b22" stroke="#f85149" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
+<rect class="outline" x="32" y="544" width="360" height="138" rx="10" fill="#161b22" stroke="#f85149" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
 <line class="divider" x1="32.75" y1="606" x2="391.25" y2="606" stroke="#30363d" stroke-width="1"/>
 <line class="divider" x1="32.75" y1="644" x2="391.25" y2="644" stroke="#30363d" stroke-width="1"/>
 <text x="212" y="571.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">PaperCard</text>
@@ -248,7 +248,7 @@
 </g>
 <g class="card" data-id="reminders" data-kind="class" data-status="new">
 <title>ReminderService</title>
-<rect x="500" y="268" width="360" height="120" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
+<rect class="outline" x="500" y="268" width="360" height="120" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
 <line class="divider" x1="500.75" y1="312" x2="859.25" y2="312" stroke="#30363d" stroke-width="1"/>
 <line class="divider" x1="500.75" y1="324" x2="859.25" y2="324" stroke="#30363d" stroke-width="1"/>
 <text x="680" y="295.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">ReminderService</text>

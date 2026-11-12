@@ -7,7 +7,7 @@
 <rect width="424" height="810" fill="url(#structa-grid-dark)"/>
 <g class="card" data-id="member" data-kind="class">
 <title>Member</title>
-<rect x="32" y="32" width="360" height="198" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
+<rect class="outline" x="32" y="32" width="360" height="198" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
 <line class="divider" x1="32.5" y1="76" x2="391.5" y2="76" stroke="#30363d" stroke-width="1"/>
 <line class="divider" x1="32.5" y1="140" x2="391.5" y2="140" stroke="#30363d" stroke-width="1"/>
 <text x="212" y="59.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">Member</text>
@@ -45,7 +45,7 @@
 </g>
 <g class="card" data-id="loan" data-kind="class">
 <title>Loan: One packet lent to one member for a growing season.</title>
-<rect x="32" y="378" width="360" height="164" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
+<rect class="outline" x="32" y="378" width="360" height="164" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
 <line class="divider" x1="32.5" y1="440" x2="391.5" y2="440" stroke="#30363d" stroke-width="1"/>
 <line class="divider" x1="32.5" y1="504" x2="391.5" y2="504" stroke="#30363d" stroke-width="1"/>
 <text x="212" y="405.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">Loan</text>
@@ -74,7 +74,7 @@
 </g>
 <g class="card" data-id="packet" data-kind="class">
 <title>SeedPacket</title>
-<rect x="32" y="606" width="360" height="172" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
+<rect class="outline" x="32" y="606" width="360" height="172" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
 <line class="divider" x1="32.5" y1="650" x2="391.5" y2="650" stroke="#30363d" stroke-width="1"/>
 <line class="divider" x1="32.5" y1="740" x2="391.5" y2="740" stroke="#30363d" stroke-width="1"/>
 <text x="212" y="633.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">SeedPacket</text>

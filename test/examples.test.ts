@@ -50,6 +50,40 @@ describe("examples", () => {
     ).toBe(true);
   });
 
+  type Flow = {
+    type: string;
+    nodes: { id: string; shape: string; about?: string; description?: string }[];
+    edges?: { from: string; to: string; label?: string }[];
+  };
+  const flows = () => examples.map(({ json }) => JSON.parse(json) as Flow).filter((d) => d.type === "flow");
+
+  it("includes a flowchart with a decision whose lines are labelled, and a loop back to an earlier step", () => {
+    const fits = (d: Flow) => {
+      const order = new Map(d.nodes.map((node, i) => [node.id, i]));
+      const decisions = d.nodes.filter((node) => node.shape === "decision").map((node) => node.id);
+      const out = (d.edges ?? []).filter((edge) => decisions.includes(edge.from));
+      const loops = (d.edges ?? []).filter((edge) => order.get(edge.to)! < order.get(edge.from)!);
+      return out.length >= 2 && out.every((edge) => edge.label !== undefined) && loops.length > 0;
+    };
+
+    expect(flows().some(fits)).toBe(true);
+  });
+
+  it("includes a flowchart with a note about a shape, a note about nothing, and descriptions", () => {
+    const fits = (d: Flow) =>
+      d.nodes.some((node) => node.shape === "note" && node.about !== undefined) &&
+      d.nodes.some((node) => node.shape === "note" && node.about === undefined) &&
+      d.nodes.some((node) => node.description !== undefined);
+
+    expect(flows().some(fits)).toBe(true);
+  });
+
+  it("uses every flowchart shape somewhere", () => {
+    const used = new Set(flows().flatMap((d) => d.nodes.map((node) => node.shape)));
+
+    expect([...used].sort()).toEqual(["decision", "end", "io", "note", "start", "step", "subprocess"]);
+  });
+
   // Every example in both themes. The theme option wins over any theme in the example's JSON.
   describe.each(examples)("$name", ({ name, json }) => {
     describe.each(["light", "dark"] as const)("in %s", (theme) => {

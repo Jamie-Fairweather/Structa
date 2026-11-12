@@ -16,6 +16,11 @@ export interface LayoutCard {
   readonly height: number;
   readonly outline: { readonly y: number };
   readonly path: string;
+  /**
+   * A note: an aside, not a step in the flow. ELK places a note joined to one
+   * card by a line beside that card, and the line straight between them.
+   */
+  readonly note?: boolean;
 }
 
 /** A line between two cards, given as indexes into the card list, with its label's fixed size. */
@@ -82,7 +87,13 @@ export async function layout<C extends LayoutCard, L extends LayoutLine>(
 ): Promise<Scene<C, L>> {
   const elkGraph: ElkNode = {
     id: "root",
-    children: graph.cards.map((card, i) => ({ id: `n${i}`, width: card.width, height: card.height })),
+    children: graph.cards.map((card, i) => ({
+      id: `n${i}`,
+      width: card.width,
+      height: card.height,
+      // Which nodes are notes is part of the graph, not of the profile, so it goes on each note.
+      ...(card.note ? { layoutOptions: { "elk.commentBox": "true" } } : {}),
+    })),
     edges: graph.lines.map((line, i) => ({
       id: `e${i}`,
       sources: [`n${line.source}`],

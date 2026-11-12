@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Structa diagram",
-  "description": "One diagram for Structa to draw. Text is plain text in Latin letters, digits and common symbols, with no control characters; runs of spaces collapse to one, and text can't be only spaces. Ids must be unique across nodes and edges, and a row's id within its card; \"from\" and \"to\" must name a node.",
+  "description": "One diagram for Structa to draw. Text is plain text in Latin letters, digits and common symbols, with no control characters; runs of spaces collapse to one, and text can't be only spaces. Ids must be unique across nodes and edges, and a row's id within its card; \"from\", \"to\" and \"about\" must name a node that isn't a note.",
   "type": "object",
   "properties": {
     "version": {
@@ -293,6 +293,12 @@
                   "type": "string",
                   "pattern": "^[\\u0020-\\u007E\\u00A0-\\u00AC\\u00AE-\\u0148\\u014A-\\u017F\\u2010-\\u2015\\u2018-\\u2022\\u2026\\u2030\\u2032-\\u2033\\u2039-\\u203A\\u20AC\\u2122\\u2190-\\u2195\\u21D0\\u21D2\\u21D4\\u2212\\u221E\\u2248\\u2260\\u2264-\\u2265]*$"
                 },
+                "description": {
+                  "description": "a sentence or two drawn smaller under the label, and shown in the tooltip",
+                  "$ref": "#/$defs/description",
+                  "type": "string",
+                  "pattern": "^[\\u0020-\\u007E\\u00A0-\\u00AC\\u00AE-\\u0148\\u014A-\\u017F\\u2010-\\u2015\\u2018-\\u2022\\u2026\\u2030\\u2032-\\u2033\\u2039-\\u203A\\u20AC\\u2122\\u2190-\\u2195\\u21D0\\u21D2\\u21D4\\u2212\\u221E\\u2248\\u2260\\u2264-\\u2265]*$"
+                },
                 "status": {
                   "description": "what the change does to this card; leave it out for no status",
                   "enum": [
@@ -305,8 +311,18 @@
                 "shape": {
                   "description": "the shape drawn",
                   "enum": [
-                    "step"
+                    "start",
+                    "end",
+                    "step",
+                    "decision",
+                    "io",
+                    "subprocess",
+                    "note"
                   ]
+                },
+                "about": {
+                  "description": "notes only: the id of the shape the note is about, joined to it by a dotted line; without it the note floats near the chart",
+                  "$ref": "#/$defs/id"
                 }
               },
               "required": [
@@ -314,6 +330,15 @@
                 "label",
                 "shape"
               ],
+              "dependentSchemas": {
+                "about": {
+                  "properties": {
+                    "shape": {
+                      "const": "note"
+                    }
+                  }
+                }
+              },
               "additionalProperties": false
             }
           },
@@ -327,11 +352,11 @@
                   "$ref": "#/$defs/id"
                 },
                 "from": {
-                  "description": "the id of the node the line starts at",
+                  "description": "the id of the node the line starts at, which can't be a note",
                   "$ref": "#/$defs/id"
                 },
                 "to": {
-                  "description": "the id of the node the line ends at",
+                  "description": "the id of the node the line ends at, which can't be a note",
                   "$ref": "#/$defs/id"
                 },
                 "label": {

@@ -1,7 +1,7 @@
 import type { Document, Element } from "@xmldom/xmldom";
 import { describe, expect, it } from "vitest";
 import { render } from "../src/index";
-import { allElements, badgeBox, byClassIn, cardBox, cards, lines, svgDoc } from "./helpers/svg";
+import { allElements, badgeBox, byClassIn, cards, lines, outlineBox, svgDoc } from "./helpers/svg";
 
 const opts = { embedFonts: false } as const;
 
@@ -42,7 +42,7 @@ describe("title and description", () => {
     expect(titleText!.textContent).toBe(title);
     expect(descriptionText!.textContent).toBe(description);
 
-    const boxes = cards(doc).map(cardBox);
+    const boxes = cards(doc).map(outlineBox);
     const left = Math.min(...boxes.map((b) => b.x));
     const top = Math.min(...boxes.map((b) => b.y));
     for (const t of [titleText!, descriptionText!]) {
@@ -85,8 +85,8 @@ describe("title and description", () => {
   });
 
   it("moves the cards down to make room, and keeps them where they were across", async () => {
-    const plain = cards(await svgDoc(jam())).map(cardBox);
-    const titled = cards(await svgDoc(jam({ title, description }))).map(cardBox);
+    const plain = cards(await svgDoc(jam())).map(outlineBox);
+    const titled = cards(await svgDoc(jam({ title, description }))).map(outlineBox);
 
     titled.forEach((box, i) => {
       expect(box.x).toBe(plain[i]!.x);
@@ -168,7 +168,7 @@ describe("legend", () => {
   it("sits at the bottom-left, below every card and line, with its items in a row", async () => {
     const doc = await svgDoc(jamWith(["new", "changed", "removed"], ["new", "removed"], { title: "Jam" }));
 
-    const boxes = cards(doc).map(cardBox);
+    const boxes = cards(doc).map(outlineBox);
     const lowest = Math.max(
       ...boxes.map((b) => b.y + b.height),
       ...lines(doc).flatMap((l) => allElements(l).flatMap((el) => (el.getAttribute("d") ?? "").match(/-?[\d.]+ (-?[\d.]+)/g) ?? []))

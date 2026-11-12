@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { readTtf } from "../scripts/lib/ttf";
 import { render, StructaError } from "../src/index";
 import { colourDifference, decodePng, inkEdges, pixel, pngSize, svgSize, type Region } from "./helpers/png";
-import { byClassIn, cardBox, cards, fontFaceRules, parseSvg } from "./helpers/svg";
+import { byClassIn, cards, fontFaceRules, outlineBox, parseSvg } from "./helpers/svg";
 
 const pottingOn = {
   type: "flow",
@@ -51,7 +51,7 @@ describe("PNG output", () => {
     const { svg, png } = await render(pottingOn, { formats: ["svg", "png"], embedFonts: false, theme, scale: 1 });
 
     const picture = decodePng(png);
-    const box = cardBox(cards(parseSvg(svg))[0]!);
+    const box = outlineBox(cards(parseSvg(svg))[0]!);
     expect(pixel(picture, 0, 0)).toEqual({ color: page, alpha: 255 });
     // Inside the first card, past its rounded corner and above its text. The
     // card's shadow filter works in linear RGB, and the round trip back can
@@ -103,8 +103,8 @@ describe("text in PNGs", () => {
   }
 
   /** Inside a card, clear of its border by `inset`, from `top` down. */
-  function inside(card: Element, inset: number, top = cardBox(card).y + inset): Region {
-    const box = cardBox(card);
+  function inside(card: Element, inset: number, top = outlineBox(card).y + inset): Region {
+    const box = outlineBox(card);
     return { x: box.x + inset, y: top, width: box.width - 2 * inset, height: box.y + box.height - inset - top };
   }
 

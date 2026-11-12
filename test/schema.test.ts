@@ -204,7 +204,8 @@ describe("the JSON Schema", () => {
   it.each<readonly [name: string, type: string, part: () => Node, set: (input: Node, value: string) => void]>([
     ["theme", "flow", () => root, (input, value) => (input.theme = value)],
     ["direction", "flow", () => root, (input, value) => (input.direction = value)],
-    ["shape", "flow", () => node, (input, value) => (input.nodes[0].shape = value)],
+    // On a node with no lines, since lines can't touch a note.
+    ["shape", "flow", () => node, (input, value) => input.nodes.push({ id: "mist", label: "Mist the cuttings", shape: value })],
     ["node status", "flow", () => node, (input, value) => (input.nodes[0].status = value)],
     ["edge status", "flow", () => edge, (input, value) => (input.edges[0].status = value)],
     ["class node status", "class", () => items("class", "nodes"), (input, value) => (input.nodes[0].status = value)],
@@ -255,6 +256,23 @@ describe("the JSON Schema", () => {
     const input = greenhouse();
     set(input, "true");
     expect(await outcome(input)).not.toBe("ok");
+  });
+
+  it("agrees with render() that only a note can be about another node", async () => {
+    const validate = new Ajv2020({ strict: true }).compile(root);
+    const withAbout = (shape: string) => {
+      const input = greenhouse();
+      input.nodes.push({ id: "aside", label: "Close them at dusk", shape, about: "vent" });
+      return input;
+    };
+
+    for (const shape of node.properties.shape.enum as string[]) {
+      const input = withAbout(shape);
+      const accepted = validate(input);
+      expect([shape, accepted]).toEqual([shape, shape === "note"]);
+      expect([shape, (await outcome(input)) === "ok"]).toEqual([shape, accepted]);
+    }
+    expect(node.properties.about.$ref).toBe("#/$defs/id");
   });
 
   it("documents the defaults render() uses", async () => {
@@ -328,6 +346,18 @@ describe("the JSON Schema", () => {
       expect.objectContaining({ path: "nodes[0].label", message: `is ${label.maxLength + 1} characters long; the limit is ${label.maxLength}` }),
     ]);
     expect(label.minLength).toBe(1);
+  });
+
+  it("gives a node's description the same length limit as the diagram's, and only the characters its font draws", async () => {
+    const description = resolve(root, node.properties.description);
+    expect(node.properties.description.$ref).toBe(root.properties.description.$ref);
+    expect(description.maxLength).toBe(300);
+    expect(new RegExp(description.pattern, "u").test("Shade from noon – 2 pm")).toBe(true);
+    expect(new RegExp(description.pattern, "u").test("Shade 🌞")).toBe(false);
+
+    const input = greenhouse();
+    input.nodes[0].description = "V".repeat(description.maxLength + 1);
+    expect(await outcome(input)).toEqual([expect.objectContaining({ path: "nodes[0].description" })]);
   });
 
   it("sets the length limits for titles, labels, descriptions, line labels and row text in one place, and rules out blank text", () => {

@@ -74,7 +74,8 @@ export function classBody(node: ClassNode, sizes: Sizes): CardBody {
   }
 
   const tooltip = node.description === undefined ? node.label : `${node.label}: ${node.description}`;
-  return { kind: "class", width, height: y, tooltip, texts, dividers, rows, ...(more ? { more } : {}) };
+  const outline = { kind: "rounded", radius: sizes.card.radius } as const;
+  return { kind: "class", width, height: y, outline, tooltip, texts, dividers, rows, ...(more ? { more } : {}) };
 }
 
 /** `text` wrapped to the card's width and centred on it, its lines from `top` down. */

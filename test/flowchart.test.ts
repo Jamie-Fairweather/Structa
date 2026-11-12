@@ -2,13 +2,13 @@ import { describe, expect, it } from "vitest";
 import { render } from "../src/index";
 import {
   allElements,
-  cardBox,
   cardById,
   cards,
   distanceOutside,
-  distanceToOutline,
+  distanceToDrawn,
   lineGeometry,
   lines,
+  outlineBox,
   parseSvg,
   textLines,
   titleOf,
@@ -44,7 +44,7 @@ describe("step-only flowcharts", () => {
   async function stepCard(label: string) {
     const doc = parseSvg((await render({ type: "flow", nodes: [{ id: "s", label, shape: "step" }] }, opts)).svg);
     const card = cardById(doc, "s");
-    return { card, box: cardBox(card), lines: textLines(card) };
+    return { card, box: outlineBox(card), lines: textLines(card) };
   }
 
   it("sizes a step to its text, within a minimum and maximum width", async () => {
@@ -146,10 +146,10 @@ describe("step-only flowcharts", () => {
 
     for (const [i, edge] of repot.edges.entries()) {
       const { route, arrowTip, arrowBase } = lineGeometry(lines(doc)[i]!);
-      const target = cardBox(cardById(doc, edge.to));
+      const target = outlineBox(cardById(doc, edge.to));
       expect(route[0]!.command).toBe("M");
-      expect(distanceToOutline(route[0]!.points[0]!, cardBox(cardById(doc, edge.from)))).toBeLessThanOrEqual(1);
-      expect(distanceToOutline(arrowTip, target)).toBeLessThanOrEqual(1);
+      expect(distanceToDrawn(route[0]!.points[0]!, cardById(doc, edge.from))).toBeLessThanOrEqual(1);
+      expect(distanceToDrawn(arrowTip, cardById(doc, edge.to))).toBeLessThanOrEqual(1);
 
       // Straight runs are horizontal or vertical and never turn, so there are no sharp corners.
       // Every turn is a curve whose control point is the bend: it comes in one way and leaves the other.
