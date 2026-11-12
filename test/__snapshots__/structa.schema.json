@@ -14,6 +14,14 @@
         "flow"
       ]
     },
+    "theme": {
+      "description": "the colours to draw in; the --theme flag and render()'s theme option win over it",
+      "enum": [
+        "light",
+        "dark"
+      ],
+      "default": "light"
+    },
     "direction": {
       "description": "which way the diagram flows: top to bottom or left to right",
       "enum": [

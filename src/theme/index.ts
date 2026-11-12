@@ -1,4 +1,11 @@
-export type ThemeName = "light" | "dark";
+/**
+ * Every theme, light (the default) first. The JSON, render() and the CLI all
+ * accept exactly these. ThemeName comes from this list, and COLORS needs an
+ * entry for every ThemeName, so a theme can't be left out of either.
+ */
+export const THEME_NAMES = ["light", "dark"] as const;
+
+export type ThemeName = (typeof THEME_NAMES)[number];
 
 /**
  * Every colour token. Both themes are typed with this one interface, so a

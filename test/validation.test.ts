@@ -125,6 +125,15 @@ describe("the top level", () => {
     ]);
   });
 
+  it.each([
+    ["blue", '"blue" is not a valid theme'],
+    ["Dark", '"Dark" is not a valid theme'],
+    [true, "true is not a valid theme"],
+    [null, "null is not a valid theme"],
+  ])("rejects the theme %j", async (theme, message) => {
+    expect(await problems({ ...pond(), theme })).toEqual([{ path: "theme", message, hint: 'use "light" or "dark"' }]);
+  });
+
   it("rejects a direction other than down or right", async () => {
     expect(await problems({ ...pond(), direction: "up" })).toEqual([
       { path: "direction", message: '"up" is not a valid direction', hint: 'use "down" or "right"' },
@@ -135,7 +144,7 @@ describe("the top level", () => {
 describe("unknown fields", () => {
   it("rejects an unknown top-level field", async () => {
     expect(await problems({ ...pond(), colour: "green" })).toEqual([
-      { path: "colour", message: 'unknown field "colour"', hint: "allowed fields: version, type, direction, nodes, edges" },
+      { path: "colour", message: 'unknown field "colour"', hint: "allowed fields: version, type, theme, direction, nodes, edges" },
     ]);
   });
 
@@ -156,7 +165,7 @@ describe("unknown fields", () => {
       {
         path: '["line colour"]',
         message: 'unknown field "line colour"',
-        hint: "allowed fields: version, type, direction, nodes, edges",
+        hint: "allowed fields: version, type, theme, direction, nodes, edges",
       },
     ]);
   });
@@ -603,7 +612,7 @@ describe("several problems", () => {
     });
 
     expect(error.problems).toEqual([
-      { path: "colour", message: 'unknown field "colour"', hint: "allowed fields: version, type, direction, nodes, edges" },
+      { path: "colour", message: 'unknown field "colour"', hint: "allowed fields: version, type, theme, direction, nodes, edges" },
       { path: "version", message: "3 is not supported", hint: "use 1, or leave version out" },
       { path: "nodes[1].size", message: 'unknown field "size"', hint: "allowed fields: id, label, shape" },
       { path: "nodes[1].id", message: 'the id "dig" is already used by nodes[0]', hint: "give every node and edge its own id" },

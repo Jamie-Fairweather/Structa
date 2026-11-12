@@ -89,6 +89,7 @@ describe("the JSON Schema", () => {
 
   it.each([
     ["type", (input: Node, value: string) => (input.type = value)],
+    ["theme", (input: Node, value: string) => (input.theme = value)],
     ["direction", (input: Node, value: string) => (input.direction = value)],
     ["shape", (input: Node, value: string) => (input.nodes[0].shape = value)],
   ])("offers exactly the %s values render() accepts", async (field, set) => {
@@ -107,6 +108,7 @@ describe("the JSON Schema", () => {
   });
 
   it("documents the defaults render() uses", async () => {
+    expect(root.properties.theme.default).toBe("light");
     expect(root.properties.direction.default).toBe("down");
     expect(root.properties.edges.default).toEqual([]);
 
@@ -114,6 +116,7 @@ describe("the JSON Schema", () => {
     const bare = await render({ ...withoutEdges, edges: [] }, opts);
     expect((await render(withoutEdges, opts)).svg).toBe(bare.svg);
     expect((await render({ ...greenhouse(), direction: "down" }, opts)).svg).toBe((await render(greenhouse(), opts)).svg);
+    expect((await render({ ...greenhouse(), theme: "light" }, opts)).svg).toBe((await render(greenhouse(), opts)).svg);
   });
 
   it("accepts version 1 only", async () => {
