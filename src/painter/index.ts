@@ -64,18 +64,21 @@ function card({ card, x: cardX, y: cardY }: PlacedCard<Card>, pad: number, theme
   return [
     open("g", [["class", "card"], ["data-id", card.id], ["data-kind", card.kind], ...statusAttr(card.status)]),
     el("title", [], escapeText(card.tooltip)),
-    el("rect", [
-      ["x", x + outline.x],
-      ["y", y + outline.y],
-      ["width", outline.width],
-      ["height", outline.height],
-      ["rx", sizes.card.radius],
-      ["fill", colors.cardFill],
-      ["stroke", card.status ? colors.status[card.status].stroke : colors.cardBorder],
-      ["stroke-width", card.status ? sizes.card.statusBorderWidth : sizes.card.borderWidth],
-      ["filter", `url(#${shadowId})`],
+    ...fadedIf(card.status === "removed", theme, [
+      el("rect", [
+        ["x", x + outline.x],
+        ["y", y + outline.y],
+        ["width", outline.width],
+        ["height", outline.height],
+        ["rx", sizes.card.radius],
+        ["fill", colors.cardFill],
+        ["stroke", card.status ? colors.status[card.status].stroke : colors.cardBorder],
+        ["stroke-width", card.status ? sizes.card.statusBorderWidth : sizes.card.borderWidth],
+        ["filter", `url(#${shadowId})`],
+      ]),
+      ...card.texts.flatMap((t) => text(t, x, y, colors[t.color], theme)),
     ]),
-    ...card.texts.map((t) => text(t, x, y, colors[t.color])),
+    // The badge stays at full strength, so a removed card's REMOVED reads clearly.
     ...(card.badge ? badge(card.badge, x, y, theme) : []),
     "</g>",
   ];
@@ -85,8 +88,14 @@ function statusAttr(status: Status | undefined): Attrs {
   return status === undefined ? [] : [["data-status", status]];
 }
 
-/** One line of text, offset by (x, y). */
-function text(t: Omit<TextLine, "color">, x: number, y: number, fill: string): string {
+/** Removed parts are drawn faded: wrapped in a see-through group. */
+function fadedIf(removed: boolean, theme: Theme, parts: string[]): string[] {
+  if (!removed) return parts;
+  return [open("g", [["class", "faded"], ["opacity", theme.colors.fadedOpacity]]), ...parts, "</g>"];
+}
+
+/** One line of text offset by (x, y), and the line through it when it's struck out. */
+function text(t: Omit<TextLine, "color">, x: number, y: number, fill: string, theme: Theme): string[] {
   const face = faceStyle(t.face);
   const attrs: Attrs = [
     ["x", x + t.x],
@@ -98,7 +107,21 @@ function text(t: Omit<TextLine, "color">, x: number, y: number, fill: string): s
     ["fill", fill],
     ...(t.anchor === "middle" ? ([["text-anchor", "middle"]] as const) : []),
   ];
-  return el("text", attrs, escapeText(t.text));
+  const drawn = el("text", attrs, escapeText(t.text));
+  if (!t.strike) return [drawn];
+  const { x1, x2, y: strikeY } = t.strike;
+  return [
+    drawn,
+    el("line", [
+      ["class", "strike"],
+      ["x1", x + x1],
+      ["y1", y + strikeY],
+      ["x2", x + x2],
+      ["y2", y + strikeY],
+      ["stroke", fill],
+      ["stroke-width", theme.sizes.strike.width],
+    ]),
+  ];
 }
 
 /**
@@ -119,7 +142,7 @@ function badge(b: Badge, x: number, y: number, theme: Theme): string[] {
       ["stroke", look.stroke],
       ["stroke-width", sizes.badge.borderWidth],
     ]),
-    text(b.word, x, y, look.badgeText),
+    ...text(b.word, x, y, look.badgeText, theme),
     "</g>",
   ];
 }

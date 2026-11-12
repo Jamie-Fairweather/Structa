@@ -12,6 +12,16 @@ export interface TextLine {
   readonly size: number;
   readonly anchor: "start" | "middle";
   readonly color: keyof Pick<ThemeColors, "text" | "mutedText">;
+  /** Part of a card's name, so struck through when the card is removed. */
+  readonly title?: boolean;
+  /** A level line through the text, in its colour. */
+  readonly strike?: Strike;
+}
+
+export interface Strike {
+  readonly x1: number;
+  readonly x2: number;
+  readonly y: number;
 }
 
 export interface Box {
@@ -61,7 +71,8 @@ const BADGE_FACE: FaceId = "inter-bold";
 /**
  * The shared card frame: every card builder goes through it. It tells the
  * builder how wide the card must be to hold what sits on its border, then
- * adds the badge.
+ * adds the badge and strikes through a removed card's title (the painter
+ * fades the rest).
  *
  * With `band`, the box handed to ELK grows upwards by half a badge: the band
  * the status badge (top-right) and the area tag (top-left) overhang. It is
@@ -89,11 +100,21 @@ export function frameCard(
     height: top + body.height,
     outline,
     tooltip: body.tooltip,
-    texts: body.texts.map((t) => ({ ...t, y: t.y + top })),
+    texts: body.texts.map((t) => {
+      const moved = { ...t, y: t.y + top };
+      return status === "removed" && t.title ? { ...moved, strike: strikeThrough(moved, sizes) } : moved;
+    }),
     ...(status === undefined
       ? {}
       : { badge: badge(status, outline.width - sizes.badge.inset - badgeWidth, top - sizes.badge.height / 2, sizes) }),
   };
+}
+
+/** A line through the middle of the letters of `t`, as wide as the text is drawn. */
+export function strikeThrough(t: TextLine, sizes: Sizes): Strike {
+  const width = measure(t.text, t.face, t.size);
+  const x1 = t.anchor === "middle" ? t.x - width / 2 : t.x;
+  return { x1, x2: x1 + width, y: t.y - t.size * sizes.strike.rise };
 }
 
 function badgeWord(status: Status): string {

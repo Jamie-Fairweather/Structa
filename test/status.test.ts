@@ -1,6 +1,7 @@
+import type { Element } from "@xmldom/xmldom";
 import { describe, expect, it } from "vitest";
 import { render } from "../src/index";
-import { badgeBox, byClassIn, cardBox, cardById, cards, parseSvg, textLines } from "./helpers/svg";
+import { badgeBox, byClassIn, cardBox, cardById, cards, overlaps, parseSvg, textLines } from "./helpers/svg";
 
 const opts = { embedFonts: false } as const;
 
@@ -91,6 +92,102 @@ describe("card status", () => {
 
       expect(cardById(doc, "trench").getElementsByTagName("rect")[0]!.getAttribute("stroke")).toBe(border);
     }
+  });
+
+  it("fades a removed card's outline and text, but not its badge", async () => {
+    const doc = await svgDoc(hedge(["removed", "changed"]));
+
+    const removed = cardById(doc, "mark");
+    const outline = removed.getElementsByTagName("rect")[0]!;
+    const faded = outline.parentNode as Element;
+    expect(faded.getAttribute("class")).toBe("faded");
+    expect(Number(faded.getAttribute("opacity"))).toBeGreaterThan(0.3);
+    expect(Number(faded.getAttribute("opacity"))).toBeLessThan(0.7);
+    expect(Array.from(faded.getElementsByTagName("text")).map((t) => t.textContent)).toEqual(["Mark out the line"]);
+    expect(byClassIn(faded, "badge")).toEqual([]);
+    expect(byClassIn(removed, "badge")).toHaveLength(1);
+
+    expect(byClassIn(cardById(doc, "trench"), "faded")).toEqual([]);
+  });
+
+  it("strikes through every line of a removed card's title", async () => {
+    const input = hedge(["removed", "removed"]);
+    input.nodes[1]!.label = "Dig a trench a spade deep and a spade wide along the whole line";
+    const doc = await svgDoc(input);
+
+    for (const id of ["mark", "trench"]) {
+      const card = cardById(doc, id);
+      const texts = Array.from(byClassIn(card, "faded")[0]!.getElementsByTagName("text"));
+      const strikes = byClassIn(card, "strike");
+      expect(strikes).toHaveLength(texts.length);
+      texts.forEach((t, i) => {
+        const strike = strikes[i]!;
+        const [x1, x2, y1, y2] = ["x1", "x2", "y1", "y2"].map((name) => Number(strike.getAttribute(name)));
+        const x = Number(t.getAttribute("x"));
+        const baseline = Number(t.getAttribute("y"));
+        const size = Number(t.getAttribute("font-size"));
+        // Level, through the middle of the letters, centred on the centred text, in the text's colour.
+        expect(y1).toBe(y2);
+        expect(y1).toBeLessThan(baseline - size * 0.15);
+        expect(y1).toBeGreaterThan(baseline - size * 0.5);
+        expect((x1! + x2!) / 2).toBeCloseTo(x, 1);
+        expect(x2! - x1!).toBeGreaterThan(size);
+        expect(strike.getAttribute("stroke")).toBe(t.getAttribute("fill"));
+      });
+    }
+    // A longer line of text gets a longer strike.
+    const length = (s: Element) => Number(s.getAttribute("x2")) - Number(s.getAttribute("x1"));
+    const [first] = byClassIn(cardById(doc, "trench"), "strike");
+    expect(length(first!)).toBeGreaterThan(length(byClassIn(cardById(doc, "mark"), "strike")[0]!));
+  });
+
+  it("strikes through nothing on cards that aren't removed", async () => {
+    const doc = await svgDoc(hedge(["new", "changed", "unchanged"]));
+
+    for (const card of cards(doc)) expect(byClassIn(card, "strike")).toEqual([]);
+  });
+
+  /** One step that fans out to five, with statuses on some of them. */
+  function fanOut(direction: "down" | "right") {
+    const crops = ["beans", "peas", "kale", "leeks", "chard"];
+    const statuses = ["unchanged", "new", undefined, "removed", "changed"];
+    return {
+      type: "flow",
+      direction,
+      nodes: [
+        { id: "sow", label: "Sow the spring crops", shape: "step", status: "changed" },
+        ...crops.map((crop, i) => ({
+          id: crop,
+          label: `Sow the ${crop}`,
+          shape: "step",
+          ...(statuses[i] ? { status: statuses[i] } : {}),
+        })),
+      ],
+      edges: crops.map((crop) => ({ from: "sow", to: crop })),
+    };
+  }
+
+  it.each(["down", "right"] as const)("keeps cards and their badges apart, direction %s", async (direction) => {
+    const doc = await svgDoc(fanOut(direction));
+
+    const extents = cards(doc).map((card) => {
+      const parts = [cardBox(card), badgeBox(card)].filter((box) => box !== undefined);
+      const x = Math.min(...parts.map((b) => b.x));
+      const y = Math.min(...parts.map((b) => b.y));
+      const right = Math.max(...parts.map((b) => b.x + b.width));
+      const bottom = Math.max(...parts.map((b) => b.y + b.height));
+      return { id: card.getAttribute("data-id"), box: { x, y, width: right - x, height: bottom - y } };
+    });
+    for (const a of extents) {
+      for (const b of extents) if (a !== b) expect(overlaps(a.box, b.box), `${a.id} and ${b.id}`).toBe(false);
+    }
+  });
+
+  it("lines up the outlines of cards side by side, with or without a badge", async () => {
+    const doc = await svgDoc(fanOut("down"));
+
+    const tops = new Set(["beans", "peas", "kale", "leeks", "chard"].map((id) => cardBox(cardById(doc, id)).y));
+    expect(tops.size).toBe(1);
   });
 
   it("draws every card exactly once with its own status", async () => {

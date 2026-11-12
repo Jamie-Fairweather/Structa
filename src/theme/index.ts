@@ -29,6 +29,8 @@ export interface ThemeColors {
   readonly mutedText: string;
   /** Lines with no status, and unchanged lines. */
   readonly line: string;
+  /** How strongly removed cards, rows and lines are drawn. */
+  readonly fadedOpacity: number;
   readonly status: { readonly [status in Status]: StatusColors };
 }
 
@@ -44,6 +46,7 @@ const COLORS: { readonly [name in ThemeName]: ThemeColors } = {
     text: "#1f2328",
     mutedText: "#59636e",
     line: "#8c959f",
+    fadedOpacity: 0.55,
     status: {
       new: { stroke: "#1f883d", badgeFill: "#b9f0c4", badgeFillOpacity: 1, badgeText: "#116329" },
       changed: { stroke: "#bf8700", badgeFill: "#fae17d", badgeFillOpacity: 1, badgeText: "#7d4e00" },
@@ -62,6 +65,7 @@ const COLORS: { readonly [name in ThemeName]: ThemeColors } = {
     text: "#e6edf3",
     mutedText: "#8b949e",
     line: "#6e7681",
+    fadedOpacity: 0.5,
     status: {
       new: { stroke: "#3fb950", badgeFill: "#3fb950", badgeFillOpacity: 0.25, badgeText: "#56d364" },
       changed: { stroke: "#d29922", badgeFill: "#d29922", badgeFillOpacity: 0.25, badgeText: "#e3b341" },
@@ -78,6 +82,8 @@ export const SIZES = {
   card: { radius: 10, borderWidth: 1, statusBorderWidth: 1.5, shadowOffsetY: 1, shadowBlur: 3 },
   /** The status badge: a pill centred on the card's top border, `inset` from its right-hand end. */
   badge: { fontSize: 10, height: 16, paddingX: 6, inset: 12, borderWidth: 1 },
+  /** A line through struck-out text, `rise` font sizes above the baseline. */
+  strike: { width: 1.25, rise: 0.3 },
   line: { width: 1.5, cornerRadius: 8, arrowLength: 9, arrowWidth: 9 },
   step: {
     fontSize: 14,

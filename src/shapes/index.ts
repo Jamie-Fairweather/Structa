@@ -4,7 +4,7 @@ import { baseline, measure, wrap } from "../text";
 import type { Sizes } from "../theme";
 import { frameCard, type Card, type CardBody } from "./frame";
 
-export type { Badge, Box, Card, TextLine } from "./frame";
+export type { Badge, Box, Card, Strike, TextLine } from "./frame";
 
 export interface Line {
   readonly id: string;
@@ -17,7 +17,9 @@ export interface Line {
 /** Sizes every card, each through the shared card frame. */
 export function buildCards(nodes: readonly FlowStep[], sizes: Sizes): Card[] {
   const band = nodes.some((node) => node.status !== undefined);
-  return nodes.map((node) => frameCard(node.id, { status: node.status }, band, sizes, (minWidth) => stepBody(node, sizes, minWidth)));
+  return nodes.map((node) =>
+    frameCard(node.id, { status: node.status }, band, sizes, (minWidth) => stepBody(node, sizes, minWidth)),
+  );
 }
 
 /** A step: a rounded box sized to its wrapped label between a minimum and maximum width. */
@@ -43,6 +45,7 @@ function stepBody(node: FlowStep, sizes: Sizes, frameWidth: number): CardBody {
       size: s.fontSize,
       anchor: "middle",
       color: "text",
+      title: true,
     })),
   };
 }
