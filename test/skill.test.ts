@@ -42,6 +42,15 @@ describe("node structa.mjs", () => {
     expect(readFileSync(join(skill.elsewhere, name), "utf8")).toBe(svg);
   });
 
+  it("embeds the fonts by default, and leaves them out with --no-embed-fonts, wherever the flag goes", async () => {
+    const { svg } = await render(flowJson, { embedFonts: false });
+
+    expect(skill.run([flowPath]).stdout).toContain("@font-face");
+    expect(skill.run([flowPath, "--no-embed-fonts"])).toEqual({ status: 0, stdout: svg, stderr: "" });
+    expect(skill.run(["--no-embed-fonts", flowPath, "-o", "plain.svg"])).toEqual({ status: 0, stdout: "", stderr: "" });
+    expect(readFileSync(join(skill.elsewhere, "plain.svg"), "utf8")).toBe(svg);
+  });
+
   it("reads the JSON from standard input when the input is -", async () => {
     const { svg } = await render(flowJson);
 
@@ -408,6 +417,7 @@ describe("exit code 2: bad usage", () => {
     const [first, usage, ...rest] = result.stderr.split("\n");
     expect(first).toBe(message);
     expect(usage).toMatch(/^usage: node structa\.mjs /);
+    expect(usage).toContain("[--no-embed-fonts]");
     expect(rest).toEqual([""]);
     for (const name of ["a.svg", "b.svg", "chart.png", "chart.txt", "chart", ".SVG"]) {
       expect(existsSync(join(skill.elsewhere, name))).toBe(false);
@@ -417,6 +427,6 @@ describe("exit code 2: bad usage", () => {
   it("lists every flag in the usage line", () => {
     const [, usage] = skill.run([]).stderr.split("\n");
 
-    expect(usage).toBe("usage: node structa.mjs <diagram.json | -> [-o <diagram.svg>] [--theme light|dark]");
+    expect(usage).toBe("usage: node structa.mjs <diagram.json | -> [-o <diagram.svg>] [--theme light|dark] [--no-embed-fonts]");
   });
 });
