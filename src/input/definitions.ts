@@ -13,9 +13,10 @@ export interface TextKind {
   readonly description: string;
 }
 
-export const LABEL: TextKind = { name: "label", maxLength: 100, description: "the name shown on a card" };
-export const DESCRIPTION: TextKind = { name: "description", maxLength: 300, description: "a sentence about a card" };
-export const LINE_LABEL: TextKind = { name: "lineLabel", maxLength: 60, description: "a short label on a line" };
+const LABEL: TextKind = { name: "label", maxLength: 100, description: "the name shown on a card" };
+// No field uses these two yet: descriptions and line labels arrive with their drawing.
+const DESCRIPTION: TextKind = { name: "description", maxLength: 300, description: "a sentence about a card" };
+const LINE_LABEL: TextKind = { name: "lineLabel", maxLength: 60, description: "a short label on a line" };
 export const TEXT_KINDS: readonly TextKind[] = [LABEL, DESCRIPTION, LINE_LABEL];
 
 /** Node, edge and area ids: letters, digits and `-_.:`. Brackets can't appear, so `edges[N]` never clashes. */
@@ -80,10 +81,11 @@ function optional(name: string, def: Def, description: string, defaultValue?: Fi
 }
 
 /** The diagram types implemented so far. */
-export const DIAGRAM_TYPES: readonly string[] = ["flow"];
+const DIAGRAM_TYPES: readonly string[] = ["flow"];
 
-export const LIMITS = { nodes: 500, edges: 1000 } as const;
+const LIMITS = { nodes: 500, edges: 1000 } as const;
 
+/** The top level of one diagram type. `direction` is its default: "right" for ER, "down" for the rest. */
 function diagram(node: Def, edge: Def, direction: "down" | "right"): ObjectDef {
   return {
     kind: "object",
