@@ -1,0 +1,39 @@
+name: Conventional commits
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  commitlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - run: bun install --frozen-lockfile
+
+      - name: Check commit messages in the pull request
+        if: github.event_name == 'pull_request'
+        run: bunx commitlint --from "${{ github.event.pull_request.base.sha }}" --to "${{ github.event.pull_request.head.sha }}" --verbose
+
+      # Squash merges use the PR title as the commit message, so it must follow the rules too.
+      - name: Check pull request title
+        if: github.event_name == 'pull_request'
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: printf '%s\n' "$TITLE" | bunx commitlint --verbose
+
+      - name: Check commits pushed to main
+        if: github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000'
+        run: bunx commitlint --from "${{ github.event.before }}" --to "${{ github.event.after }}" --verbose
