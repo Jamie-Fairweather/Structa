@@ -48,6 +48,11 @@ export interface Row {
   readonly tooltip: string;
   /** The band the row's tint fills when it has a status. */
   readonly box: Box;
+  /**
+   * A mark in a column before the first line, such as a class member's
+   * visibility. It's never struck through, so it stays readable on a removed row.
+   */
+  readonly symbol?: TextLine;
   readonly texts: readonly TextLine[];
   readonly badge?: Badge;
 }
@@ -146,6 +151,7 @@ function frameCard<N extends Framed>(node: N, top: number, sizes: Sizes, build: 
     rows: (body.rows ?? []).map((row) => ({
       ...row,
       box: move(row.box),
+      ...(row.symbol ? { symbol: move(row.symbol) } : {}),
       texts: row.texts.map((t) => moveText(t, row.status === "removed")),
       ...(row.badge ? { badge: { ...move(row.badge), word: move(row.badge.word) } } : {}),
     })),

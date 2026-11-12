@@ -86,15 +86,8 @@ function centred(text: string, face: FaceId, size: number, lineHeight: number, t
 /** The muted "… N more" line, placed like a one-line row from `top` down, in line with the rows' text. */
 function moreLine(count: number, top: number, textX: number, sizes: Sizes): TextLine {
   const r = sizes.row;
-  return {
-    text: `… ${count} more`,
-    x: textX,
-    y: top + r.paddingY + baseline(ROW_TEXT_FACE, r.fontSize, r.lineHeight),
-    face: ROW_TEXT_FACE,
-    size: r.fontSize,
-    anchor: "start",
-    color: "mutedText",
-  };
+  const y = top + r.paddingY + baseline(ROW_TEXT_FACE, r.fontSize, r.lineHeight);
+  return { ...rowText(`… ${count} more`, textX, y, sizes), color: "mutedText" };
 }
 
 /**
@@ -131,16 +124,14 @@ function classRow(
     tooltip: symbol === undefined ? member.text : `${symbol} ${member.text}`,
     // A tint never quite touches the next row's, so a run of rows with a status reads as separate rows.
     box: { x: r.tintInset, y: top + r.tintGap / 2, width: width - 2 * r.tintInset, height: height - r.tintGap },
-    // In a monospaced face, the symbol and its space fill the column the other lines start after.
-    texts: lines.map((line, i) => ({
-      text: i === 0 && symbol !== undefined ? `${symbol} ${line}` : line,
-      x: i === 0 && symbol !== undefined ? left : textX,
-      y: top + r.paddingY + i * r.lineHeight + offset,
-      face: ROW_TEXT_FACE,
-      size: r.fontSize,
-      anchor: "start",
-      color: "text",
-    })),
+    // The symbol sits in its own column, level with the first line, so a removed row's strike starts after it.
+    ...(symbol === undefined ? {} : { symbol: rowText(symbol, left, top + r.paddingY + offset, sizes) }),
+    texts: lines.map((line, i) => rowText(line, textX, top + r.paddingY + i * r.lineHeight + offset, sizes)),
   };
   return { row, height };
+}
+
+/** A line of row text with its baseline at `y`. */
+function rowText(text: string, x: number, y: number, sizes: Sizes): TextLine {
+  return { text, x, y, face: ROW_TEXT_FACE, size: sizes.row.fontSize, anchor: "start", color: "text" };
 }

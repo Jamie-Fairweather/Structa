@@ -250,10 +250,11 @@ function row(r: Row, x: number, y: number, pen: Pen): string[] {
         ]),
       ]
     : [];
+  const symbol = r.symbol ? [open("g", [["class", "symbol"]]), ...text(r.symbol, x, y, colors[r.symbol.color], pen), "</g>"] : [];
   return [
     open("g", [["class", "row"], ["data-id", r.id], ["data-kind", r.kind], ...statusAttr(r.status)]),
     el("title", [], escapeText(r.tooltip)),
-    ...fadedIf(r.status === "removed", pen.theme, [...tint, ...r.texts.flatMap((t) => text(t, x, y, colors[t.color], pen))]),
+    ...fadedIf(r.status === "removed", pen.theme, [...tint, ...symbol, ...r.texts.flatMap((t) => text(t, x, y, colors[t.color], pen))]),
     ...(r.badge ? badge(r.badge, x, y, pen) : []),
     "</g>",
   ];

@@ -49,10 +49,17 @@ function texts(el: Element): Element[] {
   return Array.from(el.getElementsByTagName("text"));
 }
 
-/** A row's own text, without the word in its badge. */
+/** A row's own text, without its visibility symbol or the word in its badge. */
 function memberTexts(row: Element): Element[] {
-  const inBadge = new Set(byClassIn(row, "badge").flatMap(texts));
-  return texts(row).filter((t) => !inBadge.has(t));
+  const other = new Set([...byClassIn(row, "badge"), ...byClassIn(row, "symbol")].flatMap(texts));
+  return texts(row).filter((t) => !other.has(t));
+}
+
+/** A row's visibility symbol, when it has one. */
+function symbolOf(row: Element): Element | undefined {
+  const [symbol, ...others] = byClassIn(row, "symbol").flatMap(texts);
+  expect(others).toEqual([]);
+  return symbol;
 }
 
 function numberAttr(el: Element, name: string): number {
@@ -292,12 +299,17 @@ describe("class card rows", () => {
   it("draws the properties, then the methods, each row with its visibility symbol", async () => {
     const doc = await svgDoc(packet(MEMBERS));
 
-    expect(rows(cardById(doc, "packet")).map((row) => [row.getAttribute("data-kind"), textLines(row)])).toEqual([
-      ["property", ["+ variety: string"]],
-      ["property", ["- sowBy: Date"]],
-      ["property", ["# count: int"]],
-      ["method", ["~ germinates(days: int): bool"]],
-      ["method", ["split(into: int): SeedPacket[]"]],
+    const drawn = rows(cardById(doc, "packet")).map((row) => [
+      row.getAttribute("data-kind"),
+      symbolOf(row)?.textContent,
+      memberTexts(row).map((t) => t.textContent),
+    ]);
+    expect(drawn).toEqual([
+      ["property", "+", ["variety: string"]],
+      ["property", "-", ["sowBy: Date"]],
+      ["property", "#", ["count: int"]],
+      ["method", "~", ["germinates(days: int): bool"]],
+      ["method", undefined, ["split(into: int): SeedPacket[]"]],
     ]);
   });
 
@@ -338,11 +350,18 @@ describe("class card rows", () => {
   it("lines up the text of every row after the visibility symbols", async () => {
     const doc = await svgDoc(packet(MEMBERS));
 
-    const [first, ...others] = rows(cardById(doc, "packet")).map((row) => texts(row)[0]!);
-    const size = numberAttr(first!, "font-size");
-    for (const t of others.slice(0, -1)) expect(numberAttr(t, "x")).toBe(numberAttr(first!, "x"));
-    // The row without a visibility starts its text where the others' text starts, after "+ ".
-    expect(numberAttr(others.at(-1)!, "x") - numberAttr(first!, "x")).toBeCloseTo(2 * MONO_ADVANCE * size, 5);
+    const all = rows(cardById(doc, "packet"));
+    const [symbol, ...symbols] = all.flatMap((row) => symbolOf(row) ?? []);
+    expect(symbols).toHaveLength(3);
+    for (const s of symbols) expect(numberAttr(s, "x")).toBe(numberAttr(symbol!, "x"));
+    // Every row's text starts in one column after the symbols' "+ ", the row without a visibility too, level with its symbol.
+    const size = numberAttr(symbol!, "font-size");
+    for (const row of all) {
+      const [t] = memberTexts(row);
+      expect(numberAttr(t!, "x") - numberAttr(symbol!, "x")).toBeCloseTo(2 * MONO_ADVANCE * size, 5);
+      const own = symbolOf(row);
+      if (own) expect(numberAttr(own, "y")).toBe(numberAttr(t!, "y"));
+    }
   });
 
   it("starts the text at the edge when no row has a visibility", async () => {
@@ -350,8 +369,11 @@ describe("class card rows", () => {
     const doc = await svgDoc(packet(plain));
     const withSymbols = await svgDoc(packet(MEMBERS));
 
-    const x = (d: typeof doc) => numberAttr(texts(rows(cardById(d, "packet"))[0]!)[0]!, "x");
-    expect(x(doc)).toBe(x(withSymbols));
+    // The text starts where the symbols would be.
+    const [plainRow] = rows(cardById(doc, "packet"));
+    expect(symbolOf(plainRow!)).toBeUndefined();
+    const symbol = symbolOf(rows(cardById(withSymbols, "packet"))[0]!)!;
+    expect(numberAttr(memberTexts(plainRow!)[0]!, "x")).toBe(numberAttr(symbol, "x"));
   });
 
   it("is 360px wide, with the name, then the properties, then the methods, split by dividers", async () => {
@@ -397,16 +419,18 @@ describe("class card rows", () => {
     const doc = await svgDoc(packet({ methods: [{ text, visibility: "public" }, { text: "water(): void", visibility: "public" }] }));
 
     const [long, short] = rows(cardById(doc, "packet"));
-    const wrapped = texts(long!);
+    const wrapped = memberTexts(long!);
+    const symbol = symbolOf(long!)!;
     expect(wrapped.length).toBeGreaterThan(1);
-    expect(wrapped.map((t) => t.textContent).join(" ")).toBe(`+ ${text}`);
+    expect(wrapped.map((t) => t.textContent).join(" ")).toBe(text);
     expect(titleOf(long!)).toBe(`+ ${text}`);
-    // Later lines start under the text, not under the symbol, and the next row comes after the last line.
-    const size = numberAttr(wrapped[0]!, "font-size");
-    for (const t of wrapped.slice(1)) {
-      expect(numberAttr(t, "x") - numberAttr(wrapped[0]!, "x")).toBeCloseTo(2 * MONO_ADVANCE * size, 5);
-      expect(numberAttr(t, "y")).toBeGreaterThan(numberAttr(wrapped[0]!, "y"));
-    }
+    // Every line starts under the text, not under the symbol, each below the one before; the next row comes after the last.
+    const size = numberAttr(symbol, "font-size");
+    expect(numberAttr(wrapped[0]!, "y")).toBe(numberAttr(symbol, "y"));
+    wrapped.forEach((t, i) => {
+      expect(numberAttr(t, "x") - numberAttr(symbol, "x")).toBeCloseTo(2 * MONO_ADVANCE * size, 5);
+      if (i > 0) expect(numberAttr(t, "y")).toBeGreaterThan(numberAttr(wrapped[i - 1]!, "y"));
+    });
     expect(numberAttr(texts(short!)[0]!, "y")).toBeGreaterThan(numberAttr(wrapped.at(-1)!, "y"));
     // Every line fits inside the card.
     const box = cardBox(cardById(doc, "packet"));
@@ -508,14 +532,21 @@ describe("row status", () => {
     expect(memberTexts(withBadge!).map((t) => t.textContent).join(" ")).toBe(text);
   });
 
-  it("fades a removed row and strikes through every line of its text, but not its badge", async () => {
+  it.each([
+    ["private", "-"],
+    ["package", "~"],
+    ["public", "+"],
+    ["protected", "#"],
+    [undefined, undefined],
+  ])("fades a removed row with visibility %s and strikes through every line of its text, but not its symbol or badge", async (visibility, mark) => {
     const text = "transplant(seedlings: Seedling[], bed: RaisedBed, spacing: Centimetres): Planting";
-    const doc = await svgDoc(packet({ status: "changed", methods: [{ text, status: "removed" }, { text: "water(): void" }] }));
+    const removedRow = { text, status: "removed", ...(visibility ? { visibility } : {}) };
+    const doc = await svgDoc(packet({ status: "changed", methods: [removedRow, { text: "water(): void", visibility: "public" }] }));
 
     const [removed, plain] = rows(cardById(doc, "packet"));
     const [faded] = byClassIn(removed!, "faded");
     expect(Number(faded!.getAttribute("opacity"))).toBeLessThan(0.7);
-    const drawn = texts(faded!);
+    const drawn = memberTexts(faded!);
     expect(drawn.length).toBeGreaterThan(1);
     const strikes = byClassIn(faded!, "strike");
     expect(strikes).toHaveLength(drawn.length);
@@ -529,6 +560,13 @@ describe("row status", () => {
       expect(numberAttr(strike, "x1")).toBeCloseTo(numberAttr(t, "x"), 5);
       expect(numberAttr(strike, "x2") - numberAttr(strike, "x1")).toBeCloseTo(MONO_ADVANCE * size * t.textContent!.length, 1);
     });
+    // The symbol is faded with the row but kept clear of the strike, which starts a space after it, where the text does.
+    const symbol = symbolOf(faded!);
+    expect(symbol?.textContent).toBe(mark);
+    const firstStrike = numberAttr(strikes[0]!, "x1");
+    const symbolX = numberAttr(symbol ?? symbolOf(plain!)!, "x");
+    expect(firstStrike - symbolX).toBeCloseTo(2 * MONO_ADVANCE * numberAttr(drawn[0]!, "font-size"), 5);
+    if (symbol) expect(numberAttr(symbol, "y")).toBe(numberAttr(drawn[0]!, "y"));
     expect(byClassIn(faded!, "badge")).toEqual([]);
     expect(byClassIn(removed!, "badge")).toHaveLength(1);
     expect(byClassIn(plain!, "faded")).toEqual([]);
