@@ -14,10 +14,13 @@ export function roundedRoute(points: readonly Point[], radius: number, endGap: n
   pts[pts.length - 1] = towards(last, beforeLast, gap);
   const route = withoutRepeats(pts);
 
+  // A middle segment shares its length between the corners at both ends; the
+  // first and last segments have a corner at one end only.
+  const room = (i: number) => distance(route[i]!, route[i + 1]!) / (i === 0 || i === route.length - 2 ? 1 : 2);
   let d = `M${xy(route[0]!)}`;
   for (let i = 1; i < route.length - 1; i++) {
     const [prev, corner, next] = [route[i - 1]!, route[i]!, route[i + 1]!];
-    const r = Math.min(radius, distance(prev, corner) / 2, distance(corner, next) / 2);
+    const r = Math.min(radius, room(i - 1), room(i));
     d += ` L${xy(towards(corner, prev, r))} Q${xy(corner)} ${xy(towards(corner, next, r))}`;
   }
   return `${d} L${xy(route[route.length - 1]!)}`;
