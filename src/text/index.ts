@@ -1,7 +1,7 @@
 import { FONT_METRICS } from "../../generated/font-metrics";
 import { FACES, type FaceId, type FaceStyle } from "./faces";
 
-export { CHARACTER_RANGES, FACES, type FaceId, type FaceStyle } from "./faces";
+export type { FaceId, FaceStyle } from "./faces";
 
 interface FaceTable {
   readonly unitsPerEm: number;

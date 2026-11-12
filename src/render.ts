@@ -25,7 +25,7 @@ export async function render<F extends Format = "svg">(
   input: string | object,
   options: RenderOptions<F> = {},
 ): Promise<RenderResult<F>> {
-  const formats = readFormats(options.formats);
+  const formats = readFormats(options?.formats);
   const parsed = parseDiagram(input);
   if (!parsed.ok) throw new StructaError("INVALID_INPUT", parsed.problems);
   const { diagram } = parsed;
