@@ -1,0 +1,52 @@
+{
+  "type": "class",
+  "title": "Allotment watering",
+  "description": "Sprinklers draw from a water source, water one zone each, and log every run.",
+  "nodes": [
+    {
+      "id": "source",
+      "label": "WaterSource",
+      "stereotype": "interface",
+      "methods": [
+        { "text": "litresLeft(): float", "visibility": "public", "abstract": true },
+        { "text": "draw(litres: float): Water", "visibility": "public", "abstract": true }
+      ]
+    },
+    {
+      "id": "sprinkler",
+      "label": "Sprinkler",
+      "stereotype": "abstract",
+      "description": "Any sprinkler on the plot, whatever its spray pattern.",
+      "properties": [
+        { "text": "flowRate: LitresPerMinute", "visibility": "protected" },
+        { "text": "zone: Zone", "visibility": "public" },
+        { "text": "fitted: int", "visibility": "private", "static": true }
+      ],
+      "methods": [
+        { "text": "run(minutes: int): WateringLog", "visibility": "public" },
+        { "text": "pattern(): SprayPattern", "visibility": "protected", "abstract": true },
+        { "text": "fromCatalogue(code: string): Sprinkler", "visibility": "public", "static": true }
+      ]
+    },
+    {
+      "id": "zone",
+      "label": "Zone",
+      "stereotype": "enum",
+      "values": [{ "text": "BEDS" }, { "text": "GREENHOUSE" }, { "text": "FRUIT_CAGE" }, { "text": "LAWN" }]
+    },
+    {
+      "id": "log",
+      "label": "WateringLog",
+      "stereotype": "record",
+      "properties": [
+        { "text": "startedAt: DateTime", "visibility": "public" },
+        { "text": "litres: float", "visibility": "public" }
+      ]
+    }
+  ],
+  "edges": [
+    { "from": "sprinkler", "to": "source", "kind": "association", "label": "draws from" },
+    { "from": "sprinkler", "to": "zone", "kind": "association", "label": "waters" },
+    { "from": "sprinkler", "to": "log", "kind": "association", "label": "writes" }
+  ]
+}

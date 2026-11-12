@@ -84,6 +84,25 @@ describe("examples", () => {
     expect([...used].sort()).toEqual(["decision", "end", "io", "note", "start", "step", "subprocess"]);
   });
 
+  it("includes a class diagram with an interface, an abstract class and an enum, and static and abstract rows", () => {
+    type Row = { static?: boolean; abstract?: boolean };
+    type ClassNode = { stereotype?: string; abstract?: boolean; properties?: Row[]; methods?: Row[]; values?: Row[] };
+    const used = examples.map(({ json }) => JSON.parse(json) as { type: string; nodes: ClassNode[] });
+    const members = (node: ClassNode) => [...(node.properties ?? []), ...(node.methods ?? [])];
+
+    expect(
+      used.some(
+        (d) =>
+          d.type === "class" &&
+          d.nodes.some((node) => node.stereotype === "interface") &&
+          d.nodes.some((node) => node.abstract === true || node.stereotype === "abstract") &&
+          d.nodes.some((node) => node.stereotype === "enum" && (node.values ?? []).length > 0) &&
+          d.nodes.some((node) => members(node).some((row) => row.static === true)) &&
+          d.nodes.some((node) => members(node).some((row) => row.abstract === true)),
+      ),
+    ).toBe(true);
+  });
+
   // Every example in both themes. The theme option wins over any theme in the example's JSON.
   describe.each(examples)("$name", ({ name, json }) => {
     describe.each(["light", "dark"] as const)("in %s", (theme) => {
