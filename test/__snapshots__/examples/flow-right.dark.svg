@@ -8,33 +8,33 @@
 <g class="card" data-id="book-in" data-kind="step">
 <title>Book in the broken lamp</title>
 <rect x="32" y="42" width="196" height="44" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
-<text x="130" y="69.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Book in the broken lamp</text>
+<text x="130" y="69.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Book in the broken lamp</text>
 </g>
 <g class="card" data-id="find" data-kind="step">
 <title>Find the fault</title>
 <rect x="276" y="42" width="121" height="44" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
-<text x="336.5" y="69.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Find the fault</text>
+<text x="336.5" y="69.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Find the fault</text>
 </g>
 <g class="card" data-id="order" data-kind="step">
 <title>Order a new switch</title>
 <rect x="445" y="34.67" width="163" height="44" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
-<text x="526.5" y="61.76" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Order a new switch</text>
+<text x="526.5" y="61.76" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Order a new switch</text>
 </g>
 <g class="card" data-id="fix" data-kind="step">
 <title>Fix it at the bench</title>
 <rect x="656" y="42" width="152" height="44" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
-<text x="732" y="69.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Fix it at the bench</text>
+<text x="732" y="69.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Fix it at the bench</text>
 </g>
 <g class="card" data-id="test" data-kind="step">
 <title>Test it with the owner watching</title>
 <rect x="856" y="32" width="179" height="64" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
-<text x="945.5" y="59.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Test it with the owner</text>
-<text x="945.5" y="79.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">watching</text>
+<text x="945.5" y="59.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Test it with the owner</text>
+<text x="945.5" y="79.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">watching</text>
 </g>
 <g class="card" data-id="hand-back" data-kind="step">
 <title>Hand it back</title>
 <rect x="1083" y="42" width="120" height="44" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
-<text x="1143" y="69.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Hand it back</text>
+<text x="1143" y="69.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Hand it back</text>
 </g>
 <g class="line" data-id="edges[0]" data-kind="flow" data-from="book-in" data-to="find">
 <title>Book in the broken lamp → Find the fault</title>

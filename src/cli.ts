@@ -10,10 +10,12 @@ interface Command {
   readonly output?: string;
   /** Wins over the JSON's theme when given. */
   readonly theme?: ThemeName;
+  /** False with --no-embed-fonts. */
+  readonly embedFonts: boolean;
 }
 
 const THEMES = THEME_NAMES.join(" or ");
-const USAGE = `usage: node structa.mjs <diagram.json | -> [-o <diagram.svg>] [--theme ${THEME_NAMES.join("|")}]`;
+const USAGE = `usage: node structa.mjs <diagram.json | -> [-o <diagram.svg>] [--theme ${THEME_NAMES.join("|")}] [--no-embed-fonts]`;
 
 /** Runs the command line. Returns the exit code: 0 success, 1 bad input or a failed render, 2 bad usage. */
 export async function runCli(args: readonly string[]): Promise<number> {
@@ -30,7 +32,7 @@ export async function runCli(args: readonly string[]): Promise<number> {
   }
   let svg: string;
   try {
-    ({ svg } = await render(json, { theme: command.theme }));
+    ({ svg } = await render(json, { theme: command.theme, embedFonts: command.embedFonts }));
   } catch (error) {
     return fail((error as Error).message);
   }
@@ -51,9 +53,12 @@ function parseArgs(args: readonly string[]): Command | string {
   let input: string | undefined;
   let output: string | undefined;
   let theme: ThemeName | undefined;
+  let embedFonts = true;
   for (let i = 0; i < args.length; i++) {
     const arg = args[i]!;
-    if (arg === "-o") {
+    if (arg === "--no-embed-fonts") {
+      embedFonts = false;
+    } else if (arg === "-o") {
       const file = args[++i];
       if (file === undefined) return "-o needs a file name";
       if (output !== undefined) return "give -o only once";
@@ -78,7 +83,7 @@ function parseArgs(args: readonly string[]): Command | string {
     }
   }
   if (input === undefined) return "give the diagram's JSON file, or - to read it from standard input";
-  return { input, output, theme };
+  return { input, output, theme, embedFonts };
 }
 
 async function readStdin(): Promise<string> {

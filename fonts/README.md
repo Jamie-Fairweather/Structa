@@ -15,4 +15,4 @@ Unmodified static TTFs from the official release zips, each under the SIL Open F
 
 Sources: https://github.com/rsms/inter/releases/tag/v4.1 and https://github.com/JetBrains/JetBrainsMono/releases/tag/v2.304.
 
-Keep these files byte-for-byte as released. The build reads them to make the width tables (`bun run generate`), and later trims them for shipping.
+Keep these files byte-for-byte as released. `bun run generate` trims them for shipping into `generated/fonts/` (only the shared characters, no OpenType layout tables, every name record kept) and reads the width tables from those trimmed copies.

@@ -16,7 +16,7 @@ export interface RenderOptions<F extends Format = Format> {
   readonly formats?: readonly F[];
   /** The colour theme. Wins over the diagram's own `theme`. Default: light. */
   readonly theme?: ThemeName;
-  /** Embed the used font faces in the SVG. Fonts aren't embedded yet, so this has no effect. */
+  /** Embed the font faces the SVG's text is drawn in. Default: true. */
   readonly embedFonts?: boolean;
 }
 
@@ -27,7 +27,7 @@ export async function render<F extends Format = "svg">(
   input: string | object,
   options: RenderOptions<F> = {},
 ): Promise<RenderResult<F>> {
-  const { formats, theme: themeName } = readOptions(options);
+  const { formats, theme: themeName, embedFonts } = readOptions(options);
   const parsed = parseDiagram(input);
   if (!parsed.ok) throw new StructaError("INVALID_INPUT", parsed.problems);
   const { diagram } = parsed;
@@ -42,25 +42,32 @@ export async function render<F extends Format = "svg">(
     return { ...line, source, target, path: `edges[${i}]` };
   });
   const scene = await layout({ cards, lines }, FLOW_PROFILE, diagram.direction);
-  const outputs: Outputs = { svg: paint(scene, theme) };
+  const outputs: Outputs = { svg: paint(scene, theme, { embedFonts }) };
 
   const result: Partial<Outputs> = {};
   for (const format of formats) result[format] = outputs[format];
   return result as RenderResult<F>;
 }
 
+interface CheckedOptions {
+  formats: readonly Format[];
+  theme: ThemeName | undefined;
+  embedFonts: boolean;
+}
+
 /** The options, checked. Every problem with them is reported at once, as INVALID_OPTIONS. */
-function readOptions(options: unknown): { formats: readonly Format[]; theme: ThemeName | undefined } {
+function readOptions(options: unknown): CheckedOptions {
   if (typeof options !== "object" || options === null || Array.isArray(options)) {
     const hint = 'write them as {"theme": "dark"}, for example';
     throw new StructaError("INVALID_OPTIONS", [{ path: "options", message: "must be an object", hint }]);
   }
-  const { formats: askedFormats, theme: askedTheme } = options as { formats?: unknown; theme?: unknown };
+  const asked = options as { formats?: unknown; theme?: unknown; embedFonts?: unknown };
   const problems: Problem[] = [];
-  const formats = readFormats(askedFormats, problems);
-  const theme = readTheme(askedTheme, problems);
+  const formats = readFormats(asked.formats, problems);
+  const theme = readTheme(asked.theme, problems);
+  const embedFonts = readEmbedFonts(asked.embedFonts, problems);
   if (problems.length > 0) throw new StructaError("INVALID_OPTIONS", problems);
-  return { formats, theme };
+  return { formats, theme, embedFonts };
 }
 
 const FORMATS: readonly Format[] = ["svg"];
@@ -85,4 +92,11 @@ function readTheme(theme: unknown, problems: Problem[]): ThemeName | undefined {
   const message = typeof theme === "string" ? `${JSON.stringify(theme)} is not a valid theme` : "must be a string";
   problems.push({ path: "options.theme", message, hint: `use ${THEME_NAMES.map((name) => JSON.stringify(name)).join(" or ")}` });
   return undefined;
+}
+
+/** Whether to embed the fonts: true when left out. */
+function readEmbedFonts(embedFonts: unknown, problems: Problem[]): boolean {
+  if (embedFonts === undefined || typeof embedFonts === "boolean") return embedFonts ?? true;
+  problems.push({ path: "options.embedFonts", message: "must be true or false", hint: "leave it out to embed the fonts" });
+  return true;
 }

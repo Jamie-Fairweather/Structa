@@ -9,6 +9,9 @@ import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
+import { FACES } from "../../src/text/faces";
+import { LAYOUT_TABLES } from "./subset";
+import { readTtf, type TtfFont } from "./ttf";
 
 const repository = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
@@ -122,6 +125,48 @@ function checkSkill(dir: string, project: string, elkPackage: string): string[] 
   if (copied.length >= COPIED_RUN) {
     const start = JSON.stringify(module.slice(copied.at, copied.at + 40));
     problems.push(`${MODULE_FILE} contains ${copied.length} characters copied from ${ELK_FILE}, starting ${start}`);
+  }
+  problems.push(...checkFonts(module));
+  return problems;
+}
+
+/** A font embedded in structa.mjs. SVGs carry these data URLs as they are. */
+const EMBEDDED_FONT = /data:font\/ttf;base64,([A-Za-z0-9+/]+=*)/g;
+
+/**
+ * The release-blocking font checks: every font embedded in structa.mjs is
+ * trimmed of its OpenType layout tables, and the fonts are exactly Structa's
+ * faces, each named with its family, weight and style the way a renderer
+ * finds it.
+ */
+function checkFonts(module: string): string[] {
+  const problems: string[] = [];
+  const describe = (family: string | undefined, weight: number, style: string) =>
+    `${family === undefined ? "(no family name)" : JSON.stringify(family)} ${weight} ${style}`;
+
+  const found: string[] = [];
+  for (const [, base64] of module.matchAll(EMBEDDED_FONT)) {
+    let font: TtfFont;
+    try {
+      font = readTtf(Buffer.from(base64!, "base64"));
+    } catch (error) {
+      problems.push(`${MODULE_FILE} embeds a font it can't read: ${(error as Error).message}`);
+      continue;
+    }
+    const face = describe(font.family, font.weight, font.style);
+    found.push(face);
+    const layout = font.tables.filter((table) => LAYOUT_TABLES.includes(table));
+    if (layout.length > 0) problems.push(`${MODULE_FILE} embeds ${face} with OpenType layout tables: ${layout.join(", ")}`);
+  }
+
+  const expected = FACES.map(({ family, weight, style }) => describe(family, weight, style));
+  for (const face of expected) {
+    const count = found.filter((f) => f === face).length;
+    if (count === 0) problems.push(`${MODULE_FILE} embeds no ${face} font`);
+    if (count > 1) problems.push(`${MODULE_FILE} embeds ${count} ${face} fonts`);
+  }
+  for (const face of found) {
+    if (!expected.includes(face)) problems.push(`${MODULE_FILE} embeds a ${face} font, which is not one of its faces`);
   }
   return problems;
 }

@@ -2,7 +2,9 @@ import { appendFileSync, cpSync, existsSync, readdirSync, readFileSync, rmSync, 
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { readTtf, type TtfFont } from "../scripts/lib/ttf";
 import { render } from "../src/index";
+import { CHARACTER_RANGES } from "../src/text/faces";
 import { buildChangedProject, buildSkillForTest, type BuiltSkill } from "./helpers/skill";
 
 // Seam 2: the built skill folder, run with `node structa.mjs` in a separate
@@ -38,6 +40,15 @@ describe("node structa.mjs", () => {
 
     expect(result).toEqual({ status: 0, stdout: "", stderr: "" });
     expect(readFileSync(join(skill.elsewhere, name), "utf8")).toBe(svg);
+  });
+
+  it("embeds the fonts by default, and leaves them out with --no-embed-fonts, wherever the flag goes", async () => {
+    const { svg } = await render(flowJson, { embedFonts: false });
+
+    expect(skill.run([flowPath]).stdout).toContain("@font-face");
+    expect(skill.run([flowPath, "--no-embed-fonts"])).toEqual({ status: 0, stdout: svg, stderr: "" });
+    expect(skill.run(["--no-embed-fonts", flowPath, "-o", "plain.svg"])).toEqual({ status: 0, stdout: "", stderr: "" });
+    expect(readFileSync(join(skill.elsewhere, "plain.svg"), "utf8")).toBe(svg);
   });
 
   it("reads the JSON from standard input when the input is -", async () => {
@@ -90,6 +101,46 @@ describe("node structa.mjs", () => {
         `can't load the layout engine: Node didn't load ${join(bare, "elk.bundled.js")} as CommonJS ` +
         "(keep the package.json that came with structa.mjs next to it)\n",
     });
+  });
+});
+
+describe("the fonts inside structa.mjs", () => {
+  const fontsDir = fileURLToPath(new URL("../fonts/", import.meta.url));
+  const unmodified = [
+    "inter/Inter-Regular.ttf",
+    "inter/Inter-SemiBold.ttf",
+    "inter/Inter-Bold.ttf",
+    "inter/Inter-SemiBoldItalic.ttf",
+    "jetbrains-mono/JetBrainsMono-Regular.ttf",
+    "jetbrains-mono/JetBrainsMono-Italic.ttf",
+  ];
+  const postScriptName = (font: TtfFont) => font.names.find((n) => n.nameId === 6 && n.platformId === 3)?.value;
+  const inSharedRanges = (codePoint: number) => CHARACTER_RANGES.some(([first, last]) => codePoint >= first && codePoint <= last);
+
+  function shippedFonts(): TtfFont[] {
+    const module = readFileSync(join(skill.dir, "structa.mjs"), "utf8");
+    return [...module.matchAll(/data:font\/ttf;base64,([A-Za-z0-9+/]+=*)/g)].map(([, base64]) => readTtf(Buffer.from(base64!, "base64")));
+  }
+
+  it("are the six faces, once each", () => {
+    const names = shippedFonts().map(postScriptName);
+
+    expect(names.sort()).toEqual(
+      ["Inter-Bold", "Inter-Regular", "Inter-SemiBold", "Inter-SemiBoldItalic", "JetBrainsMono-Italic", "JetBrainsMono-Regular"],
+    );
+  });
+
+  it.each(unmodified)("cut %s to the shared characters, keeping its widths, vertical metrics and name records", (file) => {
+    const original = readTtf(readFileSync(join(fontsDir, file)));
+    const font = shippedFonts().find((shipped) => postScriptName(shipped) === postScriptName(original))!;
+    const widths = (f: TtfFont) => f.characters.map((codePoint) => [codePoint, f.advance(codePoint)]);
+
+    expect(font).toBeDefined();
+    expect(font.characters).toEqual(original.characters.filter(inSharedRanges));
+    expect(widths(font)).toEqual(widths(original).filter(([codePoint]) => inSharedRanges(codePoint!)));
+    expect(font.missingAdvance).toBe(original.missingAdvance);
+    expect([font.unitsPerEm, font.ascender, font.descender]).toEqual([original.unitsPerEm, original.ascender, original.descender]);
+    expect(font.names).toEqual(original.names);
   });
 });
 
@@ -266,6 +317,52 @@ describe("bun run build", () => {
     BUILD_TIMEOUT,
   );
 
+  /** Puts other font bytes in place of one face's font in the copy's generated font data. */
+  const replaceFont = (face: string, ttf: (project: string) => Buffer) => (project: string) => {
+    const file = join(project, "generated", "font-files.ts");
+    const source = readFileSync(file, "utf8");
+    const entry = new RegExp(`(\\["${face}", "data:font/ttf;base64,)[A-Za-z0-9+/=]+`);
+    expect(source).toMatch(entry);
+    writeFileSync(file, source.replace(entry, (_, start: string) => start + ttf(project).toString("base64")));
+  };
+  const trimmed = (file: string) => (project: string) => readFileSync(join(project, "generated", "fonts", file));
+
+  it("fails when a shipped font still has OpenType layout tables", async () => {
+    const untrimmed = () => readFileSync(fileURLToPath(new URL("../fonts/inter/Inter-SemiBold.ttf", import.meta.url)));
+
+    const message = await buildChangedProject(replaceFont("inter-semibold", untrimmed));
+
+    expect(message).toBe(failure('structa.mjs embeds "Inter" 600 normal with OpenType layout tables: GDEF, GPOS, GSUB'));
+  }, BUILD_TIMEOUT);
+
+  it.each([
+    ["family", "inter-regular", "JetBrainsMono-Regular.ttf", ['structa.mjs embeds no "Inter" 400 normal font', 'structa.mjs embeds 2 "JetBrains Mono" 400 normal fonts']],
+    ["weight", "inter-semibold", "Inter-Bold.ttf", ['structa.mjs embeds no "Inter" 600 normal font', 'structa.mjs embeds 2 "Inter" 700 normal fonts']],
+    ["style", "mono-italic", "JetBrainsMono-Regular.ttf", ['structa.mjs embeds 2 "JetBrains Mono" 400 normal fonts', 'structa.mjs embeds no "JetBrains Mono" 400 italic font']],
+  ])(
+    "fails when a shipped font has the wrong %s",
+    async (_name, face, file, problems) => {
+      const message = await buildChangedProject(replaceFont(face, trimmed(file)));
+
+      expect(message).toBe(failure(...problems));
+    },
+    BUILD_TIMEOUT,
+  );
+
+  it("fails when a shipped font lost its typographic family name, which tells SemiBold from Bold", async () => {
+    // Inter SemiBold's own family name is "Inter SemiBold"; only name id 16 says it is "Inter" at weight 600.
+    const withoutTypographicFamily = (project: string) => renumberNames(trimmed("Inter-SemiBold.ttf")(project), 16, 255);
+
+    const message = await buildChangedProject(replaceFont("inter-semibold", withoutTypographicFamily));
+
+    expect(message).toBe(
+      failure(
+        'structa.mjs embeds no "Inter" 600 normal font',
+        'structa.mjs embeds a "Inter SemiBold" 600 normal font, which is not one of its faces',
+      ),
+    );
+  }, BUILD_TIMEOUT);
+
   it("fails when structa.mjs would contain 100 characters copied from elk.bundled.js", async () => {
     // A run from the middle of ELK's file with nothing a string literal would escape.
     const elk = readFileSync(fileURLToPath(new URL("../node_modules/elkjs/lib/elk.bundled.js", import.meta.url)), "utf8");
@@ -278,6 +375,21 @@ describe("bun run build", () => {
     expect(message).toMatch(/^the skill folder failed its checks:\nstructa\.mjs contains \d+ characters copied from elk\.bundled\.js, starting ".{1,40}"$/);
   }, BUILD_TIMEOUT);
 });
+
+/** A copy of a TTF whose name records with id `from` have id `to` instead. */
+function renumberNames(ttf: Buffer, from: number, to: number): Buffer {
+  const font = Buffer.from(ttf);
+  for (let i = 0; i < font.readUInt16BE(4); i++) {
+    const record = 12 + 16 * i;
+    if (font.toString("latin1", record, record + 4) !== "name") continue;
+    const name = font.readUInt32BE(record + 8);
+    for (let r = 0; r < font.readUInt16BE(name + 2); r++) {
+      const nameId = name + 6 + 12 * r + 6;
+      if (font.readUInt16BE(nameId) === from) font.writeUInt16BE(to, nameId);
+    }
+  }
+  return font;
+}
 
 describe("exit code 2: bad usage", () => {
   it.each([
@@ -305,6 +417,7 @@ describe("exit code 2: bad usage", () => {
     const [first, usage, ...rest] = result.stderr.split("\n");
     expect(first).toBe(message);
     expect(usage).toMatch(/^usage: node structa\.mjs /);
+    expect(usage).toContain("[--no-embed-fonts]");
     expect(rest).toEqual([""]);
     for (const name of ["a.svg", "b.svg", "chart.png", "chart.txt", "chart", ".SVG"]) {
       expect(existsSync(join(skill.elsewhere, name))).toBe(false);
@@ -314,6 +427,6 @@ describe("exit code 2: bad usage", () => {
   it("lists every flag in the usage line", () => {
     const [, usage] = skill.run([]).stderr.split("\n");
 
-    expect(usage).toBe("usage: node structa.mjs <diagram.json | -> [-o <diagram.svg>] [--theme light|dark]");
+    expect(usage).toBe("usage: node structa.mjs <diagram.json | -> [-o <diagram.svg>] [--theme light|dark] [--no-embed-fonts]");
   });
 });
