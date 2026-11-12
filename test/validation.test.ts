@@ -86,8 +86,13 @@ describe("the top level", () => {
     expect(await problems({ ...pond(), type })).toEqual([{ path: "type", message, hint: 'use "flow"' }]);
   });
 
-  it("doesn't guess at the nodes and edges of a type it doesn't support", async () => {
-    const tables = { type: "er", nodes: [{ id: "orders", label: "orders", columns: [] }], edges: [{ fromColumn: "id" }] };
+  it("doesn't guess at the fields of a type it doesn't support", async () => {
+    const tables = {
+      type: "er",
+      title: "Orders",
+      nodes: [{ id: "orders", label: "orders", columns: [] }],
+      edges: [{ fromColumn: "id" }],
+    };
 
     expect(await problems(tables)).toEqual([{ path: "type", message: '"er" is not supported yet', hint: 'use "flow"' }]);
   });

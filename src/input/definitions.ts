@@ -37,6 +37,8 @@ export interface ObjectDef {
   /** What one of these is called in messages: "node", "edge", "diagram". */
   readonly noun: string;
   readonly fields: readonly Field[];
+  /** Lets other fields through unchecked. Only for a type that isn't built yet, whose fields aren't known. */
+  readonly otherFields?: "allowed";
 }
 
 export interface ListDef {
@@ -139,10 +141,11 @@ const FLOW_EDGE: ObjectDef = {
 export const FLOW: ObjectDef = diagram(FLOW_NODE, FLOW_EDGE, "down");
 
 /**
- * When the type isn't one we implement, only the top level can be checked:
- * nothing inside the nodes and edges is known.
+ * When the type isn't one we implement, only the fields every type shares can
+ * be checked: its other fields, and everything inside its nodes and edges,
+ * aren't known.
  */
-const ANY_TYPE: ObjectDef = diagram({ kind: "any" }, { kind: "any" }, "down");
+const ANY_TYPE: ObjectDef = { ...diagram({ kind: "any" }, { kind: "any" }, "down"), otherFields: "allowed" };
 
 /** The definition to check a diagram against, chosen by its `type`. */
 export function diagramDefinition(type: unknown): ObjectDef {

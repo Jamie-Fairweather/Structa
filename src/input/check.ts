@@ -100,7 +100,7 @@ export function check(def: ObjectDef, input: unknown): { value: unknown; problem
     const allowed = def.fields.map((f) => f.name);
     // Sorted by code units: plain-object key order isn't something to rely on.
     const unknown = Object.keys(value)
-      .filter((key) => !allowed.includes(key) && value[key] !== undefined)
+      .filter((key) => def.otherFields !== "allowed" && !allowed.includes(key) && value[key] !== undefined)
       .sort();
     for (const key of unknown) {
       report(fieldPath(path, key), `unknown field ${JSON.stringify(key)}`, `allowed fields: ${allowed.join(", ")}`);

@@ -32,7 +32,7 @@ function objectSchema(def: ObjectDef): JsonSchema {
     type: "object",
     properties: Object.fromEntries(def.fields.map((field) => [field.name, fieldSchema(field)])),
     required: def.fields.filter((f) => f.required).map((f) => f.name),
-    additionalProperties: false,
+    additionalProperties: def.otherFields === "allowed",
   };
 }
 
