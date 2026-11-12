@@ -1,9 +1,9 @@
-import { StructaError } from "./errors";
+import { StructaError, type Problem } from "./errors";
 import { parseDiagram } from "./input";
 import { FLOW_PROFILE, layout } from "./layout";
 import { paint } from "./painter";
 import { buildLine, buildStep } from "./shapes";
-import { getTheme, type ThemeName } from "./theme";
+import { getTheme, THEME_NAMES, type ThemeName } from "./theme";
 
 interface Outputs {
   svg: string;
@@ -27,12 +27,12 @@ export async function render<F extends Format = "svg">(
   input: string | object,
   options: RenderOptions<F> = {},
 ): Promise<RenderResult<F>> {
-  const formats = readFormats(options?.formats);
+  const { formats, theme: themeName } = readOptions(options);
   const parsed = parseDiagram(input);
   if (!parsed.ok) throw new StructaError("INVALID_INPUT", parsed.problems);
   const { diagram } = parsed;
 
-  const theme = getTheme(options.theme ?? diagram.theme);
+  const theme = getTheme(themeName ?? diagram.theme);
   const cards = diagram.nodes.map((node, i) => ({ ...buildStep(node, theme.sizes), path: `nodes[${i}]` }));
   const index = new Map(diagram.nodes.map((node, i) => [node.id, i]));
   const lines = diagram.edges.map((edge, i) => {
@@ -49,19 +49,35 @@ export async function render<F extends Format = "svg">(
   return result as RenderResult<F>;
 }
 
+/** The options, checked. Every problem with them is reported at once, as INVALID_OPTIONS. */
+function readOptions(options: RenderOptions | undefined): { formats: readonly Format[]; theme: ThemeName | undefined } {
+  const problems: Problem[] = [];
+  const formats = readFormats(options?.formats, problems);
+  const theme = readTheme(options?.theme, problems);
+  if (problems.length > 0) throw new StructaError("INVALID_OPTIONS", problems);
+  return { formats, theme };
+}
+
 const FORMATS: readonly Format[] = ["svg"];
 
-function readFormats(formats: unknown): readonly Format[] {
+function readFormats(formats: unknown, problems: Problem[]): readonly Format[] {
   if (formats === undefined) return ["svg"];
   const hint = `use ${JSON.stringify(FORMATS)}`;
-  const fail = (path: string, message: string) => new StructaError("INVALID_OPTIONS", [{ path, message, hint }]);
-  if (!Array.isArray(formats)) throw fail("options.formats", "must be a list of formats");
-  if (formats.length === 0) throw fail("options.formats", "must list at least one format");
-  const problems = formats.flatMap((format: unknown, i) =>
-    FORMATS.includes(format as Format)
-      ? []
-      : [{ path: `options.formats[${i}]`, message: `format ${JSON.stringify(format)} is not supported yet`, hint }],
-  );
-  if (problems.length > 0) throw new StructaError("INVALID_OPTIONS", problems);
-  return FORMATS.filter((format) => formats.includes(format));
+  if (!Array.isArray(formats)) problems.push({ path: "options.formats", message: "must be a list of formats", hint });
+  else if (formats.length === 0) problems.push({ path: "options.formats", message: "must list at least one format", hint });
+  else {
+    formats.forEach((format: unknown, i) => {
+      if (FORMATS.includes(format as Format)) return;
+      problems.push({ path: `options.formats[${i}]`, message: `format ${JSON.stringify(format)} is not supported yet`, hint });
+    });
+  }
+  return Array.isArray(formats) ? FORMATS.filter((format) => formats.includes(format)) : [];
+}
+
+/** The theme asked for, or undefined to use the diagram's own. */
+function readTheme(theme: unknown, problems: Problem[]): ThemeName | undefined {
+  if (theme === undefined || THEME_NAMES.includes(theme as ThemeName)) return theme as ThemeName | undefined;
+  const message = typeof theme === "string" ? `${JSON.stringify(theme)} is not a valid theme` : "must be a string";
+  problems.push({ path: "options.theme", message, hint: `use ${THEME_NAMES.map((name) => JSON.stringify(name)).join(" or ")}` });
+  return undefined;
 }
