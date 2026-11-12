@@ -1,10 +1,12 @@
 /**
  * Builds the skill folder: our code bundled into one ES module, elkjs's own
- * file copied beside it untouched, and a one-line package.json that makes the
- * folder CommonJS so elkjs's UMD file loads even inside an ESM project.
+ * file copied beside it untouched, a one-line package.json that makes the
+ * folder CommonJS so elkjs's UMD file loads even inside an ESM project, the
+ * examples folder, and the JSON Schema the module prints.
  */
+import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { copyFileSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -17,6 +19,8 @@ const repository = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 const MODULE_FILE = "structa.mjs";
 const ELK_FILE = "elk.bundled.js";
+const SCHEMA_FILE = "structa.schema.json";
+const EXAMPLES_DIR = "examples";
 const PACKAGE_JSON = '{"type":"commonjs"}\n';
 
 /**
@@ -50,17 +54,30 @@ export async function buildSkill(outDir: string, project: string = repository): 
     // Our code only imports elkjs types. Keep it external anyway, so a stray
     // value import can't pull ELK into the bundle (the checks would catch it).
     external: ["elkjs", "elkjs/*"],
-    // The loader's path to the sibling elkjs file, and no source-only fallback.
-    define: { STRUCTA_ELK_FILE: JSON.stringify(`./${ELK_FILE}`) },
+    // The paths to the elkjs file and the examples folder next to structa.mjs,
+    // and no source-only fallbacks.
+    define: { STRUCTA_ELK_FILE: JSON.stringify(`./${ELK_FILE}`), STRUCTA_EXAMPLES_DIR: JSON.stringify(`./${EXAMPLES_DIR}/`) },
     dropLabels: ["source"],
     logLevel: "warning",
   });
   const elkPackage = dirname(createRequire(join(project, "package.json")).resolve("elkjs/package.json"));
   copyFileSync(join(elkPackage, "lib", ELK_FILE), join(outDir, ELK_FILE));
   writeFileSync(join(outDir, "package.json"), PACKAGE_JSON);
+  cpSync(join(project, EXAMPLES_DIR), join(outDir, EXAMPLES_DIR), { recursive: true });
 
   const problems = checkSkill(outDir, project, elkPackage);
   if (problems.length > 0) throw new Error(`the skill folder failed its checks:\n${problems.join("\n")}`);
+
+  // The shipped schema is exactly what the shipped tool prints when Node runs
+  // it: this Node when the build runs under Node (as in the tests), otherwise
+  // the node on PATH.
+  const node = process.versions.bun === undefined ? process.execPath : "node";
+  const schema = spawnSync(node, [join(outDir, MODULE_FILE), "schema"], { encoding: "utf8" });
+  if (schema.error) {
+    throw new Error(`can't run node to write ${SCHEMA_FILE}: ${schema.error.message} (the build needs Node 20 or later on PATH)`);
+  }
+  if (schema.status !== 0) throw new Error(`node ${MODULE_FILE} schema failed: ${schema.stderr}`);
+  writeFileSync(join(outDir, SCHEMA_FILE), schema.stdout);
 }
 
 /** Text that only ELK's compiled code contains: its Java package names and GWT's runtime markers. */

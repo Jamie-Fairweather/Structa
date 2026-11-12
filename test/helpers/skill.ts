@@ -8,7 +8,7 @@ import { buildSkill } from "../../scripts/lib/skill";
 const repository = fileURLToPath(new URL("../..", import.meta.url));
 
 /** Everything the build reads from the project. Add to this when the build starts reading something new. */
-const BUILD_INPUTS = ["src", "generated", "package.json", "tsconfig.json", "node_modules/elkjs/package.json", "node_modules/elkjs/lib/elk.bundled.js"];
+const BUILD_INPUTS = ["src", "generated", "examples", "package.json", "tsconfig.json", "node_modules/elkjs/package.json", "node_modules/elkjs/lib/elk.bundled.js"];
 
 export interface RunResult {
   readonly status: number | null;
@@ -17,7 +17,8 @@ export interface RunResult {
 }
 
 export interface RunOptions {
-  readonly stdin?: string;
+  /** Text is sent as UTF-8; bytes are sent as they are. */
+  readonly stdin?: string | Uint8Array;
 }
 
 export interface BuiltSkill {
