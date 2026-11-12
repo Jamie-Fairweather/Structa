@@ -25,6 +25,7 @@ export async function render<F extends Format = "svg">(
   input: string | object,
   options: RenderOptions<F> = {},
 ): Promise<RenderResult<F>> {
+  const formats = readFormats(options.formats);
   const parsed = parseDiagram(input);
   if (!parsed.ok) throw new StructaError("INVALID_INPUT", parsed.problems);
   const { diagram } = parsed;
@@ -39,8 +40,26 @@ export async function render<F extends Format = "svg">(
     return { ...line, source, target, path: `edges[${i}]` };
   });
   const scene = await layout({ cards, lines }, FLOW_PROFILE);
-  const svg = paint(scene, theme);
+  const outputs: Outputs = { svg: paint(scene, theme) };
 
-  void options;
-  return { svg } as RenderResult<F>;
+  const result: Partial<Outputs> = {};
+  for (const format of formats) result[format] = outputs[format];
+  return result as RenderResult<F>;
+}
+
+const FORMATS: readonly Format[] = ["svg"];
+
+function readFormats(formats: unknown): readonly Format[] {
+  if (formats === undefined) return ["svg"];
+  const hint = `use ${JSON.stringify(FORMATS)}`;
+  const fail = (path: string, message: string) => new StructaError("INVALID_OPTIONS", [{ path, message, hint }]);
+  if (!Array.isArray(formats)) throw fail("options.formats", "must be a list of formats");
+  if (formats.length === 0) throw fail("options.formats", "must list at least one format");
+  const problems = formats.flatMap((format: unknown, i) =>
+    FORMATS.includes(format as Format)
+      ? []
+      : [{ path: `options.formats[${i}]`, message: `format ${JSON.stringify(format)} is not supported yet`, hint }],
+  );
+  if (problems.length > 0) throw new StructaError("INVALID_OPTIONS", problems);
+  return FORMATS.filter((format) => formats.includes(format));
 }

@@ -72,6 +72,7 @@ export async function layout<C extends LayoutCard, L extends LayoutLine>(
 function normalise<C extends LayoutCard, L>(cards: PlacedCard<C>[], lines: RoutedLine<L>[]): Scene<C, L> {
   const xs = [...cards.flatMap((c) => [c.x, c.x + c.card.width]), ...lines.flatMap((l) => l.points.map((p) => p.x))];
   const ys = [...cards.flatMap((c) => [c.y, c.y + c.card.height]), ...lines.flatMap((l) => l.points.map((p) => p.y))];
+  if (xs.length === 0) return { width: 0, height: 0, cards: [], lines: [] };
   const minX = Math.min(...xs);
   const minY = Math.min(...ys);
   const move = (p: Point): Point => ({ x: p.x - minX, y: p.y - minY });

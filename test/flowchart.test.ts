@@ -31,6 +31,13 @@ describe("step-only flowcharts", () => {
     expect(textLines(card)).toEqual(["Water the seedlings"]);
   });
 
+  it("draws an empty flowchart as an empty canvas", async () => {
+    const doc = parseSvg((await render({ type: "flow", nodes: [] }, opts)).svg);
+
+    expect(cards(doc)).toHaveLength(0);
+    expect(Number(doc.documentElement!.getAttribute("width"))).toBeGreaterThan(0);
+  });
+
   async function stepCard(label: string) {
     const doc = parseSvg((await render({ type: "flow", nodes: [{ id: "s", label, shape: "step" }] }, opts)).svg);
     const card = cardById(doc, "s");
