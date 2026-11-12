@@ -1,6 +1,6 @@
 import { StructaError, type Problem } from "./errors";
 import { parseDiagram } from "./input";
-import { CLASS_PROFILE, FLOW_PROFILE, layout } from "./layout";
+import { layout, PROFILES } from "./layout";
 import { paint } from "./painter";
 import { DEFAULT_SCALE, rasterise, SCALES, type Scale } from "./raster";
 import { buildCards, buildHeader, buildLegend, buildLine } from "./shapes";
@@ -46,11 +46,10 @@ export async function render<F extends Format = "svg">(
     const line = buildLine(edge, nodes[source]!.label, nodes[target]!.label, theme.sizes);
     return { ...line, source, target, path: `edges[${i}]` };
   });
-  const profile = diagram.type === "class" ? CLASS_PROFILE : FLOW_PROFILE;
-  const scene = await layout({ cards, lines }, profile, diagram.direction);
+  const scene = await layout({ cards, lines }, PROFILES.get(diagram.type)!, diagram.direction);
   const header = buildHeader(diagram.title, diagram.description, theme.sizes);
-  const rows = diagram.type === "class" ? diagram.nodes.flatMap((node) => [...node.properties, ...node.methods]) : [];
-  const statuses = [...diagram.nodes, ...rows, ...diagram.edges].map((item) => item.status);
+  // Every card's status, its rows' (taken from the card included) and every line's.
+  const statuses = [...cards.flatMap((card) => [card.status, ...card.rows.map((row) => row.status)]), ...lines.map((line) => line.status)];
   const legend = diagram.legend ? buildLegend(statuses, theme.sizes) : undefined;
   const drawing = { scene, header, legend };
 
