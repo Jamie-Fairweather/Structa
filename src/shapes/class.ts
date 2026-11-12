@@ -26,8 +26,11 @@ const ROW_KINDS = new Map<(typeof CLASS_SECTIONS)[number], Row["kind"]>([
 /**
  * A class card, one standard width: the name and any description centred at
  * the top, then a section for the properties and one for the methods, each
- * under a divider. A class without properties or methods has no section for
- * them. The "… N more" line ends the last section, or has one of its own.
+ * under a divider. Each section keeps its place, as in UML: a class with
+ * methods but no properties has an empty properties section, so its methods
+ * are still under the second divider. A class without methods has no methods
+ * section, and one with no rows has neither. The "… N more" line ends the
+ * last section, or has one of its own.
  */
 export function classBody(node: ClassNode, sizes: Sizes): CardBody {
   const c = sizes.classCard;
@@ -47,7 +50,8 @@ export function classBody(node: ClassNode, sizes: Sizes): CardBody {
   const symbols = CLASS_SECTIONS.some((section) => node[section].some((row) => row.visibility !== undefined));
   const textX = c.paddingX + (symbols ? measure("+ ", ROW_TEXT_FACE, sizes.row.fontSize) : 0);
 
-  const sections = CLASS_SECTIONS.filter((section) => node[section].length > 0);
+  // Every section up to the last one with rows, empty ones included.
+  const sections = CLASS_SECTIONS.filter((_, i) => CLASS_SECTIONS.slice(i).some((section) => node[section].length > 0));
   // The "… N more" line ends the last section, or has a section of its own on a class with no rows.
   const count = Math.max(sections.length, node.more === undefined ? 0 : 1);
   const dividers: number[] = [];

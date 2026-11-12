@@ -248,9 +248,10 @@
 </g>
 <g class="card" data-id="reminders" data-kind="class" data-status="new">
 <title>ReminderService</title>
-<rect x="500" y="280" width="360" height="108" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
+<rect x="500" y="268" width="360" height="120" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
+<line class="divider" x1="500.75" y1="312" x2="859.25" y2="312" stroke="#30363d" stroke-width="1"/>
 <line class="divider" x1="500.75" y1="324" x2="859.25" y2="324" stroke="#30363d" stroke-width="1"/>
-<text x="680" y="307.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">ReminderService</text>
+<text x="680" y="295.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">ReminderService</text>
 <g class="row" data-id="methods[0]" data-kind="method" data-status="new">
 <title>+ sendDueSoon(loan: Loan): void</title>
 <rect x="506" y="331" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
@@ -278,9 +279,9 @@
 </g>
 </g>
 <g class="badge">
-<rect x="811" y="272" width="37" height="16" rx="8" fill="#161b22"/>
-<rect x="811" y="272" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
-<text x="829.5" y="283.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
+<rect x="811" y="260" width="37" height="16" rx="8" fill="#161b22"/>
+<rect x="811" y="260" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
+<text x="829.5" y="271.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
 </g>
 </g>
 <g class="line" data-id="edges[0]" data-kind="association" data-from="member" data-to="loan" data-status="new">

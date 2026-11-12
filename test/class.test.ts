@@ -403,14 +403,32 @@ describe("class card rows", () => {
     expect(numberAttr(texts(rows(card).at(-1)!)[0]!, "y")).toBeLessThan(box.y + box.height);
   });
 
-  it("draws only the sections a class has", async () => {
-    const onlyMethods = await svgDoc(packet({ methods: MEMBERS.methods }));
+  it.each([
+    ["no more", {}],
+    ["more", { more: 4 }],
+  ])("keeps an empty properties section above the methods of a class with no properties, with %s", async (_name, fields) => {
+    const doc = await svgDoc(packet({ methods: MEMBERS.methods, ...fields }));
+
+    const card = cardById(doc, "packet");
+    const [underName, betweenSections] = byClassIn(card, "divider").map((d) => numberAttr(d, "y1"));
+    expect(byClassIn(card, "divider")).toHaveLength(2);
+    expect(numberAttr(texts(card)[0]!, "y")).toBeLessThan(underName!);
+    expect(betweenSections).toBeGreaterThan(underName!);
+    // The methods sit under the second divider, as they do when a class has properties, and "… N more" after them.
+    const methods = rows(card);
+    expect(methods.map((r) => r.getAttribute("data-kind"))).toEqual(["method", "method"]);
+    for (const row of methods) expect(numberAttr(memberTexts(row)[0]!, "y") - 12).toBeGreaterThan(betweenSections!);
+    const more = byClassIn(card, "more");
+    expect(more).toHaveLength("more" in fields ? 1 : 0);
+    for (const m of more) expect(numberAttr(texts(m)[0]!, "y")).toBeGreaterThan(numberAttr(memberTexts(methods.at(-1)!)[0]!, "y"));
+  });
+
+  it("leaves the methods section out of a class with no methods, and both out of a class with no rows", async () => {
     const onlyProperties = await svgDoc(packet({ properties: MEMBERS.properties }));
     const neither = await svgDoc(packet());
 
-    expect(byClassIn(cardById(onlyMethods, "packet"), "divider")).toHaveLength(1);
-    expect(rows(cardById(onlyMethods, "packet")).map((r) => r.getAttribute("data-kind"))).toEqual(["method", "method"]);
     expect(byClassIn(cardById(onlyProperties, "packet"), "divider")).toHaveLength(1);
+    expect(rows(cardById(onlyProperties, "packet")).map((r) => r.getAttribute("data-kind"))).toEqual(["property", "property", "property"]);
     expect(byClassIn(cardById(neither, "packet"), "divider")).toHaveLength(0);
   });
 
