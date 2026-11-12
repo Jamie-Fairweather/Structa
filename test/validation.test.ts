@@ -378,7 +378,10 @@ describe("text", () => {
   });
 
   it("keeps no-break spaces as they are", async () => {
-    expect((await stepText("Dig  the hole")).title).toBe("Dig  the hole");
+    const noBreak = String.fromCodePoint(0xa0);
+    const label = `Dig${noBreak}${noBreak}the hole`;
+
+    expect((await stepText(label)).title).toBe(label);
   });
 
   it.each(["", "    "])("rejects a label with nothing to show: %j", async (label) => {
@@ -404,8 +407,8 @@ describe("text", () => {
     ["池", 'contains "池" (U+6C60)'],
     ["🌱", 'contains "🌱" (U+1F331)'],
     ["⇑", 'contains "⇑" (U+21D1)'],
-    ["​", "contains U+200B"],
-    ["­", "contains U+00AD"],
+    [String.fromCodePoint(0x200b), "contains U+200B"], // zero-width space: invisible, so not shown
+    [String.fromCodePoint(0xad), "contains U+00AD"], // soft hyphen: in the ranges, but Inter lacks it
   ])("names a character the label's font can't draw: %j", async (ch, named) => {
     expect(await problems(pondWith((p) => (p.nodes[1]!.label = `Lay the liner ${ch}`)))).toEqual([
       {
