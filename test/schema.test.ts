@@ -161,9 +161,47 @@ describe("the JSON Schema", () => {
     expect(label.minLength).toBe(1);
   });
 
-  it("sets the length limits for labels, descriptions and line labels in one place", () => {
+  it("sets the length limits for labels, descriptions and line labels in one place, and rules out blank text", () => {
     for (const kind of ["label", "description", "lineLabel"]) {
-      expect(root.$defs[kind]).toMatchObject({ type: "string", minLength: 1, maxLength: expect.any(Number) });
+      expect(root.$defs[kind]).toMatchObject({ type: "string", minLength: 1, maxLength: expect.any(Number), pattern: "[^ ]" });
     }
+  });
+
+  describe("agrees with render() about label text", () => {
+    const { minLength, maxLength, pattern: notBlank } = root.$defs.label;
+    const characters = new RegExp(node.properties.label.pattern, "u");
+    const schemaAccepts = (text: string) =>
+      characters.test(text) && new RegExp(notBlank, "u").test(text) && [...text].length >= minLength && [...text].length <= maxLength;
+
+    it.each(["Open the vents", "", " ", "   ", "  Open   the vents  ", String.fromCodePoint(0xa0)])("for %j", async (text) => {
+      const input = greenhouse();
+      input.nodes[0].label = text;
+
+      expect((await outcome(input)) === "ok").toBe(schemaAccepts(text));
+    });
+
+    it("for every character of the Basic Multilingual Plane, and some beyond it", async () => {
+      const codePoints = [...Array.from({ length: 0x10000 }, (_, i) => i), 0x1f331, 0x1f600, 0x20000, 0x10ffff];
+      const disagreements: string[] = [];
+      const verdicts = new Set<boolean>();
+      // 500 labels per render. The unknown field stops each render before layout, so this stays quick.
+      for (let start = 0; start < codePoints.length; start += 500) {
+        const batch = codePoints.slice(start, start + 500);
+        const labels = batch.map((codePoint) => `V${String.fromCodePoint(codePoint)}`);
+        const nodes = labels.map((label, i) => ({ id: `n${i}`, label, shape: "step" }));
+
+        const result = await outcome({ type: "flow", nodes, mulch: true });
+
+        const rejected = new Set(result === "ok" ? [] : result.map((p) => p.path));
+        batch.forEach((codePoint, i) => {
+          const accepted = schemaAccepts(labels[i]!);
+          verdicts.add(accepted);
+          if (accepted === rejected.has(`nodes[${i}].label`)) disagreements.push(`U+${codePoint.toString(16).toUpperCase()}`);
+        });
+      }
+
+      expect(disagreements).toEqual([]);
+      expect(verdicts).toEqual(new Set([true, false]));
+    });
   });
 });
