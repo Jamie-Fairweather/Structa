@@ -46,10 +46,10 @@ export function paint({ scene, header, legend }: Drawing, theme: Theme, options:
   const content = [
     ...(header ? headerText(header, { x: pad, y: headerTop! }, pen) : []),
     ...scene.cards.flatMap((p) => card(p, origin, pen, ids.shadow)),
-    ...scene.lines.flatMap((routed) => {
-      const points = ontoCards(routed.points, placed.get(routed.line.from)!, placed.get(routed.line.to)!);
-      return line({ ...routed, points }, origin, pen);
-    }),
+    ...scene.lines.flatMap(({ line: l, points }) =>
+      line(l, ontoCards(points, placed.get(l.from)!, placed.get(l.to)!), origin, pen),
+    ),
+    ...lineLabels(scene.lines, origin, pen),
     ...(legend ? legendItems(legend, { x: pad, y: legendTop! }, pen) : []),
   ];
   return [
@@ -268,7 +268,7 @@ function badge(b: Badge, x: number, y: number, pen: Pen): string[] {
   ];
 }
 
-function line({ line, points, label }: RoutedLine<Line>, at: Point, pen: Pen): string[] {
+function line(line: Line, points: readonly Point[], at: Point, pen: Pen): string[] {
   const { sizes } = pen.theme;
   const pts = points.map((p) => ({ x: p.x + at.x, y: p.y + at.y }));
   const { cornerRadius, arrowLength, arrowWidth } = sizes.line;
@@ -292,30 +292,48 @@ function line({ line, points, label }: RoutedLine<Line>, at: Point, pen: Pen): s
         ["stroke-linejoin", "round"],
       ]),
       el("path", [["d", arrowhead(pts, arrowLength, arrowWidth)], ["fill", colour]]),
-      ...(line.label && label ? pill(line.label, label.x + at.x, label.y + at.y, colour, pen) : []),
     ]),
     "</g>",
   ];
 }
 
-/** A line's label at (x, y): a rounded pill bordered in the line's colour, over the line. */
-function pill(label: LineLabel, x: number, y: number, border: string, pen: Pen): string[] {
+/**
+ * Every line's label pill, in one layer drawn after all the lines, so a pill
+ * covers whatever runs under it: its own line, or another line ELK routed
+ * across it (it does that with loops nested on one card).
+ */
+function lineLabels(lines: readonly RoutedLine<Line>[], at: Point, pen: Pen): string[] {
+  const pills = lines.flatMap(({ line, label }) =>
+    line.label && label ? [pill(line, line.label, { x: label.x + at.x, y: label.y + at.y }, pen)] : [],
+  );
+  return pills.length === 0 ? [] : [open("g", [["class", "line-labels"]]), ...pills.flat(), "</g>"];
+}
+
+/**
+ * A line's label with its top-left corner at `at`: a rounded pill bordered in
+ * the line's colour, showing the line's tooltip. A removed line's pill is
+ * faded, over an opaque backing in the canvas colour so the lines it covers
+ * don't show through.
+ */
+function pill(line: Line, label: LineLabel, at: Point, pen: Pen): string[] {
   const { colors, sizes } = pen.theme;
   const single = sizes.lineLabel.lineHeight + 2 * sizes.lineLabel.paddingY;
+  const removed = line.status === "removed";
+  // Fully round on one line; a wrapped label keeps the same corners.
+  const box: Attrs = [["x", at.x], ["y", at.y], ["width", label.width], ["height", label.height], ["rx", Math.min(label.height, single) / 2]];
   return [
-    open("g", [["class", "line-label"]]),
-    el("rect", [
-      ["x", x],
-      ["y", y],
-      ["width", label.width],
-      ["height", label.height],
-      // Fully round on one line; a wrapped label keeps the same corners.
-      ["rx", Math.min(label.height, single) / 2],
-      ["fill", colors.cardFill],
-      ["stroke", border],
-      ["stroke-width", sizes.lineLabel.borderWidth],
+    open("g", [["class", "line-label"], ["data-line", line.id]]),
+    el("title", [], escapeText(line.tooltip)),
+    ...(removed ? [el("rect", [...box, ["fill", colors.background]])] : []),
+    ...fadedIf(removed, pen.theme, [
+      el("rect", [
+        ...box,
+        ["fill", colors.cardFill],
+        ["stroke", lineColour(line.status, pen.theme)],
+        ["stroke-width", sizes.lineLabel.borderWidth],
+      ]),
+      ...label.texts.flatMap((t) => text(t, at.x, at.y, colors[t.color], pen)),
     ]),
-    ...label.texts.flatMap((t) => text(t, x, y, colors[t.color], pen)),
     "</g>",
   ];
 }

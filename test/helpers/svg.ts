@@ -1,4 +1,5 @@
 import { DOMParser, type Document, type Element } from "@xmldom/xmldom";
+import { render } from "../../src/index";
 
 /** Parses SVG text, failing the test on anything that isn't well-formed XML. */
 export function parseSvg(svg: string): Document {
@@ -7,6 +8,11 @@ export function parseSvg(svg: string): Document {
       throw new Error(`SVG is not well-formed (${level}): ${message}`);
     },
   }).parseFromString(svg, "image/svg+xml");
+}
+
+/** Renders a diagram without embedded fonts, as snapshot and structural tests do, and parses the SVG. */
+export async function svgDoc(input: object, theme?: "light" | "dark"): Promise<Document> {
+  return parseSvg((await render(input, { embedFonts: false, ...(theme ? { theme } : {}) })).svg);
 }
 
 export function allElements(root: Document | Element): Element[] {
@@ -36,7 +42,7 @@ export interface Box {
   height: number;
 }
 
-function rectBox(rect: Element): Box {
+export function rectBox(rect: Element): Box {
   const num = (name: string) => Number(rect.getAttribute(name));
   return { x: num("x"), y: num("y"), width: num("width"), height: num("height") };
 }
@@ -64,6 +70,13 @@ function distanceToSegment(p: Point, a: Point, b: Point): number {
   const length = Math.hypot(b.x - a.x, b.y - a.y);
   const t = length === 0 ? 0 : Math.max(0, Math.min(1, ((p.x - a.x) * (b.x - a.x) + (p.y - a.y) * (b.y - a.y)) / length ** 2));
   return Math.hypot(a.x + t * (b.x - a.x) - p.x, a.y + t * (b.y - a.y) - p.y);
+}
+
+/** How far a point is from a path of straight runs. */
+export function distanceToRoute(p: Point, points: readonly Point[]): number {
+  let best = Number.POSITIVE_INFINITY;
+  for (let i = 0; i + 1 < points.length; i++) best = Math.min(best, distanceToSegment(p, points[i]!, points[i + 1]!));
+  return best;
 }
 
 /**

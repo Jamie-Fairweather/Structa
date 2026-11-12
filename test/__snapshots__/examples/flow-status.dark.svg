@@ -91,31 +91,18 @@
 <title>Close orders on Thursday night → Bake on Friday: final list</title>
 <path d="M357 292 L357 376 Q357 384 349 384 L174.83 384 Q166.83 384 166.83 392 L166.83 399" fill="none" stroke="#3fb950" stroke-width="3" stroke-linejoin="round"/>
 <path d="M166.83 408 L162.33 399 L171.33 399 Z" fill="#3fb950"/>
-<g class="line-label">
-<rect x="327" y="340" width="60" height="20" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
-<text x="357" y="354.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">final list</text>
-</g>
 </g>
 <g class="line" data-id="edges[2]" data-kind="flow" data-from="phone" data-to="bake" data-status="removed">
 <title>Take orders by phone → Bake on Friday: call-ins</title>
 <g class="faded" opacity="0.5">
 <path d="M122.5 292 L122.5 402.58" fill="none" stroke="#f85149" stroke-width="1.5" stroke-linejoin="round"/>
 <path d="M122.5 411.58 L118 402.58 L127 402.58 Z" fill="#f85149"/>
-<g class="line-label">
-<rect x="93.5" y="340" width="58" height="20" rx="10" fill="#161b22" stroke="#f85149" stroke-width="1"/>
-<text x="122.5" y="354.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">call-ins</text>
-<line class="strike" x1="101.87" y1="350.77" x2="143.13" y2="350.77" stroke="#e6edf3" stroke-width="1.25"/>
-</g>
 </g>
 </g>
 <g class="line" data-id="edges[3]" data-kind="flow" data-from="bake" data-to="weigh" data-status="new">
 <title>Bake on Friday → Weigh each loaf: once cool</title>
 <path d="M122.5 460 L122.5 575" fill="none" stroke="#3fb950" stroke-width="3" stroke-linejoin="round"/>
 <path d="M122.5 584 L118 575 L127 575 Z" fill="#3fb950"/>
-<g class="line-label">
-<rect x="86.5" y="508" width="72" height="20" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
-<text x="122.5" y="522.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">once cool</text>
-</g>
 </g>
 <g class="line" data-id="edges[4]" data-kind="flow" data-from="weigh" data-to="box" data-status="new">
 <title>Weigh each loaf → Box and label the order</title>
@@ -133,7 +120,29 @@
 <title>Box and label the order → Customer collects on Saturday: from 8 am</title>
 <path d="M153.83 728 L153.83 843" fill="none" stroke="#d29922" stroke-width="1.5" stroke-linejoin="round"/>
 <path d="M153.83 852 L149.33 843 L158.33 843 Z" fill="#d29922"/>
-<g class="line-label">
+</g>
+<g class="line-labels">
+<g class="line-label" data-line="edges[1]">
+<title>Close orders on Thursday night → Bake on Friday: final list</title>
+<rect x="327" y="340" width="60" height="20" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
+<text x="357" y="354.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">final list</text>
+</g>
+<g class="line-label" data-line="edges[2]">
+<title>Take orders by phone → Bake on Friday: call-ins</title>
+<rect x="93.5" y="340" width="58" height="20" rx="10" fill="#0d1117"/>
+<g class="faded" opacity="0.5">
+<rect x="93.5" y="340" width="58" height="20" rx="10" fill="#161b22" stroke="#f85149" stroke-width="1"/>
+<text x="122.5" y="354.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">call-ins</text>
+<line class="strike" x1="101.87" y1="350.77" x2="143.13" y2="350.77" stroke="#e6edf3" stroke-width="1.25"/>
+</g>
+</g>
+<g class="line-label" data-line="edges[3]">
+<title>Bake on Friday → Weigh each loaf: once cool</title>
+<rect x="86.5" y="508" width="72" height="20" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
+<text x="122.5" y="522.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">once cool</text>
+</g>
+<g class="line-label" data-line="edges[6]">
+<title>Box and label the order → Customer collects on Saturday: from 8 am</title>
 <rect x="116.33" y="776" width="75" height="20" rx="10" fill="#161b22" stroke="#d29922" stroke-width="1"/>
 <text x="153.83" y="790.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">from 8 am</text>
 </g>
