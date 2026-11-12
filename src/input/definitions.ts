@@ -83,8 +83,8 @@ function optional(name: string, def: Def, description: string, defaultValue?: Fi
     : { name, def, required: false, description, default: defaultValue };
 }
 
-/** The diagram types implemented so far. */
-const DIAGRAM_TYPES: readonly string[] = ["flow"];
+/** The diagram types implemented so far. Each has an example, examples/<type>.json. */
+export const DIAGRAM_TYPES: readonly string[] = ["flow"];
 
 const LIMITS = { nodes: 500, edges: 1000 } as const;
 

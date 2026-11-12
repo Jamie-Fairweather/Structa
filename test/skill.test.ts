@@ -144,6 +144,46 @@ describe("the fonts inside structa.mjs", () => {
   });
 });
 
+describe("node structa.mjs example <type>", () => {
+  /** The diagram types, as the schema lists them. */
+  const types = (): string[] => JSON.parse(skill.run(["schema"]).stdout).properties.type.enum;
+
+  it("ships the examples folder, file for file", () => {
+    const shipped = join(skill.dir, "examples");
+    const files = readdirSync(examplesDir).sort();
+
+    expect(readdirSync(shipped).sort()).toEqual(files);
+    for (const file of files) {
+      expect([file, readFileSync(join(shipped, file), "utf8")]).toEqual([file, readFileSync(join(examplesDir, file), "utf8")]);
+    }
+  });
+
+  it("prints each type's example from the examples folder, and every printed example renders", async () => {
+    expect(types().length).toBeGreaterThan(0);
+    for (const type of types()) {
+      const example = skill.run(["example", type]);
+
+      expect(example).toEqual({ status: 0, stdout: readFileSync(join(examplesDir, `${type}.json`), "utf8"), stderr: "" });
+      const { svg } = await render(example.stdout);
+      expect(skill.run(["-"], { stdin: example.stdout })).toEqual({ status: 0, stdout: svg, stderr: "" });
+    }
+  });
+
+  it("names the missing example when the examples folder isn't next to structa.mjs", () => {
+    const noExamples = join(dirname(skill.dir), "structa-without-examples");
+    cpSync(skill.dir, noExamples, { recursive: true });
+    rmSync(join(noExamples, "examples"), { recursive: true });
+
+    expect(skill.run(["example", "flow"], { dir: noExamples })).toEqual({
+      status: 1,
+      stdout: "",
+      stderr:
+        `can't find the flow example: expected ${join(noExamples, "examples", "flow.json")} ` +
+        "(keep the examples folder that came with structa.mjs next to it)\n",
+    });
+  });
+});
+
 describe("import { render } from structa.mjs", () => {
   it("gives the same SVG as render() in this process, and importing doesn't start the command line", async () => {
     const { svg } = await render(flowJson);
@@ -406,6 +446,16 @@ describe("exit code 2: bad usage", () => {
     ["an unknown theme", ["IN", "--theme", "sepia"], '--theme "sepia": the theme must be light or dark'],
     ["a theme in the wrong case", ["IN", "--theme", "Dark"], '--theme "Dark": the theme must be light or dark'],
     ["two --theme", ["IN", "--theme", "dark", "--theme", "light"], "give --theme only once"],
+    ["schema with an argument", ["schema", "IN"], "schema takes no other arguments"],
+    ["schema with -o", ["schema", "-o", "a.svg"], "schema takes no other arguments"],
+    ["schema with --theme", ["schema", "--theme", "dark"], "schema takes no other arguments"],
+    ["schema with --no-embed-fonts", ["schema", "--no-embed-fonts"], "schema takes no other arguments"],
+    ["example with no type", ["example"], "example needs a diagram type (valid types: flow)"],
+    ["an unknown example type", ["example", "pie"], 'unknown diagram type "pie" (valid types: flow)'],
+    ["example with two types", ["example", "flow", "flow"], 'give one diagram type, not two ("flow" and "flow")'],
+    ["example with -o", ["example", "flow", "-o", "a.svg"], "example takes no other arguments"],
+    ["example with --theme", ["example", "flow", "--theme", "dark"], "example takes no other arguments"],
+    ["example with --no-embed-fonts", ["example", "flow", "--no-embed-fonts"], "example takes no other arguments"],
   ])("rejects %s, prints the usage line and writes nothing", (_name, args, message) => {
     const input = join(skill.elsewhere, "usage-input.json");
     writeFileSync(input, flowJson);
@@ -424,9 +474,11 @@ describe("exit code 2: bad usage", () => {
     }
   });
 
-  it("lists every flag in the usage line", () => {
+  it("lists every flag and command in the usage line", () => {
     const [, usage] = skill.run([]).stderr.split("\n");
 
-    expect(usage).toBe("usage: node structa.mjs <diagram.json | -> [-o <diagram.svg>] [--theme light|dark] [--no-embed-fonts]");
+    expect(usage).toBe(
+      "usage: node structa.mjs <diagram.json | -> [-o <diagram.svg>] [--theme light|dark] [--no-embed-fonts] | schema | example <type>",
+    );
   });
 });

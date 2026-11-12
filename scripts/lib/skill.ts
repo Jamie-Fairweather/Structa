@@ -1,12 +1,12 @@
 /**
  * Builds the skill folder: our code bundled into one ES module, elkjs's own
  * file copied beside it untouched, a one-line package.json that makes the
- * folder CommonJS so elkjs's UMD file loads even inside an ESM project, and
- * the JSON Schema the module prints.
+ * folder CommonJS so elkjs's UMD file loads even inside an ESM project, the
+ * examples folder, and the JSON Schema the module prints.
  */
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { copyFileSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -20,6 +20,7 @@ const repository = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const MODULE_FILE = "structa.mjs";
 const ELK_FILE = "elk.bundled.js";
 const SCHEMA_FILE = "structa.schema.json";
+const EXAMPLES_DIR = "examples";
 const PACKAGE_JSON = '{"type":"commonjs"}\n';
 
 /**
@@ -54,13 +55,15 @@ export async function buildSkill(outDir: string, project: string = repository): 
     // value import can't pull ELK into the bundle (the checks would catch it).
     external: ["elkjs", "elkjs/*"],
     // The loader's path to the sibling elkjs file, and no source-only fallback.
-    define: { STRUCTA_ELK_FILE: JSON.stringify(`./${ELK_FILE}`) },
+    // The examples folder sits next to structa.mjs too.
+    define: { STRUCTA_ELK_FILE: JSON.stringify(`./${ELK_FILE}`), STRUCTA_EXAMPLES_DIR: JSON.stringify(`./${EXAMPLES_DIR}/`) },
     dropLabels: ["source"],
     logLevel: "warning",
   });
   const elkPackage = dirname(createRequire(join(project, "package.json")).resolve("elkjs/package.json"));
   copyFileSync(join(elkPackage, "lib", ELK_FILE), join(outDir, ELK_FILE));
   writeFileSync(join(outDir, "package.json"), PACKAGE_JSON);
+  cpSync(join(project, EXAMPLES_DIR), join(outDir, EXAMPLES_DIR), { recursive: true });
 
   const problems = checkSkill(outDir, project, elkPackage);
   if (problems.length > 0) throw new Error(`the skill folder failed its checks:\n${problems.join("\n")}`);

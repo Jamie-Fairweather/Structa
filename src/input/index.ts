@@ -4,7 +4,7 @@ import { check } from "./check";
 import { diagramDefinition } from "./definitions";
 import { parseJson } from "./json";
 
-export { STEP_LABEL_FACE } from "./definitions";
+export { DIAGRAM_TYPES, STEP_LABEL_FACE } from "./definitions";
 export { jsonSchema } from "./schema";
 
 export interface FlowStep {

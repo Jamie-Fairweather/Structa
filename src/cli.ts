@@ -1,6 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { basename, extname } from "node:path";
-import { jsonSchema } from "./input";
+import { fileURLToPath } from "node:url";
+import { DIAGRAM_TYPES, jsonSchema } from "./input";
 import { render } from "./render";
 import { THEME_NAMES, type ThemeName } from "./theme";
 
@@ -16,10 +17,15 @@ type Command =
       /** False with --no-embed-fonts. */
       readonly embedFonts: boolean;
     }
-  | { readonly kind: "schema" };
+  | { readonly kind: "schema" }
+  | { readonly kind: "example"; readonly type: string };
 
 const THEMES = THEME_NAMES.join(" or ");
-const USAGE = `usage: node structa.mjs <diagram.json | -> [-o <diagram.svg>] [--theme ${THEME_NAMES.join("|")}] [--no-embed-fonts] | schema`;
+const USAGE = `usage: node structa.mjs <diagram.json | -> [-o <diagram.svg>] [--theme ${THEME_NAMES.join("|")}] [--no-embed-fonts] | schema | example <type>`;
+
+/** Set by the build (esbuild `define`) to "./examples/", the folder next to structa.mjs; undeclared in source runs. */
+declare const STRUCTA_EXAMPLES_DIR: string | undefined;
+const EXAMPLES_DIR = new URL(typeof STRUCTA_EXAMPLES_DIR === "undefined" ? "../examples/" : STRUCTA_EXAMPLES_DIR, import.meta.url);
 
 /** Runs the command line. Returns the exit code: 0 success, 1 bad input or a failed render, 2 bad usage. */
 export async function runCli(args: readonly string[]): Promise<number> {
@@ -32,9 +38,24 @@ export async function runCli(args: readonly string[]): Promise<number> {
     case "schema":
       process.stdout.write(`${JSON.stringify(jsonSchema(), null, 2)}\n`);
       return 0;
+    case "example":
+      return printExample(command.type);
     case "render":
       return renderDiagram(command);
   }
+}
+
+/** Prints examples/<type>.json from the examples folder that ships with the tool. */
+async function printExample(type: string): Promise<number> {
+  const file = fileURLToPath(new URL(`${type}.json`, EXAMPLES_DIR));
+  let example: string;
+  try {
+    example = await readFile(file, "utf8");
+  } catch {
+    return fail(`can't find the ${type} example: expected ${file} (keep the examples folder that came with structa.mjs next to it)`);
+  }
+  process.stdout.write(example);
+  return 0;
 }
 
 async function renderDiagram(command: Extract<Command, { kind: "render" }>): Promise<number> {
@@ -100,6 +121,15 @@ function parseArgs(args: readonly string[]): Command | string {
   const drawFlags = output !== undefined || theme !== undefined || !embedFonts;
   if (input === "schema") {
     return !drawFlags && rest.length === 0 ? { kind: "schema" } : "schema takes no other arguments";
+  }
+  if (input === "example") {
+    const [type, ...more] = rest;
+    const types = `valid types: ${DIAGRAM_TYPES.join(", ")}`;
+    if (drawFlags) return "example takes no other arguments";
+    if (type === undefined) return `example needs a diagram type (${types})`;
+    if (more.length > 0) return `give one diagram type, not two (${JSON.stringify(type)} and ${JSON.stringify(more[0])})`;
+    if (!DIAGRAM_TYPES.includes(type)) return `unknown diagram type ${JSON.stringify(type)} (${types})`;
+    return { kind: "example", type };
   }
   if (input === undefined) return "give the diagram's JSON file, or - to read it from standard input";
   if (rest.length > 0) return `give one input, not two (${JSON.stringify(input)} and ${JSON.stringify(rest[0])})`;
