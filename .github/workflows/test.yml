@@ -15,7 +15,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ["20", "current"]
+        # The oldest supported Node, and the newest stable one. ("current"
+        # can resolve to an alpha build, so use lts/* for the newest stable.)
+        node: ["20", "lts/*"]
     steps:
       - uses: actions/checkout@v7
 
