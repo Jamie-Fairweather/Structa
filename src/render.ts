@@ -50,10 +50,15 @@ export async function render<F extends Format = "svg">(
 }
 
 /** The options, checked. Every problem with them is reported at once, as INVALID_OPTIONS. */
-function readOptions(options: RenderOptions | undefined): { formats: readonly Format[]; theme: ThemeName | undefined } {
+function readOptions(options: unknown): { formats: readonly Format[]; theme: ThemeName | undefined } {
+  if (typeof options !== "object" || options === null || Array.isArray(options)) {
+    const hint = 'write them as {"theme": "dark"}, for example';
+    throw new StructaError("INVALID_OPTIONS", [{ path: "options", message: "must be an object", hint }]);
+  }
+  const { formats: askedFormats, theme: askedTheme } = options as { formats?: unknown; theme?: unknown };
   const problems: Problem[] = [];
-  const formats = readFormats(options?.formats, problems);
-  const theme = readTheme(options?.theme, problems);
+  const formats = readFormats(askedFormats, problems);
+  const theme = readTheme(askedTheme, problems);
   if (problems.length > 0) throw new StructaError("INVALID_OPTIONS", problems);
   return { formats, theme };
 }

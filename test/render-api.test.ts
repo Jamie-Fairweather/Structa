@@ -61,6 +61,13 @@ describe("render()", () => {
     expect(error.message).toBe(`options.theme: ${message} (use "light" or "dark")`);
   });
 
+  it.each([["dark"], [null], [["svg"]], [2], [true]])("rejects options of %j, which aren't an object, with INVALID_OPTIONS", async (options) => {
+    const error = await rejection(render(tidyShed, options as never));
+
+    expect(error.code).toBe("INVALID_OPTIONS");
+    expect(error.problems).toEqual([{ path: "options", message: "must be an object", hint: 'write them as {"theme": "dark"}, for example' }]);
+  });
+
   it("reports every problem with the options at once", async () => {
     const error = await rejection(render(tidyShed, { formats: ["pdf", "svg", "png"], theme: "sepia" } as never));
 
