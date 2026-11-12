@@ -38,5 +38,7 @@ jobs:
 
       - run: bun run test
 
-      # Builds the skill folder into dist/structa and runs the packaging checks.
-      - run: bun run build
+      # Builds the skill folder into dist/structa and runs the packaging checks,
+      # then draws every example with it into the gallery page, so the gallery
+      # script can't break unnoticed.
+      - run: bun run gallery

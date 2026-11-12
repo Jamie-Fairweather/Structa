@@ -1,6 +1,12 @@
 import type { Status } from "../input";
 
+/**
+ * Every theme, light (the default) first. The JSON, render() and the CLI all
+ * accept exactly these. ThemeName comes from this list, and COLORS needs an
+ * entry for every ThemeName, so a theme can't be left out of either.
+ */
 export const THEME_NAMES = ["light", "dark"] as const;
+
 export type ThemeName = (typeof THEME_NAMES)[number];
 
 /** How one status looks: GitHub Primer colours. */

@@ -8,35 +8,35 @@
 <g class="card" data-id="scan" data-kind="step">
 <title>Scan the returned book</title>
 <rect x="85.83" y="32" width="191" height="44" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
-<text x="181.33" y="59.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Scan the returned book</text>
+<text x="181.33" y="59.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Scan the returned book</text>
 </g>
 <g class="card" data-id="inspect" data-kind="step">
 <title>Check for damage</title>
 <rect x="71" y="124" width="157" height="44" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
-<text x="149.5" y="151.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Check for damage</text>
+<text x="149.5" y="151.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Check for damage</text>
 </g>
 <g class="card" data-id="fee" data-kind="step">
 <title>Work out any late fee</title>
 <rect x="268" y="124" width="177" height="44" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
-<text x="356.5" y="151.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Work out any late fee</text>
+<text x="356.5" y="151.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Work out any late fee</text>
 </g>
 <g class="card" data-id="close" data-kind="step">
 <title>Close the loan</title>
 <rect x="106.5" y="216" width="129" height="44" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
-<text x="171" y="243.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Close the loan</text>
+<text x="171" y="243.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Close the loan</text>
 </g>
 <g class="card" data-id="receipt" data-kind="step">
 <title>Email the borrower a receipt, listing the return date and any fee owed</title>
 <rect x="32" y="308" width="235" height="84" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
-<text x="149.5" y="335.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Email the borrower a receipt,</text>
-<text x="149.5" y="355.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">listing the return date and any</text>
-<text x="149.5" y="375.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">fee owed</text>
+<text x="149.5" y="335.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Email the borrower a receipt,</text>
+<text x="149.5" y="355.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">listing the return date and any</text>
+<text x="149.5" y="375.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">fee owed</text>
 </g>
 <g class="card" data-id="trolley" data-kind="step">
 <title>Put the book on the returns trolley</title>
 <rect x="307" y="308" width="216" height="64" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
-<text x="415" y="335.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Put the book on the returns</text>
-<text x="415" y="355.09" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">trolley</text>
+<text x="415" y="335.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Put the book on the returns</text>
+<text x="415" y="355.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">trolley</text>
 </g>
 <g class="line" data-id="edges[0]" data-kind="flow" data-from="scan" data-to="inspect">
 <title>Scan the returned book → Check for damage</title>

@@ -33,18 +33,21 @@ describe("examples", () => {
     ).toBe(true);
   });
 
+  // Every example in both themes. The theme option wins over any theme in the example's JSON.
   describe.each(examples)("$name", ({ name, json }) => {
-    it.each(["light", "dark"] as const)("matches its %s snapshot", async (theme) => {
-      const { svg } = await render(json, { embedFonts: false, theme });
+    describe.each(["light", "dark"] as const)("in %s", (theme) => {
+      it("matches its snapshot", async () => {
+        const { svg } = await render(json, { embedFonts: false, theme });
 
-      await expect(svg).toMatchFileSnapshot(`__snapshots__/examples/${name}.${theme}.svg`);
-    });
+        await expect(svg).toMatchFileSnapshot(`__snapshots__/examples/${name}.${theme}.svg`);
+      });
 
-    it.each(["light", "dark"] as const)("passes the SVG rules in the %s theme", async (theme) => {
-      const { svg } = await render(json, { embedFonts: false, theme });
+      it("passes the SVG rules", async () => {
+        const { svg } = await render(json, { embedFonts: false, theme });
 
-      expect(passiveSvgViolations(svg)).toEqual([]);
-      expect(badlyFormattedNumbers(svg)).toEqual([]);
+        expect(passiveSvgViolations(svg)).toEqual([]);
+        expect(badlyFormattedNumbers(svg)).toEqual([]);
+      });
     });
   });
 });

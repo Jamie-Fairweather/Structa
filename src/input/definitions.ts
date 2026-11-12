@@ -4,6 +4,7 @@
  * from these, so they can't disagree. Every new field goes here.
  */
 import type { FaceId } from "../text";
+import { THEME_NAMES } from "../theme";
 
 /** One kind of text, with its length limit. Limits are set here once and shown in the schema. */
 export interface TextKind {
@@ -90,8 +91,8 @@ function optional(name: string, def: Def, description: string, defaultValue?: Fi
     : { name, def, required: false, description, default: defaultValue };
 }
 
-/** The diagram types implemented so far. */
-const DIAGRAM_TYPES: readonly string[] = ["flow"];
+/** The diagram types implemented so far. Each has an example, examples/<type>.json. */
+export const DIAGRAM_TYPES: readonly string[] = ["flow"];
 
 const LIMITS = { nodes: 500, edges: 1000 } as const;
 
@@ -108,6 +109,12 @@ function diagram(node: Def, edge: Def, direction: "down" | "right"): ObjectDef {
         "description",
         { kind: "text", text: DESCRIPTION, faces: [DESCRIPTION_FACE] },
         "a sentence or two drawn under the title",
+      ),
+      optional(
+        "theme",
+        { kind: "choice", values: THEME_NAMES, later: false },
+        "the colours to draw in; the --theme flag and render()'s theme option win over it",
+        "light",
       ),
       optional(
         "direction",

@@ -2,7 +2,9 @@ import { appendFileSync, cpSync, existsSync, readdirSync, readFileSync, rmSync, 
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { readTtf, type TtfFont } from "../scripts/lib/ttf";
 import { render } from "../src/index";
+import { CHARACTER_RANGES } from "../src/text/faces";
 import { buildChangedProject, buildSkillForTest, type BuiltSkill } from "./helpers/skill";
 
 // Seam 2: the built skill folder, run with `node structa.mjs` in a separate
@@ -40,6 +42,15 @@ describe("node structa.mjs", () => {
     expect(readFileSync(join(skill.elsewhere, name), "utf8")).toBe(svg);
   });
 
+  it("embeds the fonts by default, and leaves them out with --no-embed-fonts, wherever the flag goes", async () => {
+    const { svg } = await render(flowJson, { embedFonts: false });
+
+    expect(skill.run([flowPath]).stdout).toContain("@font-face");
+    expect(skill.run([flowPath, "--no-embed-fonts"])).toEqual({ status: 0, stdout: svg, stderr: "" });
+    expect(skill.run(["--no-embed-fonts", flowPath, "-o", "plain.svg"])).toEqual({ status: 0, stdout: "", stderr: "" });
+    expect(readFileSync(join(skill.elsewhere, "plain.svg"), "utf8")).toBe(svg);
+  });
+
   it("reads the JSON from standard input when the input is -", async () => {
     const { svg } = await render(flowJson);
 
@@ -57,6 +68,25 @@ describe("node structa.mjs", () => {
     expect(result).toEqual({ status: 0, stdout: svg, stderr: "" });
   });
 
+  it("draws the theme --theme asks for", async () => {
+    const light = await render(flowJson, { theme: "light" });
+    const dark = await render(flowJson, { theme: "dark" });
+
+    expect(skill.run([flowPath, "--theme", "dark"])).toEqual({ status: 0, stdout: dark.svg, stderr: "" });
+    expect(skill.run(["--theme", "light", flowPath])).toEqual({ status: 0, stdout: light.svg, stderr: "" });
+    expect(dark.svg).not.toBe(light.svg);
+  });
+
+  it("lets --theme win over the JSON's theme, either way round", async () => {
+    const withTheme = (theme: string) => JSON.stringify({ ...JSON.parse(flowJson), theme });
+    const light = await render(flowJson, { theme: "light" });
+    const dark = await render(flowJson, { theme: "dark" });
+
+    expect(skill.run(["-"], { stdin: withTheme("dark") })).toEqual({ status: 0, stdout: dark.svg, stderr: "" });
+    expect(skill.run(["-", "--theme", "light"], { stdin: withTheme("dark") })).toEqual({ status: 0, stdout: light.svg, stderr: "" });
+    expect(skill.run(["-", "--theme", "dark"], { stdin: withTheme("light") })).toEqual({ status: 0, stdout: dark.svg, stderr: "" });
+  });
+
   it("relies on its one-line CommonJS package.json to load elkjs inside an ESM project", () => {
     // The same folder without it: Node then treats elk.bundled.js as an ES module, and it can't load.
     const bare = join(dirname(skill.dir), "structa-without-package-json");
@@ -71,6 +101,235 @@ describe("node structa.mjs", () => {
         `can't load the layout engine: Node didn't load ${join(bare, "elk.bundled.js")} as CommonJS ` +
         "(keep the package.json that came with structa.mjs next to it)\n",
     });
+  });
+});
+
+describe("the fonts inside structa.mjs", () => {
+  const fontsDir = fileURLToPath(new URL("../fonts/", import.meta.url));
+  const unmodified = [
+    "inter/Inter-Regular.ttf",
+    "inter/Inter-SemiBold.ttf",
+    "inter/Inter-Bold.ttf",
+    "inter/Inter-SemiBoldItalic.ttf",
+    "jetbrains-mono/JetBrainsMono-Regular.ttf",
+    "jetbrains-mono/JetBrainsMono-Italic.ttf",
+  ];
+  const postScriptName = (font: TtfFont) => font.names.find((n) => n.nameId === 6 && n.platformId === 3)?.value;
+  const inSharedRanges = (codePoint: number) => CHARACTER_RANGES.some(([first, last]) => codePoint >= first && codePoint <= last);
+
+  function shippedFonts(): TtfFont[] {
+    const module = readFileSync(join(skill.dir, "structa.mjs"), "utf8");
+    return [...module.matchAll(/data:font\/ttf;base64,([A-Za-z0-9+/]+=*)/g)].map(([, base64]) => readTtf(Buffer.from(base64!, "base64")));
+  }
+
+  it("are the six faces, once each", () => {
+    const names = shippedFonts().map(postScriptName);
+
+    expect(names.sort()).toEqual(
+      ["Inter-Bold", "Inter-Regular", "Inter-SemiBold", "Inter-SemiBoldItalic", "JetBrainsMono-Italic", "JetBrainsMono-Regular"],
+    );
+  });
+
+  it.each(unmodified)("cut %s to the shared characters, keeping its widths, vertical metrics and name records", (file) => {
+    const original = readTtf(readFileSync(join(fontsDir, file)));
+    const font = shippedFonts().find((shipped) => postScriptName(shipped) === postScriptName(original))!;
+    const widths = (f: TtfFont) => f.characters.map((codePoint) => [codePoint, f.advance(codePoint)]);
+
+    expect(font).toBeDefined();
+    expect(font.characters).toEqual(original.characters.filter(inSharedRanges));
+    expect(widths(font)).toEqual(widths(original).filter(([codePoint]) => inSharedRanges(codePoint!)));
+    expect(font.missingAdvance).toBe(original.missingAdvance);
+    expect([font.unitsPerEm, font.ascender, font.descender]).toEqual([original.unitsPerEm, original.ascender, original.descender]);
+    expect(font.names).toEqual(original.names);
+  });
+});
+
+describe("node structa.mjs example <type>", () => {
+  /** The diagram types, as the schema lists them. */
+  const types = (): string[] => JSON.parse(skill.run(["schema"]).stdout).properties.type.enum;
+
+  it("ships the examples folder, file for file", () => {
+    const shipped = join(skill.dir, "examples");
+    const files = readdirSync(examplesDir).sort();
+
+    expect(readdirSync(shipped).sort()).toEqual(files);
+    for (const file of files) {
+      expect([file, readFileSync(join(shipped, file), "utf8")]).toEqual([file, readFileSync(join(examplesDir, file), "utf8")]);
+    }
+  });
+
+  it("prints each type's example from the examples folder, and every printed example renders", async () => {
+    expect(types().length).toBeGreaterThan(0);
+    for (const type of types()) {
+      const example = skill.run(["example", type]);
+
+      expect(example).toEqual({ status: 0, stdout: readFileSync(join(examplesDir, `${type}.json`), "utf8"), stderr: "" });
+      const { svg } = await render(example.stdout);
+      expect(skill.run(["-"], { stdin: example.stdout })).toEqual({ status: 0, stdout: svg, stderr: "" });
+    }
+  });
+
+  it("names the missing example when the examples folder isn't next to structa.mjs", () => {
+    const noExamples = join(dirname(skill.dir), "structa-without-examples");
+    cpSync(skill.dir, noExamples, { recursive: true });
+    rmSync(join(noExamples, "examples"), { recursive: true });
+
+    expect(skill.run(["example", "flow"], { dir: noExamples })).toEqual({
+      status: 1,
+      stdout: "",
+      stderr:
+        `can't find the flow example: expected ${join(noExamples, "examples", "flow.json")} ` +
+        "(keep the examples folder that came with structa.mjs next to it)\n",
+    });
+  });
+});
+
+describe("node structa.mjs --help", () => {
+  // Any new flag or output updates --help and this text.
+  const help = [
+    "Structa draws one diagram, described in JSON, as an SVG image.",
+    "",
+    "Usage:",
+    "  node structa.mjs <diagram.json> [options]  draw the diagram",
+    "  node structa.mjs - [options]               read the JSON from stdin",
+    "  node structa.mjs schema                    print the input's JSON Schema",
+    "  node structa.mjs example <type>            print a working example",
+    "",
+    "Diagram types: flow",
+    "",
+    "Options:",
+    "  -o <file.svg>       write the SVG to this file, not stdout (must end in .svg)",
+    '  --theme light|dark  draw in this theme; wins over the JSON\'s "theme"',
+    "  --no-embed-fonts    leave the fonts out of the SVG, for a smaller file",
+    "  -h, --help          print this help",
+    "",
+    "Start from an example, and check your JSON against the schema.",
+    "Commands win over file names: draw a file named schema as ./schema.",
+    "Input must be UTF-8 (a byte-order mark is fine), not UTF-16 or ANSI.",
+    "",
+    "Exit codes:",
+    "  0  success",
+    "  1  bad input or a failed render; each problem is one line on stderr",
+    "  2  bad usage",
+    "",
+  ].join("\n");
+
+  it.each([
+    [["--help"]],
+    [["-h"]],
+    [["IN", "-o", "a.svg", "--help"]],
+    [["IN", "--theme", "dark", "--no-embed-fonts", "-h"]],
+    [["example", "pie", "-h"]],
+  ])(
+    "prints the short help for %j, and nothing else",
+    (args) => {
+      const result = skill.run(args.map((arg) => (arg === "IN" ? flowPath : arg)));
+
+      expect(result).toEqual({ status: 0, stdout: help, stderr: "" });
+      expect(existsSync(join(skill.elsewhere, "a.svg"))).toBe(false);
+    },
+  );
+
+  it("stays short: at most 25 lines, none wider than 80 columns", () => {
+    const lines = skill.run(["--help"]).stdout.trimEnd().split("\n");
+
+    expect(lines.length).toBeLessThanOrEqual(25);
+    expect(lines.filter((line) => line.length > 80)).toEqual([]);
+  });
+});
+
+describe("commands win over file names", () => {
+  it("prints the schema for schema, even with a file named schema here, and draws that file as ./schema", async () => {
+    writeFileSync(join(skill.elsewhere, "schema"), flowJson);
+    const { svg } = await render(flowJson);
+
+    expect(skill.run(["schema"])).toEqual({ status: 0, stdout: readFileSync(join(skill.dir, "structa.schema.json"), "utf8"), stderr: "" });
+    expect(skill.run(["./schema"])).toEqual({ status: 0, stdout: svg, stderr: "" });
+  });
+
+  it("asks for a type for example, even with a file named example here, and draws that file as ./example", async () => {
+    writeFileSync(join(skill.elsewhere, "example"), flowJson);
+    const { svg } = await render(flowJson);
+
+    expect(skill.run(["example"]).status).toBe(2);
+    expect(skill.run(["./example"])).toEqual({ status: 0, stdout: svg, stderr: "" });
+  });
+});
+
+describe("input encodings", () => {
+  const BOM = String.fromCharCode(0xfeff);
+  const utf16le = (text: string) => Buffer.from(text, "utf16le");
+  const utf16be = (text: string) => Buffer.from(text, "utf16le").swap16();
+  const utf32 = (text: string, order: "LE" | "BE") =>
+    Buffer.concat(
+      [...text].map((char) => {
+        const bytes = Buffer.alloc(4);
+        if (order === "LE") bytes.writeUInt32LE(char.codePointAt(0)!);
+        else bytes.writeUInt32BE(char.codePointAt(0)!);
+        return bytes;
+      }),
+    );
+  const fix = "(save it as UTF-8; in PowerShell, use -Encoding utf8)";
+  const hint = `it is UTF-16 text ${fix}`;
+  const notUtf8 = `it isn't UTF-8 text ${fix}`;
+  // Labels with a Latin letter the fonts draw. Windows PowerShell 5.1's
+  // Set-Content saves them in the ANSI code page, where é is the lone byte E9.
+  const cafe = JSON.stringify({
+    type: "flow",
+    nodes: [
+      { id: "order", label: "Order at the café", shape: "step" },
+      { id: "sip", label: "Sip the crème", shape: "step" },
+    ],
+    edges: [{ from: "order", to: "sip" }],
+  });
+
+  it("strips a UTF-8 byte-order mark from a file", async () => {
+    const { svg } = await render(flowJson);
+    writeFileSync(join(skill.elsewhere, "with-bom.json"), BOM + flowJson);
+
+    expect(skill.run(["with-bom.json"])).toEqual({ status: 0, stdout: svg, stderr: "" });
+  });
+
+  it("strips a UTF-8 byte-order mark from standard input", async () => {
+    const { svg } = await render(flowJson);
+
+    expect(skill.run(["-"], { stdin: BOM + flowJson })).toEqual({ status: 0, stdout: svg, stderr: "" });
+  });
+
+  it.each([
+    ["UTF-16LE with a byte-order mark, as Windows PowerShell saves it", utf16le(BOM + flowJson), hint],
+    ["UTF-16BE with a byte-order mark", utf16be(BOM + flowJson), hint],
+    ["UTF-16LE without a byte-order mark", utf16le(flowJson), notUtf8],
+    ["UTF-16BE without a byte-order mark", utf16be(flowJson), notUtf8],
+    ["UTF-32LE with a byte-order mark", utf32(BOM + flowJson, "LE"), notUtf8],
+    ["UTF-32BE with a byte-order mark", utf32(BOM + flowJson, "BE"), notUtf8],
+    ["UTF-32LE without a byte-order mark", utf32(flowJson, "LE"), notUtf8],
+    ["UTF-32BE without a byte-order mark", utf32(flowJson, "BE"), notUtf8],
+    ["UTF-8 after a zero byte", Buffer.concat([Buffer.from([0]), Buffer.from(flowJson)]), notUtf8],
+    ["the Windows ANSI code page, with a lone E9 byte for é", Buffer.from(cafe, "latin1"), notUtf8],
+  ])("refuses a file in %s, with one line asking for UTF-8, and writes nothing", (_name, bytes, message) => {
+    writeFileSync(join(skill.elsewhere, "wide.json"), bytes);
+
+    const result = skill.run(["wide.json", "-o", "wide.svg"]);
+
+    expect(result).toEqual({ status: 1, stdout: "", stderr: `can't read wide.json: ${message}\n` });
+    expect(existsSync(join(skill.elsewhere, "wide.svg"))).toBe(false);
+  });
+
+  it("draws the same é label when the file is UTF-8", async () => {
+    const { svg } = await render(cafe);
+    writeFileSync(join(skill.elsewhere, "cafe.json"), cafe);
+
+    expect(skill.run(["cafe.json"])).toEqual({ status: 0, stdout: svg, stderr: "" });
+  });
+
+  it.each([
+    ["UTF-16", utf16le(BOM + flowJson), hint],
+    ["ANSI", Buffer.from(cafe, "latin1"), notUtf8],
+  ])("refuses %s on standard input the same way", (_name, bytes, message) => {
+    const result = skill.run(["-"], { stdin: bytes });
+
+    expect(result).toEqual({ status: 1, stdout: "", stderr: `can't read standard input: ${message}\n` });
   });
 });
 
@@ -247,6 +506,52 @@ describe("bun run build", () => {
     BUILD_TIMEOUT,
   );
 
+  /** Puts other font bytes in place of one face's font in the copy's generated font data. */
+  const replaceFont = (face: string, ttf: (project: string) => Buffer) => (project: string) => {
+    const file = join(project, "generated", "font-files.ts");
+    const source = readFileSync(file, "utf8");
+    const entry = new RegExp(`(\\["${face}", "data:font/ttf;base64,)[A-Za-z0-9+/=]+`);
+    expect(source).toMatch(entry);
+    writeFileSync(file, source.replace(entry, (_, start: string) => start + ttf(project).toString("base64")));
+  };
+  const trimmed = (file: string) => (project: string) => readFileSync(join(project, "generated", "fonts", file));
+
+  it("fails when a shipped font still has OpenType layout tables", async () => {
+    const untrimmed = () => readFileSync(fileURLToPath(new URL("../fonts/inter/Inter-SemiBold.ttf", import.meta.url)));
+
+    const message = await buildChangedProject(replaceFont("inter-semibold", untrimmed));
+
+    expect(message).toBe(failure('structa.mjs embeds "Inter" 600 normal with OpenType layout tables: GDEF, GPOS, GSUB'));
+  }, BUILD_TIMEOUT);
+
+  it.each([
+    ["family", "inter-regular", "JetBrainsMono-Regular.ttf", ['structa.mjs embeds no "Inter" 400 normal font', 'structa.mjs embeds 2 "JetBrains Mono" 400 normal fonts']],
+    ["weight", "inter-semibold", "Inter-Bold.ttf", ['structa.mjs embeds no "Inter" 600 normal font', 'structa.mjs embeds 2 "Inter" 700 normal fonts']],
+    ["style", "mono-italic", "JetBrainsMono-Regular.ttf", ['structa.mjs embeds 2 "JetBrains Mono" 400 normal fonts', 'structa.mjs embeds no "JetBrains Mono" 400 italic font']],
+  ])(
+    "fails when a shipped font has the wrong %s",
+    async (_name, face, file, problems) => {
+      const message = await buildChangedProject(replaceFont(face, trimmed(file)));
+
+      expect(message).toBe(failure(...problems));
+    },
+    BUILD_TIMEOUT,
+  );
+
+  it("fails when a shipped font lost its typographic family name, which tells SemiBold from Bold", async () => {
+    // Inter SemiBold's own family name is "Inter SemiBold"; only name id 16 says it is "Inter" at weight 600.
+    const withoutTypographicFamily = (project: string) => renumberNames(trimmed("Inter-SemiBold.ttf")(project), 16, 255);
+
+    const message = await buildChangedProject(replaceFont("inter-semibold", withoutTypographicFamily));
+
+    expect(message).toBe(
+      failure(
+        'structa.mjs embeds no "Inter" 600 normal font',
+        'structa.mjs embeds a "Inter SemiBold" 600 normal font, which is not one of its faces',
+      ),
+    );
+  }, BUILD_TIMEOUT);
+
   it("fails when structa.mjs would contain 100 characters copied from elk.bundled.js", async () => {
     // A run from the middle of ELK's file with nothing a string literal would escape.
     const elk = readFileSync(fileURLToPath(new URL("../node_modules/elkjs/lib/elk.bundled.js", import.meta.url)), "utf8");
@@ -260,6 +565,21 @@ describe("bun run build", () => {
   }, BUILD_TIMEOUT);
 });
 
+/** A copy of a TTF whose name records with id `from` have id `to` instead. */
+function renumberNames(ttf: Buffer, from: number, to: number): Buffer {
+  const font = Buffer.from(ttf);
+  for (let i = 0; i < font.readUInt16BE(4); i++) {
+    const record = 12 + 16 * i;
+    if (font.toString("latin1", record, record + 4) !== "name") continue;
+    const name = font.readUInt32BE(record + 8);
+    for (let r = 0; r < font.readUInt16BE(name + 2); r++) {
+      const nameId = name + 6 + 12 * r + 6;
+      if (font.readUInt16BE(nameId) === from) font.writeUInt16BE(to, nameId);
+    }
+  }
+  return font;
+}
+
 describe("exit code 2: bad usage", () => {
   it.each([
     ["no input", [], "give the diagram's JSON file, or - to read it from standard input"],
@@ -270,7 +590,23 @@ describe("exit code 2: bad usage", () => {
     ["a .txt output", ["IN", "-o", "chart.txt"], '-o "chart.txt": the output file must end in .svg'],
     ["an output with no extension", ["IN", "-o", "chart"], '-o "chart": the output file must end in .svg'],
     ["an output that is only an extension", ["IN", "-o", ".SVG"], '-o ".SVG": give it a name before .svg'],
+    ["--help as the file after -o", ["IN", "-o", "--help"], '-o "--help": the output file must end in .svg'],
+    ["-h as the file after -o", ["IN", "-o", "-h"], '-o "-h": the output file must end in .svg'],
     ["an unknown option", ["IN", "--sparkle"], 'unknown option "--sparkle"'],
+    ["--theme with no value", ["IN", "--theme"], "--theme needs light or dark"],
+    ["an unknown theme", ["IN", "--theme", "sepia"], '--theme "sepia": the theme must be light or dark'],
+    ["a theme in the wrong case", ["IN", "--theme", "Dark"], '--theme "Dark": the theme must be light or dark'],
+    ["two --theme", ["IN", "--theme", "dark", "--theme", "light"], "give --theme only once"],
+    ["schema with an argument", ["schema", "IN"], "schema takes no other arguments"],
+    ["schema with -o", ["schema", "-o", "a.svg"], "schema takes no other arguments"],
+    ["schema with --theme", ["schema", "--theme", "dark"], "schema takes no other arguments"],
+    ["schema with --no-embed-fonts", ["schema", "--no-embed-fonts"], "schema takes no other arguments"],
+    ["example with no type", ["example"], "example needs a diagram type (valid types: flow)"],
+    ["an unknown example type", ["example", "pie"], 'unknown diagram type "pie" (valid types: flow)'],
+    ["example with two types", ["example", "flow", "flow"], 'give one diagram type, not two ("flow" and "flow")'],
+    ["example with -o", ["example", "flow", "-o", "a.svg"], "example takes no other arguments"],
+    ["example with --theme", ["example", "flow", "--theme", "dark"], "example takes no other arguments"],
+    ["example with --no-embed-fonts", ["example", "flow", "--no-embed-fonts"], "example takes no other arguments"],
   ])("rejects %s, prints the usage line and writes nothing", (_name, args, message) => {
     const input = join(skill.elsewhere, "usage-input.json");
     writeFileSync(input, flowJson);
@@ -282,9 +618,19 @@ describe("exit code 2: bad usage", () => {
     const [first, usage, ...rest] = result.stderr.split("\n");
     expect(first).toBe(message);
     expect(usage).toMatch(/^usage: node structa\.mjs /);
+    expect(usage).toContain("[--no-embed-fonts]");
     expect(rest).toEqual([""]);
     for (const name of ["a.svg", "b.svg", "chart.png", "chart.txt", "chart", ".SVG"]) {
       expect(existsSync(join(skill.elsewhere, name))).toBe(false);
     }
+  });
+
+  it("lists every flag and command in the usage line", () => {
+    const [, usage] = skill.run([]).stderr.split("\n");
+
+    expect(usage).toBe(
+      "usage: node structa.mjs <diagram.json | -> [-o <file.svg>] [--theme light|dark] [--no-embed-fonts]" +
+        " | schema | example <type> | --help",
+    );
   });
 });

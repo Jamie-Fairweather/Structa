@@ -207,6 +207,46 @@ export function badlyFormattedNumbers(svg: string): string[] {
   return found;
 }
 
+/** A face as "family weight style", e.g. "Structa Inter 600 normal". */
+export type FaceName = string;
+
+export interface FontFaceRule {
+  readonly face: FaceName;
+  /** The rule's `src` value, exactly as written. */
+  readonly src: string;
+}
+
+/** The @font-face rules in the SVG's <style> elements, in order. */
+export function fontFaceRules(doc: Document): FontFaceRule[] {
+  const css = allElements(doc)
+    .filter((el) => el.localName === "style")
+    .map((el) => el.textContent ?? "")
+    .join("\n");
+  return [...css.matchAll(/@font-face\s*\{([^}]*)\}/g)].map(([, body]) => {
+    const declarations = new Map<string, string>();
+    // A value runs to the next ";" outside url(...) and quotes: the data URL itself contains one.
+    for (const [, name, value] of body!.matchAll(/([a-z-]+)\s*:\s*((?:url\([^)]*\)|"[^"]*"|[^;])+?)\s*(?:;|$)/g)) {
+      declarations.set(name!, value!);
+    }
+    const family = (declarations.get("font-family") ?? "").replace(/^"(.*)"$/, "$1");
+    return {
+      face: `${family} ${declarations.get("font-weight")} ${declarations.get("font-style")}`,
+      src: declarations.get("src") ?? "",
+    };
+  });
+}
+
+/** Each face the SVG's text is drawn in, once, in order of first use. */
+export function textFaces(doc: Document): FaceName[] {
+  const faces = allElements(doc)
+    .filter((el) => el.localName === "text")
+    .map((text) => {
+      const family = (text.getAttribute("font-family") ?? "").split(",")[0]!.trim().replace(/^"(.*)"$/, "$1");
+      return `${family} ${text.getAttribute("font-weight") ?? "400"} ${text.getAttribute("font-style") ?? "normal"}`;
+    });
+  return [...new Set(faces)];
+}
+
 export function cardById(doc: Document, id: string): Element {
   const card = cards(doc).find((c) => c.getAttribute("data-id") === id);
   if (!card) throw new Error(`no card with data-id ${id}`);

@@ -46,20 +46,36 @@ describe("render()", () => {
     expect(error.message).toBe(`${path}: ${message} (use ["svg"])`);
   });
 
-  it("draws the light theme by default and the dark theme when asked", async () => {
-    const background = (svg: string) => /<rect width="\d+" height="\d+" fill="(#[0-9a-f]{6})"\/>/.exec(svg)![1];
-
-    expect(background((await render(tidyShed)).svg)).toBe("#f4f5f7");
-    expect(background((await render(tidyShed, { theme: "light" })).svg)).toBe("#f4f5f7");
-    expect(background((await render(tidyShed, { theme: "dark" })).svg)).toBe("#0d1117");
-  });
-
-  it.each(["sepia", "Dark", 1])("rejects the theme %j with INVALID_OPTIONS", async (theme) => {
+  it.each([
+    ["sepia", '"sepia" is not a valid theme'],
+    ["Dark", '"Dark" is not a valid theme'],
+    ["", '"" is not a valid theme'],
+    [null, "must be a string"],
+    [true, "must be a string"],
+    [["dark"], "must be a string"],
+  ])("rejects the theme option %j with INVALID_OPTIONS", async (theme, message) => {
     const error = await rejection(render(tidyShed, { theme } as never));
 
     expect(error.code).toBe("INVALID_OPTIONS");
+    expect(error.problems).toEqual([{ path: "options.theme", message, hint: 'use "light" or "dark"' }]);
+    expect(error.message).toBe(`options.theme: ${message} (use "light" or "dark")`);
+  });
+
+  it.each([["dark"], [null], [["svg"]], [2], [true]])("rejects options of %j, which aren't an object, with INVALID_OPTIONS", async (options) => {
+    const error = await rejection(render(tidyShed, options as never));
+
+    expect(error.code).toBe("INVALID_OPTIONS");
+    expect(error.problems).toEqual([{ path: "options", message: "must be an object", hint: 'write them as {"theme": "dark"}, for example' }]);
+  });
+
+  it("reports every problem with the options at once", async () => {
+    const error = await rejection(render(tidyShed, { formats: ["pdf", "svg", "png"], theme: "sepia" } as never));
+
+    expect(error.code).toBe("INVALID_OPTIONS");
     expect(error.problems).toEqual([
-      { path: "options.theme", message: `${JSON.stringify(theme)} is not a theme`, hint: 'use "light" or "dark"' },
+      { path: "options.formats[0]", message: 'format "pdf" is not supported yet', hint: 'use ["svg"]' },
+      { path: "options.formats[2]", message: 'format "png" is not supported yet', hint: 'use ["svg"]' },
+      { path: "options.theme", message: '"sepia" is not a valid theme', hint: 'use "light" or "dark"' },
     ]);
   });
 

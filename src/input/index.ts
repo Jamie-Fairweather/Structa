@@ -1,9 +1,18 @@
 import type { Problem } from "../errors";
+import type { ThemeName } from "../theme";
 import { check } from "./check";
 import { diagramDefinition, type Status } from "./definitions";
 import { parseJson } from "./json";
 
-export { DESCRIPTION_FACE, LINE_LABEL_FACE, STATUSES, STEP_LABEL_FACE, TITLE_FACE, type Status } from "./definitions";
+export {
+  DESCRIPTION_FACE,
+  DIAGRAM_TYPES,
+  LINE_LABEL_FACE,
+  STATUSES,
+  STEP_LABEL_FACE,
+  TITLE_FACE,
+  type Status,
+} from "./definitions";
 export { jsonSchema } from "./schema";
 
 export interface FlowStep {
@@ -32,6 +41,7 @@ export interface FlowDiagram {
   readonly type: "flow";
   readonly title?: string;
   readonly description?: string;
+  readonly theme: ThemeName;
   readonly direction: Direction;
   /** Whether to draw the legend of the statuses used. */
   readonly legend: boolean;
@@ -69,6 +79,7 @@ export function parseDiagram(input: unknown): ParseResult {
       type: diagram.type,
       ...(diagram.title === undefined ? {} : { title: diagram.title }),
       ...(diagram.description === undefined ? {} : { description: diagram.description }),
+      theme: diagram.theme,
       direction: diagram.direction,
       legend: diagram.legend,
       nodes: diagram.nodes,

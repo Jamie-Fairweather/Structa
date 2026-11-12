@@ -9,20 +9,38 @@ export type FaceId =
 
 export interface FaceStyle {
   readonly id: FaceId;
+  /** The family the font file's name records give, which the rasteriser and the build checks read. */
   readonly family: string;
-  /** CSS font-family list written into the SVG, with a generic fallback. */
+  /**
+   * The family an SVG's @font-face rules give the embedded face. Only Structa
+   * uses it, so an SVG inlined into a web page can't take over the page's own
+   * text in the plain family.
+   */
+  readonly embeddedFamily: string;
+  /** CSS font-family list written into the SVG: the embedded face, the installed family, then a generic fallback. */
   readonly fontFamily: string;
   readonly weight: 400 | 600 | 700;
   readonly style: "normal" | "italic";
 }
 
+const INTER = {
+  family: "Inter",
+  embeddedFamily: "Structa Inter",
+  fontFamily: "Structa Inter, Inter, sans-serif",
+} as const;
+const MONO = {
+  family: "JetBrains Mono",
+  embeddedFamily: "Structa JetBrains Mono",
+  fontFamily: "Structa JetBrains Mono, JetBrains Mono, monospace",
+} as const;
+
 export const FACES: readonly FaceStyle[] = [
-  { id: "inter-regular", family: "Inter", fontFamily: "Inter, sans-serif", weight: 400, style: "normal" },
-  { id: "inter-semibold", family: "Inter", fontFamily: "Inter, sans-serif", weight: 600, style: "normal" },
-  { id: "inter-bold", family: "Inter", fontFamily: "Inter, sans-serif", weight: 700, style: "normal" },
-  { id: "inter-semibold-italic", family: "Inter", fontFamily: "Inter, sans-serif", weight: 600, style: "italic" },
-  { id: "mono-regular", family: "JetBrains Mono", fontFamily: "JetBrains Mono, monospace", weight: 400, style: "normal" },
-  { id: "mono-italic", family: "JetBrains Mono", fontFamily: "JetBrains Mono, monospace", weight: 400, style: "italic" },
+  { id: "inter-regular", ...INTER, weight: 400, style: "normal" },
+  { id: "inter-semibold", ...INTER, weight: 600, style: "normal" },
+  { id: "inter-bold", ...INTER, weight: 700, style: "normal" },
+  { id: "inter-semibold-italic", ...INTER, weight: 600, style: "italic" },
+  { id: "mono-regular", ...MONO, weight: 400, style: "normal" },
+  { id: "mono-italic", ...MONO, weight: 400, style: "italic" },
 ];
 
 /**
@@ -52,7 +70,7 @@ export const CHARACTER_RANGES: readonly (readonly [number, number])[] = [
 ];
 
 /**
- * Metrics for one face as written by scripts/generate-font-metrics.ts.
+ * Metrics for one face as written by scripts/generate-fonts.ts.
  * Widths are advance widths in font units. `runs` lists consecutive code
  * points the face can draw: [first code point, widths...].
  */
