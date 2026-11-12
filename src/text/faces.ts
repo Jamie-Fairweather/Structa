@@ -52,7 +52,7 @@ export const CHARACTER_RANGES: readonly (readonly [number, number])[] = [
 ];
 
 /**
- * Metrics for one face as written by scripts/generate-font-metrics.ts.
+ * Metrics for one face as written by scripts/generate-fonts.ts.
  * Widths are advance widths in font units. `runs` lists consecutive code
  * points the face can draw: [first code point, widths...].
  */

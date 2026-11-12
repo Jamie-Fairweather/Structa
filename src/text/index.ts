@@ -1,6 +1,8 @@
+import { FONT_FILES } from "../../generated/font-files";
 import { FONT_METRICS } from "../../generated/font-metrics";
 import { CHARACTER_RANGES, FACES, type FaceId, type FaceStyle } from "./faces";
 
+export { FACES } from "./faces";
 export type { FaceId, FaceStyle } from "./faces";
 
 interface FaceTable {
@@ -30,6 +32,13 @@ function table(face: FaceId): FaceTable {
 
 export function faceStyle(face: FaceId): FaceStyle {
   return FACES.find((f) => f.id === face)!;
+}
+
+/** The face's font file, the same one the width tables were read from, as a `data:font/ttf;base64,` URL. */
+export function fontDataUrl(face: FaceId): string {
+  const url = FONT_FILES.get(face);
+  if (url === undefined) throw new Error(`no font file for ${face}: run "bun run generate"`);
+  return url;
 }
 
 /** A text field may use only characters every face it is drawn in has in its width table. */
