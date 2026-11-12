@@ -16,18 +16,21 @@ describe("examples", () => {
     expect(examples.length).toBeGreaterThan(0);
   });
 
+  // Every example in both themes. The theme option wins over any theme in the example's JSON.
   describe.each(examples)("$name", ({ name, json }) => {
-    it("matches its light snapshot", async () => {
-      const { svg } = await render(json, { embedFonts: false });
+    describe.each(["light", "dark"] as const)("in %s", (theme) => {
+      it("matches its snapshot", async () => {
+        const { svg } = await render(json, { embedFonts: false, theme });
 
-      await expect(svg).toMatchFileSnapshot(`__snapshots__/examples/${name}.light.svg`);
-    });
+        await expect(svg).toMatchFileSnapshot(`__snapshots__/examples/${name}.${theme}.svg`);
+      });
 
-    it("passes the SVG rules", async () => {
-      const { svg } = await render(json, { embedFonts: false });
+      it("passes the SVG rules", async () => {
+        const { svg } = await render(json, { embedFonts: false, theme });
 
-      expect(passiveSvgViolations(svg)).toEqual([]);
-      expect(badlyFormattedNumbers(svg)).toEqual([]);
+        expect(passiveSvgViolations(svg)).toEqual([]);
+        expect(badlyFormattedNumbers(svg)).toEqual([]);
+      });
     });
   });
 });
