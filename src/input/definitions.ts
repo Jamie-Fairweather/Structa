@@ -784,9 +784,9 @@ type CheckedErEdge = { readonly [field in (typeof COLUMN_ENDS)[number][number]]?
 
 /**
  * A line's fromColumn and toColumn name columns of its own from and to
- * tables, compared as tidied. A table that names no node was reported
- * already, and so was a blank name; a table whose columns aren't all known,
- * because their list or a name had a problem, isn't judged.
+ * tables, compared as tidied. A from or to that names no node was reported
+ * already, and so was a blank column name; a table whose columns aren't all
+ * known, because their list or a name had a problem, isn't judged.
  */
 const columnEndsRule: Rule = (checked, given) => {
   const tables = (checked.nodes ?? []) as readonly CheckedTable[];
