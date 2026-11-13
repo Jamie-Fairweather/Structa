@@ -33,13 +33,6 @@ export { buildLegend, type AreaItem, type Legend, type LegendItem, type StatusIt
 export { distanceToBox, entry, nearest, type Mark, type Outline } from "./outline";
 export { tableBody } from "./table";
 
-/**
- * What's drawn where a line meets a card: a filled arrowhead, as on a
- * flowchart; an open arrow, just two strokes; UML's hollow triangle, at a
- * parent; or a diamond, filled or hollow, at an owner.
- */
-export type EndMark = "arrow" | "open-arrow" | "hollow-triangle" | "filled-diamond" | "hollow-diamond";
-
 /** Everything about one kind of mark at a line's end: how big it is, how the line and other lines meet it, and how it's drawn. */
 export interface LineEnd {
   /** How big it is: `length` along the line and `width` across it, before it's fitted to a short run. */
@@ -54,7 +47,9 @@ export interface LineEnd {
   /**
    * Whether lines that meet one card with this mark share it there, as UML
    * draws the lines into one parent under one triangle, and the lines from
-   * one owner at one diamond.
+   * one owner at one diamond. A dashed line into a shared mark is dashed from
+   * the mark back, with a whole dash at it, so the lines that share it dash
+   * alike along the stretch they share.
    */
   readonly shared: boolean;
   /**
@@ -71,8 +66,13 @@ export interface LineEnd {
   };
 }
 
-/** Every line-end mark, and everything about it. */
-export const LINE_ENDS: { readonly [mark in EndMark]: LineEnd } = {
+/**
+ * Every line-end mark, and everything about it: a filled arrowhead, as on a
+ * flowchart; an open arrow, just two strokes; UML's hollow triangle, at a
+ * parent; or a diamond, filled or hollow, at an owner. A new mark is one
+ * entry here.
+ */
+export const LINE_ENDS = {
   arrow: {
     size: (sizes) => ({ length: sizes.line.arrowLength, width: sizes.line.arrowWidth }),
     stopsShort: true,
@@ -104,7 +104,10 @@ export const LINE_ENDS: { readonly [mark in EndMark]: LineEnd } = {
     shared: true,
     drawn: { path: "diamond", fill: "hollow", stroke: "closed" },
   },
-};
+} as const satisfies { readonly [mark: string]: LineEnd };
+
+/** What's drawn where a line meets a card: one of the marks in `LINE_ENDS`. */
+export type EndMark = keyof typeof LINE_ENDS;
 
 /**
  * A line between two cards, as drawn and as layout gives it to ELK. Its

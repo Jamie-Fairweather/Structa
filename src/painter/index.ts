@@ -727,10 +727,10 @@ function line({ line, fromLabel, toLabel }: RoutedLine<Line>, points: readonly P
   const to = line.marks.to && fitted(line.marks.to, pts, sizes);
   // Dashed shows an async, implements or dependency line, dotted a relationship the database doesn't enforce.
   const dashes = line.pattern === "solid" ? undefined : sizes[line.pattern];
-  // A dashed line into a triangle is dashed from the triangle back, with a whole dash at it, so lines
-  // that join under one triangle dash alike along the stretch they share.
+  // A dashed line into a mark that lines share, such as a triangle, is dashed from the mark back, with a
+  // whole dash at it, so the lines that share it dash alike along the stretch they share.
   const offset = (() => {
-    if (!dashes || to?.mark !== "hollow-triangle") return undefined;
+    if (!dashes || !to || !LINE_ENDS[to.mark].shared) return undefined;
     const length = routeLength(pts, sizes.line.cornerRadius, routeGap(from), routeGap(to));
     const period = dashes.dash + dashes.gap;
     return (((dashes.dash - length) % period) + period) % period;
