@@ -154,8 +154,12 @@ describe("examples", () => {
   };
   const parsed = () => examples.map(({ name, json }) => ({ name, d: JSON.parse(json) as ChangeMap }));
 
-  /** Whether `d` is the acceptance example: an admin portal calls an API, the API calls services, the services use a database. */
-  function isChangeMap(d: ChangeMap): boolean {
+  /**
+   * What `d` lacks of the acceptance example, in which an admin portal calls
+   * an API, the API calls services and the services use a database: each
+   * criterion it misses, by name. None for the change map.
+   */
+  function changeMapGaps(d: ChangeMap): string[] {
     const areas = d.areas ?? [];
     const edges = d.edges ?? [];
     // An area and every area inside it, at any depth.
@@ -170,21 +174,26 @@ describe("examples", () => {
     const methodStatuses = new Set(d.nodes.filter((n) => n.kind === "class").flatMap((n) => (n.methods ?? []).map((m) => m.status)));
     const labelled = edges.filter((e) => e.label !== undefined);
 
-    return (
-      d.type === "architecture" &&
-      areas.some((a) => a.parent !== undefined) &&
-      tiers.every((tier) => tier.size > 0) &&
-      tiers.slice(1).every((tier, i) => calls(tiers[i]!, tier)) &&
-      ["ui", "api", "service", "database", "queue"].every((kind) => kinds.has(kind)) &&
-      ["new", "changed", "removed", "unchanged"].every((s) => methodStatuses.has(s)) &&
-      new Set(labelled.map((e) => e.status ?? "none")).size >= 3 &&
-      labelled.some((e) => e.status === "removed") &&
-      edges.some((e) => e.emphasis === true)
-    );
+    const criteria: [string, boolean][] = [
+      ["an architecture diagram", d.type === "architecture"],
+      ["an area inside another", areas.some((a) => a.parent !== undefined)],
+      ["cards in top-level areas Admin portal, API, Services and Database", tiers.every((tier) => tier.size > 0)],
+      ["a line from each of those areas into the next", tiers.slice(1).every((tier, i) => calls(tiers[i]!, tier))],
+      ["ui, api, service, database and queue cards", ["ui", "api", "service", "database", "queue"].every((kind) => kinds.has(kind))],
+      ["class methods of every status", ["new", "changed", "removed", "unchanged"].every((s) => methodStatuses.has(s))],
+      ["labelled lines of at least three statuses", new Set(labelled.map((e) => e.status ?? "none")).size >= 3],
+      ["a removed labelled line", labelled.some((e) => e.status === "removed")],
+      ["an emphasised line", edges.some((e) => e.emphasis === true)],
+    ];
+    return criteria.filter(([, met]) => !met).map(([criterion]) => criterion);
   }
+  const isChangeMap = (d: ChangeMap) => changeMapGaps(d).length === 0;
 
   it("includes the change map: an admin portal calling an API, calling services, using a database, in nested area boxes", () => {
-    expect(parsed().some(({ d }) => isChangeMap(d) && d.groupAreas === true)).toBe(true);
+    // On failure, this lists what each example with area boxes lacks.
+    const boxed = parsed().filter(({ d }) => d.groupAreas === true);
+
+    expect(boxed.map(({ name, d }) => [name, changeMapGaps(d)])).toContainEqual([expect.any(String), []]);
   });
 
   it("includes the same change map with area tags only: the same areas, cards and lines, without the boxes", () => {
@@ -196,25 +205,28 @@ describe("examples", () => {
   });
 
   describe("the change maps as PNGs", () => {
-    const changeMaps = () => parsed().filter(({ d }) => isChangeMap(d));
+    const changeMaps = parsed().filter(({ d }) => isChangeMap(d));
+    const pages = [
+      { theme: "light", page: "#f4f5f7" },
+      { theme: "dark", page: "#0d1117" },
+    ] as const;
 
     it("has both", () => {
-      expect(changeMaps().map(({ d }) => d.groupAreas === true).sort()).toEqual([false, true]);
+      expect(changeMaps.map(({ d }) => d.groupAreas === true).sort()).toEqual([false, true]);
     });
 
-    it.each([
-      ["light", "#f4f5f7"],
-      ["dark", "#0d1117"],
-    ] as const)("draws each in the %s theme: twice its SVG's size, on that theme's page colour", async (theme, page) => {
-      for (const { name, d } of changeMaps()) {
-        const { svg, png } = await render(d, { formats: ["svg", "png"], embedFonts: false, theme });
+    // At scale 1, which keeps each picture small enough to decode quickly. png.test.ts covers the default scale.
+    it.each(changeMaps.flatMap(({ name, d }) => pages.map((look) => ({ name, d, ...look }))))(
+      "draws $name in the $theme theme as a PNG its SVG's size at scale 1, on that theme's page colour",
+      { timeout: 60_000 },
+      async ({ d, theme, page }) => {
+        const { svg, png } = await render(d, { formats: ["svg", "png"], embedFonts: false, theme, scale: 1 });
         const picture = decodePng(png);
-        const size = svgSize(svg);
 
-        expect([name, picture.width, picture.height]).toEqual([name, size.width * 2, size.height * 2]);
+        expect({ width: picture.width, height: picture.height }).toEqual(svgSize(svg));
         expect(pixel(picture, 0, 0)).toEqual({ color: page, alpha: 255 });
-      }
-    });
+      },
+    );
   });
 
   // Every example in both themes. The theme option wins over any theme in the example's JSON.
@@ -237,6 +249,8 @@ describe("examples", () => {
 });
 
 describe("determinism", () => {
+  // An example picked by name, so adding examples doesn't change what these tests draw.
+  const a = examples.find(({ name }) => name === "architecture-classes")!.json;
   const seedTray = {
     type: "flow",
     nodes: [
@@ -251,8 +265,6 @@ describe("determinism", () => {
   };
 
   it("gives identical bytes for A, then B, then A again in one process", async () => {
-    const a = examples[0]!.json;
-
     const first = await render(a, { embedFonts: false });
     const other = await render(seedTray, { embedFonts: false });
     const again = await render(a, { embedFonts: false });
@@ -262,7 +274,6 @@ describe("determinism", () => {
   });
 
   it("gives the same bytes when renders run at the same time", async () => {
-    const a = examples[0]!.json;
     const alone = await render(a, { embedFonts: false });
 
     const together = await Promise.all([

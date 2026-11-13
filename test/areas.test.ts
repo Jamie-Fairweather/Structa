@@ -1176,7 +1176,8 @@ describe("the legend's areas", () => {
     expect(height(doc)).toBeGreaterThan(height(plain));
   });
 
-  it("draws 100 areas as a PNG at the default scale", async () => {
+  // A big picture: on CI it takes longer than Vitest's default 5 seconds.
+  it("draws 100 areas as a PNG at the default scale", { timeout: 60_000 }, async () => {
     const { svg, png } = await render(stalls(100, (i) => `Stall number ${i}`), { formats: ["svg", "png"], embedFonts: false });
     const doc = parseSvg(svg);
 
