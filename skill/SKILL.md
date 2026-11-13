@@ -9,12 +9,14 @@ Structa turns one JSON file describing one diagram into an SVG or PNG image. It 
 
 ## Running it
 
-`structa.mjs` is the file in this skill's folder. It needs Node 20 or newer and nothing installed. Run it with `node`: Bun and Deno are untested. Give `structa.mjs` by its full path and run it from your own working folder. It finds the files beside it itself, and the files you name are relative to where you are.
+`structa.mjs` is the file in this skill's folder. It needs Node 20 or newer and nothing installed. Run it with `node`: Bun and Deno are untested. Run it from your own working folder, and wherever the commands below say `structa.mjs`, give its full path. It finds the files beside it itself, and the files you name are relative to where you are.
 
 ```sh
 node structa.mjs example architecture > diagram.json   # a working example to start from
 node structa.mjs diagram.json -o diagram.png           # draw it
 ```
+
+In PowerShell, don't use >, < or a pipe with Structa: > saves text as UTF-16, which Structa refuses, < doesn't work there, and a pipe can mangle characters such as →. Copy the example file from the `examples/` folder beside `structa.mjs`, such as `examples/architecture.json`, rather than printing it. Write every image with `-o`, and name the JSON file rather than `-`.
 
 More ways to run it:
 
@@ -33,7 +35,7 @@ node structa.mjs --help
 - `--theme` is `light` (the default) or `dark`, and wins over the JSON's `theme`.
 - `--scale` sets a PNG's pixels per SVG pixel: a whole number from 1 to 4, 2 by default.
 - `--no-embed-fonts` makes a smaller SVG that relies on the viewer having the fonts. PNGs always have them.
-- Write the JSON file as UTF-8. A PowerShell redirect can save UTF-16, which Structa refuses with a hint.
+- Write the JSON file as UTF-8. A byte-order mark is fine, and UTF-16 is refused with a hint.
 
 Exit code 0 means success. 1 means bad input or a failed render: each problem is one line on stderr, with where it is and a hint, and no file is written. Fix every problem listed, then run it again. 2 means a mistake in the command itself.
 
@@ -93,7 +95,7 @@ When the diagram shows how things are, leave `status` out everywhere. When it sh
 
 Include an unchanged part only when the change needs it to make sense, such as the caller of a changed service or the table a new foreign key points to. Leave the rest out, and count the rows you leave out of a card with `more`, which draws a muted "… 12 more" row.
 
-Rows in a `new` or `removed` card take the card's status, so leave theirs out. A card whose rows have a status needs one of its own, usually `changed`, and an `unchanged` card holds only unchanged rows. Structa refuses a diagram that breaks these rules, so the picture never contradicts itself.
+Rows in a `new` or `removed` card take the card's status, so leave theirs out. A card whose rows have a status needs one of its own, usually `changed`, and an `unchanged` card holds no new, changed or removed rows. Structa refuses a diagram that breaks these rules, so the picture never contradicts itself.
 
 Lines show their status by colour alone. Mark the main path through a busy diagram with `"emphasis": true`, which draws it thicker. The legend at the bottom lists the statuses and areas used, and `"legend": false` leaves it out.
 
@@ -127,6 +129,7 @@ Short labels keep cards small and the layout tidy.
 | lines, in `edges` | 1000 |
 | areas, in `areas` | 100 |
 | rows in one card: `properties`, `methods` and `values` together, or `columns` | 100 |
+| rows counted in `more` | 9999 |
 | a diagram's `title`, or a card's `label` | 100 characters |
 | a `description` | 300 characters |
 | an area's `label` | 40 characters |

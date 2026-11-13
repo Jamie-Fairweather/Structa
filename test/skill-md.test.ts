@@ -120,6 +120,28 @@ describe("SKILL.md in the skill folder", () => {
     expect(statedLimits(skillMd)).toEqual(schemaLimits(schema));
   });
 
+  it("states how deep areas nest as the schema does", () => {
+    // The schema can only say this in words, in the description of areas.
+    const depth = /at most (\d+) levels deep/.exec(JSON.stringify(schema))?.[1];
+
+    expect(depth).toBeDefined();
+    expect(section(skillMd, "Areas")).toContain(`at most ${depth} levels deep`);
+  });
+
+  it("tells PowerShell users how to do without each redirect the commands use", () => {
+    const redirects = new Set(shownCommands(skillMd).flatMap((line) => line.split(/\s+/).filter((word) => word === ">" || word === "<")));
+    const advice = skillMd.split("\n\n").find((paragraph) => paragraph.startsWith("In PowerShell, "));
+
+    expect(redirects.size).toBeGreaterThan(0);
+    expect(advice).toBeDefined();
+    const words = new Set(advice!.split(/[\s,:]+/));
+    expect([...redirects].filter((redirect) => !words.has(redirect))).toEqual([]);
+    // What to do instead: copy an example file rather than print it, write images with -o, and name the JSON file rather than -.
+    expect(advice).toMatch(/`examples\/[a-z-]+\.json`/);
+    expect(advice).toContain("`-o`");
+    expect(advice).toContain("`-`");
+  });
+
   it("asks for the Node that package.json does, and calls Bun and Deno untested wherever it names them", () => {
     const { engines } = JSON.parse(readFileSync(fileURLToPath(new URL("../package.json", import.meta.url)), "utf8")) as { engines: { node: string } };
     const major = /^>=(\d+)$/.exec(engines.node)?.[1];
@@ -209,6 +231,7 @@ interface SchemaNode {
   readonly $ref?: string;
   readonly maxItems?: number;
   readonly maxLength?: number;
+  readonly maximum?: number;
 }
 
 /** Calls `visit` with every object in the JSON Schema `schema`, outermost first. */
@@ -242,14 +265,14 @@ function choicesOf(schema: unknown, field: string): readonly unknown[] {
   return found[0] ?? [];
 }
 
-/** Every field in the JSON Schema `schema` with a most items or a longest text, as "<field> <limit>", once each, sorted. */
+/** Every field in the JSON Schema `schema` with a most items, a longest text or a largest number, as "<field> <limit>", once each, sorted. */
 function schemaLimits(schema: unknown): string[] {
   const defs = (schema as { $defs: Record<string, SchemaNode> }).$defs;
   const limits = new Set<string>();
   eachObject(schema, (node) => {
     for (const [field, def] of Object.entries(node.properties ?? {})) {
       const resolved = { ...(def.$ref === undefined ? {} : defs[def.$ref.replace("#/$defs/", "")]), ...def };
-      const limit = resolved.maxItems ?? resolved.maxLength;
+      const limit = resolved.maxItems ?? resolved.maxLength ?? resolved.maximum;
       if (limit !== undefined) limits.add(`${field} ${limit}`);
     }
   });
