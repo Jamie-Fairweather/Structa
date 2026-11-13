@@ -75,7 +75,7 @@ export function colourDifference(a: string, b: string): number {
   return Math.max(...x.map((value, i) => Math.abs(value - y[i]!)));
 }
 
-function expectSameSize(a: Picture, b: Picture): void {
+function requireSameSize(a: Picture, b: Picture): void {
   if (a.width !== b.width || a.height !== b.height) {
     throw new Error(`the pictures differ in size: ${a.width} by ${a.height} px and ${b.width} by ${b.height} px`);
   }
@@ -87,7 +87,7 @@ function expectSameSize(a: Picture, b: Picture): void {
  * other doesn't comes out as dark ink on white, whatever lay behind it.
  */
 export function difference(picture: Picture, background: Picture): Picture {
-  expectSameSize(picture, background);
+  requireSameSize(picture, background);
   const rgba = new Uint8Array(picture.rgba.length);
   for (let i = 0; i < rgba.length; i++) rgba[i] = i % 4 === 3 ? 255 : 255 - Math.abs(picture.rgba[i]! - background.rgba[i]!);
   return { width: picture.width, height: picture.height, rgba };
@@ -95,7 +95,7 @@ export function difference(picture: Picture, background: Picture): Picture {
 
 /** The smallest region, in pixels, holding every pixel two pictures of the same size differ in; undefined when they match. */
 export function changedRegion(a: Picture, b: Picture): Region | undefined {
-  expectSameSize(a, b);
+  requireSameSize(a, b);
   let [left, top, right, bottom] = [a.width, a.height, -1, -1];
   for (let at = 0; at < a.rgba.length; at += 4) {
     if ([0, 1, 2, 3].every((c) => a.rgba[at + c] === b.rgba[at + c])) continue;
@@ -111,7 +111,7 @@ export function changedRegion(a: Picture, b: Picture): Region | undefined {
  * how far it has gone from the background's colour towards `colour`.
  */
 export function inkArea(picture: Picture, background: Picture, colour: string): number {
-  expectSameSize(picture, background);
+  requireSameSize(picture, background);
   const ink = channels(colour);
   let area = 0;
   for (let at = 0; at < picture.rgba.length; at += 4) {

@@ -79,7 +79,7 @@ describe("PNG output", () => {
 describe("text in PNGs", () => {
   const SCALE = 4;
   /** A no-break space: drawn in place of some text, it draws nothing there and moves nothing else. */
-  const NOTHING = " ";
+  const NOTHING = "\u00a0";
   const oneStep = (label: string) => ({ type: "flow", nodes: [{ id: "step", label, shape: "step" }] });
   const oneRow = (text: string) => ({ type: "class", nodes: [{ id: "card", label: "Sample", methods: [{ text }] }] });
   const abstractRow = (text: string) => ({ type: "class", nodes: [{ id: "card", label: "Sample", methods: [{ text, abstract: true }] }] });
