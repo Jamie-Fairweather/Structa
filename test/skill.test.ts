@@ -1,11 +1,11 @@
 import { createHash } from "node:crypto";
-import { appendFileSync, chmodSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, utimesSync, writeFileSync } from "node:fs";
+import { appendFileSync, chmodSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { brotliDecompressSync } from "node:zlib";
 import { unzipSync } from "fflate";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { zipSkill } from "../scripts/lib/skill";
+import { releaseSkill, type Release } from "../scripts/lib/skill";
 import { readTtf, type TtfFont } from "../scripts/lib/ttf";
 import { render } from "../src/index";
 import { CHARACTER_RANGES } from "../src/text/faces";
@@ -555,18 +555,19 @@ describe("the release zip", () => {
     );
   });
 
-  it("is the same bytes from the same files, whenever they were written or zipped", () => {
-    const touched = join(dirname(skill.dir), "structa-touched");
-    cpSync(skill.release.folder, touched, { recursive: true });
-    for (const file of filesUnder(touched)) utimesSync(join(touched, file), new Date(2031, 5, 7), new Date(2031, 5, 7));
+  it("is the same bytes from a second release, made later and in another folder", { timeout: 120_000 }, async () => {
+    // The second release writes every file afresh, and its clock says it's years later.
     vi.useFakeTimers({ toFake: ["Date"] });
+    let again: Release;
     try {
       vi.setSystemTime(new Date(2044, 10, 3, 17, 5));
-
-      expect(Buffer.from(zipSkill(touched)).equals(readFileSync(skill.release.zip))).toBe(true);
+      again = await releaseSkill(join(dirname(dirname(skill.release.zip)), "dist-again"));
     } finally {
       vi.useRealTimers();
     }
+
+    expect(again.zip).not.toBe(skill.release.zip);
+    expect(Buffer.from(readFileSync(again.zip)).equals(readFileSync(skill.release.zip))).toBe(true);
   });
 
   it("comes with release notes that say how to use it and what its licence is", () => {
