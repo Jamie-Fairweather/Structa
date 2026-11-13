@@ -1094,19 +1094,30 @@ describe("lines that name columns", () => {
     expect(start.y).toBeCloseTo(rowSpans(doc).get("plots")!.get("site_id")!.middle, 1);
   });
 
-  const COLUMN_HINT = (end: string, table: string) => `use the name of a column in "${table}", or leave ${end}Column out to attach the line at the table's header`;
+  /** The hint for a column name that isn't one of the table's, listing the ones it has. */
+  const COLUMN_HINT = (end: string, table: string, columns: string) =>
+    `use one of the columns of "${table}" (${columns}), or leave ${end}Column out to attach the line at the table's header`;
+  const PLOTS = '"id", "site_id", "number", "tenant_id", "last_tenant_id"';
+  const SITES = '"id", "name"';
 
-  it("rejects a fromColumn or toColumn that names no column of its own table, at each one", async () => {
+  it("rejects a fromColumn or toColumn that names no column of its own table, at each one, listing the table's columns", async () => {
     const input = lettings([
       { from: "plots", to: "sites", fromColumn: "site", toColumn: "site_id" },
       { from: "plots", to: "tenants", fromColumn: "tenant_id", toColumn: "id" },
       { from: "tenants", to: "sites", fromColumn: "id", toColumn: "Name" },
+      { from: "plots", to: "gates", fromColumn: "site_id", toColumn: "id" },
     ]);
+    input.nodes.push({ id: "gates", label: "gates" });
 
     expect(await problems(input)).toEqual([
-      { path: "edges[0].fromColumn", message: 'no column named "site" in "plots"', hint: COLUMN_HINT("from", "plots") },
-      { path: "edges[0].toColumn", message: 'no column named "site_id" in "sites"', hint: COLUMN_HINT("to", "sites") },
-      { path: "edges[2].toColumn", message: 'no column named "Name" in "sites"', hint: COLUMN_HINT("to", "sites") },
+      { path: "edges[0].fromColumn", message: 'no column named "site" in "plots"', hint: COLUMN_HINT("from", "plots", PLOTS) },
+      { path: "edges[0].toColumn", message: 'no column named "site_id" in "sites"', hint: COLUMN_HINT("to", "sites", SITES) },
+      { path: "edges[2].toColumn", message: 'no column named "Name" in "sites"', hint: COLUMN_HINT("to", "sites", SITES) },
+      {
+        path: "edges[3].toColumn",
+        message: 'no column named "id" in "gates"',
+        hint: '"gates" has no columns: leave toColumn out to attach the line at the table\'s header',
+      },
     ]);
   });
 
@@ -1117,7 +1128,24 @@ describe("lines that name columns", () => {
     input.nodes[0]!.more = 3;
     input.edges[0]!.toColumn = "region_id";
     expect(await problems(input)).toEqual([
-      { path: "edges[0].toColumn", message: 'no column named "region_id" in "sites"', hint: COLUMN_HINT("to", "sites") },
+      { path: "edges[0].toColumn", message: 'no column named "region_id" in "sites"', hint: COLUMN_HINT("to", "sites", SITES) },
+    ]);
+  });
+
+  it.each([
+    ["flow", { shape: "step" }],
+    ["class", {}],
+    ["architecture", { kind: "service" }],
+  ] as const)("rejects fromColumn and toColumn on a line in a %s diagram", async (type, fields) => {
+    const input = {
+      type,
+      nodes: ["seed", "pot"].map((id) => ({ id, label: id, ...fields })),
+      edges: [{ from: "seed", to: "pot", fromColumn: "id", toColumn: "id", ...(type === "class" ? { kind: "association" } : {}) }],
+    };
+
+    expect((await problems(input)).map(({ path, message }) => [path, message])).toEqual([
+      ["edges[0].fromColumn", 'unknown field "fromColumn"'],
+      ["edges[0].toColumn", 'unknown field "toColumn"'],
     ]);
   });
 
@@ -1131,7 +1159,10 @@ describe("lines that name columns", () => {
     input.nodes[2]!.columns[0] = { name: "Ĳd", type: "uuid", pk: true };
     // A table whose columns aren't a list can't be judged.
     input.nodes[0]!.columns = "id, name";
-    input.edges.push({ from: "plots", to: "sites", fromCardinality: "zero-or-many", toCardinality: "one", toColumn: "id" });
+    const plotsTo = (fields: object) => ({ from: "plots", to: "sites", fromCardinality: "zero-or-many", toCardinality: "one", ...fields });
+    input.edges.push(plotsTo({ toColumn: "id" }));
+    // Names with a problem of their own, at a table that can be judged.
+    input.edges.push(plotsTo({ fromColumn: "site_Ĳd" }), plotsTo({ fromColumn: "s".repeat(101) }), plotsTo({ fromColumn: "site\u0007id" }));
 
     expect(await problems(input)).toEqual([
       { path: "nodes[0].columns", message: "must be a list of columns", hint: "write it as [...]" },
@@ -1140,6 +1171,9 @@ describe("lines that name columns", () => {
       { path: "edges[1].fromColumn", message: "must not be empty", hint: "write the text to show" },
       { path: "edges[1].toColumn", message: "must be a string", hint: "write the text in double quotes" },
       { path: "edges[2].toColumn", message: 'contains "Ĳ" (U+0132), which Structa\'s fonts can\'t draw', hint: "use Latin letters, digits and common symbols" },
+      { path: "edges[5].fromColumn", message: 'contains "Ĳ" (U+0132), which Structa\'s fonts can\'t draw', hint: "use Latin letters, digits and common symbols" },
+      { path: "edges[6].fromColumn", message: "is 101 characters long; the limit is 100", hint: "shorten it" },
+      { path: "edges[7].fromColumn", message: "contains a control character (U+0007)", hint: "remove it" },
     ]);
   });
 });

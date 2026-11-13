@@ -785,8 +785,9 @@ type CheckedErEdge = { readonly [field in (typeof COLUMN_ENDS)[number][number]]?
 /**
  * A line's fromColumn and toColumn name columns of its own from and to
  * tables, compared as tidied. A from or to that names no node was reported
- * already, and so was a blank column name; a table whose columns aren't all
- * known, because their list or a name had a problem, isn't judged.
+ * already, and so was a column name with a problem of its own, such as a
+ * blank one; a table whose columns aren't all known, because their list or a
+ * name had a problem, isn't judged. The hint lists the table's columns.
  */
 const columnEndsRule: Rule = (checked, given) => {
   const tables = (checked.nodes ?? []) as readonly CheckedTable[];
@@ -806,11 +807,13 @@ const columnEndsRule: Rule = (checked, given) => {
       const columns = names.get(table);
       if (columns === undefined || columns.has(name)) return [];
       const quoted = JSON.stringify(table);
+      const header = `leave ${field} out to attach the line at the table's header`;
+      const choices = [...columns].map((column) => JSON.stringify(column)).join(", ");
       return [
         {
           path: `edges[${i}].${field}`,
           message: `no column named ${JSON.stringify(name)} in ${quoted}`,
-          hint: `use the name of a column in ${quoted}, or leave ${field} out to attach the line at the table's header`,
+          hint: columns.size === 0 ? `${quoted} has no columns: ${header}` : `use one of the columns of ${quoted} (${choices}), or ${header}`,
         },
       ];
     }),
