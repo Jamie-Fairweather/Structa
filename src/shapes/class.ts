@@ -37,11 +37,12 @@ const ROW_KINDS = new Map<ClassSection, Row["kind"]>([
  * methods but no properties has an empty properties section, so its methods
  * are still under the second divider. A class without methods has no methods
  * section, and one with no rows has neither. The "… N more" line ends the
- * last section, or has one of its own.
+ * last section, or has one of its own. Only a tag and a badge too wide for
+ * the standard width make it wider, `minWidth`.
  */
-export function classBody(node: ClassNode, sizes: Sizes): CardBody {
+export function classBody(node: ClassNode, sizes: Sizes, minWidth: number): CardBody {
   const c = sizes.classCard;
-  const width = c.width;
+  const width = Math.max(c.width, minWidth);
   const texts: TextLine[] = [];
   let y: number = c.paddingY;
   if (node.stereotype !== undefined) {

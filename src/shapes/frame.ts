@@ -1,4 +1,4 @@
-import type { FlowShape, Status } from "../input";
+import { AREA_LABEL_FACE, type FlowShape, type Status } from "../input";
 import { baseline, measure, type FaceId } from "../text";
 import type { Sizes, ThemeColors } from "../theme";
 import { move, placeOutline, type Mark, type Outline, type OutlineShape, type Point } from "./outline";
@@ -41,6 +41,14 @@ export interface Badge extends Box {
   readonly word: Omit<TextLine, "color">;
 }
 
+/** An area's name in a chip with slightly rounded corners, in neutral colours: areas have none of their own. */
+export interface Tag extends Box {
+  /** The area's id. */
+  readonly area: string;
+  readonly radius: number;
+  readonly word: Omit<TextLine, "color">;
+}
+
 /**
  * A row inside a card, such as a class member, with its own tooltip, status
  * and data attributes. The frame strikes through a removed row's text.
@@ -61,11 +69,14 @@ export interface Row {
   readonly badge?: Badge;
 }
 
-/** Where a card's status badge sits on its top border. */
-export type BadgePlace =
-  /** Toward the right-hand end, `inset` px in from it. */
-  | { readonly align: "end"; readonly inset: number }
-  /** Centred, as on the top corner of a diamond. */
+/** Where a card's status badge and area tag sit on its top border. */
+export type BorderPlace =
+  /**
+   * The badge toward the right-hand end, `inset` px in from it, and the tag
+   * toward the left-hand end, `tagInset` px in from it (`inset` when not given).
+   */
+  | { readonly align: "end"; readonly inset: number; readonly tagInset?: number }
+  /** Centred together, the tag then the badge, as on the top corner of a diamond. */
   | { readonly align: "middle" };
 
 /** The colour a card's outline is filled with. */
@@ -83,8 +94,8 @@ export interface CardBody {
   readonly outline: OutlineShape;
   readonly marks?: readonly Mark[];
   readonly fill?: CardFill;
-  /** Default: toward the right-hand end, the theme's inset in from it. */
-  readonly badge?: BadgePlace;
+  /** Default: toward the ends, the theme's inset in from them. */
+  readonly border?: BorderPlace;
   readonly tooltip: string;
   readonly texts: readonly TextLine[];
   /** Thin lines right across the card between its sections, at these heights. */
@@ -113,15 +124,24 @@ export interface Card {
   readonly rows: readonly Row[];
   readonly more?: TextLine;
   readonly badge?: Badge;
+  /** The tag naming the card's innermost area, when tags are shown. */
+  readonly tag?: Tag;
 }
 
-/** What sits on a card's top border, read from the node the card is built from. */
-export interface CardHeader {
+/** What sits on a card's top border. */
+interface CardHeader {
   readonly status?: Status;
+  /** The name of the area the tag shows. */
+  readonly tag?: string;
 }
 
 /** A node the frame can build a card from. */
-type Framed = CardHeader & { readonly id: string; readonly area?: string };
+interface Framed {
+  readonly id: string;
+  readonly status?: Status;
+  /** The id of the innermost area the card is in. */
+  readonly area?: string;
+}
 
 /** Badge words are fixed, so they need no checking against the font. */
 const BADGE_FACE: FaceId = "inter-bold";
@@ -129,8 +149,9 @@ const BADGE_FACE: FaceId = "inter-bold";
 /**
  * The shared card frame: every card builder goes through it, once for all of
  * a diagram's cards. It tells `build` how wide each card must be to hold what
- * sits on its border, then adds the badge and strikes through a removed
- * card's title (the painter fades the rest).
+ * sits on its border, then adds the badge and the tag, and strikes through a
+ * removed card's title (the painter fades the rest). `tagOf` gives the name a
+ * card's tag shows, if it has one.
  *
  * Once any card has something on its border, every card's box handed to ELK
  * grows upwards by half a badge: the band the status badge (top-right) and
@@ -140,21 +161,46 @@ const BADGE_FACE: FaceId = "inter-bold";
 export function frameCards<N extends Framed>(
   nodes: readonly N[],
   sizes: Sizes,
+  tagOf: (node: N) => string | undefined,
   build: (node: N, minWidth: number) => CardBody,
 ): Card[] {
-  const top = nodes.some((node) => borderWidth(node, sizes) > 0) ? sizes.badge.height / 2 : 0;
-  return nodes.map((node) => frameCard(node, top, sizes, build));
+  const headers = nodes.map((node): CardHeader => {
+    const tag = tagOf(node);
+    return { ...(node.status === undefined ? {} : { status: node.status }), ...(tag === undefined ? {} : { tag }) };
+  });
+  const band = Math.max(sizes.badge.height, sizes.tag.height);
+  const top = headers.some((header) => borderWidth(header, undefined, sizes) > 0) ? band / 2 : 0;
+  return nodes.map((node, i) => frameCard(node, headers[i]!, top, sizes, build));
 }
 
-/** How wide a card must be to hold what sits on its top border; 0 when nothing does. */
-function borderWidth(header: CardHeader, sizes: Sizes): number {
-  return header.status === undefined ? 0 : measureBadge(header.status, sizes) + 2 * sizes.badge.inset;
+/**
+ * How wide a card must be to hold what sits on its top border, placed as
+ * `place` says; 0 when nothing does. A badge alone keeps the theme's inset
+ * from both ends; a nearer place for it only moves it in.
+ */
+function borderWidth(header: CardHeader, place: BorderPlace | undefined, sizes: Sizes): number {
+  const { status, tag } = header;
+  if (status === undefined && tag === undefined) return 0;
+  const inset = sizes.badge.inset;
+  const widths = (status === undefined ? 0 : measureBadge(status, sizes)) + (tag === undefined ? 0 : measureTag(tag, sizes));
+  const gap = status !== undefined && tag !== undefined ? sizes.tag.gap : 0;
+  const left = tag !== undefined && place?.align === "end" ? (place.tagInset ?? place.inset) : inset;
+  return left + widths + gap + inset;
 }
 
-function frameCard<N extends Framed>(node: N, top: number, sizes: Sizes, build: (node: N, minWidth: number) => CardBody): Card {
-  const { id, status } = node;
-  const minWidth = borderWidth(node, sizes);
-  const body = build(node, minWidth);
+function frameCard<N extends Framed>(
+  node: N,
+  header: CardHeader,
+  top: number,
+  sizes: Sizes,
+  build: (node: N, minWidth: number) => CardBody,
+): Card {
+  const { id } = node;
+  const { status } = header;
+  let body = build(node, borderWidth(header, undefined, sizes));
+  // The body's own place for the badge and tag may need more room: then it's built again, that wide.
+  const minWidth = borderWidth(header, body.border, sizes);
+  if (body.width < minWidth) body = build(node, minWidth);
   // A body narrower than its border needs sits centred in a wider box, so a badge never hangs off the card.
   const width = Math.max(body.width, minWidth);
   const at = { x: (width - body.width) / 2, y: top };
@@ -190,15 +236,40 @@ function frameCard<N extends Framed>(node: N, top: number, sizes: Sizes, build: 
       ...(row.badge ? { badge: { ...shift(row.badge), word: shift(row.badge.word) } } : {}),
     })),
     ...(body.more ? { more: shift(body.more) } : {}),
-    ...(status === undefined ? {} : { badge: badge(status, badgeX(status, width, body.badge, sizes), top - sizes.badge.height / 2, sizes) }),
+    ...onBorder(header, node.area, width, top, body.border, sizes),
   };
 }
 
-/** Where the left end of a card's badge goes, kept at least the theme's inset inside the card's box. */
-function badgeX(status: Status, width: number, place: BadgePlace | undefined, sizes: Sizes): number {
-  const badgeWidth = measureBadge(status, sizes);
-  if (place?.align === "middle") return (width - badgeWidth) / 2;
-  return Math.max(sizes.badge.inset, width - (place?.inset ?? sizes.badge.inset) - badgeWidth);
+/**
+ * The badge and the tag on a card's top border, centred on it at `top`, in a
+ * box `width` wide. The badge stays at least the theme's inset inside the
+ * box, and clear of the tag.
+ */
+function onBorder(
+  { status, tag: label }: CardHeader,
+  area: string | undefined,
+  width: number,
+  top: number,
+  place: BorderPlace | undefined,
+  sizes: Sizes,
+): { badge?: Badge; tag?: Tag } {
+  const tagWidth = label === undefined ? 0 : measureTag(label, sizes);
+  const badgeWidth = status === undefined ? 0 : measureBadge(status, sizes);
+  const gap = label !== undefined && status !== undefined ? sizes.tag.gap : 0;
+  let tagX: number;
+  let badgeX: number;
+  if (place?.align === "middle") {
+    tagX = (width - (tagWidth + gap + badgeWidth)) / 2;
+    badgeX = tagX + tagWidth + gap;
+  } else {
+    const inset = place?.inset ?? sizes.badge.inset;
+    tagX = place?.tagInset ?? inset;
+    badgeX = Math.max(label === undefined ? sizes.badge.inset : tagX + tagWidth + gap, width - inset - badgeWidth);
+  }
+  return {
+    ...(status === undefined ? {} : { badge: badge(status, badgeX, top - sizes.badge.height / 2, sizes) }),
+    ...(label === undefined || area === undefined ? {} : { tag: tag(area, label, tagX, top - sizes.tag.height / 2, sizes) }),
+  };
 }
 
 /** A line through the middle of the letters of `t`, as wide as the text is drawn. */
@@ -225,6 +296,34 @@ function badgeWord(status: Status): string {
 export function measureBadge(status: Status, sizes: Sizes): number {
   const b = sizes.badge;
   return Math.ceil(measure(badgeWord(status), BADGE_FACE, b.fontSize) + 2 * b.paddingX);
+}
+
+/** How wide the tag showing an area named `label` is. */
+export function measureTag(label: string, sizes: Sizes): number {
+  const t = sizes.tag;
+  return Math.ceil(measure(label, AREA_LABEL_FACE, t.fontSize) + 2 * t.paddingX);
+}
+
+/** The tag of the area `area`, named `label`, with its top-left corner at (x, y). Cards and the legend share it. */
+export function tag(area: string, label: string, x: number, y: number, sizes: Sizes): Tag {
+  const t = sizes.tag;
+  const width = measureTag(label, sizes);
+  return {
+    area,
+    x,
+    y,
+    width,
+    height: t.height,
+    radius: t.radius,
+    word: {
+      text: label,
+      x: x + width / 2,
+      y: y + baseline(AREA_LABEL_FACE, t.fontSize, t.height),
+      face: AREA_LABEL_FACE,
+      size: t.fontSize,
+      anchor: "middle",
+    },
+  };
 }
 
 /** A badge with its top-left corner at (x, y). Cards and the legend share it. */

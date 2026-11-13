@@ -12,6 +12,7 @@ import {
   type Line,
   type LineLabel,
   type Row,
+  type Tag,
   type TextLine,
 } from "../shapes";
 import { FACES, faceStyle, fontDataUrl, type FaceId } from "../text";
@@ -253,8 +254,29 @@ function card({ card, x: cardX, y: cardY }: PlacedCard<Card>, at: Point, pen: Pe
     ]),
     // Rows fade themselves, so a removed card's rows aren't faded twice.
     ...card.rows.flatMap((r) => row(r, x, y, pen)),
-    // The badge stays at full strength, so a removed card's REMOVED reads clearly.
+    // The badge and the tag stay at full strength, so a removed card's REMOVED and its area read clearly.
     ...(card.badge ? badge(card.badge, x, y, pen) : []),
+    ...(card.tag ? tag(card.tag, x, y, pen) : []),
+    "</g>",
+  ];
+}
+
+/** An area's tag offset by (x, y): its name in a neutral chip, opaque so the border it sits on doesn't show through. */
+function tag(t: Tag, x: number, y: number, pen: Pen): string[] {
+  const { colors, sizes } = pen.theme;
+  return [
+    open("g", [["class", "tag"], ["data-area", t.area]]),
+    el("rect", [
+      ["x", x + t.x],
+      ["y", y + t.y],
+      ["width", t.width],
+      ["height", t.height],
+      ["rx", t.radius],
+      ["fill", colors.tagFill],
+      ["stroke", colors.tagBorder],
+      ["stroke-width", sizes.tag.borderWidth],
+    ]),
+    ...text(t.word, x, y, colors.tagText, pen),
     "</g>",
   ];
 }

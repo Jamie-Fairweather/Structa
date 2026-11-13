@@ -62,6 +62,26 @@ export function badgeBox(el: Element): Box | undefined {
   return rect ? rectBox(rect) : undefined;
 }
 
+/** The area tag on a card or legend item: its chip's element and box. */
+export function tagOf(el: Element): { tag: Element; box: Box; radius: number } | undefined {
+  const tag = byClassIn(el, "tag")[0];
+  const rect = tag?.getElementsByTagName("rect")[0];
+  return tag && rect ? { tag, box: rectBox(rect), radius: Number(rect.getAttribute("rx") ?? 0) } : undefined;
+}
+
+/** The area tag on a card or legend item: the box of its chip. */
+export function tagBox(el: Element): Box | undefined {
+  return tagOf(el)?.box;
+}
+
+/** Everything a card draws on and above its border, as one box: its outline, its badge and its tag. */
+export function cardExtent(card: Element): Box {
+  const parts = [outlineBox(card), badgeBox(card), tagBox(card)].filter((box) => box !== undefined);
+  const x = Math.min(...parts.map((b) => b.x));
+  const y = Math.min(...parts.map((b) => b.y));
+  return { x, y, width: Math.max(...parts.map((b) => b.x + b.width)) - x, height: Math.max(...parts.map((b) => b.y + b.height)) - y };
+}
+
 function distanceToSegment(p: Point, a: Point, b: Point): number {
   const length = Math.hypot(b.x - a.x, b.y - a.y);
   const t = length === 0 ? 0 : Math.max(0, Math.min(1, ((p.x - a.x) * (b.x - a.x) + (p.y - a.y) * (b.y - a.y)) / length ** 2));
@@ -336,11 +356,22 @@ export function distanceToShape(p: Point, card: Element): number {
   return Math.min(...corners.map((a, i) => distanceToSegment(p, a, corners[(i + 1) % corners.length]!)));
 }
 
-/** How far a point is from what's drawn of a card: its outline, whatever its shape, or the badge sitting on it. */
+/** How far a point is from what's drawn of a card: its outline, whatever its shape, or the badge or tag sitting on it. */
 export function distanceToDrawn(p: Point, card: Element): number {
   const badge = badgeBox(card);
-  const onOutline = distanceToShape(p, card);
-  return badge ? Math.min(onOutline, Math.abs(depthInPill(p, badge))) : onOutline;
+  const tag = tagOf(card);
+  return Math.min(
+    distanceToShape(p, card),
+    badge ? Math.abs(depthInPill(p, badge)) : Infinity,
+    tag ? Math.abs(roundedRectDepth(p, tag.box, tag.radius)) : Infinity,
+  );
+}
+
+/** How far a point is inside a card's tag: positive inside, 0 on its outline, negative outside. */
+export function depthInTag(p: Point, card: Element): number {
+  const tag = tagOf(card);
+  if (!tag) throw new Error(`card ${card.getAttribute("data-id")} has no tag`);
+  return roundedRectDepth(p, tag.box, tag.radius);
 }
 
 /** How far a point is inside a card's drawn outline: positive inside, 0 on it, negative outside. */

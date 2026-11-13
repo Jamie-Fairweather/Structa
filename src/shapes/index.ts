@@ -15,7 +15,7 @@ import { classBody } from "./class";
 import { shapeBody } from "./flow";
 import { frameCards, strikeThrough, type Card, type TextLine } from "./frame";
 
-export { type Badge, type Box, type Card, type LevelLine, type Row, type TextLine } from "./frame";
+export { type Badge, type Box, type Card, type LevelLine, type Row, type Tag, type TextLine } from "./frame";
 export { buildLegend, type Legend, type LegendItem } from "./legend";
 export { entry, nearest, type Mark, type Outline, type Point } from "./outline";
 
@@ -98,10 +98,17 @@ function block(
   };
 }
 
-/** Sizes every card of the diagram through the shared card frame. */
+/**
+ * Sizes every card of the diagram through the shared card frame. A card in
+ * an area shows the area's name in a tag, unless the area boxes are drawn:
+ * then the boxes name the areas.
+ */
 export function buildCards(diagram: Diagram, sizes: Sizes): Card[] {
-  if (diagram.type === "class") return frameCards(diagram.nodes, sizes, (node) => classBody(node, sizes));
-  return frameCards(diagram.nodes, sizes, (node, minWidth) => shapeBody(node, sizes, minWidth));
+  const names = new Map(diagram.areas.map((area) => [area.id, area.label]));
+  const tagOf = (node: { readonly area?: string }) =>
+    diagram.groupAreas || node.area === undefined ? undefined : names.get(node.area);
+  if (diagram.type === "class") return frameCards(diagram.nodes, sizes, tagOf, (node, minWidth) => classBody(node, sizes, minWidth));
+  return frameCards(diagram.nodes, sizes, tagOf, (node, minWidth) => shapeBody(node, sizes, minWidth));
 }
 
 /** A note's dotted line to the shape it's about: no arrow, no label and no status of its own. */
