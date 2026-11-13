@@ -119,6 +119,31 @@ describe("examples", () => {
     ).toBe(true);
   });
 
+  type Architecture = { type: string; nodes: { kind: string; description?: string }[]; edges?: { kind?: string; label?: string }[] };
+  const architectures = () => examples.map(({ json }) => JSON.parse(json) as Architecture).filter((d) => d.type === "architecture");
+
+  it("includes an architecture diagram of components only, using every kind but class, both line kinds, labels and descriptions", () => {
+    const kinds = ["actor", "api", "cache", "database", "external", "job", "library", "queue", "service", "ui"];
+    const fits = (d: Architecture) =>
+      d.nodes.every((node) => node.kind !== "class") &&
+      kinds.every((kind) => d.nodes.some((node) => node.kind === kind)) &&
+      d.nodes.some((node) => node.description !== undefined) &&
+      (d.edges ?? []).some((edge) => edge.kind === undefined) &&
+      (d.edges ?? []).some((edge) => edge.kind === "async") &&
+      (d.edges ?? []).some((edge) => edge.label !== undefined);
+
+    expect(architectures().some(fits)).toBe(true);
+  });
+
+  it("includes an architecture diagram mixing component cards and class cards, an enum among them", () => {
+    const fits = (d: Architecture) =>
+      d.nodes.some((node) => node.kind === "class") &&
+      d.nodes.some((node) => node.kind !== "class") &&
+      d.nodes.some((node) => node.kind === "class" && "values" in node);
+
+    expect(architectures().some(fits)).toBe(true);
+  });
+
   // Every example in both themes. The theme option wins over any theme in the example's JSON.
   describe.each(examples)("$name", ({ name, json }) => {
     describe.each(["light", "dark"] as const)("in %s", (theme) => {

@@ -1,0 +1,311 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="820" height="1310" viewBox="0 0 820 1310">
+<defs>
+<pattern id="structa-grid-light" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="9" cy="9" r="1" fill="#8c959f" fill-opacity="0.5"/></pattern>
+<filter id="structa-shadow-light" x="-20%" y="-30%" width="140%" height="170%"><feDropShadow dx="0" dy="1" stdDeviation="3" flood-color="#1f2328" flood-opacity="0.1"/></filter>
+</defs>
+<rect width="820" height="1310" fill="#f4f5f7"/>
+<rect width="820" height="1310" fill="url(#structa-grid-light)"/>
+<g class="title">
+<text x="32" y="50.55" font-family="Structa Inter, Inter, sans-serif" font-size="18" font-weight="700" fill="#1f2328">Parcel lockers: choosing a locker size</text>
+</g>
+<g class="description">
+<text x="32" y="73.73" font-family="Structa Inter, Inter, sans-serif" font-size="13" font-weight="400" fill="#59636e">Bookings name a size, so small parcels stop taking the big lockers.</text>
+</g>
+<g class="card" data-id="app" data-kind="ui" data-status="changed">
+<title>Locker app (ui): Adds a size picker</title>
+<rect class="outline" x="255.33" y="110" width="140" height="80" rx="10" fill="#ffffff" stroke="#bf8700" stroke-width="1.5" filter="url(#structa-shadow-light)"/>
+<path class="icon" d="M313.87 125.19 L322.62 125.19 Q323.94 125.19 323.94 126.5 L323.94 133.5 Q323.94 134.81 322.62 134.81 L313.87 134.81 Q312.56 134.81 312.56 133.5 L312.56 126.5 Q312.56 125.19 313.87 125.19 Z M312.56 127.81 L323.94 127.81" fill="none" stroke="#59636e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="330.25" y="134" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#59636e">ui</text>
+<text x="325.33" y="155.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Locker app</text>
+<text x="325.33" y="174.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#59636e" text-anchor="middle">Adds a size picker</text>
+<g class="badge">
+<rect x="320.33" y="102" width="63" height="16" rx="8" fill="#ffffff"/>
+<rect x="320.33" y="102" width="63" height="16" rx="8" fill="#fae17d" stroke="#bf8700" stroke-width="1"/>
+<text x="351.83" y="113.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#7d4e00" text-anchor="middle">CHANGED</text>
+</g>
+</g>
+<g class="card" data-id="api" data-kind="api" data-status="unchanged">
+<title>Locker API (api)</title>
+<rect class="outline" x="255.33" y="346" width="140" height="62" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1.5" filter="url(#structa-shadow-light)"/>
+<path class="icon" d="M313.3 360.75 Q311.55 360.75 311.55 362.5 L311.55 364.69 Q311.55 366 310.23 366 Q311.55 366 311.55 367.31 L311.55 369.5 Q311.55 371.25 313.3 371.25 M316.8 360.75 Q318.55 360.75 318.55 362.5 L318.55 364.69 Q318.55 366 319.86 366 Q318.55 366 318.55 367.31 L318.55 369.5 Q318.55 371.25 316.8 371.25" fill="none" stroke="#59636e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="327.05" y="370" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#59636e">api</text>
+<text x="325.33" y="391.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Locker API</text>
+<g class="badge">
+<rect x="305.33" y="338" width="78" height="16" rx="8" fill="#ffffff"/>
+<rect x="305.33" y="338" width="78" height="16" rx="8" fill="#eaeef2" stroke="#8c959f" stroke-width="1"/>
+<text x="344.33" y="349.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#59636e" text-anchor="middle">UNCHANGED</text>
+</g>
+</g>
+<g class="card" data-id="booking" data-kind="class" data-status="changed">
+<title>LockerBooking</title>
+<rect class="outline" x="122" y="614" width="360" height="250" rx="10" fill="#ffffff" stroke="#bf8700" stroke-width="1.5" filter="url(#structa-shadow-light)"/>
+<line class="divider" x1="122.75" y1="658" x2="481.25" y2="658" stroke="#d1d9e0" stroke-width="1"/>
+<line class="divider" x1="122.75" y1="748" x2="481.25" y2="748" stroke="#d1d9e0" stroke-width="1"/>
+<text x="302" y="641.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">LockerBooking</text>
+<g class="more">
+<text x="150.4" y="849.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">… 3 more</text>
+</g>
+<g class="row" data-id="properties[0]" data-kind="property">
+<title>- lockerId: LockerId</title>
+<g class="symbol">
+<text x="136" y="681.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">-</text>
+</g>
+<text x="150.4" y="681.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">lockerId: LockerId</text>
+</g>
+<g class="row" data-id="properties[1]" data-kind="property" data-status="new">
+<title>- size: LockerSize</title>
+<rect x="128" y="691" width="348" height="24" rx="4" fill="#b9f0c4" fill-opacity="0.45"/>
+<g class="symbol">
+<text x="136" y="707.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">-</text>
+</g>
+<text x="150.4" y="707.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">size: LockerSize</text>
+<g class="badge">
+<rect x="431" y="695" width="37" height="16" rx="8" fill="#ffffff"/>
+<rect x="431" y="695" width="37" height="16" rx="8" fill="#b9f0c4" stroke="#1f883d" stroke-width="1"/>
+<text x="449.5" y="706.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#116329" text-anchor="middle">NEW</text>
+</g>
+</g>
+<g class="row" data-id="properties[2]" data-kind="property" data-status="removed">
+<title>- anyFree: bool</title>
+<g class="faded" opacity="0.55">
+<rect x="128" y="717" width="348" height="24" rx="4" fill="#ffcecb" fill-opacity="0.45"/>
+<g class="symbol">
+<text x="136" y="733.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">-</text>
+</g>
+<text x="150.4" y="733.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">anyFree: bool</text>
+<line class="strike" x1="150.4" y1="729.72" x2="244" y2="729.72" stroke="#1f2328" stroke-width="1.25"/>
+</g>
+<g class="badge">
+<rect x="405" y="721" width="63" height="16" rx="8" fill="#ffffff"/>
+<rect x="405" y="721" width="63" height="16" rx="8" fill="#ffcecb" stroke="#cf222e" stroke-width="1"/>
+<text x="436.5" y="732.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#a40e26" text-anchor="middle">REMOVED</text>
+</g>
+</g>
+<g class="row" data-id="methods[0]" data-kind="method" data-status="changed">
+<title>+ hold(parcel: Parcel): Hold</title>
+<rect x="128" y="755" width="348" height="24" rx="4" fill="#fae17d" fill-opacity="0.45"/>
+<g class="symbol">
+<text x="136" y="771.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
+</g>
+<text x="150.4" y="771.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">hold(parcel: Parcel): Hold</text>
+<g class="badge">
+<rect x="405" y="759" width="63" height="16" rx="8" fill="#ffffff"/>
+<rect x="405" y="759" width="63" height="16" rx="8" fill="#fae17d" stroke="#bf8700" stroke-width="1"/>
+<text x="436.5" y="770.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#7d4e00" text-anchor="middle">CHANGED</text>
+</g>
+</g>
+<g class="row" data-id="methods[1]" data-kind="method" data-status="new">
+<title>+ fits(parcel: Parcel): bool</title>
+<rect x="128" y="781" width="348" height="24" rx="4" fill="#b9f0c4" fill-opacity="0.45"/>
+<g class="symbol">
+<text x="136" y="797.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
+</g>
+<text x="150.4" y="797.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">fits(parcel: Parcel): bool</text>
+<g class="badge">
+<rect x="431" y="785" width="37" height="16" rx="8" fill="#ffffff"/>
+<rect x="431" y="785" width="37" height="16" rx="8" fill="#b9f0c4" stroke="#1f883d" stroke-width="1"/>
+<text x="449.5" y="796.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#116329" text-anchor="middle">NEW</text>
+</g>
+</g>
+<g class="row" data-id="methods[2]" data-kind="method">
+<title>+ release(): void</title>
+<g class="symbol">
+<text x="136" y="823.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
+</g>
+<text x="150.4" y="823.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">release(): void</text>
+</g>
+<g class="badge">
+<rect x="407" y="606" width="63" height="16" rx="8" fill="#ffffff"/>
+<rect x="407" y="606" width="63" height="16" rx="8" fill="#fae17d" stroke="#bf8700" stroke-width="1"/>
+<text x="438.5" y="617.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#7d4e00" text-anchor="middle">CHANGED</text>
+</g>
+</g>
+<g class="card" data-id="size" data-kind="class" data-status="new">
+<title>«enum» LockerSize</title>
+<rect class="outline" x="32" y="936" width="360" height="150" rx="10" fill="#ffffff" stroke="#1f883d" stroke-width="1.5" filter="url(#structa-shadow-light)"/>
+<line class="divider" x1="32.75" y1="996" x2="391.25" y2="996" stroke="#d1d9e0" stroke-width="1"/>
+<text x="212" y="960.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#59636e" text-anchor="middle">«enum»</text>
+<text x="212" y="979.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">LockerSize</text>
+<g class="row" data-id="values[0]" data-kind="value" data-status="new">
+<title>SMALL</title>
+<rect x="38" y="1003" width="348" height="24" rx="4" fill="#b9f0c4" fill-opacity="0.45"/>
+<text x="46" y="1019.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">SMALL</text>
+<g class="badge">
+<rect x="341" y="1007" width="37" height="16" rx="8" fill="#ffffff"/>
+<rect x="341" y="1007" width="37" height="16" rx="8" fill="#b9f0c4" stroke="#1f883d" stroke-width="1"/>
+<text x="359.5" y="1018.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#116329" text-anchor="middle">NEW</text>
+</g>
+</g>
+<g class="row" data-id="values[1]" data-kind="value" data-status="new">
+<title>MEDIUM</title>
+<rect x="38" y="1029" width="348" height="24" rx="4" fill="#b9f0c4" fill-opacity="0.45"/>
+<text x="46" y="1045.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">MEDIUM</text>
+<g class="badge">
+<rect x="341" y="1033" width="37" height="16" rx="8" fill="#ffffff"/>
+<rect x="341" y="1033" width="37" height="16" rx="8" fill="#b9f0c4" stroke="#1f883d" stroke-width="1"/>
+<text x="359.5" y="1044.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#116329" text-anchor="middle">NEW</text>
+</g>
+</g>
+<g class="row" data-id="values[2]" data-kind="value" data-status="new">
+<title>LARGE</title>
+<rect x="38" y="1055" width="348" height="24" rx="4" fill="#b9f0c4" fill-opacity="0.45"/>
+<text x="46" y="1071.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">LARGE</text>
+<g class="badge">
+<rect x="341" y="1059" width="37" height="16" rx="8" fill="#ffffff"/>
+<rect x="341" y="1059" width="37" height="16" rx="8" fill="#b9f0c4" stroke="#1f883d" stroke-width="1"/>
+<text x="359.5" y="1070.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#116329" text-anchor="middle">NEW</text>
+</g>
+</g>
+<g class="badge">
+<rect x="343" y="928" width="37" height="16" rx="8" fill="#ffffff"/>
+<rect x="343" y="928" width="37" height="16" rx="8" fill="#b9f0c4" stroke="#1f883d" stroke-width="1"/>
+<text x="361.5" y="939.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#116329" text-anchor="middle">NEW</text>
+</g>
+</g>
+<g class="card" data-id="store" data-kind="database" data-status="changed">
+<title>Bookings (database): Adds a size column</title>
+<rect class="outline" x="390" y="1158" width="143" height="80" rx="10" fill="#ffffff" stroke="#bf8700" stroke-width="1.5" filter="url(#structa-shadow-light)"/>
+<path class="icon" d="M430.28 1174.5 A4.81 1.75 0 1 1 439.9 1174.5 A4.81 1.75 0 1 1 430.28 1174.5 M430.28 1174.5 L430.28 1181.5 A4.81 1.75 0 0 0 439.9 1181.5 L439.9 1174.5 M430.28 1178 A4.81 1.75 0 0 0 439.9 1178" fill="none" stroke="#59636e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="447.09" y="1182" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#59636e">database</text>
+<text x="461.5" y="1203.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Bookings</text>
+<text x="461.5" y="1222.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#59636e" text-anchor="middle">Adds a size column</text>
+<g class="badge">
+<rect x="458" y="1150" width="63" height="16" rx="8" fill="#ffffff"/>
+<rect x="458" y="1150" width="63" height="16" rx="8" fill="#fae17d" stroke="#bf8700" stroke-width="1"/>
+<text x="489.5" y="1161.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#7d4e00" text-anchor="middle">CHANGED</text>
+</g>
+</g>
+<g class="card" data-id="events" data-kind="queue">
+<title>Locker events (queue)</title>
+<rect class="outline" x="581" y="1158" width="140" height="62" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<path class="icon" d="M627.84 1174.5 L636.59 1174.5 Q637.9 1174.5 637.9 1175.81 L637.9 1180.19 Q637.9 1181.5 636.59 1181.5 L627.84 1181.5 Q626.53 1181.5 626.53 1180.19 L626.53 1175.81 Q626.53 1174.5 627.84 1174.5 Z M630.32 1174.5 L630.32 1181.5 M634.11 1174.5 L634.11 1181.5" fill="none" stroke="#59636e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="644.21" y="1182" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#59636e">queue</text>
+<text x="651" y="1203.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Locker events</text>
+</g>
+<g class="card" data-id="stats" data-kind="job" data-status="new">
+<title>Size report (job): Weekly use of each size</title>
+<rect class="outline" x="616.67" y="784" width="171" height="80" rx="10" fill="#ffffff" stroke="#1f883d" stroke-width="1.5" filter="url(#structa-shadow-light)"/>
+<path class="icon" d="M686.2 804 A5.47 5.47 0 1 1 697.14 804 A5.47 5.47 0 1 1 686.2 804 M691.67 800.94 L691.67 804 L694.08 805.53" fill="none" stroke="#59636e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="703.67" y="808" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#59636e">job</text>
+<text x="702.17" y="829.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Size report</text>
+<text x="702.17" y="848.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#59636e" text-anchor="middle">Weekly use of each size</text>
+<g class="badge">
+<rect x="738.67" y="776" width="37" height="16" rx="8" fill="#ffffff"/>
+<rect x="738.67" y="776" width="37" height="16" rx="8" fill="#b9f0c4" stroke="#1f883d" stroke-width="1"/>
+<text x="757.17" y="787.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#116329" text-anchor="middle">NEW</text>
+</g>
+</g>
+<g class="card" data-id="legacy" data-kind="service" data-status="removed">
+<title>Free-locker finder (service)</title>
+<g class="faded" opacity="0.55">
+<rect class="outline" x="370.5" y="480" width="155" height="62" rx="10" fill="#ffffff" stroke="#cf222e" stroke-width="1.5" filter="url(#structa-shadow-light)"/>
+<path class="icon" d="M426.55 494.31 L431.45 497.16 L431.45 502.84 L426.55 505.69 L421.65 502.84 L421.65 497.16 Z M424.36 500 A2.19 2.19 0 1 1 428.74 500 A2.19 2.19 0 1 1 424.36 500" fill="none" stroke="#59636e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="438.55" y="504" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#59636e">service</text>
+<text x="448" y="525.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Free-locker finder</text>
+<line class="strike" x1="386.61" y1="520.89" x2="509.39" y2="520.89" stroke="#1f2328" stroke-width="1.25"/>
+</g>
+<g class="badge">
+<rect x="450.5" y="472" width="63" height="16" rx="8" fill="#ffffff"/>
+<rect x="450.5" y="472" width="63" height="16" rx="8" fill="#ffcecb" stroke="#cf222e" stroke-width="1"/>
+<text x="482" y="483.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#a40e26" text-anchor="middle">REMOVED</text>
+</g>
+</g>
+<g class="line" data-id="edges[0]" data-kind="call" data-from="app" data-to="api" data-status="changed">
+<title>Locker app → Locker API: POST /bookings</title>
+<path d="M325.33 190 L325.33 329" fill="none" stroke="#bf8700" stroke-width="3" stroke-linejoin="round"/>
+<path d="M325.33 338 L320.83 329 L329.83 329 Z" fill="#bf8700"/>
+</g>
+<g class="line" data-id="edges[1]" data-kind="call" data-from="api" data-to="booking">
+<title>Locker API → LockerBooking: hold</title>
+<path d="M302 408 L302 605" fill="none" stroke="#8c959f" stroke-width="3" stroke-linejoin="round"/>
+<path d="M302 614 L297.5 605 L306.5 605 Z" fill="#8c959f"/>
+</g>
+<g class="line" data-id="edges[2]" data-kind="call" data-from="booking" data-to="size" data-status="new">
+<title>LockerBooking → LockerSize</title>
+<path d="M212 864 L212 927" fill="none" stroke="#1f883d" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M212 936 L207.5 927 L216.5 927 Z" fill="#1f883d"/>
+</g>
+<g class="line" data-id="edges[3]" data-kind="call" data-from="booking" data-to="store" data-status="changed">
+<title>LockerBooking → Bookings: save</title>
+<path d="M302 864 L302 896 Q302 904 310 904 L453.5 904 Q461.5 904 461.5 912 L461.5 1142.39" fill="none" stroke="#bf8700" stroke-width="3" stroke-linejoin="round"/>
+<path d="M461.5 1151.39 L457 1142.39 L466 1142.39 Z" fill="#bf8700"/>
+</g>
+<g class="line" data-id="edges[4]" data-kind="async" data-from="booking" data-to="events">
+<title>LockerBooking → Locker events (async): held</title>
+<path d="M392 864 L392 880 Q392 888 400 888 L619.67 888 Q627.67 888 627.67 896 L627.67 1158" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round" stroke-dasharray="6 4"/>
+<path d="M623.17 1149 L627.67 1158 L632.17 1149" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<g class="line" data-id="edges[5]" data-kind="async" data-from="stats" data-to="events" data-status="new">
+<title>Size report → Locker events (async): read holds</title>
+<path d="M702.17 864 L702.17 1102 Q702.17 1110 694.17 1110 L682.33 1110 Q674.33 1110 674.33 1118 L674.33 1158" fill="none" stroke="#1f883d" stroke-width="1.5" stroke-linejoin="round" stroke-dasharray="6 4"/>
+<path d="M669.83 1149 L674.33 1158 L678.83 1149" fill="none" stroke="#1f883d" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<g class="line" data-id="edges[6]" data-kind="call" data-from="api" data-to="legacy" data-status="removed">
+<title>Locker API → Free-locker finder</title>
+<g class="faded" opacity="0.55">
+<path d="M348.67 408 L348.67 424 Q348.67 432 356.67 432 L440 432 Q448 432 448 440 L448 471" fill="none" stroke="#cf222e" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M448 480 L443.5 471 L452.5 471 Z" fill="#cf222e"/>
+</g>
+</g>
+<g class="line-labels">
+<g class="line-label" data-line="edges[0]">
+<title>Locker app → Locker API: POST /bookings</title>
+<rect x="271.33" y="254" width="108" height="20" rx="10" fill="#ffffff" stroke="#bf8700" stroke-width="1"/>
+<text x="325.33" y="268.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">POST /bookings</text>
+</g>
+<g class="line-label" data-line="edges[1]">
+<title>Locker API → LockerBooking: hold</title>
+<rect x="281.5" y="497" width="41" height="20" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1"/>
+<text x="302" y="511.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">hold</text>
+</g>
+<g class="line-label" data-line="edges[3]">
+<title>LockerBooking → Bookings: save</title>
+<rect x="440" y="997" width="43" height="20" rx="10" fill="#ffffff" stroke="#bf8700" stroke-width="1"/>
+<text x="461.5" y="1011.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">save</text>
+</g>
+<g class="line-label" data-line="edges[4]">
+<title>LockerBooking → Locker events (async): held</title>
+<rect x="607.17" y="997" width="41" height="20" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1"/>
+<text x="627.67" y="1011.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">held</text>
+</g>
+<g class="line-label" data-line="edges[5]">
+<title>Size report → Locker events (async): read holds</title>
+<rect x="664.17" y="997" width="76" height="20" rx="10" fill="#ffffff" stroke="#1f883d" stroke-width="1"/>
+<text x="702.17" y="1011.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">read holds</text>
+</g>
+</g>
+<g class="legend">
+<g class="legend-item" data-status="new">
+<line class="swatch" x1="32" y1="1270" x2="52" y2="1270" stroke="#1f883d" stroke-width="1.5" stroke-linecap="round"/>
+<g class="badge">
+<rect x="58" y="1262" width="37" height="16" rx="8" fill="#ffffff"/>
+<rect x="58" y="1262" width="37" height="16" rx="8" fill="#b9f0c4" stroke="#1f883d" stroke-width="1"/>
+<text x="76.5" y="1273.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#116329" text-anchor="middle">NEW</text>
+</g>
+</g>
+<g class="legend-item" data-status="changed">
+<line class="swatch" x1="115" y1="1270" x2="135" y2="1270" stroke="#bf8700" stroke-width="1.5" stroke-linecap="round"/>
+<g class="badge">
+<rect x="141" y="1262" width="63" height="16" rx="8" fill="#ffffff"/>
+<rect x="141" y="1262" width="63" height="16" rx="8" fill="#fae17d" stroke="#bf8700" stroke-width="1"/>
+<text x="172.5" y="1273.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#7d4e00" text-anchor="middle">CHANGED</text>
+</g>
+</g>
+<g class="legend-item" data-status="removed">
+<line class="swatch" x1="224" y1="1270" x2="244" y2="1270" stroke="#cf222e" stroke-width="1.5" stroke-linecap="round"/>
+<g class="badge">
+<rect x="250" y="1262" width="63" height="16" rx="8" fill="#ffffff"/>
+<rect x="250" y="1262" width="63" height="16" rx="8" fill="#ffcecb" stroke="#cf222e" stroke-width="1"/>
+<text x="281.5" y="1273.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#a40e26" text-anchor="middle">REMOVED</text>
+</g>
+</g>
+<g class="legend-item" data-status="unchanged">
+<line class="swatch" x1="333" y1="1270" x2="353" y2="1270" stroke="#8c959f" stroke-width="1.5" stroke-linecap="round"/>
+<g class="badge">
+<rect x="359" y="1262" width="78" height="16" rx="8" fill="#ffffff"/>
+<rect x="359" y="1262" width="78" height="16" rx="8" fill="#eaeef2" stroke="#8c959f" stroke-width="1"/>
+<text x="398" y="1273.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#59636e" text-anchor="middle">UNCHANGED</text>
+</g>
+</g>
+</g>
+</svg>
