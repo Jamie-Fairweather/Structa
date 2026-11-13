@@ -45,7 +45,7 @@ One file is one diagram, and its `type` is the question it answers.
 
 - `class`: classes, interfaces and enums, with their properties and methods, and how they relate: `inherits`, `implements`, `composition`, `aggregation`, `association` or `dependency`. Use it for code structure, and for which members a change adds, changes or removes.
 - `er`: database tables with their columns, and the relationships between them as crow's-foot lines. A line joins the columns it names in `fromColumn` and `toColumn`, with a `fromCardinality` and a `toCardinality` such as `one` or `zero-or-many`. Use it for a schema or a migration.
-- `flow`: the steps of a process, with decisions and loops. Each node has a `shape`: `start`, `end`, `step`, `decision`, `io`, `subprocess`, or a `note` joined to the step it is `about`. Use it for a procedure, how a request is handled, or a user's journey.
+- `flow`: the steps of a process, with decisions and loops. Each node has a `shape`: `start`, `end`, `step`, `decision`, `io`, `subprocess`, or a `note` joined to the step it is `about`. Use it for a procedure, how a request is handled, or the steps a user takes.
 - `architecture`: the parts of a system and how they talk. Each card has a `kind`, such as `ui`, `api`, `service`, `queue` or `database`, or `class` for a class card among them. A line is a `call` (solid) or `async` (dashed) for messages and events. Use it for how a request flows through a system, and for a change map: which parts and classes a change touches, from a portal through an API and services to a database.
 
 For a change that spans a system, draw an `architecture` change map of the whole, then a `class` or `er` diagram for any part that needs more detail.
@@ -59,21 +59,21 @@ Every type shares the same building blocks:
 ```json
 {
   "type": "architecture",
-  "title": "Swimming pool: booking a lane online",
+  "title": "Town library: renewing a loan online",
   "areas": [
     { "id": "web", "label": "Website" },
     { "id": "office", "label": "Back office" }
   ],
   "nodes": [
-    { "id": "site", "label": "Pool website", "kind": "ui", "area": "web", "status": "changed" },
-    { "id": "lanes", "label": "Lane bookings", "kind": "service", "area": "office", "status": "new", "description": "Holds a lane for an hour" },
-    { "id": "printout", "label": "Weekly lane printout", "kind": "job", "area": "office", "status": "removed" },
-    { "id": "db", "label": "Pool database", "kind": "database", "area": "office", "status": "unchanged" }
+    { "id": "site", "label": "Library website", "kind": "ui", "area": "web", "status": "changed" },
+    { "id": "renewals", "label": "Loan renewals", "kind": "service", "area": "office", "status": "new", "description": "Adds two weeks to a loan" },
+    { "id": "printout", "label": "Weekly overdue printout", "kind": "job", "area": "office", "status": "removed" },
+    { "id": "db", "label": "Library database", "kind": "database", "area": "office", "status": "unchanged" }
   ],
   "edges": [
-    { "from": "site", "to": "lanes", "label": "book a lane", "status": "new", "emphasis": true },
-    { "from": "lanes", "to": "db", "label": "save booking", "status": "new" },
-    { "from": "printout", "to": "db", "label": "read bookings", "status": "removed" }
+    { "from": "site", "to": "renewals", "label": "renew a loan", "status": "new", "emphasis": true },
+    { "from": "renewals", "to": "db", "label": "save due date", "status": "new" },
+    { "from": "printout", "to": "db", "label": "read loans", "status": "removed" }
   ]
 }
 ```
@@ -118,8 +118,8 @@ Structa places every card. You steer it two ways:
 Short labels keep cards small and the layout tidy.
 
 - A card's `label` is a name of a few words. Put the detail in its `description`, one sentence drawn under the label.
-- A line's `label` is a few words, such as "book a lane" or "POST /bookings".
-- A row's `text` can be a real signature, such as "cancel(id: BookingId): void". Long rows wrap, and nothing is ever cut off.
+- A line's `label` is a few words, such as "renew a loan" or "POST /renewals".
+- A row's `text` can be a real signature, such as "renew(id: LoanId, days: int): void". Long rows wrap, and nothing is ever cut off.
 
 ## Limits
 
