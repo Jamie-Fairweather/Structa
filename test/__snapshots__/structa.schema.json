@@ -460,7 +460,7 @@
                   "pattern": "^[\\u0020-\\u007E\\u00A0-\\u00AC\\u00AE-\\u0148\\u014A-\\u017F\\u2010-\\u2015\\u2018-\\u2022\\u2026\\u2030\\u2032-\\u2033\\u2039-\\u203A\\u20AC\\u2122\\u2190-\\u2195\\u21D0\\u21D2\\u21D4\\u2212\\u221E\\u2248\\u2260\\u2264-\\u2265]*$"
                 },
                 "area": {
-                  "description": "the id of the area the shape is in; a note about a shape is in that shape's area, so it can leave this out",
+                  "description": "the id of the area the shape is in; with groupAreas, a note about a shape is in that shape's area, so it can leave this out",
                   "$ref": "#/$defs/id"
                 },
                 "status": {

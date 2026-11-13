@@ -29,6 +29,7 @@ import {
   textLines,
   titleOf,
 } from "./helpers/svg";
+import { pngSize } from "./helpers/png";
 
 type Obj = Record<string, unknown>;
 type Diagram = Obj & { areas: Obj[]; nodes: Obj[]; edges: Obj[] };
@@ -294,30 +295,42 @@ describe("checking areas", () => {
     ]);
   });
 
-  it("puts a note about a shape in that shape's area, and rejects another one", async () => {
+  it("with groupAreas, puts a note about a shape in that shape's area, and rejects another one", async () => {
     const note = { id: "tip", label: "Ask about allergies", shape: "note", about: "order" };
-    const doc = await svgDoc(bakeryWith((d) => d.nodes.push(note)));
+    const boxed = (change: (input: Diagram) => void) => ({ ...bakeryWith(change), groupAreas: true });
+    const doc = await svgDoc(boxed((d) => d.nodes.push(note)));
     expect(cardById(doc, "tip").getAttribute("data-area")).toBe("counter");
-    await expect(render(bakeryWith((d) => d.nodes.push({ ...note, area: "counter" })), opts)).resolves.toHaveProperty("svg");
+    await expect(render(boxed((d) => d.nodes.push({ ...note, area: "counter" })), opts)).resolves.toHaveProperty("svg");
 
-    expect(await problems(bakeryWith((d) => d.nodes.push({ ...note, area: "bakehouse" })))).toEqual([
+    expect(await problems(boxed((d) => d.nodes.push({ ...note, area: "bakehouse" })))).toEqual([
       {
         path: "nodes[4].area",
-        message: 'a note is in the area of the shape it\'s about, and "order" is in "counter"',
+        message: 'with groupAreas, a note is in the area of the shape it\'s about, and "order" is in "counter"',
         hint: 'leave "area" out, or make it "counter"',
       },
     ]);
-    const outside = bakeryWith((d) => {
+    const outside = boxed((d) => {
       delete d.nodes[0]!.area;
       d.nodes.push({ ...note, area: "counter" });
     });
     expect(await problems(outside)).toEqual([
       {
         path: "nodes[4].area",
-        message: 'a note is in the area of the shape it\'s about, and "order" is in no area',
+        message: 'with groupAreas, a note is in the area of the shape it\'s about, and "order" is in no area',
         hint: 'leave "area" out, or put "order" in "counter" too',
       },
     ]);
+  });
+
+  it("without groupAreas, gives a note only the area it names, whatever its shape's", async () => {
+    const note = { id: "tip", label: "Ask about allergies", shape: "note", about: "order" };
+    const untagged = await svgDoc(bakeryWith((d) => d.nodes.push(note)));
+    expect(cardById(untagged, "tip").hasAttribute("data-area")).toBe(false);
+    expect(tagOf(cardById(untagged, "tip"))).toBeUndefined();
+
+    const elsewhere = await svgDoc(bakeryWith((d) => d.nodes.push({ ...note, area: "bakehouse" })));
+    expect(cardById(elsewhere, "tip").getAttribute("data-area")).toBe("bakehouse");
+    expect(textLines(tagOf(cardById(elsewhere, "tip"))!.tag)).toEqual(["Bakehouse"]);
   });
 
   it("lets a note about nothing be in any area", async () => {
@@ -378,7 +391,7 @@ function everyShape(extra: Obj = {}) {
       { id: "risen", label: "Risen?", shape: "decision", area: "bakehouse", status: "unchanged" },
       { id: "ice", label: "Ice it", shape: "step", area: "bakehouse" },
       { id: "collect", label: "Collected", shape: "end", area: "shop", status: "removed" },
-      { id: "tip", label: "Butter the tins first", shape: "note", about: "bake" },
+      { id: "tip", label: "Butter the tins first", shape: "note", about: "bake", area: "bakehouse" },
     ],
     edges: [
       { from: "order", to: "recipe" },
@@ -604,7 +617,7 @@ function areaBoxes(doc: Document) {
   return allElements(doc)
     .filter((el) => el.getAttribute("class") === "area")
     .map((area) => {
-      const id = area.getAttribute("data-id")!;
+      const id = area.getAttribute("data-area")!;
       const name = names.find((el) => el.getAttribute("data-area") === id)!;
       return {
         area,
@@ -684,7 +697,7 @@ describe("area boxes", () => {
       ["yard", undefined],
     ]);
     for (const { area, box, name } of areaBoxes(doc)) {
-      const label = market().areas.find((a) => a.id === area.getAttribute("data-id"))!.label;
+      const label = market().areas.find((a) => a.id === area.getAttribute("data-area"))!.label;
       expect(name.textContent).toBe(label);
       expect(titleOf(area)).toBe(label);
       expect(name.hasAttribute("text-anchor")).toBe(false);
@@ -840,6 +853,36 @@ describe("area boxes", () => {
     expect([...across].sort((a, b) => a - b)).toEqual(across);
   });
 
+  it.each(["down", "right"] as const)("gives each line out of an area its own way out of the box, direction %s", async (direction) => {
+    // Two lines of different statuses from one card in the kitchen to two cards outside it.
+    const input = {
+      type: "flow",
+      direction,
+      groupAreas: true,
+      areas: [{ id: "kitchen", label: "Kitchen" }],
+      nodes: [
+        { id: "brew", label: "Brew the tea", shape: "step", area: "kitchen" },
+        { id: "pour", label: "Pour for the table", shape: "step" },
+        { id: "flask", label: "Fill the flask", shape: "step" },
+      ],
+      edges: [
+        { from: "brew", to: "pour", status: "new" },
+        { from: "brew", to: "flask", status: "removed" },
+      ],
+    };
+    const doc = await svgDoc(input);
+    const { box } = areaBoxes(doc)[0]!;
+    const onBorder = (p: { x: number; y: number }) =>
+      Math.min(Math.abs(p.x - box.x), Math.abs(p.x - (box.x + box.width)), Math.abs(p.y - box.y), Math.abs(p.y - (box.y + box.height))) < 0.5;
+    const exits = lines(doc).map((line) => {
+      const route = lineGeometry(line).route.flatMap((c) => c.points);
+      return alongRuns(route).find(onBorder)!;
+    });
+
+    expect(exits).toHaveLength(2);
+    expect(Math.hypot(exits[0]!.x - exits[1]!.x, exits[0]!.y - exits[1]!.y)).toBeGreaterThan(4);
+  });
+
   it("draws nothing different with groupAreas but no areas", async () => {
     const plain = { type: "flow", nodes: [{ id: "bake", label: "Bake", shape: "step" }] };
 
@@ -952,6 +995,16 @@ describe("the legend's areas", () => {
     expect(legendItems(doc).slice(1).map((item) => textLines(tagOf(item)!.tag))).toEqual([["Shop"], ["Counter"], ["Bakehouse"]]);
   });
 
+  it("lists an area with no cards of its own only when its box is drawn", async () => {
+    // Nothing is in the shop itself, only at its counter, so no tag says "Shop".
+    const input = bakeryWith((d) => delete d.nodes[3]!.area);
+    const listed = async (groupAreas: boolean) =>
+      legendItems(await svgDoc({ ...input, groupAreas })).map((item) => item.getAttribute("data-area"));
+
+    expect(await listed(false)).toEqual(["counter", "bakehouse"]);
+    expect(await listed(true)).toEqual(["shop", "counter", "bakehouse"]);
+  });
+
   it("draws an area's legend tag just like the tags on its cards", async () => {
     const doc = await svgDoc(bakery());
     const onCard = tagOf(cardById(doc, "bake"))!;
@@ -982,5 +1035,83 @@ describe("the legend's areas", () => {
 
     expect(legendItems(doc)).toEqual([]);
     expect(allElements(doc).some((el) => el.getAttribute("class") === "legend")).toBe(false);
+  });
+
+  /** A market of `n` stalls, each selling in an area of its own, in runs of ten, with a new first stall. */
+  function stalls(n: number, label: (i: number) => string, direction: "down" | "right" = "right") {
+    return {
+      type: "flow",
+      direction,
+      areas: Array.from({ length: n }, (_, i) => ({ id: `stall-${i}`, label: label(i) })),
+      nodes: Array.from({ length: n }, (_, i) => ({
+        id: `sell-${i}`,
+        label: `Sell at ${i}`,
+        shape: "step",
+        area: `stall-${i}`,
+        ...(i === 0 ? { status: "new" } : {}),
+      })),
+      edges: Array.from({ length: n - 1 }, (_, i) => ({ from: `sell-${i}`, to: `sell-${i + 1}` })).filter((_, i) => i % 10 !== 9),
+    };
+  }
+
+  /** A legend item's box: an area's tag, or a status's swatch and badge together. */
+  function itemBox(item: Element) {
+    const tag = tagBox(item);
+    if (tag) return tag;
+    const swatch = byClassIn(item, "swatch")[0]!;
+    const badge = badgeBox(item)!;
+    const x = Number(swatch.getAttribute("x1"));
+    return { x, y: badge.y, width: badge.x + badge.width - x, height: badge.height };
+  }
+
+  const width = (doc: Document) => Number(doc.documentElement!.getAttribute("width"));
+  const height = (doc: Document) => Number(doc.documentElement!.getAttribute("height"));
+  /** The canvas padding round the drawing, and the widest the title wraps to. */
+  const PAD = 32;
+  const TITLE_WIDTH = 640;
+
+  it.each([
+    [3, (i: number) => `Stall ${i}`, "right", 1],
+    // A narrow diagram: the legend wraps to the widest a title can be.
+    [12, (i: number) => `The cheese and pickle stall ${i}`, "down", 4],
+    [40, (i: number) => `Stall number ${i}`, "right", 3],
+    [100, (i: number) => `Stall number ${i}`, "right", 7],
+  ] as const)("wraps %i areas into rows no wider than the diagram, or than a title can be", async (n, label, direction, rows) => {
+    const input = stalls(n, label, direction);
+    const doc = await svgDoc(input);
+    const plain = await svgDoc({ ...input, legend: false });
+    const items = legendItems(doc);
+    const boxes = items.map(itemBox);
+    const widest = Math.max(width(plain) - 2 * PAD, TITLE_WIDTH);
+
+    // Everything is there, in order: the status, then the areas.
+    expect(items.map((item) => item.getAttribute("data-status") ?? item.getAttribute("data-area"))).toEqual([
+      "new",
+      ...input.areas.map((area) => area.id),
+    ]);
+    // The legend never widens the drawing past the diagram, or past the widest a title can be.
+    expect(width(doc)).toBeLessThanOrEqual(Math.max(width(plain), TITLE_WIDTH + 2 * PAD));
+    for (const box of boxes) {
+      expect(box.x).toBeGreaterThanOrEqual(PAD);
+      expect(box.x + box.width).toBeLessThanOrEqual(PAD + widest);
+    }
+    // Read left to right, row by row: each item follows the one before on its row, or starts the next row.
+    const lowest = Math.max(...cards(doc).map((card) => cardExtent(card).y + cardExtent(card).height));
+    expect(boxes[0]!.y).toBeGreaterThan(lowest);
+    boxes.slice(1).forEach((b, i) => {
+      const before = boxes[i]!;
+      if (b.y === before.y) expect(b.x).toBeGreaterThan(before.x + before.width);
+      else expect([b.x, b.y > before.y + before.height]).toEqual([PAD, true]);
+    });
+    // A longer legend makes the drawing taller instead.
+    expect(new Set(boxes.map((b) => b.y)).size).toBe(rows);
+    expect(height(doc)).toBeGreaterThan(height(plain));
+  });
+
+  it("draws 100 areas as a PNG at the default scale", async () => {
+    const { svg, png } = await render(stalls(100, (i) => `Stall number ${i}`), { formats: ["svg", "png"], embedFonts: false });
+    const doc = parseSvg(svg);
+
+    expect(pngSize(png)).toEqual({ width: 2 * width(doc), height: 2 * height(doc) });
   });
 });

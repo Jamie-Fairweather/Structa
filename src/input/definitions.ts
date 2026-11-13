@@ -362,11 +362,13 @@ interface CheckedFlowNode {
 }
 
 /**
- * A note about a shape is in that shape's area, so it can only name the same
- * one. A reference that names nothing, or the wrong kind of node, was
- * reported already.
+ * With area boxes, a note about a shape is in that shape's box, so it can
+ * only name the same area. A reference that names nothing, or the wrong kind
+ * of node, was reported already. Tags don't nest, so without boxes a note
+ * can name any area.
  */
 const noteAreaRule: Rule = (checked) => {
+  if (checked.groupAreas !== true) return [];
   const nodes = (checked.nodes ?? []) as readonly CheckedFlowNode[];
   const areas = new Set(((checked.areas ?? []) as readonly CheckedArea[]).map((area) => area.id));
   const byId = new Map<string, CheckedFlowNode>();
@@ -380,7 +382,8 @@ const noteAreaRule: Rule = (checked) => {
     const area = JSON.stringify(note.area);
     const where = shape.area === undefined ? "no area" : JSON.stringify(shape.area);
     const hint = shape.area === undefined ? `leave "area" out, or put ${about} in ${area} too` : `leave "area" out, or make it ${where}`;
-    return [{ path: `nodes[${i}].area`, message: `a note is in the area of the shape it's about, and ${about} is in ${where}`, hint }];
+    const message = `with groupAreas, a note is in the area of the shape it's about, and ${about} is in ${where}`;
+    return [{ path: `nodes[${i}].area`, message, hint }];
   });
 };
 
@@ -395,7 +398,7 @@ const FLOW_NODE: ObjectDef = {
       { kind: "text", text: DESCRIPTION, faces: [CARD_DESCRIPTION_FACE] },
       "a sentence or two drawn smaller under the label, and shown in the tooltip",
     ),
-    areaField("the id of the area the shape is in; a note about a shape is in that shape's area, so it can leave this out"),
+    areaField("the id of the area the shape is in; with groupAreas, a note about a shape is in that shape's area, so it can leave this out"),
     optional("status", STATUS, "what the change does to this card; leave it out for no status"),
     required("shape", { kind: "choice", values: FLOW_SHAPES, later: false }, "the shape drawn"),
     conditional(

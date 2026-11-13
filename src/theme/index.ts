@@ -148,8 +148,12 @@ export const SIZES = {
    * it, `nameMargin` wider each side, it covers whatever runs under it.
    */
   area: { radius: 12, padding: 16, nameSize: 12, nameLineHeight: 16, nameTop: 8, nameGap: 8, nameMargin: 3, borderWidth: 1 },
-  /** Each legend item: a short sample of the status's line colour, then its badge. */
-  legend: { swatchLength: 20, swatchGap: 6, itemGap: 20 },
+  /**
+   * Each legend item: a short sample of the status's line colour, then its
+   * badge; or an area's tag. Items run in rows `itemGap` apart, the rows
+   * `rowGap` apart.
+   */
+  legend: { swatchLength: 20, swatchGap: 6, itemGap: 20, rowGap: 8 },
   /** A line through struck-out text, `rise` font sizes above the baseline. */
   strike: { width: 1.25, rise: 0.3 },
   /** A line under underlined text, such as a static class member, `drop` font sizes below the baseline. */

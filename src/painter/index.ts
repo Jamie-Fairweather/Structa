@@ -225,7 +225,7 @@ function areaItem(item: AreaItem, at: Point, pen: Pen): string[] {
 function areaBox({ area, x, y, width, height }: PlacedArea<AreaBox>, at: Point, pen: Pen): string[] {
   const { colors, sizes } = pen.theme;
   return [
-    open("g", [["class", "area"], ["data-id", area.id], ...(area.parent === undefined ? [] : ([["data-parent", area.parent]] as const))]),
+    open("g", [["class", "area"], ["data-area", area.id], ...(area.parent === undefined ? [] : ([["data-parent", area.parent]] as const))]),
     el("title", [], escapeText(area.tooltip)),
     el("rect", [
       ["class", "area-box"],

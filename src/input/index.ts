@@ -52,7 +52,7 @@ export interface FlowNode {
   readonly label: string;
   /** Tidied, like every text field. */
   readonly description?: string;
-  /** The id of the innermost area the card is in. A note about a shape is in that shape's area. */
+  /** The id of the innermost area the card is in. With groupAreas, a note about a shape is in that shape's area. */
   readonly area?: string;
   readonly status?: Status;
   readonly shape: FlowShape;
@@ -173,13 +173,22 @@ export function parseDiagram(input: unknown): ParseResult {
       groupAreas: diagram.groupAreas,
       legend: diagram.legend,
       areas: diagram.areas,
-      nodes: diagram.type === "class" ? (diagram.nodes as WithoutIds<ClassNode>[]).map(classNode) : notesInAreas(diagram.nodes as FlowNode[]),
+      nodes:
+        diagram.type === "class"
+          ? (diagram.nodes as WithoutIds<ClassNode>[]).map(classNode)
+          : diagram.groupAreas
+            ? notesInAreas(diagram.nodes as FlowNode[])
+            : (diagram.nodes as FlowNode[]),
       edges: diagram.edges.map((edge, i) => ({ ...edge, id: edge.id ?? `edges[${i}]` })),
     } as Diagram,
   };
 }
 
-/** A note about a shape is in that shape's area, whether it says so or not. */
+/**
+ * With area boxes, a note about a shape is in that shape's box, whether it
+ * says so or not: ELK can't join a note to a shape in another area. Tags
+ * show only the area a note is given.
+ */
 function notesInAreas(nodes: readonly FlowNode[]): FlowNode[] {
   const areas = new Map(nodes.map((node) => [node.id, node.area]));
   return nodes.map((node) => {

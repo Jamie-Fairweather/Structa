@@ -62,7 +62,12 @@ export async function render<F extends Format = "svg">(
   const header = buildHeader(diagram.title, diagram.description, theme.sizes);
   // Every card's status, its rows' (taken from the card included) and every line's.
   const statuses = [...cards.flatMap((card) => [card.status, ...card.rows.map((row) => row.status)]), ...lines.map((line) => line.status)];
-  const legend = diagram.legend ? buildLegend(statuses, diagram.areas, theme.sizes) : undefined;
+  // The areas named in the drawing: each box names its area, and each tag only its card's own.
+  const tagged = new Set(cards.map((card) => card.area));
+  const named = diagram.groupAreas ? diagram.areas : diagram.areas.filter((area) => tagged.has(area.id));
+  // The legend wraps to the diagram's width, or to the title's widest when that's wider, so it never widens the image.
+  const legendWidth = Math.max(scene.width, theme.sizes.header.maxWidth);
+  const legend = diagram.legend ? buildLegend(statuses, named, legendWidth, theme.sizes) : undefined;
   const drawing = { scene, header, legend };
 
   const result: Partial<Outputs> = {};
