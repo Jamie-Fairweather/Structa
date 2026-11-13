@@ -113,16 +113,17 @@ function alongEnd(points: readonly Point[]): { tip: Point; at: (back: number, si
 }
 
 /**
- * A crow's-foot end on the route's start or end: path data for its strokes,
- * and its circle when it has one. Its marks are measured out from the table
- * along the route's straight run: nearest the table a foot for many or a bar
- * for one, then a bar for one or a circle for zero. When another line ends
- * `room` px away on the same side, the marks are drawn narrower across the
- * line, to keep clear of that one's.
+ * A crow's-foot end at the route's `from` end, where it starts, or its `to`
+ * end, where it ends: path data for its strokes, and its circle when it has
+ * one. Its marks are measured out from the table along the route's straight
+ * run: nearest the table a foot for many or a bar for one, then a bar for
+ * one or a circle for zero. When another line ends `room` px away on the
+ * same side, the marks are drawn narrower across the line, to keep clear of
+ * that one's.
  */
 export function crowsFoot(
   points: readonly Point[],
-  end: "start" | "end",
+  end: "from" | "to",
   cardinality: Cardinality,
   sizes: Sizes["crowsFoot"],
   room = Number.POSITIVE_INFINITY,
@@ -132,7 +133,7 @@ export function crowsFoot(
   const narrow = Math.max(0.25, Math.min(1, (room - sizes.apart) / widest));
   const s = { ...sizes, footWidth: sizes.footWidth * narrow, barLength: sizes.barLength * narrow };
   const pts = withoutRepeats(points);
-  const [tip, next] = end === "start" ? [pts[0]!, pts[1]] : [pts.at(-1)!, pts.at(-2)];
+  const [tip, next] = end === "from" ? [pts[0]!, pts[1]] : [pts.at(-1)!, pts.at(-2)];
   // Outwards from the table along the line, and across it.
   const len = next ? distance(tip, next) : 0;
   const u = next && len > 0 ? { x: (next.x - tip.x) / len, y: (next.y - tip.y) / len } : { x: 1, y: 0 };

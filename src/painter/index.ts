@@ -1,6 +1,6 @@
 import type { Point } from "../geometry";
 import type { Cardinality, Status } from "../input";
-import type { PlacedArea, PlacedCard, RoutedLine, Scene } from "../layout";
+import type { LayoutLine, PlacedArea, PlacedCard, RoutedLine, Scene } from "../layout";
 import {
   distanceToBox,
   entry,
@@ -29,9 +29,12 @@ import { iconPath } from "./icons";
 import { arrowhead, crowsFoot, diamond, lastRun, openArrowhead, roundedRoute, routeLength } from "./route";
 import { el, escapeText, num, open, type Attrs } from "./svg";
 
+/** A line or a note's connector as laid out: with the indexes of the cards at its `from` and `to` ends. */
+type Laid<L> = L & Pick<LayoutLine, "from" | "to">;
+
 /** Everything drawn: the laid-out scene, the title above it and the legend below it. */
 export interface Drawing {
-  readonly scene: Scene<Card, Line | Connector, AreaBox>;
+  readonly scene: Scene<Card, Laid<Line> | Laid<Connector>, AreaBox>;
   readonly header?: Header;
   readonly legend?: Legend;
 }
@@ -64,22 +67,24 @@ export function paint({ scene, header, legend }: Drawing, theme: Theme, options:
   // Every text element is written through text(), which records its face in the pen.
   const pen: Pen = { theme, faces: new Set() };
   const origin = { x: pad, y: sceneTop ?? pad };
-  const placed = new Map(scene.cards.map((p) => [p.card.id, p]));
+  const { cards } = scene;
 
-  const routed = (l: Line | Connector, points: readonly Point[]) => ontoCards(points, placed.get(l.from)!, placed.get(l.to)!);
-  const lines = scene.lines.filter((l): l is RoutedLine<Line> => l.line.kind !== "connector");
+  const routed = (l: Laid<Line | Connector>, points: readonly Point[]) => ontoCards(points, cards[l.from]!, cards[l.to]!);
+  // The ids of the cards at a line's ends.
+  const endIds = (l: Laid<Line | Connector>) => ({ from: cards[l.from]!.card.id, to: cards[l.to]!.card.id });
+  const lines = scene.lines.filter((l): l is RoutedLine<Laid<Line>> => l.line.kind !== "connector");
   const drawn = lines.map(({ line: l, points }) => ({ line: l, points: routed(l, points) }));
   const rooms = endRooms(drawn);
-  const notes = scene.lines.filter((l): l is RoutedLine<Connector> => l.line.kind === "connector");
-  const aimed = aimConnectors(notes, lines, placed, theme.sizes);
+  const notes = scene.lines.filter((l): l is RoutedLine<Laid<Connector>> => l.line.kind === "connector");
+  const aimed = aimConnectors(notes, lines, cards, theme.sizes);
   const content = [
     ...(header ? headerText(header, { x: pad, y: headerTop! }, pen) : []),
     // Under everything else in the scene, each parent before the areas inside it.
     ...scene.areas.flatMap((a) => areaBox(a, origin, pen)),
-    ...scene.cards.flatMap((p) => card(p, origin, pen, ids.shadow)),
+    ...cards.flatMap((p) => card(p, origin, pen, ids.shadow)),
     // Under the lines: a note's connector is an aside, not part of the flow.
-    ...notes.flatMap(({ line: l }, i) => connector(l, routed(l, aimed[i]!), origin, pen)),
-    ...drawn.flatMap(({ points }, i) => line(lines[i]!, points, origin, pen, rooms[i]!)),
+    ...notes.flatMap(({ line: l }, i) => connector(l, routed(l, aimed[i]!), endIds(l), origin, pen)),
+    ...drawn.flatMap(({ line: l, points }, i) => line(lines[i]!, points, endIds(l), origin, pen, rooms[i]!)),
     ...areaNames(scene.areas, origin, pen),
     ...lineLabels(lines, origin, pen),
     ...(legend ? legendItems(legend, { x: pad, y: legendTop! }, pen) : []),
@@ -141,9 +146,9 @@ type BoxSide = "top" | "bottom" | "left" | "right";
  * keep it clear of them.
  */
 function aimConnectors(
-  connectors: readonly RoutedLine<Connector>[],
-  lines: readonly RoutedLine<Line>[],
-  placed: ReadonlyMap<string, PlacedCard<Card>>,
+  connectors: readonly RoutedLine<Laid<Connector>>[],
+  lines: readonly RoutedLine<Laid<Line>>[],
+  cards: readonly PlacedCard<Card>[],
   sizes: Sizes,
 ): Point[][] {
   const routes = connectors.map(({ points }) => [...points]);
@@ -154,21 +159,18 @@ function aimConnectors(
     return { key: `${at.card.id} ${side}`, side, along };
   };
   for (const { line: l, points } of lines) {
-    for (const [p, id] of [
+    for (const [p, card] of [
       [points[0]!, l.from],
       [points.at(-1)!, l.to],
     ] as const) {
-      const { key, along } = endOn(p, placed.get(id)!);
+      const { key, along } = endOn(p, cards[card]!);
       taken.set(key, [...(taken.get(key) ?? []), along]);
     }
   }
   connectors.forEach(({ line: c, points }, i) => {
-    for (const [end, id] of [
-      ["start", c.from],
-      ["end", c.to],
-    ] as const) {
-      const at = placed.get(id)!;
-      const { key, side, along } = endOn(end === "start" ? points[0]! : points.at(-1)!, at);
+    for (const end of ["from", "to"] as const) {
+      const at = cards[c[end]]!;
+      const { key, side, along } = endOn(end === "from" ? points[0]! : points.at(-1)!, at);
       const others = taken.get(key) ?? [];
       const spot = freeSpot(along, stretch(at.card, side), others, sizes.landing.pitch / 2);
       setEnd(routes[i]!, end, onSide(at, side, spot));
@@ -176,19 +178,18 @@ function aimConnectors(
     }
   });
   const margin = sizes.landing.clearance / 2;
-  const everyCard = [...placed.values()];
   return routes.map((route, i) => {
     const { line: c } = connectors[i]!;
-    const cards = [placed.get(c.from)!, placed.get(c.to)!] as const;
+    const ends = [cards[c.from]!, cards[c.to]!] as const;
     const clear = (start: Point, end: Point) => {
-      const drawn = ontoCards([start, ...route.slice(1, -1), end], ...cards);
-      return drawn.every((p, k) => k === 0 || everyCard.every((card) => nearBorderItems(drawn[k - 1]!, p, card) >= margin));
+      const drawn = ontoCards([start, ...route.slice(1, -1), end], ...ends);
+      return drawn.every((p, k) => k === 0 || cards.every((card) => nearBorderItems(drawn[k - 1]!, p, card) >= margin));
     };
     const [start, end] = [route[0]!, route.at(-1)!];
     if (clear(start, end)) return route;
     // Each pair of places the ends could go, nearest to where they are first; ties in the order listed.
     const moved = (p: Point, q: Point) => Math.hypot(p.x - q.x, p.y - q.y);
-    const pairs = [start, ...safePlaces(cards[0])].flatMap((a) => [end, ...safePlaces(cards[1])].map((b) => [a, b] as const));
+    const pairs = [start, ...safePlaces(ends[0])].flatMap((a) => [end, ...safePlaces(ends[1])].map((b) => [a, b] as const));
     const best = pairs
       .map((pair, k) => ({ pair, k, cost: moved(pair[0], start) + moved(pair[1], end) }))
       .sort((p, q) => p.cost - q.cost || p.k - q.k)
@@ -248,8 +249,8 @@ function onSide({ card, x, y }: PlacedCard<Card>, side: BoxSide, along: number):
   return { x: side === "left" ? x : x + card.width, y: y + along };
 }
 
-function setEnd(route: Point[], end: "start" | "end", at: Point): void {
-  route[end === "start" ? 0 : route.length - 1] = at;
+function setEnd(route: Point[], end: "from" | "to", at: Point): void {
+  route[end === "from" ? 0 : route.length - 1] = at;
 }
 
 /** Where a connector may end on a card, clear of its badge and tag: where its landing starts and stops on its top and sides, and its box's bottom corners. */
@@ -289,11 +290,11 @@ interface Rooms {
  * crowded one they can be closer than a crow's foot is wide. Ends that share
  * a point, at a column's row, draw their marks there full size, one over another.
  */
-function endRooms(lines: readonly { line: Line; points: readonly Point[] }[]): Rooms[] {
+function endRooms(lines: readonly { line: Laid<Line>; points: readonly Point[] }[]): Rooms[] {
   const ends = lines.flatMap(({ line: l, points }) =>
     l.ends ? [{ card: l.from, at: points[0]! }, { card: l.to, at: points.at(-1)! }] : [],
   );
-  const room = (card: string, at: Point | undefined) => {
+  const room = (card: number, at: Point | undefined) => {
     if (!at) return Number.POSITIVE_INFINITY;
     const others = ends.filter((e) => e.card === card && Math.abs(e.at.x - at.x) < 1 && Math.abs(e.at.y - at.y) >= 0.01);
     return Math.min(Number.POSITIVE_INFINITY, ...others.map((e) => Math.abs(e.at.y - at.y)));
@@ -675,12 +676,12 @@ function badge(b: Badge, x: number, y: number, pen: Pen): string[] {
   ];
 }
 
-/** A note's connector: a thin dotted line in the connector colour, with no arrowhead. */
-function connector(c: Connector, points: readonly Point[], at: Point, pen: Pen): string[] {
+/** A note's connector, from the note to the shape it's about, `ids` naming them: a thin dotted line in the connector colour, with no arrowhead. */
+function connector(c: Connector, points: readonly Point[], ids: EndIds, at: Point, pen: Pen): string[] {
   const { colors, sizes } = pen.theme;
   const pts = points.map((p) => ({ x: p.x + at.x, y: p.y + at.y }));
   return [
-    open("g", [["class", "connector"], ["data-kind", "note"], ["data-from", c.from], ["data-to", c.to]]),
+    open("g", [["class", "connector"], ["data-kind", "note"], ["data-from", ids.from], ["data-to", ids.to]]),
     el("title", [], escapeText(c.tooltip)),
     ...fadedIf(c.faded, pen.theme, [
       el("path", [
@@ -695,13 +696,19 @@ function connector(c: Connector, points: readonly Point[], at: Point, pen: Pen):
   ];
 }
 
+/** The ids of the cards at a line's `from` and `to` ends. */
+interface EndIds {
+  readonly from: string;
+  readonly to: string;
+}
+
 /**
- * A line along `points`, offset by `at`: its route, the mark at each end
- * that has one, or its crow's feet, narrower where `rooms` says another end
- * is close, and the counts beside its ends where ELK put them. Its middle
- * label is drawn later, over all the lines.
+ * A line along `points`, offset by `at`, between the cards `ids` names: its
+ * route, the mark at each end that has one, or its crow's feet, narrower
+ * where `rooms` says another end is close, and the counts beside its ends
+ * where ELK put them. Its middle label is drawn later, over all the lines.
  */
-function line({ line, sourceLabel, targetLabel }: RoutedLine<Line>, points: readonly Point[], at: Point, pen: Pen, rooms: Rooms): string[] {
+function line({ line, fromLabel, toLabel }: RoutedLine<Line>, points: readonly Point[], ids: EndIds, at: Point, pen: Pen, rooms: Rooms): string[] {
   const { sizes } = pen.theme;
   const pts = points.map((p) => ({ x: p.x + at.x, y: p.y + at.y }));
   const endText = (end: "from" | "to", label: LineLabel | undefined, where: Point | undefined) =>
@@ -733,8 +740,8 @@ function line({ line, sourceLabel, targetLabel }: RoutedLine<Line>, points: read
       ["class", "line"],
       ["data-id", line.id],
       ["data-kind", line.kind],
-      ["data-from", line.from],
-      ["data-to", line.to],
+      ["data-from", ids.from],
+      ["data-to", ids.to],
       ...statusAttr(line.status),
     ]),
     el("title", [], escapeText(line.tooltip)),
@@ -757,8 +764,8 @@ function line({ line, sourceLabel, targetLabel }: RoutedLine<Line>, points: read
             ...lineEnd(pts, "to", line.ends.to, rooms.to, colour, width, pen),
           ]
         : []),
-      ...endText("from", line.fromLabel, sourceLabel),
-      ...endText("to", line.toLabel, targetLabel),
+      ...endText("from", line.fromLabel, fromLabel),
+      ...endText("to", line.toLabel, toLabel),
     ]),
     "</g>",
   ];
@@ -827,7 +834,7 @@ function lineEnd(
   width: number,
   pen: Pen,
 ): string[] {
-  const { d, circle } = crowsFoot(points, end === "from" ? "start" : "end", cardinality, pen.theme.sizes.crowsFoot, room);
+  const { d, circle } = crowsFoot(points, end, cardinality, pen.theme.sizes.crowsFoot, room);
   const stroke: Attrs = [["stroke", colour], ["stroke-width", width]];
   return [
     open("g", [["class", "end"], ["data-end", end], ["data-cardinality", cardinality]]),

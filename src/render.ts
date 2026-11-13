@@ -40,21 +40,19 @@ export async function render<F extends Format = "svg">(
   const nodes: readonly { readonly id: string; readonly label: string }[] = diagram.nodes;
   const index = new Map(nodes.map((node, i) => [node.id, i]));
   const unplaced = diagram.edges.map((edge, i) => {
-    const source = index.get(edge.from)!;
-    const target = index.get(edge.to)!;
-    const line = buildLine(edge, nodes[source]!.label, nodes[target]!.label, theme.sizes);
+    const from = index.get(edge.from)!;
+    const to = index.get(edge.to)!;
+    const line = buildLine(edge, nodes[from]!.label, nodes[to]!.label, theme.sizes);
     // A parent class is laid out before the classes that inherit from or implement it.
-    const targetFirst = "kind" in edge && PARENT_KINDS.has(edge.kind);
-    const ends = { ...(line.fromLabel ? { sourceLabel: line.fromLabel } : {}), ...(line.toLabel ? { targetLabel: line.toLabel } : {}) };
+    const toFirst = "kind" in edge && PARENT_KINDS.has(edge.kind);
     const counts: { fromLabel?: string; toLabel?: string } = "fromLabel" in edge || "toLabel" in edge ? edge : {};
-    const joins = { ...shared(line, "from", counts.fromLabel, "source"), ...shared(line, "to", counts.toLabel, "target") };
+    const shareKeys = { ...shared(line, "from", counts.fromLabel), ...shared(line, "to", counts.toLabel) };
     return {
       ...line,
-      source,
-      target,
-      ...ends,
-      targetFirst,
-      ...(Object.keys(joins).length > 0 ? { joins } : {}),
+      from,
+      to,
+      toFirst,
+      ...(Object.keys(shareKeys).length > 0 ? { shareKeys } : {}),
       path: `edges[${i}]`,
     };
   });
@@ -62,8 +60,8 @@ export async function render<F extends Format = "svg">(
   const flowNodes = diagram.type === "flow" ? diagram.nodes : [];
   const connectors = flowNodes.flatMap((node, i) => {
     if (node.about === undefined) return [];
-    const target = index.get(node.about)!;
-    return [{ ...buildConnector(node, flowNodes[target]!), source: i, target, path: `nodes[${i}].about` }];
+    const to = index.get(node.about)!;
+    return [{ ...buildConnector(node, flowNodes[to]!), from: i, to, path: `nodes[${i}].about` }];
   });
   // Each card leaves room for the ends of the lines and connectors ELK puts on it, clear of its badge and tag.
   const cards = buildCards(diagram, theme.sizes, [...connectors, ...unplaced]).map((card, i) => ({ ...card, path: `nodes[${i}]`, note: card.kind === "note" }));
@@ -71,7 +69,7 @@ export async function render<F extends Format = "svg">(
     const edge = diagram.edges[i]!;
     // Only an ER line's ends can name columns.
     const columns = "fromCardinality" in edge ? { from: edge.fromColumn, to: edge.toColumn } : {};
-    const ports = linePorts(cards[line.source]!, cards[line.target]!, columns, theme.sizes);
+    const ports = linePorts(cards[line.from]!, cards[line.to]!, columns, theme.sizes);
     return { ...line, ...(ports ? { ports } : {}) };
   });
   // Area boxes only when asked for: otherwise the areas don't affect the layout at all.
@@ -102,14 +100,14 @@ export async function render<F extends Format = "svg">(
 }
 
 /**
- * The key layout joins a line's end by, at `end` (`as` in layout's terms),
- * when it has a mark lines share there: lines join only where they're drawn
- * alike, the same kind, status and weight, with the same count or none.
+ * The key layout shares a line's end by, at `end`, when it has a mark lines
+ * share there: lines share an end only where they're drawn alike, the same
+ * kind, status and weight, with the same count or none.
  */
-function shared(line: Line, end: "from" | "to", count: string | undefined, as: "source" | "target"): Partial<Record<"source" | "target", string>> {
+function shared(line: Line, end: "from" | "to", count: string | undefined): Partial<Record<"from" | "to", string>> {
   const mark = line.marks[end];
   if (mark === undefined || !LINE_ENDS[mark].shared) return {};
-  return { [as]: JSON.stringify([line.kind, line.status ?? null, line.emphasis, count ?? null]) };
+  return { [end]: JSON.stringify([line.kind, line.status ?? null, line.emphasis, count ?? null]) };
 }
 
 interface CheckedOptions {

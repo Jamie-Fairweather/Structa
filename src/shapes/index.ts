@@ -100,12 +100,15 @@ export const LINE_ENDS: { readonly [mark in EndMark]: LineEnd } = {
   },
 };
 
+/**
+ * A line between two cards, as drawn. Its `from` end is where it leaves the
+ * card its edge's `from` names, and its `to` end where it reaches the card
+ * its `to` names; which cards those are is given alongside, by their indexes.
+ */
 export interface Line {
   readonly id: string;
   /** A flowchart's line, the relationship a class line shows, how one part of a system talks to another, or a relationship between tables. */
   readonly kind: LineKind;
-  readonly from: string;
-  readonly to: string;
   /**
    * What the line's stroke looks like, which shows its kind: dashed for
    * implements, dependency and async lines, dotted for a relationship the
@@ -199,9 +202,9 @@ function block(
 /**
  * A line, or a note's connector, as far as sizing cards goes: the cards it
  * joins, by their index among the diagram's nodes, and, as layout gives it
- * to ELK, whether it goes in parent first and which of its ends join others.
+ * to ELK, whether it goes in `to` first and which of its ends it shares.
  */
-export interface CardLine extends Pick<LayoutLine, "source" | "target" | "targetFirst" | "joins"> {
+export interface CardLine extends Pick<LayoutLine, "from" | "to" | "toFirst" | "shareKeys"> {
   readonly kind: Line["kind"] | Connector["kind"];
 }
 
@@ -232,15 +235,15 @@ export function buildCards(diagram: Diagram, sizes: Sizes, lines: readonly CardL
  * sides, as layout gives it the lines. On its top: none when no line meets
  * it there, and otherwise as many as meet its top or its bottom, whichever
  * is more, as ELK spreads both over the same stretch. Going down, a line
- * meets its target's top and leaves its source's bottom, or the other way
- * round when its target comes first; going right, the same on their left
- * and right sides. ELK runs a line from a card to itself over the card's
+ * leaves its `from` card's bottom and meets its `to` card's top, or the
+ * other way round when its `to` card comes first; going right, the same on
+ * their right and left sides. ELK runs a line from a card to itself over the card's
  * top going right, and off one of its sides going down, with both its ends
  * there. It puts a note beside the shape it's about, across the flow, and
  * runs their connector straight between them: over the top or under the
  * bottom of each going right, so each end counts on its card's top, and to
- * one side or the other going down, so it counts on both. Lines that join
- * meet a card at one point. A line ELK turns round to break a loop meets
+ * one side or the other going down, so it counts on both. Lines that share
+ * an end meet a card at one point. A line ELK turns round to break a loop meets
  * the other sides; going down, that card has a line coming in, so it has
  * room on its top, if less than it gets. Lines between tables attach at
  * fixed points on their sides instead.
@@ -253,23 +256,23 @@ function endsOnCards(diagram: Diagram, lines: readonly CardLine[]): LineEnds[] {
   const across = diagram.direction === "right";
   lines.forEach((line, i) => {
     if (line.kind === "connector") {
-      for (const card of [line.source, line.target]) for (const side of across ? [top] : [left, right]) side[card]!.add(`${i}`);
+      for (const card of [line.from, line.to]) for (const side of across ? [top] : [left, right]) side[card]!.add(`${i}`);
       return;
     }
-    if (line.source === line.target) {
-      (across ? top : left)[line.source]!.add(`${i} source`).add(`${i} target`);
+    if (line.from === line.to) {
+      (across ? top : left)[line.from]!.add(`${i} from`).add(`${i} to`);
       return;
     }
-    // Ends that join count once: they share a key.
-    const key = (end: "source" | "target") => {
-      const joined = line.joins?.[end];
-      return joined === undefined ? `${i} ${end}` : `joined ${joined}`;
+    // Shared ends count once: they share a key.
+    const key = (end: "from" | "to") => {
+      const shared = line.shareKeys?.[end];
+      return shared === undefined ? `${i} ${end}` : `shared ${shared}`;
     };
-    // Into a card's side facing back along the flow, and out of the one facing on.
+    // Out of a card's side facing on along the flow, and into the one facing back.
     const [into, outOf] = across ? [left, right] : [top, bottom];
-    const [atTarget, atSource] = line.targetFirst ? [outOf, into] : [into, outOf];
-    atTarget[line.target]!.add(key("target"));
-    atSource[line.source]!.add(key("source"));
+    const [atFrom, atTo] = line.toFirst ? [into, outOf] : [outOf, into];
+    atFrom[line.from]!.add(key("from"));
+    atTo[line.to]!.add(key("to"));
   });
   return none.map((_, card) => ({
     top: top[card]!.size === 0 ? 0 : Math.max(top[card]!.size, bottom[card]!.size),
@@ -277,13 +280,12 @@ function endsOnCards(diagram: Diagram, lines: readonly CardLine[]): LineEnds[] {
   }));
 }
 
-/** A note's dotted line to the shape it's about: no arrow, no label and no status of its own. */
+/**
+ * A note's dotted line to the shape it's about: no arrow, no label and no
+ * status of its own. Its `from` end is at the note, and its `to` end at the shape.
+ */
 export interface Connector {
   readonly kind: "connector";
-  /** The note's id. */
-  readonly from: string;
-  /** The id of the shape it's about. */
-  readonly to: string;
   /** Faded with its note when the note is removed. */
   readonly faded: boolean;
   readonly tooltip: string;
@@ -292,8 +294,6 @@ export interface Connector {
 export function buildConnector(note: FlowNode, about: FlowNode): Connector {
   return {
     kind: "connector",
-    from: note.id,
-    to: about.id,
     faded: note.status === "removed",
     tooltip: `${note.label} (about ${about.label})`,
   };
@@ -352,8 +352,6 @@ export function buildLine(edge: FlowEdge | ClassEdge | ErEdge | ArchitectureEdge
   return {
     id: edge.id,
     kind,
-    from: edge.from,
-    to: edge.to,
     pattern,
     marks: look.marks,
     ...(relationship ? { ends: { from: relationship.fromCardinality, to: relationship.toCardinality } } : {}),
@@ -405,10 +403,10 @@ export interface LineColumns {
  * spread apart within the row instead. Nothing for cards that lines may meet
  * anywhere.
  */
-export function linePorts(from: Card, to: Card, columns: LineColumns, sizes: Sizes): { source: PortSpan; target: PortSpan } | undefined {
+export function linePorts(from: Card, to: Card, columns: LineColumns, sizes: Sizes): { from: PortSpan; to: PortSpan } | undefined {
   if (!from.header || !to.header) return undefined;
   const loop = from === to && columns.from !== undefined && columns.from === columns.to;
-  return { source: endPorts(from, from.header, columns.from, loop, sizes), target: endPorts(to, to.header, columns.to, loop, sizes) };
+  return { from: endPorts(from, from.header, columns.from, loop, sizes), to: endPorts(to, to.header, columns.to, loop, sizes) };
 }
 
 /**
