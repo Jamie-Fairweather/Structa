@@ -765,8 +765,74 @@ const TABLE_NODE: ObjectDef = {
 export const CARDINALITIES = ["one", "zero-or-one", "many", "one-or-many", "zero-or-many"] as const;
 const CARDINALITY: Def = { kind: "choice", values: CARDINALITIES, later: false };
 
-/** A relationship between two tables. It has no kind: every ER line is a relationship. */
+/** A line's end that names a column: the name of a column of the table at that end, drawn as that column's name is. */
+const COLUMN_END: Def = { kind: "text", text: COLUMN_NAME, faces: [COLUMN_NAME_FACE] };
+
+/** Each end of an ER line that can name a column: the field naming its table, and the field naming the column. */
+const COLUMN_ENDS = [
+  ["from", "fromColumn"],
+  ["to", "toColumn"],
+] as const;
+
+/** A table as checked: a field that had a problem is missing. */
+interface CheckedTable {
+  readonly id?: string;
+  readonly columns?: readonly { readonly name?: string }[];
+}
+
+type CheckedErEdge = { readonly [field in (typeof COLUMN_ENDS)[number][number]]?: string };
+
+/**
+ * A line's fromColumn and toColumn name columns of its own from and to
+ * tables, compared as tidied. A table that names no node was reported
+ * already, and so was a blank name; a table whose columns aren't all known,
+ * because their list or a name had a problem, isn't judged.
+ */
+const columnEndsRule: Rule = (checked, given) => {
+  const tables = (checked.nodes ?? []) as readonly CheckedTable[];
+  const listed = Array.isArray(given.nodes) ? (given.nodes as readonly unknown[]) : [];
+  // The column names of the first table with each id, or undefined when they aren't all known.
+  const names = new Map<string, ReadonlySet<string> | undefined>();
+  tables.forEach((table, i) => {
+    if (typeof table.id !== "string" || names.has(table.id)) return;
+    const columns = (listed[i] as { readonly columns?: unknown } | undefined)?.columns;
+    const known = (columns === undefined || Array.isArray(columns)) && (table.columns ?? []).every((c) => typeof c.name === "string");
+    names.set(table.id, known ? new Set((table.columns ?? []).map((c) => c.name!)) : undefined);
+  });
+  return ((checked.edges ?? []) as readonly CheckedErEdge[]).flatMap((edge, i) =>
+    COLUMN_ENDS.flatMap(([end, field]) => {
+      const [table, name] = [edge[end], edge[field]];
+      if (table === undefined || !name) return [];
+      const columns = names.get(table);
+      if (columns === undefined || columns.has(name)) return [];
+      const quoted = JSON.stringify(table);
+      return [
+        {
+          path: `edges[${i}].${field}`,
+          message: `no column named ${JSON.stringify(name)} in ${quoted}`,
+          hint: `use the name of a column in ${quoted}, or leave ${field} out to attach the line at the table's header`,
+        },
+      ];
+    }),
+  );
+};
+
+/**
+ * A relationship between two tables. It has no kind: every ER line is a
+ * relationship. Each end attaches at the column it names, or at its table's
+ * header when it names none.
+ */
 const ER_EDGE = edge({ kind: "ref", to: "node" }, "", [
+  optional(
+    "fromColumn",
+    COLUMN_END,
+    "the name of the column of the from table the line starts at, such as a foreign key; leave it out to attach the line at the table's header",
+  ),
+  optional(
+    "toColumn",
+    COLUMN_END,
+    "the name of the column of the to table the line ends at, such as the key it refers to; leave it out to attach the line at the table's header",
+  ),
   required(
     "fromCardinality",
     CARDINALITY,
@@ -783,7 +849,7 @@ const ER_EDGE = edge({ kind: "ref", to: "node" }, "", [
 /** Each implemented type's definition, in DIAGRAM_TYPES order. */
 export const DEFINITIONS: ReadonlyMap<string, ObjectDef> = new Map([
   ["class", diagram(CLASS_NODE, CLASS_EDGE, "down", [areaRule])],
-  ["er", diagram(TABLE_NODE, ER_EDGE, "right", [areaRule])],
+  ["er", diagram(TABLE_NODE, ER_EDGE, "right", [areaRule, columnEndsRule])],
   ["flow", diagram(FLOW_NODE, FLOW_EDGE, "down", [areaRule, noteAreaRule])],
   ["architecture", diagram(ARCHITECTURE_NODE, ARCHITECTURE_EDGE, "down", [areaRule])],
 ]);

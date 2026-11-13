@@ -27,6 +27,9 @@ import {
   type Point,
 } from "./helpers/svg";
 
+/** A JSON object a test builds and changes freely. */
+type Json = { [key: string]: any };
+
 /** JetBrains Mono draws every character 0.6 em wide. */
 const MONO_ADVANCE = 0.6;
 
@@ -877,6 +880,72 @@ describe("where relationships attach", () => {
   });
 });
 
+/** Sites, plots on them and their tenants, each with an id; a plot points at its site and its tenant from columns of its own. */
+function lettings(edges: readonly object[], fields: object = {}): { type: string; nodes: Json[]; edges: Json[] } {
+  const table = (id: string, ...columns: object[]): Json => ({ id, label: id, columns: [{ name: "id", type: "uuid", pk: true }, ...columns] });
+  return {
+    type: "er",
+    nodes: [
+      table("sites", { name: "name", type: "text" }),
+      table("plots", { name: "site_id", type: "uuid", fk: true }, { name: "number", type: "text" }, { name: "tenant_id", type: "uuid", fk: true, nullable: true }),
+      table("tenants", { name: "email", type: "text", unique: true }),
+    ],
+    edges: edges.map((edge) => ({ fromCardinality: "zero-or-many", toCardinality: "one", ...edge })),
+    ...fields,
+  };
+}
+
+describe("lines that name columns", () => {
+  const COLUMN_HINT = (end: string, table: string) => `use the name of a column in "${table}", or leave ${end}Column out to attach the line at the table's header`;
+
+  it("rejects a fromColumn or toColumn that names no column of its own table, at each one", async () => {
+    const input = lettings([
+      { from: "plots", to: "sites", fromColumn: "site", toColumn: "site_id" },
+      { from: "plots", to: "tenants", fromColumn: "tenant_id", toColumn: "id" },
+      { from: "tenants", to: "sites", fromColumn: "id", toColumn: "Name" },
+    ]);
+
+    expect(await problems(input)).toEqual([
+      { path: "edges[0].fromColumn", message: 'no column named "site" in "plots"', hint: COLUMN_HINT("from", "plots") },
+      { path: "edges[0].toColumn", message: 'no column named "site_id" in "sites"', hint: COLUMN_HINT("to", "sites") },
+      { path: "edges[2].toColumn", message: 'no column named "Name" in "sites"', hint: COLUMN_HINT("to", "sites") },
+    ]);
+  });
+
+  it("matches column names as tidied, and can't name a column left out with more", async () => {
+    const input = lettings([{ from: "plots", to: "sites", fromColumn: "  site_id ", toColumn: "id" }]);
+    await expect(render(input, { embedFonts: false })).resolves.toHaveProperty("svg");
+
+    input.nodes[0]!.more = 3;
+    input.edges[0]!.toColumn = "region_id";
+    expect(await problems(input)).toEqual([
+      { path: "edges[0].toColumn", message: 'no column named "region_id" in "sites"', hint: COLUMN_HINT("to", "sites") },
+    ]);
+  });
+
+  it("reports one problem only when the table, the column's name or the reference itself is wrong already", async () => {
+    const input = lettings([
+      { from: "sheds", to: "sites", fromColumn: "site_id", toColumn: "id" },
+      { from: "plots", to: "sites", fromColumn: "  ", toColumn: 7 },
+      { from: "plots", to: "tenants", fromColumn: "tenant_id", toColumn: "Ĳd" },
+      { from: "sites", to: "tenants", fromColumn: "id", toColumn: "email" },
+    ]);
+    input.nodes[2]!.columns[0] = { name: "Ĳd", type: "uuid", pk: true };
+    // A table whose columns aren't a list can't be judged.
+    input.nodes[0]!.columns = "id, name";
+    input.edges.push({ from: "plots", to: "sites", fromCardinality: "zero-or-many", toCardinality: "one", toColumn: "id" });
+
+    expect(await problems(input)).toEqual([
+      { path: "nodes[0].columns", message: "must be a list of columns", hint: "write it as [...]" },
+      { path: "nodes[2].columns[0].name", message: 'contains "Ĳ" (U+0132), which Structa\'s fonts can\'t draw', hint: "use Latin letters, digits and common symbols" },
+      { path: "edges[0].from", message: 'no node with id "sheds"', hint: "use the id of one of the nodes" },
+      { path: "edges[1].fromColumn", message: "must not be empty", hint: "write the text to show" },
+      { path: "edges[1].toColumn", message: "must be a string", hint: "write the text in double quotes" },
+      { path: "edges[2].toColumn", message: 'contains "Ĳ" (U+0132), which Structa\'s fonts can\'t draw', hint: "use Latin letters, digits and common symbols" },
+    ]);
+  });
+});
+
 /**
  * An allotment's tables in areas: members on their own, plots in the land,
  * beds in an area inside it, and crops in none. Members can mentor each other,
@@ -1146,7 +1215,7 @@ describe("crow's-foot ends", () => {
       {
         path: "edges[0].kind",
         message: 'unknown field "kind"',
-        hint: "allowed fields: id, from, to, label, status, emphasis, fromCardinality, toCardinality, enforced",
+        hint: "allowed fields: id, from, to, label, status, emphasis, fromColumn, toColumn, fromCardinality, toCardinality, enforced",
       },
     ]);
   });
