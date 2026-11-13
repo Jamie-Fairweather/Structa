@@ -125,7 +125,7 @@
                   "default": false
                 },
                 "properties": {
-                  "description": "the class's properties, in order; not for an enum",
+                  "description": "the class's properties, in order; leave it out for none. Not for an enum",
                   "type": "array",
                   "maxItems": 100,
                   "items": {
@@ -174,11 +174,10 @@
                       "text"
                     ],
                     "additionalProperties": false
-                  },
-                  "default": []
+                  }
                 },
                 "methods": {
-                  "description": "the class's methods, in order, drawn under the properties; not for an enum",
+                  "description": "the class's methods, in order, drawn under the properties; leave it out for none. Not for an enum",
                   "type": "array",
                   "maxItems": 100,
                   "items": {
@@ -227,11 +226,10 @@
                       "text"
                     ],
                     "additionalProperties": false
-                  },
-                  "default": []
+                  }
                 },
                 "values": {
-                  "description": "an enum's values, in order; only with \"stereotype\": \"enum\"",
+                  "description": "an enum's values, in order; leave it out for none. Only with \"stereotype\": \"enum\"",
                   "type": "array",
                   "maxItems": 100,
                   "items": {
@@ -280,8 +278,7 @@
                       "text"
                     ],
                     "additionalProperties": false
-                  },
-                  "default": []
+                  }
                 },
                 "more": {
                   "description": "how many members or values were left out on purpose, drawn as a muted \"… N more\" row",

@@ -158,19 +158,20 @@ export function parseDiagram(input: unknown): ParseResult {
   };
 }
 
-/** A class node as checked: rows may have no id yet. */
+/** A class node as checked: a list left out isn't there, and rows may have no id yet. */
 type WithoutIds<N extends ClassNode> = Omit<N, (typeof CLASS_SECTIONS)[number]> & {
-  readonly [section in (typeof CLASS_SECTIONS)[number]]: readonly (Omit<ClassRow, "id"> & { id?: string })[];
+  readonly [section in (typeof CLASS_SECTIONS)[number]]?: readonly (Omit<ClassRow, "id"> & { id?: string })[];
 };
 
 /**
- * Gives every row its id (its own, or its section and position) and its
- * status: a row without one in a new or removed card takes the card's.
+ * Gives the card every list, empty when left out, and every row its id (its
+ * own, or its section and position) and its status: a row without one in a
+ * new or removed card takes the card's.
  */
 function classNode(node: WithoutIds<ClassNode>): ClassNode {
   const inherited = node.status === "new" || node.status === "removed" ? node.status : undefined;
   const [properties, methods, values] = CLASS_SECTIONS.map((section) =>
-    node[section].map((row, i): ClassRow => {
+    (node[section] ?? []).map((row, i): ClassRow => {
       const status = row.status ?? inherited;
       return { ...row, id: row.id ?? `${section}[${i}]`, ...(status === undefined ? {} : { status }) };
     }),

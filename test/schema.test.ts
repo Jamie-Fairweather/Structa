@@ -328,6 +328,26 @@ describe("the JSON Schema", () => {
     expect((await render({ ...greenhouse(), theme: "light" }, opts)).svg).toBe((await render(greenhouse(), opts)).svg);
   });
 
+  it("documents only defaults that, filled in, keep the input valid and draw the same", async () => {
+    // A tool may write out every default the schema documents, as Ajv's useDefaults does.
+    const fill = new Ajv2020({ strict: true, useDefaults: true }).compile(root);
+
+    for (const [type, fixture] of FIXTURES) {
+      const filled = fixture();
+      expect([type, fill(filled), fill.errors ?? []]).toEqual([type, true, []]);
+      expect(filled).not.toEqual(fixture());
+      expect([type, await outcome(filled)]).toEqual([type, "ok"]);
+      expect([type, (await render(filled, opts)).svg]).toEqual([type, (await render(fixture(), opts)).svg]);
+    }
+    // Only some classes may have each list, so none of them has a default.
+    const classNode = items("class", "nodes");
+    expect(["properties", "methods", "values"].map((list) => [list, classNode.properties[list].default])).toEqual([
+      ["properties", undefined],
+      ["methods", undefined],
+      ["values", undefined],
+    ]);
+  });
+
   it("documents that emphasis is off unless asked for", async () => {
     expect(edge.properties.emphasis.default).toBe(false);
 

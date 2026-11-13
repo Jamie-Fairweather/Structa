@@ -114,7 +114,7 @@ export interface Field {
   /** Shown in the schema, and in the hint when a required field is missing. */
   readonly description: string;
   readonly default?: string | boolean | readonly [];
-  /** Allowed only when a condition holds, as "about" is only for notes. */
+  /** Allowed only when a condition holds, as "about" is only for notes. Such a field has no default. */
   readonly onlyWhen?: Condition;
 }
 
@@ -138,6 +138,14 @@ function optional(name: string, def: Def, description: string, defaultValue?: Fi
   return defaultValue === undefined
     ? { name, def, required: false, description }
     : { name, def, required: false, description, default: defaultValue };
+}
+
+/**
+ * An optional field allowed only when `onlyWhen` holds. It has no default:
+ * filling one in would give the field where it isn't allowed.
+ */
+function conditional(name: string, def: Def, description: string, onlyWhen: Condition): Field {
+  return { ...optional(name, def, description), onlyWhen };
 }
 
 /** The diagram types implemented so far, in the spec's order. Each has an example, examples/<type>.json. */
@@ -230,23 +238,21 @@ const FLOW_NODE: ObjectDef = {
     ),
     optional("status", STATUS, "what the change does to this card; leave it out for no status"),
     required("shape", { kind: "choice", values: FLOW_SHAPES, later: false }, "the shape drawn"),
-    {
-      ...optional(
-        "about",
-        {
-          kind: "ref",
-          to: "node",
-          notTo: {
-            field: "shape",
-            value: "note",
-            reason: "a note can only be about a shape that isn't a note",
-            hint: "use the id of a shape that isn't a note",
-          },
+    conditional(
+      "about",
+      {
+        kind: "ref",
+        to: "node",
+        notTo: {
+          field: "shape",
+          value: "note",
+          reason: "a note can only be about a shape that isn't a note",
+          hint: "use the id of a shape that isn't a note",
         },
-        "notes only: the id of the shape the note is about, joined to it by a dotted line; without it the note floats near the chart",
-      ),
-      onlyWhen: { field: "shape", value: "note", hint: 'remove "about", or make this node a note' },
-    },
+      },
+      "notes only: the id of the shape the note is about, joined to it by a dotted line; without it the note floats near the chart",
+      { field: "shape", value: "note", hint: 'remove "about", or make this node a note' },
+    ),
   ],
 };
 
@@ -352,6 +358,7 @@ const rowLimitRule: Rule = (_checked, given, path) => {
 };
 
 const MEMBER_TEXT = "the member as you'd write it, such as a name and type or a signature";
+const VALUE_TEXT = "the value as you'd write it, such as a constant's name";
 
 /** One row of a class: a property, a method or an enum value, called `noun` in messages, its text described by `text`. */
 function classRow(section: ClassSection, noun: string, text: string): ObjectDef {
@@ -402,33 +409,24 @@ const CLASS_NODE: ObjectDef = {
       'true draws the name in italics, as stereotype "abstract" does, without the «abstract» line',
       false,
     ),
-    {
-      ...optional(
-        "properties",
-        { kind: "list", noun: "properties", items: classRow("properties", "property", MEMBER_TEXT), maxItems: ROWS_PER_CARD, limitHint: ROWS_HINT },
-        "the class's properties, in order; not for an enum",
-        [],
-      ),
-      onlyWhen: NOT_ENUM,
-    },
-    {
-      ...optional(
-        "methods",
-        { kind: "list", noun: "methods", items: classRow("methods", "method", MEMBER_TEXT), maxItems: ROWS_PER_CARD, limitHint: ROWS_HINT },
-        "the class's methods, in order, drawn under the properties; not for an enum",
-        [],
-      ),
-      onlyWhen: NOT_ENUM,
-    },
-    {
-      ...optional(
-        "values",
-        { kind: "list", noun: "values", items: classRow("values", "value", "the value as you'd write it, such as a constant's name"), maxItems: ROWS_PER_CARD, limitHint: ROWS_HINT },
-        'an enum\'s values, in order; only with "stereotype": "enum"',
-        [],
-      ),
-      onlyWhen: ENUM,
-    },
+    conditional(
+      "properties",
+      { kind: "list", noun: "properties", items: classRow("properties", "property", MEMBER_TEXT), maxItems: ROWS_PER_CARD, limitHint: ROWS_HINT },
+      "the class's properties, in order; leave it out for none. Not for an enum",
+      NOT_ENUM,
+    ),
+    conditional(
+      "methods",
+      { kind: "list", noun: "methods", items: classRow("methods", "method", MEMBER_TEXT), maxItems: ROWS_PER_CARD, limitHint: ROWS_HINT },
+      "the class's methods, in order, drawn under the properties; leave it out for none. Not for an enum",
+      NOT_ENUM,
+    ),
+    conditional(
+      "values",
+      { kind: "list", noun: "values", items: classRow("values", "value", VALUE_TEXT), maxItems: ROWS_PER_CARD, limitHint: ROWS_HINT },
+      'an enum\'s values, in order; leave it out for none. Only with "stereotype": "enum"',
+      ENUM,
+    ),
     optional(
       "more",
       { kind: "count", min: 1, max: 9999 },
