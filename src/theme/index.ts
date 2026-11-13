@@ -205,11 +205,9 @@ export const SIZES = {
    * of the row; longer ones wrap. They give up room, down to `minNameShare`,
    * so that a type's longest word fits whole beside its row's badge. Line
    * ends that share a side of a table's header, such as a link to itself, sit
-   * `portGap` apart, or closer when that many don't fit. Ends that share a side
-   * of one column's row sit `columnPortGap` apart, closer still, so they read as
-   * that row's rather than its neighbours'.
+   * `portGap` apart, or closer when that many don't fit.
    */
-  tableCard: { markerSize: 10, markerGap: 8, typeGap: 16, nameShare: 0.55, minNameShare: 0.3, portGap: 20, columnPortGap: 12 },
+  tableCard: { markerSize: 10, markerGap: 8, typeGap: 16, nameShare: 0.55, minNameShare: 0.3, portGap: 20 },
   /**
    * A card's rows, such as class members. A row with a status is tinted, inset
    * `tintInset` from the card's sides and `tintGap` apart from the next row's

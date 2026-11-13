@@ -122,8 +122,9 @@ interface Rooms {
 /**
  * How much room each line's crow's feet have across the line: the distance
  * from each end to the nearest other relationship end on the same side of the
- * same table. Ends that share a side are spread apart, but on a crowded one
- * they can be closer than a crow's foot is wide.
+ * same table. Ends that share a side of a header are spread apart, but on a
+ * crowded one they can be closer than a crow's foot is wide. Ends that share
+ * a point, at a column's row, draw their marks there full size, one over another.
  */
 function endRooms(lines: readonly { line: Line; points: readonly Point[] }[]): Rooms[] {
   const ends = lines.flatMap(({ line: l, points }) =>
@@ -131,7 +132,7 @@ function endRooms(lines: readonly { line: Line; points: readonly Point[] }[]): R
   );
   const room = (card: string, at: Point | undefined) => {
     if (!at) return Number.POSITIVE_INFINITY;
-    const others = ends.filter((e) => e.card === card && e.at !== at && Math.abs(e.at.x - at.x) < 1);
+    const others = ends.filter((e) => e.card === card && Math.abs(e.at.x - at.x) < 1 && Math.abs(e.at.y - at.y) >= 0.01);
     return Math.min(Number.POSITIVE_INFINITY, ...others.map((e) => Math.abs(e.at.y - at.y)));
   };
   return lines.map(({ line: l, points }) => ({ from: room(l.from, points[0]), to: room(l.to, points.at(-1)) }));

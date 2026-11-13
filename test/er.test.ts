@@ -994,28 +994,65 @@ describe("lines that name columns", () => {
   );
 
   it.each(["right", "down"] as const)(
-    "gives ends that share a side of one column's row a place each, close about its middle and within the row, direction %s",
+    "brings every end on one side of a column's row to one point at its middle, each with its marks full size, direction %s",
     async (direction) => {
-      // A plot's tenant and its last tenant both point at a tenant's id.
-      const input = lettings(
-        [
-          { from: "plots", to: "tenants", fromColumn: "tenant_id", toColumn: "id", status: "unchanged" },
-          { from: "plots", to: "tenants", fromColumn: "last_tenant_id", toColumn: "id", toCardinality: "zero-or-one", status: "new" },
-        ],
-        { direction },
-      );
+      // A repair ticket's item_id points at a bike, a lamp or a kettle: three lines from one column, nothing to enforce them.
+      const table = (id: string, ...columns: object[]) => ({ id, label: id, columns: [{ name: "id", type: "uuid", pk: true }, ...columns] });
+      const item = (to: string, fromCardinality: string, status: string) => ({
+        from: "tickets",
+        to,
+        fromColumn: "item_id",
+        toColumn: "id",
+        fromCardinality,
+        toCardinality: "one",
+        enforced: false,
+        status,
+      });
+      const input = {
+        type: "er",
+        direction,
+        nodes: [table("tickets", { name: "item_id", type: "uuid" }, { name: "fault", type: "text" }), table("bikes"), table("lamps"), table("kettles")],
+        edges: [item("bikes", "zero-or-many", "unchanged"), item("lamps", "many", "new"), item("kettles", "one-or-many", "removed")],
+      };
       const doc = parseSvg((await render(input)).svg);
 
-      const [tenant, last] = relationshipEnds(doc);
-      expect(sideOf(tenant!.end, tenant!.to)).toBe(sideOf(last!.end, last!.to));
-      const shared = columnEnds(doc, input).filter(({ end }) => end === "to");
-      const [row] = shared.map(({ row }) => row);
-      const ys = shared.map(({ at }) => at.y).sort((a, b) => a - b);
-      expect((ys[0]! + ys[1]!) / 2).toBeCloseTo(row!.middle, 1);
-      expect(ys[1]! - ys[0]!).toBeCloseTo(12, 1);
-      for (const y of ys) expect([y > row!.top, y < row!.bottom]).toEqual([true, true]);
-      // Each end's marks stand alone, in its own line's colour.
-      expect(overlaps(marksBox(tenant!.line, "to"), marksBox(last!.line, "to"))).toBe(false);
+      const tickets = cardById(doc, "tickets");
+      const ends = columnEnds(doc, input).filter(({ table }) => table === "tickets");
+      expect(ends).toHaveLength(3);
+      const sides = new Map<string | undefined, Point[]>();
+      for (const { at } of ends) sides.set(sideOf(at, tickets), [...(sides.get(sideOf(at, tickets)) ?? []), at]);
+      // Laid out to the right, the three lines all leave the same side.
+      if (direction === "right") expect([...sides.values()].map((shared) => shared.length)).toEqual([3]);
+      const middle = rowSpans(doc).get("tickets")!.get("item_id")!.middle;
+      for (const [side, [first, ...others]] of sides) {
+        expect([side, first!.y]).toEqual([expect.stringMatching(/^(left|right)$/), expect.closeTo(middle, 1)]);
+        for (const at of others) expect([side, at.x, at.y]).toEqual([side, expect.closeTo(first!.x, 2), expect.closeTo(first!.y, 2)]);
+      }
+      // Ends that share a point aren't crowded: each crow's foot is as wide across its line as the lone bars at the line's other end.
+      for (const { id, line } of relationshipEnds(doc)) {
+        expect([id, marksBox(line, "from").height]).toEqual([id, expect.closeTo(marksBox(line, "to").height, 1)]);
+      }
+    },
+  );
+
+  it.each(["right", "down"] as const)(
+    "spreads the two ends of a loop from a column back to itself apart about its row's middle, marks and all within the row, direction %s",
+    async (direction) => {
+      // An odd but valid link: a tenant's id that points at a tenant's id.
+      const input = lettings([{ from: "tenants", to: "tenants", fromColumn: "id", toColumn: "id", fromCardinality: "one" }], { direction });
+      const doc = parseSvg((await render(input)).svg);
+
+      const [self] = relationshipEnds(doc);
+      expect([sideOf(self!.start, self!.from), sideOf(self!.end, self!.to)]).toEqual(["right", "right"]);
+      const [start, end] = columnEnds(doc, input);
+      const { top, bottom, middle } = start!.row;
+      expect(Math.abs(start!.at.y - end!.at.y)).toBeGreaterThan(8);
+      expect((start!.at.y + end!.at.y) / 2).toBeCloseTo(middle, 1);
+      for (const which of ["from", "to"] as const) {
+        const marks = marksBox(self!.line, which);
+        expect([which, marks.y > top, marks.y + marks.height < bottom]).toEqual([which, true, true]);
+      }
+      expect(Math.max(...route(self!.line).map((p) => p.x))).toBeGreaterThan(outlineBox(self!.from).x + outlineBox(self!.from).width + 20);
     },
   );
 

@@ -212,24 +212,36 @@ export interface LineColumns {
 }
 
 /**
- * Where a line between two tables attaches, from the top of each table's box:
- * at the row of the column its end names, or else at the table's header. A
- * lone end sits at the middle of its row or header. Ends that share a side of
- * one, such as a table's link to itself, are spread either side of the
- * middle: within a header, kept below the card's rounded corners and as far
- * above its divider; within a row, closer together, down its lines of text.
- * Nothing for cards that lines may meet anywhere.
+ * Where a line between two tables attaches, from the top of each table's box.
+ * An end that names a column sits at the middle of that column's row, on one
+ * point it shares with every other end on that side of the row. An end that
+ * names none sits at the middle of its table's header when it's alone there;
+ * ends that share a side of a header, such as a table's link to itself, are
+ * spread either side of its middle, kept below the card's rounded corners and
+ * as far above its divider. A line from a column back to that same column
+ * would loop out and back along itself from one point, so its two ends are
+ * spread apart within the row instead. Nothing for cards that lines may meet
+ * anywhere.
  */
 export function linePorts(from: Card, to: Card, columns: LineColumns, sizes: Sizes): { source: PortSpan; target: PortSpan } | undefined {
   if (!from.header || !to.header) return undefined;
-  return { source: endPorts(from, from.header, columns.from, sizes), target: endPorts(to, to.header, columns.to, sizes) };
+  const loop = from === to && columns.from !== undefined && columns.from === columns.to;
+  return { source: endPorts(from, from.header, columns.from, loop, sizes), target: endPorts(to, to.header, columns.to, loop, sizes) };
 }
 
-/** Where one end attaches: the row of the column it names, which validation made sure is there, or the header. */
-function endPorts(card: Card, header: Span, column: string | undefined, sizes: Sizes): PortSpan {
+/**
+ * Where one end attaches: the middle of the row of the column it names, which
+ * validation made sure is there, or the header. The two ends of a loop to its
+ * own column sit half the row's band apart about its middle, so their marks
+ * stay within the row.
+ */
+function endPorts(card: Card, header: Span, column: string | undefined, loop: boolean, sizes: Sizes): PortSpan {
   if (column === undefined) return headerPorts(header, sizes);
-  const { top, bottom } = card.rows.find((row) => row.id === column)!.textSpan!;
-  return { top, bottom, gap: sizes.tableCard.columnPortGap };
+  // A row's band is centred on the row.
+  const { y, height } = card.rows.find((row) => row.id === column)!.box;
+  if (loop) return { top: y, bottom: y + height, gap: height / 2 };
+  const middle = y + height / 2;
+  return { top: middle, bottom: middle, gap: 0 };
 }
 
 function headerPorts({ top, bottom }: Span, sizes: Sizes): PortSpan {

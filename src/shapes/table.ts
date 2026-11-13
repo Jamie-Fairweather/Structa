@@ -146,7 +146,6 @@ function columnRow(column: TableColumn, top: number, at: Columns, sizes: Sizes):
       ...names.map((text, i) => line(text, i, at.nameX, COLUMN_NAME_FACE, "text")),
       ...types.map((text, i) => line(text, i, at.typeX, COLUMN_TYPE_FACE, "mutedText")),
     ],
-    textSpan: { top: top + r.paddingY, bottom: top + height - r.paddingY },
   };
   return { row, height };
 }

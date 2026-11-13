@@ -13,270 +13,270 @@
 </g>
 <g class="card" data-id="reminders" data-kind="table" data-status="new">
 <title>reminders</title>
-<rect class="outline" x="32" y="110" width="360" height="160" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
-<line class="divider" x1="32.75" y1="154" x2="391.25" y2="154" stroke="#30363d" stroke-width="1"/>
-<text x="212" y="137.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">reminders</text>
+<rect class="outline" x="32" y="187.5" width="360" height="160" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
+<line class="divider" x1="32.75" y1="231.5" x2="391.25" y2="231.5" stroke="#30363d" stroke-width="1"/>
+<text x="212" y="214.96" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">reminders</text>
 <g class="row" data-id="id" data-kind="column" data-status="new">
 <title>PK id: uuid</title>
-<rect x="38" y="161" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
+<rect x="38" y="238.5" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
 <g class="symbol">
-<text x="46" y="177.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e">PK</text>
+<text x="46" y="254.82" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e">PK</text>
 </g>
-<text x="68" y="177.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">id</text>
-<text x="135" y="177.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">uuid</text>
+<text x="68" y="254.82" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">id</text>
+<text x="135" y="254.82" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">uuid</text>
 <g class="badge">
-<rect x="341" y="165" width="37" height="16" rx="8" fill="#161b22"/>
-<rect x="341" y="165" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
-<text x="359.5" y="176.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
+<rect x="341" y="242.5" width="37" height="16" rx="8" fill="#161b22"/>
+<rect x="341" y="242.5" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
+<text x="359.5" y="254.14" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
 </g>
 </g>
 <g class="row" data-id="loan_id" data-kind="column" data-status="new">
 <title>FK loan_id: uuid</title>
-<rect x="38" y="187" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
+<rect x="38" y="264.5" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
 <g class="symbol">
-<text x="46" y="203.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e">FK</text>
+<text x="46" y="280.82" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e">FK</text>
 </g>
-<text x="68" y="203.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">loan_id</text>
-<text x="135" y="203.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">uuid</text>
+<text x="68" y="280.82" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">loan_id</text>
+<text x="135" y="280.82" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">uuid</text>
 <g class="badge">
-<rect x="341" y="191" width="37" height="16" rx="8" fill="#161b22"/>
-<rect x="341" y="191" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
-<text x="359.5" y="202.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
+<rect x="341" y="268.5" width="37" height="16" rx="8" fill="#161b22"/>
+<rect x="341" y="268.5" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
+<text x="359.5" y="280.14" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
 </g>
 </g>
 <g class="row" data-id="send_on" data-kind="column" data-status="new">
 <title>send_on: date</title>
-<rect x="38" y="213" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
-<text x="68" y="229.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">send_on</text>
-<text x="135" y="229.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">date</text>
+<rect x="38" y="290.5" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
+<text x="68" y="306.82" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">send_on</text>
+<text x="135" y="306.82" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">date</text>
 <g class="badge">
-<rect x="341" y="217" width="37" height="16" rx="8" fill="#161b22"/>
-<rect x="341" y="217" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
-<text x="359.5" y="228.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
+<rect x="341" y="294.5" width="37" height="16" rx="8" fill="#161b22"/>
+<rect x="341" y="294.5" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
+<text x="359.5" y="306.14" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
 </g>
 </g>
 <g class="row" data-id="channel" data-kind="column" data-status="new">
 <title>channel: text</title>
-<rect x="38" y="239" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
-<text x="68" y="255.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">channel</text>
-<text x="135" y="255.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">text</text>
+<rect x="38" y="316.5" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
+<text x="68" y="332.82" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">channel</text>
+<text x="135" y="332.82" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">text</text>
 <g class="badge">
-<rect x="341" y="243" width="37" height="16" rx="8" fill="#161b22"/>
-<rect x="341" y="243" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
-<text x="359.5" y="254.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
+<rect x="341" y="320.5" width="37" height="16" rx="8" fill="#161b22"/>
+<rect x="341" y="320.5" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
+<text x="359.5" y="332.14" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
 </g>
 </g>
 <g class="badge">
-<rect x="343" y="102" width="37" height="16" rx="8" fill="#161b22"/>
-<rect x="343" y="102" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
-<text x="361.5" y="113.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
+<rect x="343" y="179.5" width="37" height="16" rx="8" fill="#161b22"/>
+<rect x="343" y="179.5" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
+<text x="361.5" y="191.14" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
 </g>
 </g>
 <g class="card" data-id="loans" data-kind="table" data-status="changed">
 <title>loans</title>
-<rect class="outline" x="456" y="136" width="360" height="212" rx="10" fill="#161b22" stroke="#d29922" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
-<line class="divider" x1="456.75" y1="180" x2="815.25" y2="180" stroke="#30363d" stroke-width="1"/>
-<text x="636" y="163.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">loans</text>
+<rect class="outline" x="456" y="213.5" width="360" height="212" rx="10" fill="#161b22" stroke="#d29922" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
+<line class="divider" x1="456.75" y1="257.5" x2="815.25" y2="257.5" stroke="#30363d" stroke-width="1"/>
+<text x="636" y="240.96" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">loans</text>
 <g class="more">
-<text x="492" y="333.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">… 2 more</text>
+<text x="492" y="410.82" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">… 2 more</text>
 </g>
 <g class="row" data-id="id" data-kind="column" data-status="unchanged">
 <title>PK id: uuid</title>
-<rect x="462" y="187" width="348" height="24" rx="4" fill="#6e7681" fill-opacity="0.12"/>
+<rect x="462" y="264.5" width="348" height="24" rx="4" fill="#6e7681" fill-opacity="0.12"/>
 <g class="symbol">
-<text x="470" y="203.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e">PK</text>
+<text x="470" y="280.82" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e">PK</text>
 </g>
-<text x="492" y="203.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">id</text>
-<text x="624" y="203.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">uuid</text>
+<text x="492" y="280.82" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">id</text>
+<text x="624" y="280.82" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">uuid</text>
 <g class="badge">
-<rect x="724" y="191" width="78" height="16" rx="8" fill="#161b22"/>
-<rect x="724" y="191" width="78" height="16" rx="8" fill="#6e7681" fill-opacity="0.25" stroke="#6e7681" stroke-width="1"/>
-<text x="763" y="202.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e" text-anchor="middle">UNCHANGED</text>
+<rect x="724" y="268.5" width="78" height="16" rx="8" fill="#161b22"/>
+<rect x="724" y="268.5" width="78" height="16" rx="8" fill="#6e7681" fill-opacity="0.25" stroke="#6e7681" stroke-width="1"/>
+<text x="763" y="280.14" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e" text-anchor="middle">UNCHANGED</text>
 </g>
 </g>
 <g class="row" data-id="member_id" data-kind="column">
 <title>FK member_id: uuid</title>
 <g class="symbol">
-<text x="470" y="229.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e">FK</text>
+<text x="470" y="306.82" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e">FK</text>
 </g>
-<text x="492" y="229.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">member_id</text>
-<text x="624" y="229.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">uuid</text>
+<text x="492" y="306.82" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">member_id</text>
+<text x="624" y="306.82" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">uuid</text>
 </g>
 <g class="row" data-id="due_on" data-kind="column" data-status="changed">
 <title>due_on: date</title>
-<rect x="462" y="239" width="348" height="24" rx="4" fill="#d29922" fill-opacity="0.12"/>
-<text x="492" y="255.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">due_on</text>
-<text x="624" y="255.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">date</text>
+<rect x="462" y="316.5" width="348" height="24" rx="4" fill="#d29922" fill-opacity="0.12"/>
+<text x="492" y="332.82" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">due_on</text>
+<text x="624" y="332.82" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">date</text>
 <g class="badge">
-<rect x="739" y="243" width="63" height="16" rx="8" fill="#161b22"/>
-<rect x="739" y="243" width="63" height="16" rx="8" fill="#d29922" fill-opacity="0.25" stroke="#d29922" stroke-width="1"/>
-<text x="770.5" y="254.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#e3b341" text-anchor="middle">CHANGED</text>
+<rect x="739" y="320.5" width="63" height="16" rx="8" fill="#161b22"/>
+<rect x="739" y="320.5" width="63" height="16" rx="8" fill="#d29922" fill-opacity="0.25" stroke="#d29922" stroke-width="1"/>
+<text x="770.5" y="332.14" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#e3b341" text-anchor="middle">CHANGED</text>
 </g>
 </g>
 <g class="row" data-id="last_reminded_at" data-kind="column" data-status="new">
 <title>last_reminded_at: timestamptz?</title>
-<rect x="462" y="265" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
-<text x="492" y="281.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">last_reminded_at</text>
-<text x="624" y="281.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">timestamptz?</text>
+<rect x="462" y="342.5" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
+<text x="492" y="358.82" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">last_reminded_at</text>
+<text x="624" y="358.82" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">timestamptz?</text>
 <g class="badge">
-<rect x="765" y="269" width="37" height="16" rx="8" fill="#161b22"/>
-<rect x="765" y="269" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
-<text x="783.5" y="280.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
+<rect x="765" y="346.5" width="37" height="16" rx="8" fill="#161b22"/>
+<rect x="765" y="346.5" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
+<text x="783.5" y="358.14" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
 </g>
 </g>
 <g class="row" data-id="overdue_flag" data-kind="column" data-status="removed">
 <title>overdue_flag: boolean</title>
 <g class="faded" opacity="0.5">
-<rect x="462" y="291" width="348" height="24" rx="4" fill="#f85149" fill-opacity="0.12"/>
-<text x="492" y="307.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">overdue_flag</text>
-<line class="strike" x1="492" y1="303.72" x2="578.4" y2="303.72" stroke="#e6edf3" stroke-width="1.25"/>
-<text x="624" y="307.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">boolean</text>
-<line class="strike" x1="624" y1="303.72" x2="674.4" y2="303.72" stroke="#8b949e" stroke-width="1.25"/>
+<rect x="462" y="368.5" width="348" height="24" rx="4" fill="#f85149" fill-opacity="0.12"/>
+<text x="492" y="384.82" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">overdue_flag</text>
+<line class="strike" x1="492" y1="381.22" x2="578.4" y2="381.22" stroke="#e6edf3" stroke-width="1.25"/>
+<text x="624" y="384.82" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">boolean</text>
+<line class="strike" x1="624" y1="381.22" x2="674.4" y2="381.22" stroke="#8b949e" stroke-width="1.25"/>
 </g>
 <g class="badge">
-<rect x="739" y="295" width="63" height="16" rx="8" fill="#161b22"/>
-<rect x="739" y="295" width="63" height="16" rx="8" fill="#f85149" fill-opacity="0.25" stroke="#f85149" stroke-width="1"/>
-<text x="770.5" y="306.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#ff7b72" text-anchor="middle">REMOVED</text>
+<rect x="739" y="372.5" width="63" height="16" rx="8" fill="#161b22"/>
+<rect x="739" y="372.5" width="63" height="16" rx="8" fill="#f85149" fill-opacity="0.25" stroke="#f85149" stroke-width="1"/>
+<text x="770.5" y="384.14" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#ff7b72" text-anchor="middle">REMOVED</text>
 </g>
 </g>
 <g class="badge">
-<rect x="741" y="128" width="63" height="16" rx="8" fill="#161b22"/>
-<rect x="741" y="128" width="63" height="16" rx="8" fill="#d29922" fill-opacity="0.25" stroke="#d29922" stroke-width="1"/>
-<text x="772.5" y="139.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#e3b341" text-anchor="middle">CHANGED</text>
+<rect x="741" y="205.5" width="63" height="16" rx="8" fill="#161b22"/>
+<rect x="741" y="205.5" width="63" height="16" rx="8" fill="#d29922" fill-opacity="0.25" stroke="#d29922" stroke-width="1"/>
+<text x="772.5" y="217.14" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#e3b341" text-anchor="middle">CHANGED</text>
 </g>
 </g>
 <g class="card" data-id="members" data-kind="table" data-status="unchanged">
 <title>members</title>
-<rect class="outline" x="1312" y="168" width="360" height="108" rx="10" fill="#161b22" stroke="#6e7681" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
-<line class="divider" x1="1312.75" y1="212" x2="1671.25" y2="212" stroke="#30363d" stroke-width="1"/>
-<text x="1492" y="195.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">members</text>
+<rect class="outline" x="1312" y="136" width="360" height="108" rx="10" fill="#161b22" stroke="#6e7681" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
+<line class="divider" x1="1312.75" y1="180" x2="1671.25" y2="180" stroke="#30363d" stroke-width="1"/>
+<text x="1492" y="163.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">members</text>
 <g class="row" data-id="id" data-kind="column">
 <title>PK id: uuid</title>
 <g class="symbol">
-<text x="1326" y="235.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e">PK</text>
+<text x="1326" y="203.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e">PK</text>
 </g>
-<text x="1350" y="235.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">id</text>
-<text x="1402" y="235.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">uuid</text>
+<text x="1350" y="203.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">id</text>
+<text x="1402" y="203.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">uuid</text>
 </g>
 <g class="row" data-id="email" data-kind="column">
 <title>UQ email: text</title>
 <g class="symbol">
-<text x="1326" y="261.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e">UQ</text>
+<text x="1326" y="229.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e">UQ</text>
 </g>
-<text x="1350" y="261.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">email</text>
-<text x="1402" y="261.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">text</text>
+<text x="1350" y="229.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">email</text>
+<text x="1402" y="229.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">text</text>
 </g>
 <g class="badge">
-<rect x="1582" y="160" width="78" height="16" rx="8" fill="#161b22"/>
-<rect x="1582" y="160" width="78" height="16" rx="8" fill="#6e7681" fill-opacity="0.25" stroke="#6e7681" stroke-width="1"/>
-<text x="1621" y="171.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e" text-anchor="middle">UNCHANGED</text>
+<rect x="1582" y="128" width="78" height="16" rx="8" fill="#161b22"/>
+<rect x="1582" y="128" width="78" height="16" rx="8" fill="#6e7681" fill-opacity="0.25" stroke="#6e7681" stroke-width="1"/>
+<text x="1621" y="139.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e" text-anchor="middle">UNCHANGED</text>
 </g>
 </g>
 <g class="card" data-id="notice-log" data-kind="table" data-status="removed">
 <title>notice_log</title>
 <g class="faded" opacity="0.5">
-<rect class="outline" x="880" y="291.5" width="360" height="134" rx="10" fill="#161b22" stroke="#f85149" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
-<line class="divider" x1="880.75" y1="335.5" x2="1239.25" y2="335.5" stroke="#30363d" stroke-width="1"/>
-<text x="1060" y="318.96" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">notice_log</text>
-<line class="strike" x1="1022.69" y1="314.46" x2="1097.31" y2="314.46" stroke="#e6edf3" stroke-width="1.25"/>
+<rect class="outline" x="880" y="110" width="360" height="134" rx="10" fill="#161b22" stroke="#f85149" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
+<line class="divider" x1="880.75" y1="154" x2="1239.25" y2="154" stroke="#30363d" stroke-width="1"/>
+<text x="1060" y="137.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">notice_log</text>
+<line class="strike" x1="1022.69" y1="132.96" x2="1097.31" y2="132.96" stroke="#e6edf3" stroke-width="1.25"/>
 </g>
 <g class="row" data-id="id" data-kind="column" data-status="removed">
 <title>PK id: bigint</title>
 <g class="faded" opacity="0.5">
-<rect x="886" y="342.5" width="348" height="24" rx="4" fill="#f85149" fill-opacity="0.12"/>
+<rect x="886" y="161" width="348" height="24" rx="4" fill="#f85149" fill-opacity="0.12"/>
 <g class="symbol">
-<text x="894" y="358.82" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e">PK</text>
+<text x="894" y="177.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e">PK</text>
 </g>
-<text x="916" y="358.82" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">id</text>
-<line class="strike" x1="916" y1="355.22" x2="930.4" y2="355.22" stroke="#e6edf3" stroke-width="1.25"/>
-<text x="997" y="358.82" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">bigint</text>
-<line class="strike" x1="997" y1="355.22" x2="1040.2" y2="355.22" stroke="#8b949e" stroke-width="1.25"/>
+<text x="916" y="177.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">id</text>
+<line class="strike" x1="916" y1="173.72" x2="930.4" y2="173.72" stroke="#e6edf3" stroke-width="1.25"/>
+<text x="997" y="177.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">bigint</text>
+<line class="strike" x1="997" y1="173.72" x2="1040.2" y2="173.72" stroke="#8b949e" stroke-width="1.25"/>
 </g>
 <g class="badge">
-<rect x="1163" y="346.5" width="63" height="16" rx="8" fill="#161b22"/>
-<rect x="1163" y="346.5" width="63" height="16" rx="8" fill="#f85149" fill-opacity="0.25" stroke="#f85149" stroke-width="1"/>
-<text x="1194.5" y="358.14" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#ff7b72" text-anchor="middle">REMOVED</text>
+<rect x="1163" y="165" width="63" height="16" rx="8" fill="#161b22"/>
+<rect x="1163" y="165" width="63" height="16" rx="8" fill="#f85149" fill-opacity="0.25" stroke="#f85149" stroke-width="1"/>
+<text x="1194.5" y="176.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#ff7b72" text-anchor="middle">REMOVED</text>
 </g>
 </g>
 <g class="row" data-id="member_id" data-kind="column" data-status="removed">
 <title>FK member_id: uuid</title>
 <g class="faded" opacity="0.5">
-<rect x="886" y="368.5" width="348" height="24" rx="4" fill="#f85149" fill-opacity="0.12"/>
+<rect x="886" y="187" width="348" height="24" rx="4" fill="#f85149" fill-opacity="0.12"/>
 <g class="symbol">
-<text x="894" y="384.82" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e">FK</text>
+<text x="894" y="203.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e">FK</text>
 </g>
-<text x="916" y="384.82" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">member_id</text>
-<line class="strike" x1="916" y1="381.22" x2="980.8" y2="381.22" stroke="#e6edf3" stroke-width="1.25"/>
-<text x="997" y="384.82" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">uuid</text>
-<line class="strike" x1="997" y1="381.22" x2="1025.8" y2="381.22" stroke="#8b949e" stroke-width="1.25"/>
+<text x="916" y="203.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">member_id</text>
+<line class="strike" x1="916" y1="199.72" x2="980.8" y2="199.72" stroke="#e6edf3" stroke-width="1.25"/>
+<text x="997" y="203.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">uuid</text>
+<line class="strike" x1="997" y1="199.72" x2="1025.8" y2="199.72" stroke="#8b949e" stroke-width="1.25"/>
 </g>
 <g class="badge">
-<rect x="1163" y="372.5" width="63" height="16" rx="8" fill="#161b22"/>
-<rect x="1163" y="372.5" width="63" height="16" rx="8" fill="#f85149" fill-opacity="0.25" stroke="#f85149" stroke-width="1"/>
-<text x="1194.5" y="384.14" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#ff7b72" text-anchor="middle">REMOVED</text>
+<rect x="1163" y="191" width="63" height="16" rx="8" fill="#161b22"/>
+<rect x="1163" y="191" width="63" height="16" rx="8" fill="#f85149" fill-opacity="0.25" stroke="#f85149" stroke-width="1"/>
+<text x="1194.5" y="202.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#ff7b72" text-anchor="middle">REMOVED</text>
 </g>
 </g>
 <g class="row" data-id="sent_at" data-kind="column" data-status="removed">
 <title>sent_at: timestamptz</title>
 <g class="faded" opacity="0.5">
-<rect x="886" y="394.5" width="348" height="24" rx="4" fill="#f85149" fill-opacity="0.12"/>
-<text x="916" y="410.82" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">sent_at</text>
-<line class="strike" x1="916" y1="407.22" x2="966.4" y2="407.22" stroke="#e6edf3" stroke-width="1.25"/>
-<text x="997" y="410.82" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">timestamptz</text>
-<line class="strike" x1="997" y1="407.22" x2="1076.2" y2="407.22" stroke="#8b949e" stroke-width="1.25"/>
+<rect x="886" y="213" width="348" height="24" rx="4" fill="#f85149" fill-opacity="0.12"/>
+<text x="916" y="229.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">sent_at</text>
+<line class="strike" x1="916" y1="225.72" x2="966.4" y2="225.72" stroke="#e6edf3" stroke-width="1.25"/>
+<text x="997" y="229.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">timestamptz</text>
+<line class="strike" x1="997" y1="225.72" x2="1076.2" y2="225.72" stroke="#8b949e" stroke-width="1.25"/>
 </g>
 <g class="badge">
-<rect x="1163" y="398.5" width="63" height="16" rx="8" fill="#161b22"/>
-<rect x="1163" y="398.5" width="63" height="16" rx="8" fill="#f85149" fill-opacity="0.25" stroke="#f85149" stroke-width="1"/>
-<text x="1194.5" y="410.14" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#ff7b72" text-anchor="middle">REMOVED</text>
+<rect x="1163" y="217" width="63" height="16" rx="8" fill="#161b22"/>
+<rect x="1163" y="217" width="63" height="16" rx="8" fill="#f85149" fill-opacity="0.25" stroke="#f85149" stroke-width="1"/>
+<text x="1194.5" y="228.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#ff7b72" text-anchor="middle">REMOVED</text>
 </g>
 </g>
 <g class="badge">
-<rect x="1165" y="283.5" width="63" height="16" rx="8" fill="#161b22"/>
-<rect x="1165" y="283.5" width="63" height="16" rx="8" fill="#f85149" fill-opacity="0.25" stroke="#f85149" stroke-width="1"/>
-<text x="1196.5" y="295.14" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#ff7b72" text-anchor="middle">REMOVED</text>
+<rect x="1165" y="102" width="63" height="16" rx="8" fill="#161b22"/>
+<rect x="1165" y="102" width="63" height="16" rx="8" fill="#f85149" fill-opacity="0.25" stroke="#f85149" stroke-width="1"/>
+<text x="1196.5" y="113.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#ff7b72" text-anchor="middle">REMOVED</text>
 </g>
 </g>
 <g class="line" data-id="edges[0]" data-kind="relationship" data-from="reminders" data-to="loans" data-status="new">
 <title>reminders (zero-or-many) – loans (one)</title>
-<path d="M392 199 L456 199" fill="none" stroke="#3fb950" stroke-width="3" stroke-linejoin="round"/>
+<path d="M392 276.5 L456 276.5" fill="none" stroke="#3fb950" stroke-width="3" stroke-linejoin="round"/>
 <g class="end" data-end="from" data-cardinality="zero-or-many">
-<path d="M392 192 L404 199 L392 206" fill="none" stroke="#3fb950" stroke-width="3" stroke-linejoin="round"/>
-<circle cx="413" cy="199" r="4" fill="#0d1117" stroke="#3fb950" stroke-width="3"/>
+<path d="M392 269.5 L404 276.5 L392 283.5" fill="none" stroke="#3fb950" stroke-width="3" stroke-linejoin="round"/>
+<circle cx="413" cy="276.5" r="4" fill="#0d1117" stroke="#3fb950" stroke-width="3"/>
 </g>
 <g class="end" data-end="to" data-cardinality="one">
-<path d="M450 206 L450 192 M445 206 L445 192" fill="none" stroke="#3fb950" stroke-width="3" stroke-linejoin="round"/>
+<path d="M450 283.5 L450 269.5 M445 283.5 L445 269.5" fill="none" stroke="#3fb950" stroke-width="3" stroke-linejoin="round"/>
 </g>
 </g>
 <g class="line" data-id="edges[1]" data-kind="relationship" data-from="loans" data-to="members" data-status="unchanged">
 <title>loans (zero-or-many) – members (one): borrowed by</title>
-<path d="M816 225 L1312 225" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M816 302.5 L1268 302.5 Q1276 302.5 1276 294.5 L1276 207 Q1276 199 1284 199 L1312 199" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
 <g class="end" data-end="from" data-cardinality="zero-or-many">
-<path d="M816 218 L828 225 L816 232" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
-<circle cx="837" cy="225" r="4" fill="#0d1117" stroke="#6e7681" stroke-width="1.5"/>
+<path d="M816 295.5 L828 302.5 L816 309.5" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
+<circle cx="837" cy="302.5" r="4" fill="#0d1117" stroke="#6e7681" stroke-width="1.5"/>
 </g>
 <g class="end" data-end="to" data-cardinality="one">
-<path d="M1306 230 L1306 220 M1301 230 L1301 220" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M1306 206 L1306 192 M1301 206 L1301 192" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
 </g>
 </g>
 <g class="line" data-id="edges[2]" data-kind="relationship" data-from="notice-log" data-to="members" data-status="removed">
 <title>notice_log (zero-or-many) – members (one)</title>
 <g class="faded" opacity="0.5">
-<path d="M1240 380.5 L1268 380.5 Q1276 380.5 1276 372.5 L1276 245 Q1276 237 1284 237 L1312 237" fill="none" stroke="#f85149" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M1240 199 L1312 199" fill="none" stroke="#f85149" stroke-width="1.5" stroke-linejoin="round"/>
 <g class="end" data-end="from" data-cardinality="zero-or-many">
-<path d="M1240 373.5 L1252 380.5 L1240 387.5" fill="none" stroke="#f85149" stroke-width="1.5" stroke-linejoin="round"/>
-<circle cx="1261" cy="380.5" r="4" fill="#0d1117" stroke="#f85149" stroke-width="1.5"/>
+<path d="M1240 192 L1252 199 L1240 206" fill="none" stroke="#f85149" stroke-width="1.5" stroke-linejoin="round"/>
+<circle cx="1261" cy="199" r="4" fill="#0d1117" stroke="#f85149" stroke-width="1.5"/>
 </g>
 <g class="end" data-end="to" data-cardinality="one">
-<path d="M1306 242 L1306 232 M1301 242 L1301 232" fill="none" stroke="#f85149" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M1306 206 L1306 192 M1301 206 L1301 192" fill="none" stroke="#f85149" stroke-width="1.5" stroke-linejoin="round"/>
 </g>
 </g>
 </g>
 <g class="line-labels">
 <g class="line-label" data-line="edges[1]">
 <title>loans (zero-or-many) – members (one): borrowed by</title>
-<rect x="1015.5" y="214.5" width="89" height="20" rx="10" fill="#161b22" stroke="#6e7681" stroke-width="1"/>
-<text x="1060" y="228.87" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">borrowed by</text>
+<rect x="1015.5" y="292" width="89" height="20" rx="10" fill="#161b22" stroke="#6e7681" stroke-width="1"/>
+<text x="1060" y="306.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">borrowed by</text>
 </g>
 </g>
 <g class="legend">

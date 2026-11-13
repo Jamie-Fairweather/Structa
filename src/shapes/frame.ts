@@ -67,12 +67,6 @@ export interface Row {
   readonly symbol?: TextLine;
   readonly texts: readonly TextLine[];
   readonly badge?: Badge;
-  /**
-   * The row's lines of text, from the top of the first to the bottom of the
-   * last: where on its card's sides a line that names the row attaches. Only
-   * rows that lines can name, a table's columns, have one.
-   */
-  readonly textSpan?: Span;
 }
 
 /** A component's icon: its kind's, drawn in a square `size` px across with its top-left corner at (x, y). */
@@ -265,7 +259,6 @@ function frameCard<N extends Framed>(
       ...(row.symbol ? { symbol: shift(row.symbol) } : {}),
       texts: row.texts.map((t) => shiftText(t, row.status === "removed")),
       ...(row.badge ? { badge: { ...shift(row.badge), word: shift(row.badge.word) } } : {}),
-      ...(row.textSpan ? { textSpan: { top: row.textSpan.top + top, bottom: row.textSpan.bottom + top } } : {}),
     })),
     ...(body.more ? { more: shift(body.more) } : {}),
     ...onBorder(header, node.area, width, top, body.border, sizes),
