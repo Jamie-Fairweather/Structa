@@ -1,0 +1,169 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="589" height="1258" viewBox="0 0 589 1258">
+<defs>
+<pattern id="structa-grid-light" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="9" cy="9" r="1" fill="#8c959f" fill-opacity="0.5"/></pattern>
+<filter id="structa-shadow-light" x="-20%" y="-30%" width="140%" height="170%"><feDropShadow dx="0" dy="1" stdDeviation="3" flood-color="#1f2328" flood-opacity="0.1"/></filter>
+</defs>
+<rect width="589" height="1258" fill="#f4f5f7"/>
+<rect width="589" height="1258" fill="url(#structa-grid-light)"/>
+<g class="title">
+<text x="32" y="50.55" font-family="Structa Inter, Inter, sans-serif" font-size="18" font-weight="700" fill="#1f2328">Parcel lockers</text>
+</g>
+<g class="description">
+<text x="32" y="73.73" font-family="Structa Inter, Inter, sans-serif" font-size="13" font-weight="400" fill="#59636e">How a customer books a locker, and how the door code reaches them.</text>
+</g>
+<g class="card" data-id="customer" data-kind="actor">
+<title>Customer (actor)</title>
+<rect class="outline" x="196.67" y="102" width="140" height="62" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<path class="icon" d="M248.36 119.38 A2.41 2.41 0 1 1 253.17 119.38 A2.41 2.41 0 1 1 248.36 119.38 M245.96 127.69 A4.81 4.81 0 0 1 255.58 127.69" fill="none" stroke="#59636e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="262.77" y="126" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#59636e">actor</text>
+<text x="266.67" y="147.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Customer</text>
+</g>
+<g class="card" data-id="app" data-kind="ui">
+<title>Locker app (ui): iOS and Android</title>
+<rect class="outline" x="196.67" y="312" width="140" height="80" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<path class="icon" d="M255.21 327.19 L263.96 327.19 Q265.27 327.19 265.27 328.5 L265.27 335.5 Q265.27 336.81 263.96 336.81 L255.21 336.81 Q253.89 336.81 253.89 335.5 L253.89 328.5 Q253.89 327.19 255.21 327.19 Z M253.89 329.81 L265.27 329.81" fill="none" stroke="#59636e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="271.58" y="336" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#59636e">ui</text>
+<text x="266.67" y="357.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Locker app</text>
+<text x="266.67" y="376.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#59636e" text-anchor="middle">iOS and Android</text>
+</g>
+<g class="card" data-id="scanner" data-kind="library">
+<title>Barcode reader (library)</title>
+<rect class="outline" x="32" y="540" width="140" height="62" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<path class="icon" d="M78.77 556.06 Q78.77 554.75 80.09 554.75 L87.52 554.75 L87.52 565.25 L80.09 565.25 Q78.77 565.25 78.77 563.94 Z M78.77 563.94 Q78.77 562.63 80.09 562.63 L87.52 562.63" fill="none" stroke="#59636e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="95.15" y="564" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#59636e">library</text>
+<text x="102" y="585.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Barcode reader</text>
+</g>
+<g class="card" data-id="api" data-kind="api">
+<title>Locker API (api)</title>
+<rect class="outline" x="220" y="549" width="140" height="62" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<path class="icon" d="M277.96 563.75 Q276.21 563.75 276.21 565.5 L276.21 567.69 Q276.21 569 274.9 569 Q276.21 569 276.21 570.31 L276.21 572.5 Q276.21 574.25 277.96 574.25 M281.46 563.75 Q283.21 563.75 283.21 565.5 L283.21 567.69 Q283.21 569 284.52 569 Q283.21 569 283.21 570.31 L283.21 572.5 Q283.21 574.25 281.46 574.25" fill="none" stroke="#59636e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="291.71" y="573" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#59636e">api</text>
+<text x="290" y="594.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Locker API</text>
+</g>
+<g class="card" data-id="bookings" data-kind="service">
+<title>Booking service (service): Holds a locker for 48 hours</title>
+<rect class="outline" x="196.5" y="684" width="187" height="80" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<path class="icon" d="M268.55 698.31 L273.45 701.16 L273.45 706.84 L268.55 709.69 L263.65 706.84 L263.65 701.16 Z M266.36 704 A2.19 2.19 0 1 1 270.74 704 A2.19 2.19 0 1 1 266.36 704" fill="none" stroke="#59636e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="280.55" y="708" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#59636e">service</text>
+<text x="290" y="729.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Booking service</text>
+<text x="290" y="748.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#59636e" text-anchor="middle">Holds a locker for 48 hours</text>
+</g>
+<g class="card" data-id="codes" data-kind="cache">
+<title>Door codes (cache)</title>
+<rect class="outline" x="32" y="954" width="140" height="62" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<path class="icon" d="M84.54 968.31 L79.73 974.88 L83.67 974.88 L82.79 979.69 L87.61 973.13 L83.67 973.13 Z" fill="none" stroke="#59636e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="95.67" y="978" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#59636e">cache</text>
+<text x="102" y="999.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Door codes</text>
+</g>
+<g class="card" data-id="store" data-kind="database">
+<title>Bookings (database)</title>
+<rect class="outline" x="390.17" y="828" width="140" height="62" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<path class="icon" d="M428.94 844.5 A4.81 1.75 0 1 1 438.57 844.5 A4.81 1.75 0 1 1 428.94 844.5 M428.94 844.5 L428.94 851.5 A4.81 1.75 0 0 0 438.57 851.5 L438.57 844.5 M428.94 848 A4.81 1.75 0 0 0 438.57 848" fill="none" stroke="#59636e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="445.76" y="852" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#59636e">database</text>
+<text x="460.17" y="873.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Bookings</text>
+</g>
+<g class="card" data-id="events" data-kind="queue">
+<title>Locker events (queue)</title>
+<rect class="outline" x="220" y="954" width="140" height="62" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<path class="icon" d="M266.84 970.5 L275.59 970.5 Q276.9 970.5 276.9 971.81 L276.9 976.19 Q276.9 977.5 275.59 977.5 L266.84 977.5 Q265.53 977.5 265.53 976.19 L265.53 971.81 Q265.53 970.5 266.84 970.5 Z M269.32 970.5 L269.32 977.5 M273.11 970.5 L273.11 977.5" fill="none" stroke="#59636e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="283.21" y="978" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#59636e">queue</text>
+<text x="290" y="999.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Locker events</text>
+</g>
+<g class="card" data-id="sms" data-kind="external">
+<title>SMS gateway (external)</title>
+<rect class="outline" x="220" y="1164" width="140" height="62" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<path class="icon" d="M261.08 1184 A5.47 5.47 0 1 1 272.01 1184 A5.47 5.47 0 1 1 261.08 1184 M264.14 1184 A2.41 5.47 0 1 1 268.95 1184 A2.41 5.47 0 1 1 264.14 1184 M261.08 1184 L272.01 1184" fill="none" stroke="#59636e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="278.54" y="1188" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#59636e">external</text>
+<text x="290" y="1209.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">SMS gateway</text>
+</g>
+<g class="card" data-id="sweep" data-kind="job">
+<title>Expiry sweep (job): Every night at 02:00</title>
+<rect class="outline" x="410" y="540" width="147" height="80" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<path class="icon" d="M467.53 560 A5.47 5.47 0 1 1 478.47 560 A5.47 5.47 0 1 1 467.53 560 M473 556.94 L473 560 L475.41 561.53" fill="none" stroke="#59636e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="485" y="564" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#59636e">job</text>
+<text x="483.5" y="585.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Expiry sweep</text>
+<text x="483.5" y="604.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#59636e" text-anchor="middle">Every night at 02:00</text>
+</g>
+<g class="line" data-id="edges[0]" data-kind="call" data-from="customer" data-to="app">
+<title>Customer → Locker app: books a locker</title>
+<path d="M266.67 164 L266.67 303" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M266.67 312 L262.17 303 L271.17 303 Z" fill="#8c959f"/>
+</g>
+<g class="line" data-id="edges[1]" data-kind="call" data-from="app" data-to="scanner">
+<title>Locker app → Barcode reader: scan parcel</title>
+<path d="M243.33 392 L243.33 408 Q243.33 416 235.33 416 L110 416 Q102 416 102 424 L102 531" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M102 540 L97.5 531 L106.5 531 Z" fill="#8c959f"/>
+</g>
+<g class="line" data-id="edges[2]" data-kind="call" data-from="app" data-to="api">
+<title>Locker app → Locker API: POST /bookings</title>
+<path d="M290 392 L290 540" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M290 549 L285.5 540 L294.5 540 Z" fill="#8c959f"/>
+</g>
+<g class="line" data-id="edges[3]" data-kind="call" data-from="api" data-to="bookings">
+<title>Locker API → Booking service</title>
+<path d="M290 611 L290 675" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M290 684 L285.5 675 L294.5 675 Z" fill="#8c959f"/>
+</g>
+<g class="line" data-id="edges[4]" data-kind="call" data-from="bookings" data-to="codes">
+<title>Booking service → Door codes: store code</title>
+<path d="M243.25 764 L243.25 780 Q243.25 788 235.25 788 L110 788 Q102 788 102 796 L102 945" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M102 954 L97.5 945 L106.5 945 Z" fill="#8c959f"/>
+</g>
+<g class="line" data-id="edges[5]" data-kind="call" data-from="bookings" data-to="store">
+<title>Booking service → Bookings</title>
+<path d="M336.75 764 L336.75 780 Q336.75 788 344.75 788 L428.83 788 Q436.83 788 436.83 796 L436.83 819" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M436.83 828 L432.33 819 L441.33 819 Z" fill="#8c959f"/>
+</g>
+<g class="line" data-id="edges[6]" data-kind="async" data-from="bookings" data-to="events">
+<title>Booking service → Locker events (async): booking made</title>
+<path d="M290 764 L290 954" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round" stroke-dasharray="6 4"/>
+<path d="M285.5 945 L290 954 L294.5 945" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<g class="line" data-id="edges[7]" data-kind="async" data-from="events" data-to="sms">
+<title>Locker events → SMS gateway (async): send code</title>
+<path d="M290 1016 L290 1164" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round" stroke-dasharray="6 4"/>
+<path d="M285.5 1155 L290 1164 L294.5 1155" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<g class="line" data-id="edges[8]" data-kind="call" data-from="sweep" data-to="store">
+<title>Expiry sweep → Bookings: release expired</title>
+<path d="M483.5 620 L483.5 819" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M483.5 828 L479 819 L488 819 Z" fill="#8c959f"/>
+</g>
+<g class="line-labels">
+<g class="line-label" data-line="edges[0]">
+<title>Customer → Locker app: books a locker</title>
+<rect x="216.67" y="228" width="100" height="20" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1"/>
+<text x="266.67" y="242.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">books a locker</text>
+</g>
+<g class="line-label" data-line="edges[1]">
+<title>Locker app → Barcode reader: scan parcel</title>
+<rect x="61" y="456" width="82" height="20" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1"/>
+<text x="102" y="470.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">scan parcel</text>
+</g>
+<g class="line-label" data-line="edges[2]">
+<title>Locker app → Locker API: POST /bookings</title>
+<rect x="236" y="456" width="108" height="20" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1"/>
+<text x="290" y="470.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">POST /bookings</text>
+</g>
+<g class="line-label" data-line="edges[4]">
+<title>Booking service → Door codes: store code</title>
+<rect x="63.5" y="849" width="77" height="20" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1"/>
+<text x="102" y="863.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">store code</text>
+</g>
+<g class="line-label" data-line="edges[6]">
+<title>Booking service → Locker events (async): booking made</title>
+<rect x="241.5" y="849" width="97" height="20" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1"/>
+<text x="290" y="863.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">booking made</text>
+</g>
+<g class="line-label" data-line="edges[7]">
+<title>Locker events → SMS gateway (async): send code</title>
+<rect x="252" y="1080" width="76" height="20" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1"/>
+<text x="290" y="1094.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">send code</text>
+</g>
+<g class="line-label" data-line="edges[8]">
+<title>Expiry sweep → Bookings: release expired</title>
+<rect x="431.5" y="714" width="104" height="20" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1"/>
+<text x="483.5" y="728.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">release expired</text>
+</g>
+</g>
+</svg>

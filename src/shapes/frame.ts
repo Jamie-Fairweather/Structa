@@ -1,4 +1,4 @@
-import { AREA_LABEL_FACE, type FlowShape, type Status } from "../input";
+import { AREA_LABEL_FACE, type ArchitectureKind, type ComponentKind, type FlowShape, type Status } from "../input";
 import { baseline, measure, wrap, type FaceId } from "../text";
 import type { Sizes, ThemeColors } from "../theme";
 import { move, placeOutline, type Mark, type Outline, type OutlineShape, type Point } from "./outline";
@@ -69,6 +69,14 @@ export interface Row {
   readonly badge?: Badge;
 }
 
+/** A component's icon: its kind's, drawn in a square `size` px across with its top-left corner at (x, y). */
+export interface Icon {
+  readonly name: ComponentKind;
+  readonly x: number;
+  readonly y: number;
+  readonly size: number;
+}
+
 /** Where a card's status badge and area tag sit on its top border. */
 export type BorderPlace =
   /**
@@ -88,7 +96,7 @@ export type CardFill = keyof Pick<ThemeColors, "cardFill" | "noteFill">;
  * `minWidth` the frame asks for; a narrower one sits centred in a wider box.
  */
 export interface CardBody {
-  readonly kind: FlowShape | "class";
+  readonly kind: FlowShape | ArchitectureKind;
   readonly width: number;
   readonly height: number;
   readonly outline: OutlineShape;
@@ -97,6 +105,7 @@ export interface CardBody {
   /** Default: toward the ends, the theme's inset in from them. */
   readonly border?: BorderPlace;
   readonly tooltip: string;
+  readonly icon?: Icon;
   readonly texts: readonly TextLine[];
   /** Thin lines right across the card between its sections, at these heights. */
   readonly dividers?: readonly number[];
@@ -119,6 +128,7 @@ export interface Card {
   readonly marks: readonly Mark[];
   readonly fill: CardFill;
   readonly tooltip: string;
+  readonly icon?: Icon;
   readonly texts: readonly TextLine[];
   readonly dividers: readonly number[];
   readonly rows: readonly Row[];
@@ -226,6 +236,7 @@ function frameCard<N extends Framed>(
     marks: (body.marks ?? []).map((mark) => mark.map((p) => move(p, at))),
     fill: body.fill ?? "cardFill",
     tooltip: body.tooltip,
+    ...(body.icon ? { icon: shift(body.icon) } : {}),
     texts: body.texts.map((t) => shiftText(t, status === "removed" && t.title === true)),
     dividers: (body.dividers ?? []).map((y) => y + top),
     rows: (body.rows ?? []).map((row) => ({

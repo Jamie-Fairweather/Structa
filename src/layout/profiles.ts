@@ -55,6 +55,16 @@ export const FLOW_PROFILE: LayoutProfile = {
   },
 };
 
+export const ARCHITECTURE_PROFILE: LayoutProfile = {
+  name: "architecture",
+  version: 1,
+  options: {
+    ...LAYERED,
+    "elk.spacing.nodeNode": "48",
+    "elk.layered.spacing.nodeNodeBetweenLayers": "64",
+  },
+};
+
 /**
  * Added to every profile when area boxes are drawn: areas are compound nodes,
  * laid out with their cards as one graph, so lines can cross from one area
@@ -72,4 +82,5 @@ export const GROUPED: LayoutOptions = {
 export const PROFILES: ReadonlyMap<Diagram["type"], LayoutProfile> = new Map([
   ["class", CLASS_PROFILE],
   ["flow", FLOW_PROFILE],
+  ["architecture", ARCHITECTURE_PROFILE],
 ]);

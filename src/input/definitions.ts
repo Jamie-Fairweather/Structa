@@ -158,7 +158,7 @@ function conditional(name: string, def: Def, description: string, ...onlyWhen: [
 }
 
 /** The diagram types implemented so far, in the spec's order. Each has an example, examples/<type>.json. */
-export const DIAGRAM_TYPES: readonly string[] = ["class", "flow"];
+export const DIAGRAM_TYPES: readonly string[] = ["class", "flow", "architecture"];
 
 const LIMITS = { nodes: 500, edges: 1000, areas: 100 } as const;
 const SPLIT_HINT = "split the diagram into smaller ones";
@@ -348,6 +348,10 @@ const areaRule: Rule = (checked, given) => {
   }
   return found.sort((a, b) => a.at - b.at || a.order - b.order).map((f) => f.problem);
 };
+
+export const COMPONENT_LABEL_FACE: FaceId = "inter-semibold";
+/** A component card's kind word, beside its icon. Its words are fixed, so no input is checked against it. */
+export const KIND_WORD_FACE: FaceId = "inter-regular";
 
 /**
  * The flowchart shapes: start and end are pills, a step a rounded box, a
@@ -552,14 +556,55 @@ function classRow(section: ClassSection, noun: string, text: string): ObjectDef 
   };
 }
 
+/** What a class must follow, which a schema can't say: how its rows' statuses agree with its own, and how many rows it may have. */
+const CLASS_RULES =
+  `Its rows' statuses must agree with its own: a row in a new or removed card can only have the card's status, and takes it when it has none; ` +
+  `a row in an unchanged card can only be unchanged; and a card needs a status when any of its rows has one. ` +
+  `A card has at most ${ROWS_PER_CARD} rows, all its lists together.`;
+
+/**
+ * The fields of a class card beyond a node's own: its stereotype, its
+ * abstract flag, its rows and its "more" count. In a class diagram every node
+ * has them; in an architecture diagram only a class, so there `onlyClasses`
+ * makes each one need "kind": "class" too.
+ */
+function classCardFields(onlyClasses: boolean): Field[] {
+  const field = (name: string, def: Def, description: string, own: readonly Condition[], defaultValue?: Field["default"]): Field => {
+    const onlyWhen = [
+      ...(onlyClasses ? [{ field: "kind", value: "class", hint: `remove "${name}", or make this node "kind": "class"` }] : []),
+      ...own,
+    ];
+    const [first, ...rest] = onlyWhen;
+    return first
+      ? conditional(name, def, `${description}${onlyClasses ? '. Only for "kind": "class"' : ""}`, first, ...rest)
+      : optional(name, def, description, defaultValue);
+  };
+  const rows = (section: ClassSection, noun: string, text: string): ListDef => ({
+    kind: "list",
+    noun: section,
+    items: classRow(section, noun, text),
+    maxItems: ROWS_PER_CARD,
+    limitHint: ROWS_HINT,
+  });
+  return [
+    field("stereotype", { kind: "choice", values: STEREOTYPES, later: false }, "what kind of class this is, drawn as a «…» line above the name", []),
+    field("abstract", BOOLEAN, 'true draws the name in italics, as stereotype "abstract" does, without the «abstract» line', [], false),
+    field("properties", rows("properties", "property", MEMBER_TEXT), "the class's properties, in order; leave it out for none. Not for an enum", [NOT_ENUM]),
+    field(
+      "methods",
+      rows("methods", "method", MEMBER_TEXT),
+      "the class's methods, in order, drawn under the properties; leave it out for none. Not for an enum",
+      [NOT_ENUM],
+    ),
+    field("values", rows("values", "value", VALUE_TEXT), 'an enum\'s values, in order; leave it out for none. Only with "stereotype": "enum"', [ENUM]),
+    field("more", { kind: "count", min: 1, max: 9999 }, 'how many members or values were left out on purpose, drawn as a muted "… N more" row', []),
+  ];
+}
+
 const CLASS_NODE: ObjectDef = {
   kind: "object",
   noun: "node",
-  description:
-    `One class. An enum (stereotype "enum") lists values instead of properties and methods, and only an enum has values. ` +
-    `Its rows' statuses must agree with its own: a row in a new or removed card can only have the card's status, and takes it when it has none; ` +
-    `a row in an unchanged card can only be unchanged; and a card needs a status when any of its rows has one. ` +
-    `A card has at most ${ROWS_PER_CARD} rows, all its lists together.`,
+  description: `One class. An enum (stereotype "enum") lists values instead of properties and methods, and only an enum has values. ${CLASS_RULES}`,
   rules: [rowStatusRule, rowLimitRule],
   fields: [
     required("id", { kind: "id", of: "node" }, "a unique id made of letters, digits and - _ . :"),
@@ -571,40 +616,7 @@ const CLASS_NODE: ObjectDef = {
     ),
     areaField("the id of the area the class is in"),
     optional("status", STATUS, "what the change does to this card; leave it out for no status"),
-    optional(
-      "stereotype",
-      { kind: "choice", values: STEREOTYPES, later: false },
-      "what kind of class this is, drawn as a «…» line above the name",
-    ),
-    optional(
-      "abstract",
-      BOOLEAN,
-      'true draws the name in italics, as stereotype "abstract" does, without the «abstract» line',
-      false,
-    ),
-    conditional(
-      "properties",
-      { kind: "list", noun: "properties", items: classRow("properties", "property", MEMBER_TEXT), maxItems: ROWS_PER_CARD, limitHint: ROWS_HINT },
-      "the class's properties, in order; leave it out for none. Not for an enum",
-      NOT_ENUM,
-    ),
-    conditional(
-      "methods",
-      { kind: "list", noun: "methods", items: classRow("methods", "method", MEMBER_TEXT), maxItems: ROWS_PER_CARD, limitHint: ROWS_HINT },
-      "the class's methods, in order, drawn under the properties; leave it out for none. Not for an enum",
-      NOT_ENUM,
-    ),
-    conditional(
-      "values",
-      { kind: "list", noun: "values", items: classRow("values", "value", VALUE_TEXT), maxItems: ROWS_PER_CARD, limitHint: ROWS_HINT },
-      'an enum\'s values, in order; leave it out for none. Only with "stereotype": "enum"',
-      ENUM,
-    ),
-    optional(
-      "more",
-      { kind: "count", min: 1, max: 9999 },
-      'how many members or values were left out on purpose, drawn as a muted "… N more" row',
-    ),
+    ...classCardFields(false),
   ],
 };
 
@@ -615,10 +627,63 @@ const CLASS_EDGE = edge({ kind: "ref", to: "node" }, "", [
   required("kind", { kind: "choice", values: CLASS_EDGE_KINDS, later: true }, "the relationship the line shows"),
 ]);
 
+/**
+ * What an architecture diagram's card is: a component of one of these kinds,
+ * drawn as a card with its icon and kind word, or a class, drawn as a class card.
+ */
+export const ARCHITECTURE_KINDS = ["service", "api", "ui", "job", "queue", "database", "cache", "external", "library", "actor", "class"] as const;
+export type ArchitectureKind = (typeof ARCHITECTURE_KINDS)[number];
+
+/** The kinds drawn as component cards: every kind but a class. */
+export type ComponentKind = Exclude<ArchitectureKind, "class">;
+
+const ARCHITECTURE_NODE: ObjectDef = {
+  kind: "object",
+  noun: "node",
+  description:
+    `One part of a system. Every kind but "class" is a component card with its kind's icon and word. ` +
+    `A node of kind "class" is a class card instead, with a class's fields: an enum (stereotype "enum") lists values instead of properties and methods. ${CLASS_RULES}`,
+  rules: [rowStatusRule, rowLimitRule],
+  fields: [
+    required("id", { kind: "id", of: "node" }, "a unique id made of letters, digits and - _ . :"),
+    required(
+      "label",
+      { kind: "text", text: LABEL, faces: [COMPONENT_LABEL_FACE, CLASS_NAME_FACE, ABSTRACT_CLASS_NAME_FACE] },
+      "the name shown on the card",
+    ),
+    optional(
+      "description",
+      { kind: "text", text: DESCRIPTION, faces: [CARD_DESCRIPTION_FACE, CLASS_DESCRIPTION_FACE] },
+      "a sentence or two drawn smaller and muted under the label, and shown in the tooltip",
+    ),
+    areaField("the id of the area the card is in"),
+    optional("status", STATUS, "what the change does to this card; leave it out for no status"),
+    required(
+      "kind",
+      { kind: "choice", values: ARCHITECTURE_KINDS, later: false },
+      'what the card is, shown by its icon and kind word; "class" draws a class card',
+    ),
+    ...classCardFields(true),
+  ],
+};
+
+/** How one part of a system talks to another: a call it waits on, or a message or event it doesn't. */
+export const ARCHITECTURE_EDGE_KINDS = ["call", "async"] as const;
+
+const ARCHITECTURE_EDGE = edge({ kind: "ref", to: "node" }, "", [
+  optional(
+    "kind",
+    { kind: "choice", values: ARCHITECTURE_EDGE_KINDS, later: false },
+    "how the from card talks to the to card: call, drawn solid with a filled arrowhead, or async (a message or event), drawn dashed with an open arrowhead",
+    "call",
+  ),
+]);
+
 /** Each implemented type's definition, in DIAGRAM_TYPES order. */
 export const DEFINITIONS: ReadonlyMap<string, ObjectDef> = new Map([
   ["class", diagram(CLASS_NODE, CLASS_EDGE, "down", [areaRule])],
   ["flow", diagram(FLOW_NODE, FLOW_EDGE, "down", [areaRule, noteAreaRule])],
+  ["architecture", diagram(ARCHITECTURE_NODE, ARCHITECTURE_EDGE, "down", [areaRule])],
 ]);
 
 /**

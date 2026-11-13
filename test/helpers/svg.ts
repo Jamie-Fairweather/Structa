@@ -144,15 +144,16 @@ export function parsePath(d: string): PathCommand[] {
 }
 
 /**
- * A line's stroked route and its filled arrowhead (a triangle drawn tip first):
- * the tip, and the middle of the side opposite it.
+ * A line's stroked route, drawn first, and its arrowhead: the tip, and the
+ * middle of the side opposite it. A filled arrowhead is a triangle drawn tip
+ * first; an open one, two strokes drawn from one back corner to the tip and on
+ * to the other.
  */
 export function lineGeometry(line: Element): { route: PathCommand[]; arrowTip: Point; arrowBase: Point } {
-  const paths = Array.from(line.getElementsByTagName("path"));
-  const route = paths.find((p) => p.getAttribute("fill") === "none");
-  const arrow = paths.find((p) => p.getAttribute("fill") !== "none");
+  const [route, arrow] = Array.from(line.getElementsByTagName("path"));
   if (!route || !arrow) throw new Error(`line ${line.getAttribute("data-id")} needs a route and an arrowhead`);
-  const [tip, left, right] = parsePath(arrow.getAttribute("d")!).map((c) => c.points[0]!);
+  const corners = parsePath(arrow.getAttribute("d")!).map((c) => c.points[0]!);
+  const [tip, left, right] = arrow.getAttribute("fill") === "none" ? [corners[1], corners[0], corners[2]] : corners;
   return {
     route: parsePath(route.getAttribute("d")!),
     arrowTip: tip!,

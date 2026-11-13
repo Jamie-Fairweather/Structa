@@ -94,6 +94,22 @@ function toolShed() {
   } as Node;
 }
 
+/** A small valid architecture diagram: a seed swap's app and database, and a class with members between them. */
+function seedSwap() {
+  return {
+    type: "architecture",
+    nodes: [
+      { id: "app", label: "Swap app", kind: "ui" },
+      { id: "swap", label: "SeedSwap", kind: "class", properties: [{ text: "offers: Offer[]" }], methods: [{ text: "match(): Match[]" }] },
+      { id: "store", label: "Swap records", kind: "database" },
+    ],
+    edges: [
+      { id: "ask", from: "app", to: "swap", kind: "call" },
+      { id: "save", from: "swap", to: "store", kind: "async" },
+    ],
+  } as Node;
+}
+
 /** A part of the schema: its name, the type of diagram it's in, where it is in the schema and in the input, and its path. */
 type Part = readonly [name: string, type: string, part: () => Node, target: (input: Node) => Node, prefix: string];
 
@@ -101,6 +117,7 @@ type Part = readonly [name: string, type: string, part: () => Node, target: (inp
 const FIXTURES = new Map<string, () => Node>([
   ["class", toolShed],
   ["flow", greenhouse],
+  ["architecture", seedSwap],
 ]);
 
 describe("the JSON Schema", () => {
@@ -146,7 +163,7 @@ describe("the JSON Schema", () => {
 
   it("offers exactly the diagram types render() accepts, each with its own nodes and edges", async () => {
     const validate = new Ajv2020({ strict: true }).compile(root);
-    expect(root.properties.type.enum).toEqual(["class", "flow"]);
+    expect(root.properties.type.enum).toEqual(["class", "flow", "architecture"]);
 
     for (const [type, fixture] of FIXTURES) {
       expect([type, await outcome(fixture())]).toEqual([type, "ok"]);
@@ -160,7 +177,7 @@ describe("the JSON Schema", () => {
       }
     }
     expect(await outcome({ ...greenhouse(), type: "sideways" })).toEqual([
-      expect.objectContaining({ path: "type", hint: 'use "class" or "flow"' }),
+      expect.objectContaining({ path: "type", hint: 'use "class", "flow" or "architecture"' }),
     ]);
   });
 
@@ -181,6 +198,16 @@ describe("the JSON Schema", () => {
     ["a class edge", "class", () => items("class", "edges"), (input: Node) => input.edges[0], "edges[0]."],
     ...rowParts(0),
     ["an area", "flow", () => root.properties.areas.items, withArea, "areas[0]."],
+    ["an architecture component", "architecture", () => items("architecture", "nodes"), (input: Node) => input.nodes[0], "nodes[0]."],
+    ["an architecture class", "architecture", () => items("architecture", "nodes"), (input: Node) => input.nodes[1], "nodes[1]."],
+    [
+      "an architecture class's row",
+      "architecture",
+      () => items("architecture", "nodes").properties.methods.items,
+      (input: Node) => input.nodes[1].methods[0],
+      "nodes[1].methods[0].",
+    ],
+    ["an architecture edge", "architecture", () => items("architecture", "edges"), (input: Node) => input.edges[1], "edges[1]."],
   ])("lists exactly the fields render() allows on %s", async (_name, type, part, target, prefix) => {
     const input = FIXTURES.get(type)!();
     target(input).mulch = true;
@@ -199,6 +226,9 @@ describe("the JSON Schema", () => {
     ["a class edge", "class", () => items("class", "edges"), (input: Node) => input.edges[0], "edges[0]."],
     ...rowParts(1),
     ["an area", "flow", () => root.properties.areas.items, withArea, "areas[0]."],
+    ["an architecture component", "architecture", () => items("architecture", "nodes"), (input: Node) => input.nodes[2], "nodes[2]."],
+    ["an architecture class", "architecture", () => items("architecture", "nodes"), (input: Node) => input.nodes[1], "nodes[1]."],
+    ["an architecture edge", "architecture", () => items("architecture", "edges"), (input: Node) => input.edges[0], "edges[0]."],
   ])("requires exactly the fields render() requires on %s", async (_name, type, part, target, prefix) => {
     for (const field of Object.keys(part().properties)) {
       const input = FIXTURES.get(type)!();
@@ -248,6 +278,22 @@ describe("the JSON Schema", () => {
       },
     ],
     ["class edge kind", "class", () => items("class", "edges"), (input, value) => (input.edges[0].kind = value)],
+    ["architecture node kind", "architecture", () => items("architecture", "nodes"), (input, value) => (input.nodes[0].kind = value)],
+    ["architecture edge kind", "architecture", () => items("architecture", "edges"), (input, value) => (input.edges[0].kind = value)],
+    [
+      "architecture class stereotype",
+      "architecture",
+      () => items("architecture", "nodes"),
+      (input, value) => {
+        input.nodes[1].stereotype = value;
+        // An enum lists values, not properties and methods.
+        if (value === "enum") {
+          input.nodes[1].values = [{ text: "TOMATO" }];
+          delete input.nodes[1].properties;
+          delete input.nodes[1].methods;
+        }
+      },
+    ],
     ...ROW_SECTIONS.flatMap(([section, n]) => {
       const { part, card, row } = classRow(section, n);
       return [
@@ -285,6 +331,7 @@ describe("the JSON Schema", () => {
     ["emphasis", "flow", () => edge, (input, value) => (input.edges[0].emphasis = value)],
     ["groupAreas", "flow", () => root, (input, value) => (input.groupAreas = value)],
     ["class abstract", "class", () => items("class", "nodes"), (input, value) => (input.nodes[0].abstract = value)],
+    ["architecture class abstract", "architecture", () => items("architecture", "nodes"), (input, value) => (input.nodes[1].abstract = value)],
     ...ROW_SECTIONS.flatMap(([section, n]) => {
       const { part, row } = classRow(section, n);
       return (["static", "abstract"] as const).map(
@@ -463,6 +510,33 @@ describe("the JSON Schema", () => {
     input.nodes[1] = { id: "rake", label: "Rake", ...fields };
 
     expect([validate(input), (await outcome(input)) === "ok"]).toEqual([accepted, accepted]);
+  });
+
+  it.each<readonly [name: string, fields: Node]>([
+    ["stereotype", { stereotype: "record" }],
+    ["abstract", { abstract: false }],
+    ["properties", { properties: [{ text: "packets: int" }] }],
+    ["methods", { methods: [] }],
+    ["values", { stereotype: "enum", values: [{ text: "BEAN" }] }],
+    ["more", { more: 2 }],
+  ])("agrees with render() that only an architecture class may have %s", async (_name, fields) => {
+    const validate = new Ajv2020({ strict: true }).compile(root);
+
+    for (const kind of items("architecture", "nodes").properties.kind.enum as string[]) {
+      const input = seedSwap();
+      input.nodes[2] = { id: "store", label: "Swap records", kind, ...fields };
+      const accepted = validate(input);
+      expect([kind, accepted]).toEqual([kind, kind === "class"]);
+      expect([kind, (await outcome(input)) === "ok"]).toEqual([kind, accepted]);
+    }
+  });
+
+  it("documents that an architecture line is a call unless it says otherwise", async () => {
+    expect(items("architecture", "edges").properties.kind.default).toBe("call");
+
+    const plain = seedSwap();
+    delete plain.edges[0].kind;
+    expect((await render(plain, opts)).svg).toBe((await render(seedSwap(), opts)).svg);
   });
 
   it("agrees with render() that more is a whole number from 1 to 9999", async () => {

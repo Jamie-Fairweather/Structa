@@ -20,7 +20,8 @@ import {
 } from "../shapes";
 import { FACES, faceStyle, fontDataUrl, type FaceId } from "../text";
 import type { Theme } from "../theme";
-import { arrowhead, roundedRoute } from "./route";
+import { iconPath } from "./icons";
+import { arrowhead, openArrowhead, roundedRoute } from "./route";
 import { el, escapeText, num, open, type Attrs } from "./svg";
 
 /** Everything drawn: the laid-out scene, the title above it and the legend below it. */
@@ -338,6 +339,19 @@ function card({ card, x: cardX, y: cardY }: PlacedCard<Card>, at: Point, pen: Pe
           ["stroke-width", sizes.card.borderWidth],
         ]),
       ),
+      ...(card.icon
+        ? [
+            el("path", [
+              ["class", "icon"],
+              ["d", iconPath(card.icon.name, x + card.icon.x, y + card.icon.y, card.icon.size)],
+              ["fill", "none"],
+              ["stroke", colors.icon],
+              ["stroke-width", sizes.component.icon.strokeWidth],
+              ["stroke-linecap", "round"],
+              ["stroke-linejoin", "round"],
+            ]),
+          ]
+        : []),
       ...card.texts.flatMap((t) => text(t, x, y, colors[t.color], pen)),
       ...(card.more ? [open("g", [["class", "more"]]), ...text(card.more, x, y, colors[card.more.color], pen), "</g>"] : []),
     ]),
@@ -493,8 +507,9 @@ function connector(c: Connector, points: readonly Point[], at: Point, pen: Pen):
 function line(line: Line, points: readonly Point[], at: Point, pen: Pen): string[] {
   const { sizes } = pen.theme;
   const pts = points.map((p) => ({ x: p.x + at.x, y: p.y + at.y }));
-  const { cornerRadius, arrowLength, arrowWidth } = sizes.line;
+  const { cornerRadius, arrowLength } = sizes.line;
   const colour = lineColour(line.status, pen.theme);
+  const width = line.emphasis ? sizes.line.emphasisWidth : sizes.line.width;
   return [
     open("g", [
       ["class", "line"],
@@ -507,17 +522,41 @@ function line(line: Line, points: readonly Point[], at: Point, pen: Pen): string
     el("title", [], escapeText(line.tooltip)),
     ...fadedIf(line.status === "removed", pen.theme, [
       el("path", [
-        // A line with an arrowhead stops short of its end, where the arrowhead's tip is.
-        ["d", roundedRoute(pts, cornerRadius, line.arrow ? arrowLength : 0)],
+        // A line with a filled arrowhead stops short of its end, where the arrowhead's tip is;
+        // an open arrowhead has nothing inside it, so the line runs on to its tip.
+        ["d", roundedRoute(pts, cornerRadius, line.arrow === "filled" ? arrowLength : 0)],
         ["fill", "none"],
         ["stroke", colour],
-        ["stroke-width", line.emphasis ? sizes.line.emphasisWidth : sizes.line.width],
+        ["stroke-width", width],
         ["stroke-linejoin", "round"],
+        ...(line.pattern === "dashed" ? ([["stroke-dasharray", `${num(sizes.dashed.dash)} ${num(sizes.dashed.gap)}`]] as const) : []),
       ]),
-      ...(line.arrow ? [el("path", [["d", arrowhead(pts, arrowLength, arrowWidth)], ["fill", colour]])] : []),
+      ...lineHead(line.arrow, pts, colour, width, pen.theme),
     ]),
     "</g>",
   ];
+}
+
+/** What's drawn where a line meets its `to` card: a filled arrowhead, or an open one in the line's width, solid whatever its pattern. */
+function lineHead(arrow: Line["arrow"], points: readonly Point[], colour: string, width: number, theme: Theme): string[] {
+  const { arrowLength, arrowWidth } = theme.sizes.line;
+  switch (arrow) {
+    case "filled":
+      return [el("path", [["d", arrowhead(points, arrowLength, arrowWidth)], ["fill", colour]])];
+    case "open":
+      return [
+        el("path", [
+          ["d", openArrowhead(points, arrowLength, arrowWidth)],
+          ["fill", "none"],
+          ["stroke", colour],
+          ["stroke-width", width],
+          ["stroke-linecap", "round"],
+          ["stroke-linejoin", "round"],
+        ]),
+      ];
+    case "none":
+      return [];
+  }
 }
 
 /**
