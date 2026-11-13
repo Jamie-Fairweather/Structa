@@ -11,6 +11,7 @@ const repository = fileURLToPath(new URL("../..", import.meta.url));
 /** Everything the build reads from the project. Add to this when the build starts reading something new. */
 const BUILD_INPUTS = [
   "src",
+  "skill",
   "generated",
   "examples",
   "licenses",

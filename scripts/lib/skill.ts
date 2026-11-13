@@ -1,10 +1,11 @@
 /**
- * Builds the skill folder: our code bundled into one ES module, with resvg's
- * glue and wasm inside it, elkjs's own file copied beside it untouched, a
- * one-line package.json that makes the folder CommonJS so elkjs's UMD file
- * loads even inside an ESM project, the examples folder, the JSON Schema
- * the module prints, and the licences of everything in it. Also makes the
- * release: the folder, its zip and the zip's notes.
+ * Builds the skill folder: the SKILL.md that tells agents how to use it, our
+ * code bundled into one ES module, with resvg's glue and wasm inside it,
+ * elkjs's own file copied beside it untouched, a one-line package.json that
+ * makes the folder CommonJS so elkjs's UMD file loads even inside an ESM
+ * project, the examples folder, the JSON Schema the module prints, and the
+ * licences of everything in it. Also makes the release: the folder, its zip
+ * and the zip's notes.
  */
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -21,6 +22,8 @@ import { readTtf, type TtfFont } from "./ttf";
 
 const repository = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
+/** The skill's instructions for agents: skill/SKILL.md in the project, at the top of the folder. */
+const SKILL_FILE = "SKILL.md";
 const MODULE_FILE = "structa.mjs";
 const ELK_FILE = "elk.bundled.js";
 const SCHEMA_FILE = "structa.schema.json";
@@ -88,6 +91,7 @@ export async function buildSkill(outDir: string, project: string = repository): 
   const bundled = Object.values(metafile.outputs).flatMap((output) =>
     Object.entries(output.inputs).flatMap(([path, input]) => (input.bytesInOutput > 0 ? [path] : [])),
   );
+  copyFileSync(join(project, "skill", SKILL_FILE), join(outDir, SKILL_FILE));
   copyFileSync(join(elkPackage, "lib", ELK_FILE), join(outDir, ELK_FILE));
   writeFileSync(join(outDir, "package.json"), PACKAGE_JSON);
   cpSync(join(project, EXAMPLES_DIR), join(outDir, EXAMPLES_DIR), { recursive: true });
