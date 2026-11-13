@@ -21,7 +21,10 @@ export interface LayoutCard {
    * card by a line beside that card, and the line straight between them.
    */
   readonly note?: boolean;
-  /** The id of the area it's laid out in, when areas are given. A note about a card must be in that card's area. */
+  /**
+   * The id of the area it's laid out in, when areas are given. A note joined
+   * to a card must be in that card's area: ELK fails on one joined across areas.
+   */
   readonly area?: string;
 }
 

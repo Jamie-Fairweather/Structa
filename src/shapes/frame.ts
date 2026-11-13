@@ -175,8 +175,8 @@ export function frameCards<N extends Framed>(
 
 /**
  * How wide a card must be to hold what sits on its top border, placed as
- * `place` says; 0 when nothing does. A badge alone keeps the theme's inset
- * from both ends; a nearer place for it only moves it in.
+ * `place` says; 0 when nothing does. Both ends keep at least the theme's
+ * inset; a body's own place only moves where its tag starts.
  */
 function borderWidth(header: CardHeader, place: BorderPlace | undefined, sizes: Sizes): number {
   const { status, tag } = header;
