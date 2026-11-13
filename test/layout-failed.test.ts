@@ -94,6 +94,47 @@ describe("render() when the layout engine misbehaves", () => {
     expect(error.problems).toEqual([{ path, message, hint }]);
   });
 
+  describe("with area boxes", () => {
+    // The heap is an area box holding both cards, so they come back inside it.
+    const boxed = {
+      ...compost,
+      groupAreas: true,
+      areas: [{ id: "heap", label: "Compost heap at the end of the garden" }],
+      nodes: compost.nodes.map((node) => ({ ...node, area: "heap" })),
+    };
+
+    it("draws normally when nothing is damaged", async () => {
+      await expect(render(boxed)).resolves.toHaveProperty("svg");
+    });
+
+    it.each<[string, (graph: ElkNode) => void, string, string]>([
+      [
+        "drops an area, keeping what was in it",
+        (g) => {
+          const [area] = g.children!.splice(0, 1);
+          g.children!.push(...area!.children!);
+          g.edges = [...(g.edges ?? []), ...area!.edges!];
+        },
+        "areas[0]",
+        "the layout engine dropped this area",
+      ],
+      ["loses an area's position", (g) => delete g.children![0]!.x, "areas[0]", "the layout engine gave this area no position or size"],
+      ["makes an area too narrow for its name", (g) => void (g.children![0]!.width = 40), "areas[0]", "the layout engine made this area too narrow for its name"],
+      ["drops a card inside an area", (g) => g.children![0]!.children!.splice(1, 1), "nodes[1]", "the layout engine dropped this card"],
+      ["drops a line inside an area", (g) => g.children![0]!.edges!.splice(0, 1), "edges[0]", "the layout engine dropped this line"],
+    ])("fails with LAYOUT_FAILED when ELK %s", async (_name, damage, path, message) => {
+      engine.damage = damage;
+
+      const error = await render(boxed).then(
+        () => undefined,
+        (e: unknown) => e,
+      );
+
+      expect((error as StructaError).code).toBe("LAYOUT_FAILED");
+      expect((error as StructaError).problems).toEqual([{ path, message, hint }]);
+    });
+  });
+
   it("fails with LAYOUT_FAILED when ELK throws", async () => {
     engine.failure = new Error("out of cheese");
 

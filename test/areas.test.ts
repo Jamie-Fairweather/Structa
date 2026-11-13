@@ -1,3 +1,4 @@
+import { readdirSync, readFileSync } from "node:fs";
 import type { Document, Element } from "@xmldom/xmldom";
 import { describe, expect, it } from "vitest";
 import { render, StructaError, type Problem } from "../src/index";
@@ -897,6 +898,36 @@ describe("area boxes", () => {
     await render(bakery(), opts);
 
     expect((await render(market(), opts)).svg).toBe(first.svg);
+  });
+});
+
+describe("every example with areas", () => {
+  const examplesDir = new URL("../examples/", import.meta.url);
+  const examples = readdirSync(examplesDir)
+    .filter((file) => file.endsWith(".json"))
+    .sort()
+    .map((file) => ({ file, input: JSON.parse(readFileSync(new URL(file, examplesDir), "utf8")) as Diagram & { groupAreas?: boolean } }))
+    .filter(({ input }) => (input.areas ?? []).length > 0);
+
+  it("has some", () => {
+    expect(examples.map(({ input }) => input.groupAreas === true)).toEqual(expect.arrayContaining([true, false]));
+  });
+
+  it.each(examples)("keeps the cards, their badges and tags, the area boxes and their names apart as they should be: $file", async ({ input }) => {
+    // Rendered with its fonts, so each area's name can be measured.
+    const doc = parseSvg((await render(input)).svg);
+    const drawn = drawnTextBoxes(doc);
+    const extents = cards(doc).map((card) => ({ id: card.getAttribute("data-id"), area: card.getAttribute("data-area"), box: cardExtent(card) }));
+
+    for (const a of extents) {
+      for (const b of extents) if (a !== b) expect(overlaps(a.box, b.box), `${a.id} and ${b.id}`).toBe(false);
+    }
+    for (const { id, box, name } of areaBoxes(doc)) {
+      const areas = within(input, id);
+      for (const card of extents.filter((c) => areas.includes(c.area ?? ""))) expect(inside(card.box, box, 1), `${card.id} in ${id}`).toBe(true);
+      for (const card of extents) expect(overlaps(drawn.get(name)!, card.box), `${card.id} on ${id}'s name`).toBe(false);
+    }
+    expect(areaBoxes(doc)).toHaveLength(input.groupAreas ? input.areas.length : 0);
   });
 });
 
