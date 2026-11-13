@@ -126,40 +126,40 @@
 </g>
 <g class="card" data-id="guitar" data-kind="class" data-status="new">
 <title>ElectricGuitar</title>
-<rect class="outline" x="2350" y="393.75" width="360" height="120" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
-<line class="divider" x1="2350.75" y1="437.75" x2="2709.25" y2="437.75" stroke="#30363d" stroke-width="1"/>
-<line class="divider" x1="2350.75" y1="475.75" x2="2709.25" y2="475.75" stroke="#30363d" stroke-width="1"/>
-<text x="2530" y="421.21" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">ElectricGuitar</text>
+<rect class="outline" x="2350" y="393.25" width="360" height="120" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
+<line class="divider" x1="2350.75" y1="437.25" x2="2709.25" y2="437.25" stroke="#30363d" stroke-width="1"/>
+<line class="divider" x1="2350.75" y1="475.25" x2="2709.25" y2="475.25" stroke="#30363d" stroke-width="1"/>
+<text x="2530" y="420.71" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">ElectricGuitar</text>
 <g class="row" data-id="properties[0]" data-kind="property" data-status="new">
 <title>+ pickups: int</title>
-<rect x="2356" y="444.75" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
+<rect x="2356" y="444.25" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
 <g class="symbol">
-<text x="2364" y="461.07" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
+<text x="2364" y="460.57" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
 </g>
-<text x="2378.4" y="461.07" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">pickups: int</text>
+<text x="2378.4" y="460.57" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">pickups: int</text>
 <g class="badge">
-<rect x="2659" y="448.75" width="37" height="16" rx="8" fill="#161b22"/>
-<rect x="2659" y="448.75" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
-<text x="2677.5" y="460.39" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
+<rect x="2659" y="448.25" width="37" height="16" rx="8" fill="#161b22"/>
+<rect x="2659" y="448.25" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
+<text x="2677.5" y="459.89" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
 </g>
 </g>
 <g class="row" data-id="methods[0]" data-kind="method" data-status="new">
 <title>+ needsAmp(): bool</title>
-<rect x="2356" y="482.75" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
+<rect x="2356" y="482.25" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
 <g class="symbol">
-<text x="2364" y="499.07" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
+<text x="2364" y="498.57" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
 </g>
-<text x="2378.4" y="499.07" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">needsAmp(): bool</text>
+<text x="2378.4" y="498.57" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">needsAmp(): bool</text>
 <g class="badge">
-<rect x="2659" y="486.75" width="37" height="16" rx="8" fill="#161b22"/>
-<rect x="2659" y="486.75" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
-<text x="2677.5" y="498.39" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
+<rect x="2659" y="486.25" width="37" height="16" rx="8" fill="#161b22"/>
+<rect x="2659" y="486.25" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
+<text x="2677.5" y="497.89" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
 </g>
 </g>
 <g class="badge">
-<rect x="2661" y="385.75" width="37" height="16" rx="8" fill="#161b22"/>
-<rect x="2661" y="385.75" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
-<text x="2679.5" y="397.39" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
+<rect x="2661" y="385.25" width="37" height="16" rx="8" fill="#161b22"/>
+<rect x="2661" y="385.25" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
+<text x="2679.5" y="396.89" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
 </g>
 </g>
 <g class="card" data-id="tunable" data-kind="class">

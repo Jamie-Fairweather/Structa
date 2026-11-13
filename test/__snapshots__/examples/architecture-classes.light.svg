@@ -1,10 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="872" height="1346" viewBox="0 0 872 1346">
+<svg xmlns="http://www.w3.org/2000/svg" width="915" height="1346" viewBox="0 0 915 1346">
 <defs>
 <pattern id="structa-grid-light" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="9" cy="9" r="1" fill="#8c959f" fill-opacity="0.5"/></pattern>
 <filter id="structa-shadow-light" x="-20%" y="-30%" width="140%" height="170%"><feDropShadow dx="0" dy="1" stdDeviation="3" flood-color="#1f2328" flood-opacity="0.1"/></filter>
 </defs>
-<rect width="872" height="1346" fill="#f4f5f7"/>
-<rect width="872" height="1346" fill="url(#structa-grid-light)"/>
+<rect width="915" height="1346" fill="#f4f5f7"/>
+<rect width="915" height="1346" fill="url(#structa-grid-light)"/>
 <g class="title">
 <text x="32" y="50.55" font-family="Structa Inter, Inter, sans-serif" font-size="18" font-weight="700" fill="#1f2328">Recipe app: choosing how many it serves</text>
 </g>
@@ -14,112 +14,112 @@
 </g>
 <g class="card" data-id="app" data-kind="ui" data-status="changed">
 <title>Recipe app (ui): Adds a servings picker</title>
-<rect class="outline" x="244.33" y="128" width="162" height="80" rx="10" fill="#ffffff" stroke="#bf8700" stroke-width="1.5" filter="url(#structa-shadow-light)"/>
-<path class="icon" d="M313.87 143.19 L322.62 143.19 Q323.94 143.19 323.94 144.5 L323.94 151.5 Q323.94 152.81 322.62 152.81 L313.87 152.81 Q312.56 152.81 312.56 151.5 L312.56 144.5 Q312.56 143.19 313.87 143.19 Z M312.56 145.81 L323.94 145.81" fill="none" stroke="#59636e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
-<text x="330.25" y="152" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#59636e">ui</text>
-<text x="325.33" y="173.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Recipe app</text>
-<text x="325.33" y="192.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#59636e" text-anchor="middle">Adds a servings picker</text>
+<rect class="outline" x="186.17" y="128" width="162" height="80" rx="10" fill="#ffffff" stroke="#bf8700" stroke-width="1.5" filter="url(#structa-shadow-light)"/>
+<path class="icon" d="M255.71 143.19 L264.46 143.19 Q265.77 143.19 265.77 144.5 L265.77 151.5 Q265.77 152.81 264.46 152.81 L255.71 152.81 Q254.39 152.81 254.39 151.5 L254.39 144.5 Q254.39 143.19 255.71 143.19 Z M254.39 145.81 L265.77 145.81" fill="none" stroke="#59636e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="272.08" y="152" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#59636e">ui</text>
+<text x="267.17" y="173.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Recipe app</text>
+<text x="267.17" y="192.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#59636e" text-anchor="middle">Adds a servings picker</text>
 <g class="badge">
-<rect x="331.33" y="120" width="63" height="16" rx="8" fill="#ffffff"/>
-<rect x="331.33" y="120" width="63" height="16" rx="8" fill="#fae17d" stroke="#bf8700" stroke-width="1"/>
-<text x="362.83" y="131.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#7d4e00" text-anchor="middle">CHANGED</text>
+<rect x="273.17" y="120" width="63" height="16" rx="8" fill="#ffffff"/>
+<rect x="273.17" y="120" width="63" height="16" rx="8" fill="#fae17d" stroke="#bf8700" stroke-width="1"/>
+<text x="304.67" y="131.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#7d4e00" text-anchor="middle">CHANGED</text>
 </g>
 </g>
 <g class="card" data-id="api" data-kind="api" data-status="unchanged">
 <title>Recipe API (api)</title>
-<rect class="outline" x="255.33" y="364" width="140" height="62" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1.5" filter="url(#structa-shadow-light)"/>
-<path class="icon" d="M313.3 378.75 Q311.55 378.75 311.55 380.5 L311.55 382.69 Q311.55 384 310.23 384 Q311.55 384 311.55 385.31 L311.55 387.5 Q311.55 389.25 313.3 389.25 M316.8 378.75 Q318.55 378.75 318.55 380.5 L318.55 382.69 Q318.55 384 319.86 384 Q318.55 384 318.55 385.31 L318.55 387.5 Q318.55 389.25 316.8 389.25" fill="none" stroke="#59636e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
-<text x="327.05" y="388" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#59636e">api</text>
-<text x="325.33" y="409.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Recipe API</text>
+<rect class="outline" x="242.67" y="364" width="150" height="62" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1.5" filter="url(#structa-shadow-light)"/>
+<path class="icon" d="M305.63 378.75 Q303.88 378.75 303.88 380.5 L303.88 382.69 Q303.88 384 302.57 384 Q303.88 384 303.88 385.31 L303.88 387.5 Q303.88 389.25 305.63 389.25 M309.13 378.75 Q310.88 378.75 310.88 380.5 L310.88 382.69 Q310.88 384 312.19 384 Q310.88 384 310.88 385.31 L310.88 387.5 Q310.88 389.25 309.13 389.25" fill="none" stroke="#59636e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="319.38" y="388" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#59636e">api</text>
+<text x="317.67" y="409.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Recipe API</text>
 <g class="badge">
-<rect x="305.33" y="356" width="78" height="16" rx="8" fill="#ffffff"/>
-<rect x="305.33" y="356" width="78" height="16" rx="8" fill="#eaeef2" stroke="#8c959f" stroke-width="1"/>
-<text x="344.33" y="367.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#59636e" text-anchor="middle">UNCHANGED</text>
+<rect x="302.67" y="356" width="78" height="16" rx="8" fill="#ffffff"/>
+<rect x="302.67" y="356" width="78" height="16" rx="8" fill="#eaeef2" stroke="#8c959f" stroke-width="1"/>
+<text x="341.67" y="367.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#59636e" text-anchor="middle">UNCHANGED</text>
 </g>
 </g>
 <g class="card" data-id="recipe" data-kind="class" data-status="changed">
 <title>Recipe</title>
-<rect class="outline" x="122" y="632" width="360" height="268" rx="10" fill="#ffffff" stroke="#bf8700" stroke-width="1.5" filter="url(#structa-shadow-light)"/>
-<line class="divider" x1="122.75" y1="676" x2="481.25" y2="676" stroke="#d1d9e0" stroke-width="1"/>
-<line class="divider" x1="122.75" y1="766" x2="481.25" y2="766" stroke="#d1d9e0" stroke-width="1"/>
-<text x="302" y="659.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">Recipe</text>
+<rect class="outline" x="79" y="632" width="360" height="268" rx="10" fill="#ffffff" stroke="#bf8700" stroke-width="1.5" filter="url(#structa-shadow-light)"/>
+<line class="divider" x1="79.75" y1="676" x2="438.25" y2="676" stroke="#d1d9e0" stroke-width="1"/>
+<line class="divider" x1="79.75" y1="766" x2="438.25" y2="766" stroke="#d1d9e0" stroke-width="1"/>
+<text x="259" y="659.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">Recipe</text>
 <g class="more">
-<text x="150.4" y="885.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">… 3 more</text>
+<text x="107.4" y="885.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">… 3 more</text>
 </g>
 <g class="row" data-id="properties[0]" data-kind="property">
 <title>- title: string</title>
 <g class="symbol">
-<text x="136" y="699.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">-</text>
+<text x="93" y="699.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">-</text>
 </g>
-<text x="150.4" y="699.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">title: string</text>
+<text x="107.4" y="699.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">title: string</text>
 </g>
 <g class="row" data-id="properties[1]" data-kind="property" data-status="new">
 <title>- serves: Servings</title>
-<rect x="128" y="709" width="348" height="24" rx="4" fill="#b9f0c4" fill-opacity="0.45"/>
+<rect x="85" y="709" width="348" height="24" rx="4" fill="#b9f0c4" fill-opacity="0.45"/>
 <g class="symbol">
-<text x="136" y="725.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">-</text>
+<text x="93" y="725.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">-</text>
 </g>
-<text x="150.4" y="725.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">serves: Servings</text>
+<text x="107.4" y="725.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">serves: Servings</text>
 <g class="badge">
-<rect x="431" y="713" width="37" height="16" rx="8" fill="#ffffff"/>
-<rect x="431" y="713" width="37" height="16" rx="8" fill="#b9f0c4" stroke="#1f883d" stroke-width="1"/>
-<text x="449.5" y="724.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#116329" text-anchor="middle">NEW</text>
+<rect x="388" y="713" width="37" height="16" rx="8" fill="#ffffff"/>
+<rect x="388" y="713" width="37" height="16" rx="8" fill="#b9f0c4" stroke="#1f883d" stroke-width="1"/>
+<text x="406.5" y="724.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#116329" text-anchor="middle">NEW</text>
 </g>
 </g>
 <g class="row" data-id="properties[2]" data-kind="property" data-status="removed">
 <title>- halved: bool</title>
 <g class="faded" opacity="0.55">
-<rect x="128" y="735" width="348" height="24" rx="4" fill="#ffcecb" fill-opacity="0.45"/>
+<rect x="85" y="735" width="348" height="24" rx="4" fill="#ffcecb" fill-opacity="0.45"/>
 <g class="symbol">
-<text x="136" y="751.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">-</text>
+<text x="93" y="751.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">-</text>
 </g>
-<text x="150.4" y="751.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">halved: bool</text>
-<line class="strike" x1="150.4" y1="747.72" x2="236.8" y2="747.72" stroke="#1f2328" stroke-width="1.25"/>
+<text x="107.4" y="751.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">halved: bool</text>
+<line class="strike" x1="107.4" y1="747.72" x2="193.8" y2="747.72" stroke="#1f2328" stroke-width="1.25"/>
 </g>
 <g class="badge">
-<rect x="405" y="739" width="63" height="16" rx="8" fill="#ffffff"/>
-<rect x="405" y="739" width="63" height="16" rx="8" fill="#ffcecb" stroke="#cf222e" stroke-width="1"/>
-<text x="436.5" y="750.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#a40e26" text-anchor="middle">REMOVED</text>
+<rect x="362" y="739" width="63" height="16" rx="8" fill="#ffffff"/>
+<rect x="362" y="739" width="63" height="16" rx="8" fill="#ffcecb" stroke="#cf222e" stroke-width="1"/>
+<text x="393.5" y="750.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#a40e26" text-anchor="middle">REMOVED</text>
 </g>
 </g>
 <g class="row" data-id="methods[0]" data-kind="method" data-status="changed">
 <title>+ ingredients(serves: Servings): Ingredient[]</title>
-<rect x="128" y="773" width="348" height="42" rx="4" fill="#fae17d" fill-opacity="0.45"/>
+<rect x="85" y="773" width="348" height="42" rx="4" fill="#fae17d" fill-opacity="0.45"/>
 <g class="symbol">
-<text x="136" y="789.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
+<text x="93" y="789.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
 </g>
-<text x="150.4" y="789.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">ingredients(serves: Servings):</text>
-<text x="150.4" y="807.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">Ingredient[]</text>
+<text x="107.4" y="789.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">ingredients(serves: Servings):</text>
+<text x="107.4" y="807.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">Ingredient[]</text>
 <g class="badge">
-<rect x="405" y="777" width="63" height="16" rx="8" fill="#ffffff"/>
-<rect x="405" y="777" width="63" height="16" rx="8" fill="#fae17d" stroke="#bf8700" stroke-width="1"/>
-<text x="436.5" y="788.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#7d4e00" text-anchor="middle">CHANGED</text>
+<rect x="362" y="777" width="63" height="16" rx="8" fill="#ffffff"/>
+<rect x="362" y="777" width="63" height="16" rx="8" fill="#fae17d" stroke="#bf8700" stroke-width="1"/>
+<text x="393.5" y="788.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#7d4e00" text-anchor="middle">CHANGED</text>
 </g>
 </g>
 <g class="row" data-id="methods[1]" data-kind="method" data-status="new">
 <title>+ scale(by: float): Recipe</title>
-<rect x="128" y="817" width="348" height="24" rx="4" fill="#b9f0c4" fill-opacity="0.45"/>
+<rect x="85" y="817" width="348" height="24" rx="4" fill="#b9f0c4" fill-opacity="0.45"/>
 <g class="symbol">
-<text x="136" y="833.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
+<text x="93" y="833.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
 </g>
-<text x="150.4" y="833.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">scale(by: float): Recipe</text>
+<text x="107.4" y="833.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">scale(by: float): Recipe</text>
 <g class="badge">
-<rect x="431" y="821" width="37" height="16" rx="8" fill="#ffffff"/>
-<rect x="431" y="821" width="37" height="16" rx="8" fill="#b9f0c4" stroke="#1f883d" stroke-width="1"/>
-<text x="449.5" y="832.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#116329" text-anchor="middle">NEW</text>
+<rect x="388" y="821" width="37" height="16" rx="8" fill="#ffffff"/>
+<rect x="388" y="821" width="37" height="16" rx="8" fill="#b9f0c4" stroke="#1f883d" stroke-width="1"/>
+<text x="406.5" y="832.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#116329" text-anchor="middle">NEW</text>
 </g>
 </g>
 <g class="row" data-id="methods[2]" data-kind="method">
 <title>+ print(): void</title>
 <g class="symbol">
-<text x="136" y="859.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
+<text x="93" y="859.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
 </g>
-<text x="150.4" y="859.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">print(): void</text>
+<text x="107.4" y="859.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">print(): void</text>
 </g>
 <g class="badge">
-<rect x="407" y="624" width="63" height="16" rx="8" fill="#ffffff"/>
-<rect x="407" y="624" width="63" height="16" rx="8" fill="#fae17d" stroke="#bf8700" stroke-width="1"/>
-<text x="438.5" y="635.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#7d4e00" text-anchor="middle">CHANGED</text>
+<rect x="364" y="624" width="63" height="16" rx="8" fill="#ffffff"/>
+<rect x="364" y="624" width="63" height="16" rx="8" fill="#fae17d" stroke="#bf8700" stroke-width="1"/>
+<text x="395.5" y="635.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#7d4e00" text-anchor="middle">CHANGED</text>
 </g>
 </g>
 <g class="card" data-id="servings" data-kind="class" data-status="new">
@@ -166,61 +166,61 @@
 </g>
 <g class="card" data-id="store" data-kind="database" data-status="changed">
 <title>Recipes (database): Adds a servings column</title>
-<rect class="outline" x="376" y="1194" width="169" height="80" rx="10" fill="#ffffff" stroke="#bf8700" stroke-width="1.5" filter="url(#structa-shadow-light)"/>
-<path class="icon" d="M429.28 1210.5 A4.81 1.75 0 1 1 438.9 1210.5 A4.81 1.75 0 1 1 429.28 1210.5 M429.28 1210.5 L429.28 1217.5 A4.81 1.75 0 0 0 438.9 1217.5 L438.9 1210.5 M429.28 1214 A4.81 1.75 0 0 0 438.9 1214" fill="none" stroke="#59636e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
-<text x="446.09" y="1218" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#59636e">database</text>
-<text x="460.5" y="1239.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Recipes</text>
-<text x="460.5" y="1258.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#59636e" text-anchor="middle">Adds a servings column</text>
+<rect class="outline" x="419" y="1194" width="169" height="80" rx="10" fill="#ffffff" stroke="#bf8700" stroke-width="1.5" filter="url(#structa-shadow-light)"/>
+<path class="icon" d="M472.28 1210.5 A4.81 1.75 0 1 1 481.9 1210.5 A4.81 1.75 0 1 1 472.28 1210.5 M472.28 1210.5 L472.28 1217.5 A4.81 1.75 0 0 0 481.9 1217.5 L481.9 1210.5 M472.28 1214 A4.81 1.75 0 0 0 481.9 1214" fill="none" stroke="#59636e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="489.09" y="1218" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#59636e">database</text>
+<text x="503.5" y="1239.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Recipes</text>
+<text x="503.5" y="1258.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#59636e" text-anchor="middle">Adds a servings column</text>
 <g class="badge">
-<rect x="470" y="1186" width="63" height="16" rx="8" fill="#ffffff"/>
-<rect x="470" y="1186" width="63" height="16" rx="8" fill="#fae17d" stroke="#bf8700" stroke-width="1"/>
-<text x="501.5" y="1197.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#7d4e00" text-anchor="middle">CHANGED</text>
+<rect x="513" y="1186" width="63" height="16" rx="8" fill="#ffffff"/>
+<rect x="513" y="1186" width="63" height="16" rx="8" fill="#fae17d" stroke="#bf8700" stroke-width="1"/>
+<text x="544.5" y="1197.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#7d4e00" text-anchor="middle">CHANGED</text>
 </g>
 </g>
 <g class="card" data-id="events" data-kind="queue">
 <title>Recipe events (queue)</title>
-<rect class="outline" x="593" y="1194" width="140" height="62" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
-<path class="icon" d="M639.84 1210.5 L648.59 1210.5 Q649.9 1210.5 649.9 1211.81 L649.9 1216.19 Q649.9 1217.5 648.59 1217.5 L639.84 1217.5 Q638.53 1217.5 638.53 1216.19 L638.53 1211.81 Q638.53 1210.5 639.84 1210.5 Z M642.32 1210.5 L642.32 1217.5 M646.11 1210.5 L646.11 1217.5" fill="none" stroke="#59636e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
-<text x="656.21" y="1218" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#59636e">queue</text>
-<text x="663" y="1239.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Recipe events</text>
+<rect class="outline" x="636" y="1194" width="140" height="62" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<path class="icon" d="M682.84 1210.5 L691.59 1210.5 Q692.9 1210.5 692.9 1211.81 L692.9 1216.19 Q692.9 1217.5 691.59 1217.5 L682.84 1217.5 Q681.53 1217.5 681.53 1216.19 L681.53 1211.81 Q681.53 1210.5 682.84 1210.5 Z M685.32 1210.5 L685.32 1217.5 M689.11 1210.5 L689.11 1217.5" fill="none" stroke="#59636e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="699.21" y="1218" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#59636e">queue</text>
+<text x="706" y="1239.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Recipe events</text>
 </g>
 <g class="card" data-id="stats" data-kind="job" data-status="new">
 <title>Servings report (job): Weekly count of each size cooked</title>
-<rect class="outline" x="611.67" y="820" width="228" height="80" rx="10" fill="#ffffff" stroke="#1f883d" stroke-width="1.5" filter="url(#structa-shadow-light)"/>
-<path class="icon" d="M709.7 840 A5.47 5.47 0 1 1 720.64 840 A5.47 5.47 0 1 1 709.7 840 M715.17 836.94 L715.17 840 L717.58 841.53" fill="none" stroke="#59636e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
-<text x="727.17" y="844" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#59636e">job</text>
-<text x="725.67" y="865.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Servings report</text>
-<text x="725.67" y="884.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#59636e" text-anchor="middle">Weekly count of each size cooked</text>
+<rect class="outline" x="654.67" y="820" width="228" height="80" rx="10" fill="#ffffff" stroke="#1f883d" stroke-width="1.5" filter="url(#structa-shadow-light)"/>
+<path class="icon" d="M752.7 840 A5.47 5.47 0 1 1 763.64 840 A5.47 5.47 0 1 1 752.7 840 M758.17 836.94 L758.17 840 L760.58 841.53" fill="none" stroke="#59636e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="770.17" y="844" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#59636e">job</text>
+<text x="768.67" y="865.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Servings report</text>
+<text x="768.67" y="884.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#59636e" text-anchor="middle">Weekly count of each size cooked</text>
 <g class="badge">
-<rect x="790.67" y="812" width="37" height="16" rx="8" fill="#ffffff"/>
-<rect x="790.67" y="812" width="37" height="16" rx="8" fill="#b9f0c4" stroke="#1f883d" stroke-width="1"/>
-<text x="809.17" y="823.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#116329" text-anchor="middle">NEW</text>
+<rect x="833.67" y="812" width="37" height="16" rx="8" fill="#ffffff"/>
+<rect x="833.67" y="812" width="37" height="16" rx="8" fill="#b9f0c4" stroke="#1f883d" stroke-width="1"/>
+<text x="852.17" y="823.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#116329" text-anchor="middle">NEW</text>
 </g>
 </g>
 <g class="card" data-id="legacy" data-kind="service" data-status="removed">
 <title>Half-recipe maker (service)</title>
 <g class="faded" opacity="0.55">
-<rect class="outline" x="373" y="498" width="155" height="62" rx="10" fill="#ffffff" stroke="#cf222e" stroke-width="1.5" filter="url(#structa-shadow-light)"/>
-<path class="icon" d="M429.05 512.31 L433.95 515.16 L433.95 520.84 L429.05 523.69 L424.15 520.84 L424.15 515.16 Z M426.86 518 A2.19 2.19 0 1 1 431.24 518 A2.19 2.19 0 1 1 426.86 518" fill="none" stroke="#59636e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
-<text x="441.05" y="522" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#59636e">service</text>
-<text x="450.5" y="543.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Half-recipe maker</text>
-<line class="strike" x1="389.13" y1="538.89" x2="511.87" y2="538.89" stroke="#1f2328" stroke-width="1.25"/>
+<rect class="outline" x="330" y="498" width="155" height="62" rx="10" fill="#ffffff" stroke="#cf222e" stroke-width="1.5" filter="url(#structa-shadow-light)"/>
+<path class="icon" d="M386.05 512.31 L390.95 515.16 L390.95 520.84 L386.05 523.69 L381.15 520.84 L381.15 515.16 Z M383.86 518 A2.19 2.19 0 1 1 388.24 518 A2.19 2.19 0 1 1 383.86 518" fill="none" stroke="#59636e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="398.05" y="522" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#59636e">service</text>
+<text x="407.5" y="543.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Half-recipe maker</text>
+<line class="strike" x1="346.13" y1="538.89" x2="468.87" y2="538.89" stroke="#1f2328" stroke-width="1.25"/>
 </g>
 <g class="badge">
-<rect x="453" y="490" width="63" height="16" rx="8" fill="#ffffff"/>
-<rect x="453" y="490" width="63" height="16" rx="8" fill="#ffcecb" stroke="#cf222e" stroke-width="1"/>
-<text x="484.5" y="501.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#a40e26" text-anchor="middle">REMOVED</text>
+<rect x="410" y="490" width="63" height="16" rx="8" fill="#ffffff"/>
+<rect x="410" y="490" width="63" height="16" rx="8" fill="#ffcecb" stroke="#cf222e" stroke-width="1"/>
+<text x="441.5" y="501.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#a40e26" text-anchor="middle">REMOVED</text>
 </g>
 </g>
 <g class="line" data-id="edges[0]" data-kind="call" data-from="app" data-to="api" data-status="changed">
 <title>Recipe app → Recipe API: GET /recipes/{id}</title>
-<path d="M325.33 208 L325.33 347" fill="none" stroke="#bf8700" stroke-width="3" stroke-linejoin="round"/>
-<path d="M325.33 356 L320.83 347 L329.83 347 Z" fill="#bf8700"/>
+<path d="M267.17 208 L267.17 355" fill="none" stroke="#bf8700" stroke-width="3" stroke-linejoin="round"/>
+<path d="M267.17 364 L262.67 355 L271.67 355 Z" fill="#bf8700"/>
 </g>
 <g class="line" data-id="edges[1]" data-kind="call" data-from="api" data-to="recipe">
 <title>Recipe API → Recipe: scale</title>
-<path d="M302 426 L302 623" fill="none" stroke="#8c959f" stroke-width="3" stroke-linejoin="round"/>
-<path d="M302 632 L297.5 623 L306.5 623 Z" fill="#8c959f"/>
+<path d="M259 426 L259 623" fill="none" stroke="#8c959f" stroke-width="3" stroke-linejoin="round"/>
+<path d="M259 632 L254.5 623 L263.5 623 Z" fill="#8c959f"/>
 </g>
 <g class="line" data-id="edges[2]" data-kind="call" data-from="recipe" data-to="servings" data-status="new">
 <title>Recipe → Servings</title>
@@ -229,36 +229,36 @@
 </g>
 <g class="line" data-id="edges[3]" data-kind="call" data-from="recipe" data-to="store" data-status="changed">
 <title>Recipe → Recipes: load</title>
-<path d="M302 900 L302 932 Q302 940 310 940 L452.5 940 Q460.5 940 460.5 948 L460.5 1185" fill="none" stroke="#bf8700" stroke-width="3" stroke-linejoin="round"/>
+<path d="M259 900 L259 932 Q259 940 267 940 L452.5 940 Q460.5 940 460.5 948 L460.5 1185" fill="none" stroke="#bf8700" stroke-width="3" stroke-linejoin="round"/>
 <path d="M460.5 1194 L456 1185 L465 1185 Z" fill="#bf8700"/>
 </g>
 <g class="line" data-id="edges[4]" data-kind="async" data-from="recipe" data-to="events">
 <title>Recipe → Recipe events (async): cooked</title>
-<path d="M392 900 L392 916 Q392 924 400 924 L631.67 924 Q639.67 924 639.67 932 L639.67 1194" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round" stroke-dasharray="6 4"/>
-<path d="M635.17 1185 L639.67 1194 L644.17 1185" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M306 900 L306 916 Q306 924 314 924 L674.67 924 Q682.67 924 682.67 932 L682.67 1194" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round" stroke-dasharray="6 4"/>
+<path d="M678.17 1185 L682.67 1194 L687.17 1185" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <g class="line" data-id="edges[5]" data-kind="async" data-from="stats" data-to="events" data-status="new">
 <title>Servings report → Recipe events (async): count sizes</title>
-<path d="M725.67 900 L725.67 1138 Q725.67 1146 717.67 1146 L694.33 1146 Q686.33 1146 686.33 1154 L686.33 1194" fill="none" stroke="#1f883d" stroke-width="1.5" stroke-linejoin="round" stroke-dasharray="6 4"/>
-<path d="M681.83 1185 L686.33 1194 L690.83 1185" fill="none" stroke="#1f883d" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M768.67 900 L768.67 1138 Q768.67 1146 760.67 1146 L737.33 1146 Q729.33 1146 729.33 1154 L729.33 1194" fill="none" stroke="#1f883d" stroke-width="1.5" stroke-linejoin="round" stroke-dasharray="6 4"/>
+<path d="M724.83 1185 L729.33 1194 L733.83 1185" fill="none" stroke="#1f883d" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <g class="line" data-id="edges[6]" data-kind="call" data-from="api" data-to="legacy" data-status="removed">
 <title>Recipe API → Half-recipe maker</title>
 <g class="faded" opacity="0.55">
-<path d="M348.67 426 L348.67 442 Q348.67 450 356.67 450 L442.5 450 Q450.5 450 450.5 458 L450.5 489" fill="none" stroke="#cf222e" stroke-width="1.5" stroke-linejoin="round"/>
-<path d="M450.5 498 L446 489 L455 489 Z" fill="#cf222e"/>
+<path d="M275.33 426 L275.33 442 Q275.33 450 283.33 450 L356.5 450 Q364.5 450 364.5 458 L364.5 489" fill="none" stroke="#cf222e" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M364.5 498 L360 489 L369 489 Z" fill="#cf222e"/>
 </g>
 </g>
 <g class="line-labels">
 <g class="line-label" data-line="edges[0]">
 <title>Recipe app → Recipe API: GET /recipes/{id}</title>
-<rect x="267.83" y="272" width="115" height="20" rx="10" fill="#ffffff" stroke="#bf8700" stroke-width="1"/>
-<text x="325.33" y="286.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">GET /recipes/{id}</text>
+<rect x="209.67" y="272" width="115" height="20" rx="10" fill="#ffffff" stroke="#bf8700" stroke-width="1"/>
+<text x="267.17" y="286.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">GET /recipes/{id}</text>
 </g>
 <g class="line-label" data-line="edges[1]">
 <title>Recipe API → Recipe: scale</title>
-<rect x="279" y="515" width="46" height="20" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1"/>
-<text x="302" y="529.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">scale</text>
+<rect x="236" y="515" width="46" height="20" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1"/>
+<text x="259" y="529.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">scale</text>
 </g>
 <g class="line-label" data-line="edges[3]">
 <title>Recipe → Recipes: load</title>
@@ -267,13 +267,13 @@
 </g>
 <g class="line-label" data-line="edges[4]">
 <title>Recipe → Recipe events (async): cooked</title>
-<rect x="610.17" y="1033" width="59" height="20" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1"/>
-<text x="639.67" y="1047.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">cooked</text>
+<rect x="653.17" y="1033" width="59" height="20" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1"/>
+<text x="682.67" y="1047.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">cooked</text>
 </g>
 <g class="line-label" data-line="edges[5]">
 <title>Servings report → Recipe events (async): count sizes</title>
-<rect x="685.17" y="1033" width="81" height="20" rx="10" fill="#ffffff" stroke="#1f883d" stroke-width="1"/>
-<text x="725.67" y="1047.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">count sizes</text>
+<rect x="728.17" y="1033" width="81" height="20" rx="10" fill="#ffffff" stroke="#1f883d" stroke-width="1"/>
+<text x="768.67" y="1047.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">count sizes</text>
 </g>
 </g>
 <g class="legend">

@@ -9,7 +9,7 @@ import {
   byClassIn,
   cardById,
   depthInShape,
-  distanceToDrawn,
+  distanceToShape,
   drawnTextBoxes,
   fontFaceRules,
   lineEnds,
@@ -391,8 +391,8 @@ describe("architecture lines", () => {
     const doc = await svgDoc({ ...loanFlow(), edges: [{ from: "events", to: "events", kind: "async", label: "retry" }] });
 
     const [start, end] = lineEnds(lines(doc)[0]!);
-    expect(distanceToDrawn(start, cardById(doc, "events"))).toBeLessThanOrEqual(1);
-    expect(distanceToDrawn(end, cardById(doc, "events"))).toBeLessThanOrEqual(1);
+    expect(distanceToShape(start, cardById(doc, "events"))).toBeLessThanOrEqual(1);
+    expect(distanceToShape(end, cardById(doc, "events"))).toBeLessThanOrEqual(1);
   });
 });
 
@@ -448,8 +448,8 @@ describe("class cards in architecture diagrams", () => {
     expect(outlineBox(cardById(doc, "ledger")).width).toBe(360);
     for (const line of lines(doc)) {
       const [start, end] = lineEnds(line);
-      expect(distanceToDrawn(start, cardById(doc, line.getAttribute("data-from")!))).toBeLessThanOrEqual(1);
-      expect(distanceToDrawn(end, cardById(doc, line.getAttribute("data-to")!))).toBeLessThanOrEqual(1);
+      expect(distanceToShape(start, cardById(doc, line.getAttribute("data-from")!))).toBeLessThanOrEqual(1);
+      expect(distanceToShape(end, cardById(doc, line.getAttribute("data-to")!))).toBeLessThanOrEqual(1);
     }
   });
 

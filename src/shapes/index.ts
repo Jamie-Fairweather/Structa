@@ -13,19 +13,19 @@ import {
   type FlowNode,
   type Status,
 } from "../input";
-import type { PortSpan } from "../layout";
+import type { LayoutLine, PortSpan } from "../layout";
 import { baseline, measure, wrap, type FaceId } from "../text";
 import type { Sizes } from "../theme";
 import { classBody } from "./class";
 import { componentBody } from "./component";
 import { shapeBody } from "./flow";
-import { frameCards, strikeThrough, type Card, type Span, type TextLine } from "./frame";
+import { frameCards, strikeThrough, type Card, type LineEnds, type Span, type TextLine } from "./frame";
 import { tableBody } from "./table";
 
 export { buildAreaBoxes, type AreaBox } from "./area";
-export { type Badge, type Box, type Card, type Icon, type LevelLine, type Row, type Tag, type TextLine } from "./frame";
+export { type Badge, type Box, type Card, type Icon, type Landing, type LevelLine, type Row, type Tag, type TextLine } from "./frame";
 export { buildLegend, type AreaItem, type Legend, type LegendItem, type StatusItem } from "./legend";
-export { entry, nearest, type Mark, type Outline, type Point } from "./outline";
+export { distanceToBox, entry, nearest, type Mark, type Outline, type Point } from "./outline";
 
 /**
  * What's drawn where a line meets a card: a filled arrowhead, as on a
@@ -131,23 +131,84 @@ function block(
 }
 
 /**
+ * A line, or a note's connector, as far as sizing cards goes: the cards it
+ * joins, by their index among the diagram's nodes, and, as layout gives it
+ * to ELK, whether it goes in parent first and which of its ends join others.
+ */
+export interface CardLine extends Pick<LayoutLine, "source" | "target" | "targetFirst" | "joins"> {
+  readonly kind: Line["kind"] | Connector["kind"];
+}
+
+/**
  * Sizes every card of the diagram through the shared card frame. A card in
  * an area shows the area's name in a tag, unless the area boxes are drawn:
- * then the boxes name the areas.
+ * then the boxes name the areas. Each card leaves room on its top and sides
+ * for the ends of the `lines` ELK will put there, clear of its badge and tag.
  */
-export function buildCards(diagram: Diagram, sizes: Sizes): Card[] {
+export function buildCards(diagram: Diagram, sizes: Sizes, lines: readonly CardLine[]): Card[] {
   const names = new Map(diagram.areas.map((area) => [area.id, area.label]));
   const tagOf = (node: { readonly area?: string }) =>
     diagram.groupAreas || node.area === undefined ? undefined : names.get(node.area);
-  if (diagram.type === "class") return frameCards(diagram.nodes, sizes, tagOf, (node, minWidth) => classBody(node, sizes, minWidth));
-  if (diagram.type === "er") return frameCards(diagram.nodes, sizes, tagOf, (node, minWidth) => tableBody(node, sizes, minWidth));
+  const ends = endsOnCards(diagram, lines);
+  if (diagram.type === "class") return frameCards(diagram.nodes, sizes, tagOf, ends, (node, minWidth) => classBody(node, sizes, minWidth));
+  if (diagram.type === "er") return frameCards(diagram.nodes, sizes, tagOf, ends, (node, minWidth) => tableBody(node, sizes, minWidth));
   if (diagram.type === "architecture") {
     // A class in an architecture diagram is the same class card a class diagram draws.
-    return frameCards(diagram.nodes, sizes, tagOf, (node, minWidth) =>
-      node.kind === "class" ? classBody(node, sizes, minWidth) : componentBody(node, sizes, minWidth),
+    return frameCards(diagram.nodes, sizes, tagOf, ends, (node, minWidth, minHeight) =>
+      node.kind === "class" ? classBody(node, sizes, minWidth) : componentBody(node, sizes, minWidth, minHeight),
     );
   }
-  return frameCards(diagram.nodes, sizes, tagOf, (node, minWidth) => shapeBody(node, sizes, minWidth));
+  return frameCards(diagram.nodes, sizes, tagOf, ends, (node, minWidth, minHeight) => shapeBody(node, sizes, minWidth, minHeight));
+}
+
+/**
+ * How many line ends ELK will put on each card's top, and on either of its
+ * sides, as layout gives it the lines. On its top: none when no line meets
+ * it there, and otherwise as many as meet its top or its bottom, whichever
+ * is more, as ELK spreads both over the same stretch. Going down, a line
+ * meets its target's top and leaves its source's bottom, or the other way
+ * round when its target comes first; going right, the same on their left
+ * and right sides. ELK runs a line from a card to itself over the card's
+ * top going right, and off one of its sides going down, with both its ends
+ * there. It puts a note beside the shape it's about, across the flow, and
+ * runs their connector straight between them: over the top or under the
+ * bottom of each going right, so each end counts on its card's top, and to
+ * one side or the other going down, so it counts on both. Lines that join
+ * meet a card at one point. A line ELK turns round to break a loop meets
+ * the other sides; going down, that card has a line coming in, so it has
+ * room on its top, if less than it gets. Lines between tables attach at
+ * fixed points on their sides instead.
+ */
+function endsOnCards(diagram: Diagram, lines: readonly CardLine[]): LineEnds[] {
+  const none = diagram.nodes.map(() => ({ top: 0, sides: 0 }));
+  if (diagram.type === "er") return none;
+  const sides = () => diagram.nodes.map(() => new Set<string>());
+  const [top, bottom, left, right] = [sides(), sides(), sides(), sides()];
+  const across = diagram.direction === "right";
+  lines.forEach((line, i) => {
+    if (line.kind === "connector") {
+      for (const card of [line.source, line.target]) for (const side of across ? [top] : [left, right]) side[card]!.add(`${i}`);
+      return;
+    }
+    if (line.source === line.target) {
+      (across ? top : left)[line.source]!.add(`${i} source`).add(`${i} target`);
+      return;
+    }
+    // Ends that join count once: they share a key.
+    const key = (end: "source" | "target") => {
+      const joined = line.joins?.[end];
+      return joined === undefined ? `${i} ${end}` : `joined ${joined}`;
+    };
+    // Into a card's side facing back along the flow, and out of the one facing on.
+    const [into, outOf] = across ? [left, right] : [top, bottom];
+    const [atTarget, atSource] = line.targetFirst ? [outOf, into] : [into, outOf];
+    atTarget[line.target]!.add(key("target"));
+    atSource[line.source]!.add(key("source"));
+  });
+  return none.map((_, card) => ({
+    top: top[card]!.size === 0 ? 0 : Math.max(top[card]!.size, bottom[card]!.size),
+    sides: Math.max(left[card]!.size, right[card]!.size),
+  }));
 }
 
 /** A note's dotted line to the shape it's about: no arrow, no label and no status of its own. */

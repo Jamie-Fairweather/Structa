@@ -76,6 +76,44 @@ export function nearest(card: Drawn, p: Point): Point {
   return found.reduce((best, q) => (away(q) < away(best) ? q : best));
 }
 
+/** How close the straight run from `a` to `b` comes to a box: 0 where it touches or crosses it. */
+export function distanceToBox(a: Point, b: Point, box: Box): number {
+  if (crossesBox(a, b, box)) return 0;
+  // Apart, the nearest two points are an end of the run and the box, or a corner of the box and the run.
+  const { x, y, width, height } = box;
+  const corners = [
+    { x, y },
+    { x: x + width, y },
+    { x: x + width, y: y + height },
+    { x, y: y + height },
+  ];
+  const away = (p: Point, q: Point) => Math.hypot(p.x - q.x, p.y - q.y);
+  const toBox = (p: Point) => away(p, { x: clamp(p.x, x, x + width), y: clamp(p.y, y, y + height) });
+  return Math.min(toBox(a), toBox(b), ...corners.map((corner) => away(corner, segmentNearest(a, b, corner))));
+}
+
+/** Whether the straight run from `a` to `b` touches or crosses a box: what's left of it once clipped to the box. */
+function crossesBox(a: Point, b: Point, box: Box): boolean {
+  const d = { x: b.x - a.x, y: b.y - a.y };
+  let [from, to] = [0, 1];
+  const limits: [number, number][] = [
+    [-d.x, a.x - box.x],
+    [d.x, box.x + box.width - a.x],
+    [-d.y, a.y - box.y],
+    [d.y, box.y + box.height - a.y],
+  ];
+  for (const [p, q] of limits) {
+    if (p === 0) {
+      if (q < 0) return false;
+      continue;
+    }
+    if (p < 0) from = Math.max(from, q / p);
+    else to = Math.min(to, q / p);
+    if (from > to) return false;
+  }
+  return true;
+}
+
 /** The point on the outline of a box with corners of `radius` nearest to `p`. */
 function roundedNearest(box: Box, radius: number, p: Point): Point {
   const r = Math.min(radius, box.width / 2, box.height / 2);

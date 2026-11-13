@@ -266,6 +266,34 @@ function pathEnds(path: Element): [Point, Point] {
   return [points[0]!, points.at(-1)!];
 }
 
+/**
+ * Points every half pixel along everything a line or a note's connector
+ * draws: its route, through the corners it rounds off, and the outline of
+ * each mark or crow's foot at its ends.
+ */
+function drawnPoints(el: Element): Point[] {
+  const [route, ...ends] = Array.from(el.getElementsByTagName("path"));
+  const runs = [parsePath(route!.getAttribute("d")!).flatMap((c) => c.points)];
+  for (const path of ends) {
+    const commands = parsePath(path.getAttribute("d")!);
+    const closed = commands.at(-1)?.command === "Z";
+    // A crow's foot is several strokes, each starting with a move.
+    for (const [i, command] of commands.entries()) {
+      if (command.command === "M") runs.push([]);
+      runs.at(-1)!.push(...command.points);
+      if (closed && i === commands.length - 1) runs.at(-1)!.push(commands[0]!.points[0]!);
+    }
+  }
+  return runs.flatMap((run) => alongRuns(run));
+}
+
+/** How close anything a line or a note's connector draws comes to any card's badge or tag: infinitely far when there are none. */
+export function nearestBadgeOrTag(doc: Document, el: Element): number {
+  const boxes = cards(doc).flatMap((card) => [badgeBox(card), tagBox(card)].filter((box) => box !== undefined));
+  const points = drawnPoints(el);
+  return Math.min(Number.POSITIVE_INFINITY, ...boxes.map((box) => Math.min(...points.map((p) => distanceOutside(p, box)))));
+}
+
 /** How far a point is outside a box (0 when on its outline or inside it). */
 export function distanceOutside(p: Point, box: Box): number {
   const dx = Math.max(box.x - p.x, 0, p.x - (box.x + box.width));
@@ -439,17 +467,6 @@ export function distanceToShape(p: Point, card: Element): number {
   if (outline.localName === "rect") return Math.abs(roundedRectDepth(p, rectBox(outline), Number(outline.getAttribute("rx") ?? 0)));
   const corners = polygonOf(outline);
   return Math.min(...corners.map((a, i) => distanceToSegment(p, a, corners[(i + 1) % corners.length]!)));
-}
-
-/** How far a point is from what's drawn of a card: its outline, whatever its shape, or the badge or tag sitting on it. */
-export function distanceToDrawn(p: Point, card: Element): number {
-  const badge = badgeBox(card);
-  const tag = tagOf(card);
-  return Math.min(
-    distanceToShape(p, card),
-    badge ? Math.abs(depthInPill(p, badge)) : Infinity,
-    tag ? Math.abs(roundedRectDepth(p, tag.box, tag.radius)) : Infinity,
-  );
 }
 
 /** How far a point is inside a card's tag: positive inside, 0 on its outline, negative outside. */

@@ -286,7 +286,7 @@
 </g>
 <g class="line" data-id="edges[0]" data-kind="association" data-from="member" data-to="loan" data-status="new">
 <title>Member – Loan: borrows</title>
-<path d="M332 388 L332 404 Q332 412 340 412 L552 412 Q560 412 560 420 L560 544" fill="none" stroke="#1f883d" stroke-width="3" stroke-linejoin="round"/>
+<path d="M332 388 L332 404 Q332 412 340 412 L572 412 Q580 412 580 420 L580 544" fill="none" stroke="#1f883d" stroke-width="3" stroke-linejoin="round"/>
 </g>
 <g class="line" data-id="edges[1]" data-kind="association" data-from="loan" data-to="packet" data-status="new">
 <title>Loan – SeedPacket</title>
@@ -300,13 +300,13 @@
 </g>
 <g class="line" data-id="edges[3]" data-kind="association" data-from="reminders" data-to="loan" data-status="new">
 <title>ReminderService – Loan: checks daily</title>
-<path d="M680 388 L680 544" fill="none" stroke="#1f883d" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M680 388 L680 488 Q680 496 672 496 L668 496 Q660 496 660 504 L660 544" fill="none" stroke="#1f883d" stroke-width="1.5" stroke-linejoin="round"/>
 </g>
 <g class="line-labels">
 <g class="line-label" data-line="edges[0]">
 <title>Member – Loan: borrows</title>
-<rect x="528.5" y="452" width="63" height="20" rx="10" fill="#ffffff" stroke="#1f883d" stroke-width="1"/>
-<text x="560" y="466.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">borrows</text>
+<rect x="548.5" y="452" width="63" height="20" rx="10" fill="#ffffff" stroke="#1f883d" stroke-width="1"/>
+<text x="580" y="466.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">borrows</text>
 </g>
 <g class="line-label" data-line="edges[2]">
 <title>Member – PaperCard: carries</title>

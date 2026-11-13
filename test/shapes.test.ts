@@ -8,14 +8,17 @@ import {
   cardById,
   cards,
   depthInShape,
+  distanceToShape,
   drawnTextBoxes,
   parseSvg,
   outlineBox,
   outlineOf,
+  overlaps,
   parsePath,
   polygonOf,
   rectBox,
   svgDoc,
+  tagBox,
   textLines,
   titleOf,
 } from "./helpers/svg";
@@ -213,7 +216,7 @@ describe("flowchart shapes", () => {
   });
 
   describe("status", () => {
-    it.each(SHAPES)("sits a %s's badge on its visible top border, inside its width", async (shape) => {
+    it.each(SHAPES.filter((shape) => shape !== "decision"))("sits a %s's badge on its visible top border, inside its width", async (shape) => {
       for (const label of ["Go", "Check the soil is damp all the way down"]) {
         const { card, box } = await shapeCard(shape, label, { status: "unchanged" });
         const badge = badgeBox(card)!;
@@ -226,12 +229,37 @@ describe("flowchart shapes", () => {
       }
     });
 
-    it("centres a decision's badge on its top corner", async () => {
-      const { card, box } = await shapeCard("decision", "Frost tonight?", { status: "new" });
-      const badge = badgeBox(card)!;
+    it("sits a decision's badge on its top-right edge, inside its width, leaving its top corner free for lines", async () => {
+      for (const label of ["Go", "Check the soil is damp all the way down"]) {
+        const { card, box } = await shapeCard("decision", label, { status: "unchanged" });
+        const badge = badgeBox(card)!;
 
-      expect(badge.x + badge.width / 2).toBeCloseTo(box.x + box.width / 2, 5);
+        // The edge runs through the middle of its left-hand end, to the right of the top corner.
+        expect(distanceToShape({ x: badge.x, y: badge.y + badge.height / 2 }, card), label).toBeLessThanOrEqual(0.5);
+        expect(badge.x).toBeGreaterThan(box.x + box.width / 2 + 8);
+        expect(badge.x + badge.width).toBeLessThanOrEqual(box.x + box.width);
+      }
     });
+
+    it.each(["Go", "Check the soil is damp all the way down to the roots"])(
+      "keeps a decision's badge and tag clear of its text, labelled %j",
+      async (label) => {
+        const input = {
+          type: "flow",
+          areas: [{ id: "beds", label: "Raised vegetable beds" }],
+          nodes: [{ id: "s", label, shape: "decision", area: "beds", status: "unchanged", description: "Push a finger in to check" }],
+        };
+        const doc = parseSvg((await render(input)).svg);
+        const card = cardById(doc, "s");
+        const boxes = drawnTextBoxes(doc);
+        const onBorder = [...byClassIn(card, "badge"), ...byClassIn(card, "tag")].flatMap((g) => Array.from(g.getElementsByTagName("text")));
+        const texts = Array.from(card.getElementsByTagName("text")).filter((text) => !onBorder.includes(text));
+        expect(texts.length).toBeGreaterThan(1);
+        for (const item of [badgeBox(card)!, tagBox(card)!]) {
+          for (const text of texts) expect(overlaps(item, boxes.get(text)!), text.textContent ?? "").toBe(false);
+        }
+      },
+    );
 
     it.each(["subprocess", "note"])("draws a %s's extra lines in its status colour, faded with it when removed", async (shape) => {
       for (const [status, colour] of [["new", "#1f883d"], ["removed", "#cf222e"], [undefined, "#d1d9e0"]] as const) {

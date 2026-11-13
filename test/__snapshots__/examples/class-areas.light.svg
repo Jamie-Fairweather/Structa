@@ -116,76 +116,76 @@
 </g>
 <g class="card" data-id="membership" data-kind="class" data-status="new" data-area="clubs">
 <title>Membership: One pupil in one club from a given term.</title>
-<rect class="outline" x="188" y="842" width="360" height="126" rx="10" fill="#ffffff" stroke="#1f883d" stroke-width="1.5" filter="url(#structa-shadow-light)"/>
-<line class="divider" x1="188.75" y1="904" x2="547.25" y2="904" stroke="#d1d9e0" stroke-width="1"/>
-<text x="368" y="869.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">Membership</text>
-<text x="368" y="888.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#59636e" text-anchor="middle">One pupil in one club from a given term.</text>
+<rect class="outline" x="209" y="842" width="360" height="126" rx="10" fill="#ffffff" stroke="#1f883d" stroke-width="1.5" filter="url(#structa-shadow-light)"/>
+<line class="divider" x1="209.75" y1="904" x2="568.25" y2="904" stroke="#d1d9e0" stroke-width="1"/>
+<text x="389" y="869.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">Membership</text>
+<text x="389" y="888.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#59636e" text-anchor="middle">One pupil in one club from a given term.</text>
 <g class="row" data-id="properties[0]" data-kind="property" data-status="new">
 <title>+ from: Term</title>
-<rect x="194" y="911" width="348" height="24" rx="4" fill="#b9f0c4" fill-opacity="0.45"/>
+<rect x="215" y="911" width="348" height="24" rx="4" fill="#b9f0c4" fill-opacity="0.45"/>
 <g class="symbol">
-<text x="202" y="927.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
+<text x="223" y="927.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
 </g>
-<text x="216.4" y="927.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">from: Term</text>
+<text x="237.4" y="927.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">from: Term</text>
 <g class="badge">
-<rect x="497" y="915" width="37" height="16" rx="8" fill="#ffffff"/>
-<rect x="497" y="915" width="37" height="16" rx="8" fill="#b9f0c4" stroke="#1f883d" stroke-width="1"/>
-<text x="515.5" y="926.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#116329" text-anchor="middle">NEW</text>
+<rect x="518" y="915" width="37" height="16" rx="8" fill="#ffffff"/>
+<rect x="518" y="915" width="37" height="16" rx="8" fill="#b9f0c4" stroke="#1f883d" stroke-width="1"/>
+<text x="536.5" y="926.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#116329" text-anchor="middle">NEW</text>
 </g>
 </g>
 <g class="row" data-id="properties[1]" data-kind="property" data-status="new">
 <title>+ consentGiven: bool</title>
-<rect x="194" y="937" width="348" height="24" rx="4" fill="#b9f0c4" fill-opacity="0.45"/>
+<rect x="215" y="937" width="348" height="24" rx="4" fill="#b9f0c4" fill-opacity="0.45"/>
 <g class="symbol">
-<text x="202" y="953.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
+<text x="223" y="953.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
 </g>
-<text x="216.4" y="953.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">consentGiven: bool</text>
+<text x="237.4" y="953.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">consentGiven: bool</text>
 <g class="badge">
-<rect x="497" y="941" width="37" height="16" rx="8" fill="#ffffff"/>
-<rect x="497" y="941" width="37" height="16" rx="8" fill="#b9f0c4" stroke="#1f883d" stroke-width="1"/>
-<text x="515.5" y="952.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#116329" text-anchor="middle">NEW</text>
+<rect x="518" y="941" width="37" height="16" rx="8" fill="#ffffff"/>
+<rect x="518" y="941" width="37" height="16" rx="8" fill="#b9f0c4" stroke="#1f883d" stroke-width="1"/>
+<text x="536.5" y="952.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#116329" text-anchor="middle">NEW</text>
 </g>
 </g>
 <g class="badge">
-<rect x="499" y="834" width="37" height="16" rx="8" fill="#ffffff"/>
-<rect x="499" y="834" width="37" height="16" rx="8" fill="#b9f0c4" stroke="#1f883d" stroke-width="1"/>
-<text x="517.5" y="845.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#116329" text-anchor="middle">NEW</text>
+<rect x="520" y="834" width="37" height="16" rx="8" fill="#ffffff"/>
+<rect x="520" y="834" width="37" height="16" rx="8" fill="#b9f0c4" stroke="#1f883d" stroke-width="1"/>
+<text x="538.5" y="845.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#116329" text-anchor="middle">NEW</text>
 </g>
 <g class="tag" data-area="clubs">
-<rect x="200" y="834" width="40" height="16" rx="4" fill="#f6f8fa" stroke="#d1d9e0" stroke-width="1"/>
-<text x="220" y="845.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#59636e" text-anchor="middle">Clubs</text>
+<rect x="221" y="834" width="40" height="16" rx="4" fill="#f6f8fa" stroke="#d1d9e0" stroke-width="1"/>
+<text x="241" y="845.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#59636e" text-anchor="middle">Clubs</text>
 </g>
 </g>
 <g class="card" data-id="club" data-kind="class" data-status="unchanged" data-area="activities">
 <title>Club</title>
-<rect class="outline" x="188" y="1124" width="360" height="134" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1.5" filter="url(#structa-shadow-light)"/>
-<line class="divider" x1="188.75" y1="1168" x2="547.25" y2="1168" stroke="#d1d9e0" stroke-width="1"/>
-<text x="368" y="1151.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">Club</text>
+<rect class="outline" x="209" y="1124" width="360" height="134" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1.5" filter="url(#structa-shadow-light)"/>
+<line class="divider" x1="209.75" y1="1168" x2="568.25" y2="1168" stroke="#d1d9e0" stroke-width="1"/>
+<text x="389" y="1151.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">Club</text>
 <g class="more">
-<text x="216.4" y="1243.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">… 4 more</text>
+<text x="237.4" y="1243.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">… 4 more</text>
 </g>
 <g class="row" data-id="properties[0]" data-kind="property">
 <title>+ name: string</title>
 <g class="symbol">
-<text x="202" y="1191.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
+<text x="223" y="1191.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
 </g>
-<text x="216.4" y="1191.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">name: string</text>
+<text x="237.4" y="1191.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">name: string</text>
 </g>
 <g class="row" data-id="properties[1]" data-kind="property">
 <title>+ meetsOn: Weekday</title>
 <g class="symbol">
-<text x="202" y="1217.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
+<text x="223" y="1217.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
 </g>
-<text x="216.4" y="1217.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">meetsOn: Weekday</text>
+<text x="237.4" y="1217.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">meetsOn: Weekday</text>
 </g>
 <g class="badge">
-<rect x="458" y="1116" width="78" height="16" rx="8" fill="#ffffff"/>
-<rect x="458" y="1116" width="78" height="16" rx="8" fill="#eaeef2" stroke="#8c959f" stroke-width="1"/>
-<text x="497" y="1127.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#59636e" text-anchor="middle">UNCHANGED</text>
+<rect x="479" y="1116" width="78" height="16" rx="8" fill="#ffffff"/>
+<rect x="479" y="1116" width="78" height="16" rx="8" fill="#eaeef2" stroke="#8c959f" stroke-width="1"/>
+<text x="518" y="1127.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#59636e" text-anchor="middle">UNCHANGED</text>
 </g>
 <g class="tag" data-area="activities">
-<rect x="200" y="1116" width="58" height="16" rx="4" fill="#f6f8fa" stroke="#d1d9e0" stroke-width="1"/>
-<text x="229" y="1127.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#59636e" text-anchor="middle">Activities</text>
+<rect x="221" y="1116" width="58" height="16" rx="4" fill="#f6f8fa" stroke="#d1d9e0" stroke-width="1"/>
+<text x="250" y="1127.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#59636e" text-anchor="middle">Activities</text>
 </g>
 </g>
 <g class="card" data-id="reminder" data-kind="class" data-status="new" data-area="messages">
@@ -239,11 +239,11 @@
 </g>
 <g class="line" data-id="edges[1]" data-kind="association" data-from="office" data-to="membership" data-status="new">
 <title>ClubOffice – Membership: makes</title>
-<path d="M212 586 L212 786 Q212 794 220 794 L300 794 Q308 794 308 802 L308 842" fill="none" stroke="#1f883d" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M212 586 L212 786 Q212 794 220 794 L342 794 Q350 794 350 802 L350 842" fill="none" stroke="#1f883d" stroke-width="1.5" stroke-linejoin="round"/>
 </g>
 <g class="line" data-id="edges[2]" data-kind="association" data-from="membership" data-to="club" data-status="new">
 <title>Membership – Club: for</title>
-<path d="M368 968 L368 1124" fill="none" stroke="#1f883d" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M389 968 L389 1124" fill="none" stroke="#1f883d" stroke-width="1.5" stroke-linejoin="round"/>
 </g>
 <g class="line" data-id="edges[3]" data-kind="association" data-from="reminder" data-to="membership" data-status="new">
 <title>FirstMeetingReminder – Membership: reads</title>
@@ -266,8 +266,8 @@
 </g>
 <g class="line-label" data-line="edges[2]">
 <title>Membership – Club: for</title>
-<rect x="351.5" y="1032" width="33" height="20" rx="10" fill="#ffffff" stroke="#1f883d" stroke-width="1"/>
-<text x="368" y="1046.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">for</text>
+<rect x="372.5" y="1032" width="33" height="20" rx="10" fill="#ffffff" stroke="#1f883d" stroke-width="1"/>
+<text x="389" y="1046.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">for</text>
 </g>
 <g class="line-label" data-line="edges[3]">
 <title>FirstMeetingReminder – Membership: reads</title>

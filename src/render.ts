@@ -37,19 +37,15 @@ export async function render<F extends Format = "svg">(
   const { diagram } = parsed;
 
   const theme = getTheme(themeName ?? diagram.theme);
-  const cards = buildCards(diagram, theme.sizes).map((card, i) => ({ ...card, path: `nodes[${i}]`, note: card.kind === "note" }));
   const nodes: readonly { readonly id: string; readonly label: string }[] = diagram.nodes;
   const index = new Map(nodes.map((node, i) => [node.id, i]));
-  const lines = diagram.edges.map((edge, i) => {
+  const unplaced = diagram.edges.map((edge, i) => {
     const source = index.get(edge.from)!;
     const target = index.get(edge.to)!;
     const line = buildLine(edge, nodes[source]!.label, nodes[target]!.label, theme.sizes);
     // A parent class is laid out before the classes that inherit from or implement it.
     const targetFirst = "kind" in edge && PARENT_KINDS.has(edge.kind);
     const ends = { ...(line.fromLabel ? { sourceLabel: line.fromLabel } : {}), ...(line.toLabel ? { targetLabel: line.toLabel } : {}) };
-    // Only an ER line's ends can name columns.
-    const columns = "fromCardinality" in edge ? { from: edge.fromColumn, to: edge.toColumn } : {};
-    const ports = linePorts(cards[source]!, cards[target]!, columns, theme.sizes);
     const counts: { fromLabel?: string; toLabel?: string } = "fromLabel" in edge || "toLabel" in edge ? edge : {};
     const joins = { ...shared(line, "from", counts.fromLabel, "source"), ...shared(line, "to", counts.toLabel, "target") };
     return {
@@ -60,7 +56,6 @@ export async function render<F extends Format = "svg">(
       targetFirst,
       ...(Object.keys(joins).length > 0 ? { joins } : {}),
       path: `edges[${i}]`,
-      ...(ports ? { ports } : {}),
     };
   });
   // Only flowcharts have notes, each joined by a connector to the shape it's about.
@@ -69,6 +64,15 @@ export async function render<F extends Format = "svg">(
     if (node.about === undefined) return [];
     const target = index.get(node.about)!;
     return [{ ...buildConnector(node, flowNodes[target]!), source: i, target, path: `nodes[${i}].about` }];
+  });
+  // Each card leaves room for the ends of the lines and connectors ELK puts on it, clear of its badge and tag.
+  const cards = buildCards(diagram, theme.sizes, [...connectors, ...unplaced]).map((card, i) => ({ ...card, path: `nodes[${i}]`, note: card.kind === "note" }));
+  const lines = unplaced.map((line, i) => {
+    const edge = diagram.edges[i]!;
+    // Only an ER line's ends can name columns.
+    const columns = "fromCardinality" in edge ? { from: edge.fromColumn, to: edge.toColumn } : {};
+    const ports = linePorts(cards[line.source]!, cards[line.target]!, columns, theme.sizes);
+    return { ...line, ...(ports ? { ports } : {}) };
   });
   // Area boxes only when asked for: otherwise the areas don't affect the layout at all.
   const areaIndex = new Map(diagram.areas.map((area, i) => [area.id, i]));

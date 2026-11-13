@@ -5,7 +5,7 @@ import {
   cardById,
   cards,
   distanceOutside,
-  distanceToDrawn,
+  distanceToShape,
   lineGeometry,
   lines,
   outlineBox,
@@ -148,8 +148,8 @@ describe("step-only flowcharts", () => {
       const { route, arrowTip, arrowBase } = lineGeometry(lines(doc)[i]!);
       const target = outlineBox(cardById(doc, edge.to));
       expect(route[0]!.command).toBe("M");
-      expect(distanceToDrawn(route[0]!.points[0]!, cardById(doc, edge.from))).toBeLessThanOrEqual(1);
-      expect(distanceToDrawn(arrowTip, cardById(doc, edge.to))).toBeLessThanOrEqual(1);
+      expect(distanceToShape(route[0]!.points[0]!, cardById(doc, edge.from))).toBeLessThanOrEqual(1);
+      expect(distanceToShape(arrowTip, cardById(doc, edge.to))).toBeLessThanOrEqual(1);
 
       // Straight runs are horizontal or vertical and never turn, so there are no sharp corners.
       // Every turn is a curve whose control point is the bend: it comes in one way and leaves the other.

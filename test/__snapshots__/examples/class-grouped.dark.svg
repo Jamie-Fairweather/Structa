@@ -14,7 +14,7 @@
 </g>
 <g class="area" data-area="shop">
 <title>Shop website</title>
-<rect class="area-box" x="177" y="120" width="452" height="717" rx="12" fill="#8b949e" fill-opacity="0.07" stroke="#30363d" stroke-width="1"/>
+<rect class="area-box" x="197" y="120" width="432" height="717" rx="12" fill="#8b949e" fill-opacity="0.07" stroke="#30363d" stroke-width="1"/>
 </g>
 <g class="area" data-area="bakehouse">
 <title>Bakehouse</title>
@@ -30,77 +30,77 @@
 </g>
 <g class="card" data-id="customer" data-kind="class" data-status="changed" data-area="shop">
 <title>Customer</title>
-<rect class="outline" x="193" y="160" width="360" height="120" rx="10" fill="#161b22" stroke="#d29922" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
-<line class="divider" x1="193.75" y1="204" x2="552.25" y2="204" stroke="#30363d" stroke-width="1"/>
-<line class="divider" x1="193.75" y1="216" x2="552.25" y2="216" stroke="#30363d" stroke-width="1"/>
-<text x="373" y="187.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">Customer</text>
+<rect class="outline" x="213" y="160" width="360" height="120" rx="10" fill="#161b22" stroke="#d29922" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
+<line class="divider" x1="213.75" y1="204" x2="572.25" y2="204" stroke="#30363d" stroke-width="1"/>
+<line class="divider" x1="213.75" y1="216" x2="572.25" y2="216" stroke="#30363d" stroke-width="1"/>
+<text x="393" y="187.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">Customer</text>
 <g class="row" data-id="methods[0]" data-kind="method" data-status="new">
 <title>+ orders(): WebOrder[]</title>
-<rect x="199" y="223" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
+<rect x="219" y="223" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
 <g class="symbol">
-<text x="207" y="239.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
+<text x="227" y="239.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
 </g>
-<text x="221.4" y="239.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">orders(): WebOrder[]</text>
+<text x="241.4" y="239.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">orders(): WebOrder[]</text>
 <g class="badge">
-<rect x="502" y="227" width="37" height="16" rx="8" fill="#161b22"/>
-<rect x="502" y="227" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
-<text x="520.5" y="238.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
+<rect x="522" y="227" width="37" height="16" rx="8" fill="#161b22"/>
+<rect x="522" y="227" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
+<text x="540.5" y="238.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
 </g>
 </g>
 <g class="row" data-id="methods[1]" data-kind="method" data-status="unchanged">
 <title>+ standingOrder(): Basket</title>
-<rect x="199" y="249" width="348" height="24" rx="4" fill="#6e7681" fill-opacity="0.12"/>
+<rect x="219" y="249" width="348" height="24" rx="4" fill="#6e7681" fill-opacity="0.12"/>
 <g class="symbol">
-<text x="207" y="265.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
+<text x="227" y="265.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
 </g>
-<text x="221.4" y="265.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">standingOrder(): Basket</text>
+<text x="241.4" y="265.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">standingOrder(): Basket</text>
 <g class="badge">
-<rect x="461" y="253" width="78" height="16" rx="8" fill="#161b22"/>
-<rect x="461" y="253" width="78" height="16" rx="8" fill="#6e7681" fill-opacity="0.25" stroke="#6e7681" stroke-width="1"/>
-<text x="500" y="264.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e" text-anchor="middle">UNCHANGED</text>
+<rect x="481" y="253" width="78" height="16" rx="8" fill="#161b22"/>
+<rect x="481" y="253" width="78" height="16" rx="8" fill="#6e7681" fill-opacity="0.25" stroke="#6e7681" stroke-width="1"/>
+<text x="520" y="264.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e" text-anchor="middle">UNCHANGED</text>
 </g>
 </g>
 <g class="badge">
-<rect x="478" y="152" width="63" height="16" rx="8" fill="#161b22"/>
-<rect x="478" y="152" width="63" height="16" rx="8" fill="#d29922" fill-opacity="0.25" stroke="#d29922" stroke-width="1"/>
-<text x="509.5" y="163.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#e3b341" text-anchor="middle">CHANGED</text>
+<rect x="498" y="152" width="63" height="16" rx="8" fill="#161b22"/>
+<rect x="498" y="152" width="63" height="16" rx="8" fill="#d29922" fill-opacity="0.25" stroke="#d29922" stroke-width="1"/>
+<text x="529.5" y="163.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#e3b341" text-anchor="middle">CHANGED</text>
 </g>
 </g>
 <g class="card" data-id="order" data-kind="class" data-status="new" data-area="shop">
 <title>WebOrder</title>
-<rect class="outline" x="193" y="484" width="360" height="108" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
-<line class="divider" x1="193.75" y1="528" x2="552.25" y2="528" stroke="#30363d" stroke-width="1"/>
-<text x="373" y="511.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">WebOrder</text>
+<rect class="outline" x="213" y="484" width="360" height="108" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
+<line class="divider" x1="213.75" y1="528" x2="572.25" y2="528" stroke="#30363d" stroke-width="1"/>
+<text x="393" y="511.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">WebOrder</text>
 <g class="row" data-id="properties[0]" data-kind="property" data-status="new">
 <title>+ collectOn: Date</title>
-<rect x="199" y="535" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
+<rect x="219" y="535" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
 <g class="symbol">
-<text x="207" y="551.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
+<text x="227" y="551.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
 </g>
-<text x="221.4" y="551.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">collectOn: Date</text>
+<text x="241.4" y="551.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">collectOn: Date</text>
 <g class="badge">
-<rect x="502" y="539" width="37" height="16" rx="8" fill="#161b22"/>
-<rect x="502" y="539" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
-<text x="520.5" y="550.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
+<rect x="522" y="539" width="37" height="16" rx="8" fill="#161b22"/>
+<rect x="522" y="539" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
+<text x="540.5" y="550.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
 </g>
 </g>
 <g class="row" data-id="properties[1]" data-kind="property" data-status="new">
 <title>+ collected: bool</title>
-<rect x="199" y="561" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
+<rect x="219" y="561" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
 <g class="symbol">
-<text x="207" y="577.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
+<text x="227" y="577.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
 </g>
-<text x="221.4" y="577.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">collected: bool</text>
+<text x="241.4" y="577.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">collected: bool</text>
 <g class="badge">
-<rect x="502" y="565" width="37" height="16" rx="8" fill="#161b22"/>
-<rect x="502" y="565" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
-<text x="520.5" y="576.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
+<rect x="522" y="565" width="37" height="16" rx="8" fill="#161b22"/>
+<rect x="522" y="565" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
+<text x="540.5" y="576.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
 </g>
 </g>
 <g class="badge">
-<rect x="504" y="476" width="37" height="16" rx="8" fill="#161b22"/>
-<rect x="504" y="476" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
-<text x="522.5" y="487.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
+<rect x="524" y="476" width="37" height="16" rx="8" fill="#161b22"/>
+<rect x="524" y="476" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
+<text x="542.5" y="487.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
 </g>
 </g>
 <g class="card" data-id="line" data-kind="class" data-status="new" data-area="shop">
@@ -235,13 +235,13 @@
 </g>
 <g class="line" data-id="edges[0]" data-kind="association" data-from="customer" data-to="order" data-status="new">
 <title>Customer (1) → WebOrder (0..*): places</title>
-<path d="M373 280 L373 484" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-linejoin="round"/>
-<path d="M368.5 475 L373 484 L377.5 475" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M393 280 L393 484" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M388.5 475 L393 484 L397.5 475" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 <g class="end-label" data-end="from">
-<text x="380.5" y="294" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#e6edf3" text-anchor="middle">1</text>
+<text x="400.5" y="294" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#e6edf3" text-anchor="middle">1</text>
 </g>
 <g class="end-label" data-end="to">
-<text x="387.5" y="458" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#e6edf3" text-anchor="middle">0..*</text>
+<text x="407.5" y="458" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#e6edf3" text-anchor="middle">0..*</text>
 </g>
 </g>
 <g class="line" data-id="edges[1]" data-kind="composition" data-from="order" data-to="line" data-status="new">
@@ -268,9 +268,9 @@
 </g>
 <g class="line" data-id="edges[3]" data-kind="association" data-from="order" data-to="shelf" data-status="new">
 <title>WebOrder (0..*) – PickupShelf (0..1): waits on</title>
-<path d="M313 592 L313 647 Q313 655 305 655 L236 655 Q228 655 228 663 L228 1940" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M353 592 L353 647 Q353 655 345 655 L236 655 Q228 655 228 663 L228 1940" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-linejoin="round"/>
 <g class="end-label" data-end="from">
-<text x="327.5" y="606" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#e6edf3" text-anchor="middle">0..*</text>
+<text x="367.5" y="606" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#e6edf3" text-anchor="middle">0..*</text>
 </g>
 <g class="end-label" data-end="to">
 <text x="242" y="1926" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#e6edf3" text-anchor="middle">0..1</text>
@@ -305,8 +305,8 @@
 </g>
 <g class="area-names">
 <g class="area-name" data-area="shop">
-<rect x="190" y="128" width="84.69" height="16" fill="#161a20"/>
-<text x="193" y="140.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="600" fill="#8b949e">Shop website</text>
+<rect x="210" y="128" width="84.69" height="16" fill="#161a20"/>
+<text x="213" y="140.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="600" fill="#8b949e">Shop website</text>
 </g>
 <g class="area-name" data-area="bakehouse">
 <rect x="321" y="925" width="70.42" height="16" fill="#161a20"/>
@@ -324,8 +324,8 @@
 <g class="line-labels">
 <g class="line-label" data-line="edges[0]">
 <title>Customer (1) → WebOrder (0..*): places</title>
-<rect x="346" y="362" width="54" height="20" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
-<text x="373" y="376.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">places</text>
+<rect x="366" y="362" width="54" height="20" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
+<text x="393" y="376.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">places</text>
 </g>
 <g class="line-label" data-line="edges[3]">
 <title>WebOrder (0..*) – PickupShelf (0..1): waits on</title>

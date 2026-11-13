@@ -1,6 +1,7 @@
 import type { Cardinality, Status } from "../input";
 import type { PlacedArea, PlacedCard, Point, RoutedLine, Scene } from "../layout";
 import {
+  distanceToBox,
   entry,
   markSize,
   nearest,
@@ -67,13 +68,15 @@ export function paint({ scene, header, legend }: Drawing, theme: Theme, options:
   const lines = scene.lines.filter((l): l is RoutedLine<Line> => l.line.kind !== "connector");
   const drawn = lines.map(({ line: l, points }) => ({ line: l, points: routed(l, points) }));
   const rooms = endRooms(drawn);
+  const notes = scene.lines.filter((l): l is RoutedLine<Connector> => l.line.kind === "connector");
+  const aimed = aimConnectors(notes, lines, placed, theme.sizes);
   const content = [
     ...(header ? headerText(header, { x: pad, y: headerTop! }, pen) : []),
     // Under everything else in the scene, each parent before the areas inside it.
     ...scene.areas.flatMap((a) => areaBox(a, origin, pen)),
     ...scene.cards.flatMap((p) => card(p, origin, pen, ids.shadow)),
     // Under the lines: a note's connector is an aside, not part of the flow.
-    ...scene.lines.flatMap(({ line: l, points }) => (l.kind === "connector" ? connector(l, routed(l, points), origin, pen) : [])),
+    ...notes.flatMap(({ line: l }, i) => connector(l, routed(l, aimed[i]!), origin, pen)),
     ...drawn.flatMap(({ points }, i) => line(lines[i]!, points, origin, pen, rooms[i]!)),
     ...areaNames(scene.areas, origin, pen),
     ...lineLabels(lines, origin, pen),
@@ -91,7 +94,9 @@ export function paint({ scene, header, legend }: Drawing, theme: Theme, options:
  * ELK ends lines on a card's box, but what's drawn there is often inside it:
  * the band the badge overhangs is above the outline, and a diamond, a slanted
  * box or a pill don't fill their box. So each end's straight run is carried
- * on, or cut back, until it meets what's drawn: the outline, or the badge on it.
+ * on, or cut back, until it meets what's drawn: the outline, where the card's
+ * landing keeps it clear of the badge and the tag, or else, rather than run
+ * across one of them, the badge or the tag.
  */
 function ontoCards(points: readonly Point[], from: PlacedCard<Card>, to: PlacedCard<Card>): Point[] {
   const route = [...points];
@@ -113,6 +118,160 @@ function land(route: readonly Point[], end: number, step: 1 | -1, { card, x, y }
   // a corner of the outline. Then it ends at the nearest point of what's drawn.
   const met = entry(card, { x: q.x - x, y: q.y - y }, onCard) ?? nearest(card, onCard);
   return { x: met.x + x, y: met.y + y };
+}
+
+/** A side of a card's box. */
+type BoxSide = "top" | "bottom" | "left" | "right";
+
+/**
+ * Where each note's connector runs. ELK runs one straight from the note to
+ * the shape it's about, ending it wherever it likes on each card's box, even
+ * where the badge or the tag is, or right beside another line's end. So each
+ * of its ends goes to the nearest point of the stretch its card's landing
+ * gives lines on that side of its box, the whole of its bottom being free,
+ * at least half the theme's pitch from where ELK ended every other line
+ * there and from the connectors' ends placed before it; or, where no point
+ * is that far from them, the point furthest from them. Each card was given
+ * room for its connectors' ends as well as its lines'. A connector that
+ * would still run within half the theme's clearance of any card's badge or
+ * tag runs instead between the nearest points it can, at either end, where
+ * its card's landing starts or stops, or a corner of its card's box, if any
+ * keep it clear of them.
+ */
+function aimConnectors(
+  connectors: readonly RoutedLine<Connector>[],
+  lines: readonly RoutedLine<Line>[],
+  placed: ReadonlyMap<string, PlacedCard<Card>>,
+  sizes: Sizes,
+): Point[][] {
+  const routes = connectors.map(({ points }) => [...points]);
+  // How far along each side of each card's box the ends there are, by the card's id and the side.
+  const taken = new Map<string, number[]>();
+  const endOn = (p: Point, at: PlacedCard<Card>) => {
+    const { side, along } = sideOf(p, at);
+    return { key: `${at.card.id} ${side}`, side, along };
+  };
+  for (const { line: l, points } of lines) {
+    for (const [p, id] of [
+      [points[0]!, l.from],
+      [points.at(-1)!, l.to],
+    ] as const) {
+      const { key, along } = endOn(p, placed.get(id)!);
+      taken.set(key, [...(taken.get(key) ?? []), along]);
+    }
+  }
+  connectors.forEach(({ line: c, points }, i) => {
+    for (const [end, id] of [
+      ["start", c.from],
+      ["end", c.to],
+    ] as const) {
+      const at = placed.get(id)!;
+      const { key, side, along } = endOn(end === "start" ? points[0]! : points.at(-1)!, at);
+      const others = taken.get(key) ?? [];
+      const spot = freeSpot(along, stretch(at.card, side), others, sizes.landing.pitch / 2);
+      setEnd(routes[i]!, end, onSide(at, side, spot));
+      taken.set(key, [...others, spot]);
+    }
+  });
+  const margin = sizes.landing.clearance / 2;
+  const everyCard = [...placed.values()];
+  return routes.map((route, i) => {
+    const { line: c } = connectors[i]!;
+    const cards = [placed.get(c.from)!, placed.get(c.to)!] as const;
+    const clear = (start: Point, end: Point) => {
+      const drawn = ontoCards([start, ...route.slice(1, -1), end], ...cards);
+      return drawn.every((p, k) => k === 0 || everyCard.every((card) => nearBorderItems(drawn[k - 1]!, p, card) >= margin));
+    };
+    const [start, end] = [route[0]!, route.at(-1)!];
+    if (clear(start, end)) return route;
+    // Each pair of places the ends could go, nearest to where they are first; ties in the order listed.
+    const moved = (p: Point, q: Point) => Math.hypot(p.x - q.x, p.y - q.y);
+    const pairs = [start, ...safePlaces(cards[0])].flatMap((a) => [end, ...safePlaces(cards[1])].map((b) => [a, b] as const));
+    const best = pairs
+      .map((pair, k) => ({ pair, k, cost: moved(pair[0], start) + moved(pair[1], end) }))
+      .sort((p, q) => p.cost - q.cost || p.k - q.k)
+      .find(({ pair }) => clear(...pair));
+    return best ? [best.pair[0], ...route.slice(1, -1), best.pair[1]] : route;
+  });
+}
+
+/** Which side of its card's box a point on that box is on, and how far along it from the box's top or left. */
+function sideOf(p: Point, { card, x, y }: PlacedCard<Card>): { side: BoxSide; along: number } {
+  const sides: [BoxSide, number, number][] = [
+    ["top", Math.abs(p.y - y), p.x - x],
+    ["bottom", Math.abs(p.y - (y + card.height)), p.x - x],
+    ["left", Math.abs(p.x - x), p.y - y],
+    ["right", Math.abs(p.x - (x + card.width)), p.y - y],
+  ];
+  const [side, , along] = sides.reduce((best, s) => (s[1] < best[1] ? s : best));
+  return { side, along };
+}
+
+/** The stretch of a side of a card's box its landing gives lines: all of its bottom, where nothing sits. */
+function stretch({ landing, width }: Card, side: BoxSide): readonly [number, number] {
+  if (side === "top") return [landing.left, landing.right];
+  if (side === "bottom") return [0, width];
+  return [landing.top, landing.bottom];
+}
+
+/**
+ * Where an end ELK put `along` a side goes on the stretch of it from `from`
+ * to `to`: the nearest point at least `apart` from each of `others`, the
+ * ends already there, or, when there's none, the point furthest from them.
+ * Ties go to the nearer to where ELK put it, then the nearer the stretch's start.
+ */
+function freeSpot(along: number, [from, to]: readonly [number, number], others: readonly number[], apart: number): number {
+  const room = (at: number) => Math.min(Number.POSITIVE_INFINITY, ...others.map((other) => Math.abs(other - at)));
+  const marks = [from, ...others.filter((other) => other >= from && other <= to).sort((a, b) => a - b), to];
+  // Where ELK put it, kept on the stretch, each end of the stretch, `apart` either side of each other end, and midway between neighbours.
+  const places = [
+    Math.min(Math.max(along, from), to),
+    from,
+    to,
+    ...others.flatMap((other) => [other - apart, other + apart]),
+    ...marks.slice(1).map((mark, k) => (marks[k]! + mark) / 2),
+  ].filter((at) => at >= from && at <= to);
+  const near = (at: number) => Math.abs(at - along);
+  const closer = (a: number, b: number) => near(a) < near(b) || (near(a) === near(b) && a < b);
+  // Far enough, but for rounding.
+  const fits = places.filter((at) => room(at) >= apart - 1e-9);
+  if (fits.length > 0) return fits.reduce((best, at) => (closer(at, best) ? at : best));
+  return places.reduce((best, at) => (room(at) > room(best) || (room(at) === room(best) && closer(at, best)) ? at : best));
+}
+
+/** The point `along` a side of a placed card's box. */
+function onSide({ card, x, y }: PlacedCard<Card>, side: BoxSide, along: number): Point {
+  if (side === "top") return { x: x + along, y };
+  if (side === "bottom") return { x: x + along, y: y + card.height };
+  return { x: side === "left" ? x : x + card.width, y: y + along };
+}
+
+function setEnd(route: Point[], end: "start" | "end", at: Point): void {
+  route[end === "start" ? 0 : route.length - 1] = at;
+}
+
+/** Where a connector may end on a card, clear of its badge and tag: where its landing starts and stops on its top and sides, and its box's bottom corners. */
+function safePlaces({ card, x, y }: PlacedCard<Card>): Point[] {
+  const { left, right, top, bottom } = card.landing;
+  return [
+    { x: x + left, y },
+    { x: x + right, y },
+    { x, y: y + top },
+    { x, y: y + bottom },
+    { x: x + card.width, y: y + top },
+    { x: x + card.width, y: y + bottom },
+    { x, y: y + card.height },
+    { x: x + card.width, y: y + card.height },
+  ];
+}
+
+/**
+ * How close the straight run from `a` to `b` comes to the badge or the tag on
+ * a card: 0 where it touches one, and infinitely far when the card has neither.
+ */
+function nearBorderItems(a: Point, b: Point, { card, x, y }: PlacedCard<Card>): number {
+  const boxes = [card.badge, card.tag].flatMap((box) => (box ? [{ x: box.x + x, y: box.y + y, width: box.width, height: box.height }] : []));
+  return Math.min(Number.POSITIVE_INFINITY, ...boxes.map((box) => distanceToBox(a, b, box)));
 }
 
 /** For one line, how far each of its ends is from the nearest other line end on the same side of the same card. */

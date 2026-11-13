@@ -48,40 +48,40 @@
 </g>
 <g class="card" data-id="bake" data-kind="subprocess" data-status="unchanged">
 <title>Bake on Friday</title>
-<rect class="outline" x="79.83" y="416" width="149" height="44" rx="4" fill="#ffffff" stroke="#8c959f" stroke-width="1.5" filter="url(#structa-shadow-light)"/>
-<path class="marks" d="M89.83 416 L89.83 460 M218.83 416 L218.83 460" fill="none" stroke="#8c959f" stroke-width="1.5"/>
-<text x="154.33" y="443.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Bake on Friday</text>
+<rect class="outline" x="113.17" y="416" width="150" height="44" rx="4" fill="#ffffff" stroke="#8c959f" stroke-width="1.5" filter="url(#structa-shadow-light)"/>
+<path class="marks" d="M123.17 416 L123.17 460 M253.17 416 L253.17 460" fill="none" stroke="#8c959f" stroke-width="1.5"/>
+<text x="188.17" y="443.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Bake on Friday</text>
 <g class="badge">
-<rect x="138.83" y="408" width="78" height="16" rx="8" fill="#ffffff"/>
-<rect x="138.83" y="408" width="78" height="16" rx="8" fill="#eaeef2" stroke="#8c959f" stroke-width="1"/>
-<text x="177.83" y="419.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#59636e" text-anchor="middle">UNCHANGED</text>
+<rect x="173.17" y="408" width="78" height="16" rx="8" fill="#ffffff"/>
+<rect x="173.17" y="408" width="78" height="16" rx="8" fill="#eaeef2" stroke="#8c959f" stroke-width="1"/>
+<text x="212.17" y="419.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#59636e" text-anchor="middle">UNCHANGED</text>
 </g>
 </g>
 <g class="card" data-id="weigh" data-kind="step" data-status="new">
 <title>Weigh each loaf</title>
-<rect class="outline" x="58.5" y="584" width="142" height="44" rx="10" fill="#ffffff" stroke="#1f883d" stroke-width="1.5" filter="url(#structa-shadow-light)"/>
-<text x="129.5" y="611.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Weigh each loaf</text>
+<rect class="outline" x="88.5" y="584" width="142" height="44" rx="10" fill="#ffffff" stroke="#1f883d" stroke-width="1.5" filter="url(#structa-shadow-light)"/>
+<text x="159.5" y="611.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Weigh each loaf</text>
 <g class="badge">
-<rect x="151.5" y="576" width="37" height="16" rx="8" fill="#ffffff"/>
-<rect x="151.5" y="576" width="37" height="16" rx="8" fill="#b9f0c4" stroke="#1f883d" stroke-width="1"/>
-<text x="170" y="587.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#116329" text-anchor="middle">NEW</text>
+<rect x="181.5" y="576" width="37" height="16" rx="8" fill="#ffffff"/>
+<rect x="181.5" y="576" width="37" height="16" rx="8" fill="#b9f0c4" stroke="#1f883d" stroke-width="1"/>
+<text x="200" y="587.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#116329" text-anchor="middle">NEW</text>
 </g>
 </g>
 <g class="card" data-id="box" data-kind="step" data-status="unchanged">
 <title>Box and label the order</title>
-<rect class="outline" x="66.83" y="684" width="188" height="44" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1.5" filter="url(#structa-shadow-light)"/>
-<text x="160.83" y="711.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Box and label the order</text>
+<rect class="outline" x="100.5" y="684" width="188" height="44" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1.5" filter="url(#structa-shadow-light)"/>
+<text x="194.5" y="711.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Box and label the order</text>
 <g class="badge">
-<rect x="164.83" y="676" width="78" height="16" rx="8" fill="#ffffff"/>
-<rect x="164.83" y="676" width="78" height="16" rx="8" fill="#eaeef2" stroke="#8c959f" stroke-width="1"/>
-<text x="203.83" y="687.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#59636e" text-anchor="middle">UNCHANGED</text>
+<rect x="198.5" y="676" width="78" height="16" rx="8" fill="#ffffff"/>
+<rect x="198.5" y="676" width="78" height="16" rx="8" fill="#eaeef2" stroke="#8c959f" stroke-width="1"/>
+<text x="237.5" y="687.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#59636e" text-anchor="middle">UNCHANGED</text>
 </g>
 </g>
 <g class="card" data-id="collect" data-kind="end">
 <title>Customer collects on Saturday</title>
-<rect class="outline" x="68.83" y="852" width="184" height="64" rx="32" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
-<text x="160.83" y="879.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Customer collects on</text>
-<text x="160.83" y="899.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Saturday</text>
+<rect class="outline" x="52" y="852" width="184" height="64" rx="32" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<text x="144" y="879.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Customer collects on</text>
+<text x="144" y="899.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="middle">Saturday</text>
 </g>
 <g class="line" data-id="edges[0]" data-kind="flow" data-from="online" data-to="close" data-status="new">
 <title>Take orders online → Close orders on Thursday night</title>
@@ -90,8 +90,8 @@
 </g>
 <g class="line" data-id="edges[1]" data-kind="flow" data-from="close" data-to="bake" data-status="new">
 <title>Close orders on Thursday night → Bake on Friday: final list</title>
-<path d="M371 292 L371 376 Q371 384 363 384 L187.17 384 Q179.17 384 179.17 392 L179.17 399" fill="none" stroke="#1f883d" stroke-width="3" stroke-linejoin="round"/>
-<path d="M179.17 408 L174.67 399 L183.67 399 Z" fill="#1f883d"/>
+<path d="M371 292 L371 376 Q371 384 363 384 L153.83 384 Q145.83 384 145.83 392 L145.83 407" fill="none" stroke="#1f883d" stroke-width="3" stroke-linejoin="round"/>
+<path d="M145.83 416 L141.33 407 L150.33 407 Z" fill="#1f883d"/>
 </g>
 <g class="line" data-id="edges[2]" data-kind="flow" data-from="phone" data-to="bake" data-status="removed">
 <title>Take orders by phone → Bake on Friday: call-ins</title>
@@ -113,14 +113,14 @@
 <g class="line" data-id="edges[5]" data-kind="flow" data-from="bake" data-to="box" data-status="removed">
 <title>Bake on Friday → Box and label the order</title>
 <g class="faded" opacity="0.55">
-<path d="M179.17 460 L179.17 476 Q179.17 484 187.17 484 L216.5 484 Q224.5 484 224.5 492 L224.5 644 Q224.5 652 216.5 652 L200.17 652 Q192.17 652 192.17 660 L192.17 667" fill="none" stroke="#cf222e" stroke-width="1.5" stroke-linejoin="round"/>
-<path d="M192.17 676 L187.67 667 L196.67 667 Z" fill="#cf222e"/>
+<path d="M145.83 460 L145.83 476 Q145.83 484 153.83 484 L246.5 484 Q254.5 484 254.5 492 L254.5 644 Q254.5 652 246.5 652 L166.5 652 Q158.5 652 158.5 660 L158.5 675" fill="none" stroke="#cf222e" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M158.5 684 L154 675 L163 675 Z" fill="#cf222e"/>
 </g>
 </g>
 <g class="line" data-id="edges[6]" data-kind="flow" data-from="box" data-to="collect" data-status="changed">
 <title>Box and label the order → Customer collects on Saturday: from 8 am</title>
-<path d="M160.83 728 L160.83 843" fill="none" stroke="#bf8700" stroke-width="1.5" stroke-linejoin="round"/>
-<path d="M160.83 852 L156.33 843 L165.33 843 Z" fill="#bf8700"/>
+<path d="M144 728 L144 843" fill="none" stroke="#bf8700" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M144 852 L139.5 843 L148.5 843 Z" fill="#bf8700"/>
 </g>
 <g class="line-labels">
 <g class="line-label" data-line="edges[1]">
@@ -144,8 +144,8 @@
 </g>
 <g class="line-label" data-line="edges[6]">
 <title>Box and label the order → Customer collects on Saturday: from 8 am</title>
-<rect x="123.33" y="776" width="75" height="20" rx="10" fill="#ffffff" stroke="#bf8700" stroke-width="1"/>
-<text x="160.83" y="790.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">from 8 am</text>
+<rect x="106.5" y="776" width="75" height="20" rx="10" fill="#ffffff" stroke="#bf8700" stroke-width="1"/>
+<text x="144" y="790.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">from 8 am</text>
 </g>
 </g>
 <g class="legend">

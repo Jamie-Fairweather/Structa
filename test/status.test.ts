@@ -7,9 +7,10 @@ import {
   cardById,
   cards,
   depthInPill,
-  distanceToDrawn,
+  distanceToShape,
   lineGeometry,
   lines,
+  nearestBadgeOrTag,
   outlineBox,
   overlaps,
   svgDoc,
@@ -218,14 +219,14 @@ describe("card status", () => {
       for (const [i, line] of lines(doc).entries()) {
         const { route, arrowTip } = lineGeometry(line);
         const edge = input.edges[i]!;
-        expect(distanceToDrawn(route[0]!.points[0]!, cardById(doc, edge.from)), `edges[${i}] start`).toBeLessThanOrEqual(1);
-        expect(distanceToDrawn(arrowTip, cardById(doc, edge.to)), `edges[${i}] end`).toBeLessThanOrEqual(1);
+        expect(distanceToShape(route[0]!.points[0]!, cardById(doc, edge.from)), `edges[${i}] start`).toBeLessThanOrEqual(1);
+        expect(distanceToShape(arrowTip, cardById(doc, edge.to)), `edges[${i}] end`).toBeLessThanOrEqual(1);
       }
     },
   );
 
-  it("stops a line that comes down onto a badge on top of it, never across it", async () => {
-    // Three lines into a narrow card with a wide badge: some must land where the badge is.
+  it("brings lines down onto a narrow card's outline beside its wide badge, never onto it or across it", async () => {
+    // Three lines into a narrow card with a wide badge: there's room for them only once it's wider.
     const input = {
       type: "flow",
       nodes: [
@@ -243,19 +244,20 @@ describe("card status", () => {
     const doc = await svgDoc(input);
 
     const badges = cards(doc).flatMap((card) => badgeBox(card) ?? []);
-    let onBadge = 0;
     for (const [i, line] of lines(doc).entries()) {
       const { route, arrowTip } = lineGeometry(line);
       const runs = [...route.flatMap((c) => c.points), arrowTip];
       for (const badge of badges) {
         const deepest = Math.max(...alongRuns(runs).map((p) => depthInPill(p, badge)));
-        expect(deepest, `edges[${i}] crosses a badge`).toBeLessThanOrEqual(1);
+        expect(deepest, `edges[${i}] reaches a badge`).toBeLessThan(0);
       }
+      expect(nearestBadgeOrTag(doc, line), `edges[${i}]`).toBeGreaterThan(4);
       const target = cardById(doc, input.edges[i]!.to);
-      expect(distanceToDrawn(arrowTip, target)).toBeLessThanOrEqual(1);
-      if (Math.abs(depthInPill(arrowTip, badgeBox(target)!)) <= 1) onBadge++;
+      expect(distanceToShape(arrowTip, target)).toBeLessThanOrEqual(1);
+      // Down onto its top border, to the left of the badge.
+      expect(arrowTip.y).toBeCloseTo(outlineBox(target).y, 0);
+      expect(arrowTip.x).toBeLessThan(badgeBox(target)!.x);
     }
-    expect(onBadge).toBeGreaterThan(0);
   });
 
   it("lines up the outlines of cards side by side, with or without a badge", async () => {
