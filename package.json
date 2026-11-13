@@ -30,7 +30,8 @@
     "harfbuzzjs": "1.6.4",
     "husky": "9.1.7",
     "typescript": "7.0.2",
-    "vitest": "4.1.12"
+    "vitest": "4.1.12",
+    "yaml": "2.9.1"
   },
   "dependencies": {
     "@resvg/resvg-wasm": "2.6.2",

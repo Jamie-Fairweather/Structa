@@ -539,7 +539,9 @@ describe("the release zip", () => {
     const unzipped = unzipSync(readFileSync(skill.release.zip));
     const files = filesUnder(skill.release.folder);
 
-    expect(files).toEqual(expect.arrayContaining(["structa.mjs", "elk.bundled.js", "package.json", "structa.schema.json", "licenses/MIT.txt"]));
+    expect(files).toEqual(
+      expect.arrayContaining(["SKILL.md", "structa.mjs", "elk.bundled.js", "package.json", "structa.schema.json", "licenses/MIT.txt"]),
+    );
     expect(Object.keys(unzipped)).toEqual(files.map((file) => `structa/${file}`));
     for (const file of files) {
       const same = Buffer.from(unzipped[`structa/${file}`]!).equals(readFileSync(join(skill.release.folder, file)));
