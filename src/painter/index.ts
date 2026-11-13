@@ -4,7 +4,7 @@ import type { PlacedArea, PlacedCard, RoutedLine, Scene } from "../layout";
 import {
   distanceToBox,
   entry,
-  markSize,
+  LINE_ENDS,
   nearest,
   type AreaBox,
   type AreaItem,
@@ -16,6 +16,7 @@ import {
   type Legend,
   type LevelLine,
   type Line,
+  type LineEnd,
   type LineLabel,
   type Row,
   type StatusItem,
@@ -776,48 +777,39 @@ interface FittedMark {
  * runs past the line's bend, as on a tight loop from a card to itself.
  */
 function fitted(mark: EndMark, points: readonly Point[], sizes: Sizes): FittedMark {
-  const { length, width } = markSize(mark, sizes);
+  const { length, width } = LINE_ENDS[mark].size(sizes);
   const scale = Math.min(1, lastRun(points) / length);
   return { mark, length: length * scale, width: width * scale };
 }
 
-/**
- * How far short of its end a line's route stops for the mark there: at the
- * base of a triangle or the far corner of a diamond, so it never runs
- * through a hollow one, and right up to the tip of an open arrow.
- */
+/** How far short of its end a line's route stops for the mark there, if it has one. */
 function routeGap(mark: FittedMark | undefined): number {
-  return mark === undefined || mark.mark === "open-arrow" ? 0 : mark.length;
+  return mark !== undefined && LINE_ENDS[mark.mark].stopsShort ? mark.length : 0;
 }
 
-/**
- * The mark at the last point of `points`, pointing along their last run,
- * solid whatever the line's pattern. A filled arrowhead is filled with the
- * line's colour; the others are outlined in it, as thick as the line, and a
- * hollow one is filled opaque.
- */
+/** Each path a line-end mark can be drawn as, at the last point of a route, pointing along its last run. */
+const END_PATHS: { readonly [path in LineEnd["drawn"]["path"]]: (points: readonly Point[], length: number, width: number) => string } = {
+  arrowhead,
+  "open-arrowhead": openArrowhead,
+  diamond,
+};
+
+/** The mark at the last point of `points`, drawn as the line-end table says, in the line's colour and as thick as the line. */
 function endMark({ mark, length, width: across }: FittedMark, points: readonly Point[], colour: string, width: number, theme: Theme): string {
-  const outlined: Attrs = [["stroke", colour], ["stroke-width", width], ["stroke-linejoin", "round"]];
-  switch (mark) {
-    case "arrow":
-      return el("path", [["d", arrowhead(points, length, across)], ["fill", colour]]);
-    case "open-arrow":
-      return el("path", [
-        ["d", openArrowhead(points, length, across)],
-        ["fill", "none"],
-        ["stroke", colour],
-        ["stroke-width", width],
-        ["stroke-linecap", "round"],
-        ["stroke-linejoin", "round"],
-      ]);
-    case "hollow-triangle":
-      return el("path", [["d", arrowhead(points, length, across)], ["fill", theme.colors.lineEndFill], ...outlined]);
-    case "filled-diamond":
-    case "hollow-diamond": {
-      const fill = mark === "filled-diamond" ? colour : theme.colors.lineEndFill;
-      return el("path", [["d", diamond(points, length, across)], ["fill", fill], ...outlined]);
-    }
-  }
+  const { path, fill, stroke } = LINE_ENDS[mark].drawn;
+  const fills = { line: colour, hollow: theme.colors.lineEndFill, none: "none" };
+  return el("path", [
+    ["d", END_PATHS[path](points, length, across)],
+    ["fill", fills[fill]],
+    ...(stroke === "none"
+      ? []
+      : ([
+          ["stroke", colour],
+          ["stroke-width", width],
+          ...(stroke === "open" ? ([["stroke-linecap", "round"]] as const) : []),
+          ["stroke-linejoin", "round"],
+        ] as const)),
+  ]);
 }
 
 /**

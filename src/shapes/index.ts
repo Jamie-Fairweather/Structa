@@ -34,6 +34,72 @@ export { distanceToBox, entry, nearest, type Mark, type Outline } from "./outlin
  */
 export type EndMark = "arrow" | "open-arrow" | "hollow-triangle" | "filled-diamond" | "hollow-diamond";
 
+/** Everything about one kind of mark at a line's end: how big it is, how the line and other lines meet it, and how it's drawn. */
+export interface LineEnd {
+  /** How big it is: `length` along the line and `width` across it, before it's fitted to a short run. */
+  readonly size: (sizes: Sizes) => { readonly length: number; readonly width: number };
+  /**
+   * Whether the line's route stops short of its end by the mark's length: at
+   * the base of a triangle or the far corner of a diamond, so it never runs
+   * through a hollow one. An open arrow's strokes meet at its tip, so the
+   * route runs right up to it.
+   */
+  readonly stopsShort: boolean;
+  /**
+   * Whether lines that meet one card with this mark share it there, as UML
+   * draws the lines into one parent under one triangle, and the lines from
+   * one owner at one diamond.
+   */
+  readonly shared: boolean;
+  /**
+   * How it's drawn, solid whatever the line's pattern: its path, pointing
+   * along the line's last run with its tip on the line's end; what fills it,
+   * the line's colour or, for a hollow mark, an opaque fill that hides what's
+   * under it; and whether it's stroked in the line's colour, as thick as the
+   * line, round a closed path or along open strokes.
+   */
+  readonly drawn: {
+    readonly path: "arrowhead" | "open-arrowhead" | "diamond";
+    readonly fill: "line" | "hollow" | "none";
+    readonly stroke: "none" | "closed" | "open";
+  };
+}
+
+/** Every line-end mark, and everything about it. */
+export const LINE_ENDS: { readonly [mark in EndMark]: LineEnd } = {
+  arrow: {
+    size: (sizes) => ({ length: sizes.line.arrowLength, width: sizes.line.arrowWidth }),
+    stopsShort: true,
+    shared: false,
+    drawn: { path: "arrowhead", fill: "line", stroke: "none" },
+  },
+  // The same size as a filled arrowhead: just its outline.
+  "open-arrow": {
+    size: (sizes) => ({ length: sizes.line.arrowLength, width: sizes.line.arrowWidth }),
+    stopsShort: false,
+    shared: false,
+    drawn: { path: "open-arrowhead", fill: "none", stroke: "open" },
+  },
+  "hollow-triangle": {
+    size: (sizes) => sizes.lineEnd.triangle,
+    stopsShort: true,
+    shared: true,
+    drawn: { path: "arrowhead", fill: "hollow", stroke: "closed" },
+  },
+  "filled-diamond": {
+    size: (sizes) => sizes.lineEnd.diamond,
+    stopsShort: true,
+    shared: true,
+    drawn: { path: "diamond", fill: "line", stroke: "closed" },
+  },
+  "hollow-diamond": {
+    size: (sizes) => sizes.lineEnd.diamond,
+    stopsShort: true,
+    shared: true,
+    drawn: { path: "diamond", fill: "hollow", stroke: "closed" },
+  },
+};
+
 export interface Line {
   readonly id: string;
   /** A flowchart's line, the relationship a class line shows, how one part of a system talks to another, or a relationship between tables. */
@@ -317,23 +383,8 @@ function endLabel(count: string, removed: boolean, mark: EndMark | undefined, si
     width,
     height: e.lineHeight + 2 * e.paddingY,
     texts: [removed ? { ...line, strike: strikeThrough(line, sizes) } : line],
-    clear: mark === undefined ? 0 : markSize(mark, sizes).length + e.markGap,
+    clear: mark === undefined ? 0 : LINE_ENDS[mark].size(sizes).length + e.markGap,
   };
-}
-
-/** How big a mark at a line's end is: `length` along the line and `width` across it, before it's fitted to a short run. */
-export function markSize(mark: EndMark, sizes: Sizes): { readonly length: number; readonly width: number } {
-  switch (mark) {
-    // An open arrow is the same size as a filled one: just its outline.
-    case "arrow":
-    case "open-arrow":
-      return { length: sizes.line.arrowLength, width: sizes.line.arrowWidth };
-    case "hollow-triangle":
-      return sizes.lineEnd.triangle;
-    case "filled-diamond":
-    case "hollow-diamond":
-      return sizes.lineEnd.diamond;
-  }
 }
 
 /** The columns a line's ends name, by name: an end that names none attaches at its table's header. */

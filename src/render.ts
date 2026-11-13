@@ -3,7 +3,7 @@ import { fieldPath, PARENT_KINDS, parseDiagram } from "./input";
 import { layout, PROFILES } from "./layout";
 import { paint } from "./painter";
 import { DEFAULT_SCALE, rasterise, SCALES, type Scale } from "./raster";
-import { buildAreaBoxes, buildCards, buildConnector, buildHeader, buildLegend, buildLine, linePorts, type EndMark, type Line } from "./shapes";
+import { buildAreaBoxes, buildCards, buildConnector, buildHeader, buildLegend, buildLine, LINE_ENDS, linePorts, type Line } from "./shapes";
 import { getTheme, THEME_NAMES, type ThemeName } from "./theme";
 
 interface Outputs {
@@ -102,20 +102,13 @@ export async function render<F extends Format = "svg">(
 }
 
 /**
- * The marks lines share where they meet one card, as UML draws them: the
- * lines into one parent join under one triangle, and the lines from one
- * owner at one diamond.
- */
-const SHARED_MARKS: ReadonlySet<EndMark> = new Set<EndMark>(["hollow-triangle", "filled-diamond", "hollow-diamond"]);
-
-/**
  * The key layout joins a line's end by, at `end` (`as` in layout's terms),
  * when it has a mark lines share there: lines join only where they're drawn
  * alike, the same kind, status and weight, with the same count or none.
  */
 function shared(line: Line, end: "from" | "to", count: string | undefined, as: "source" | "target"): Partial<Record<"source" | "target", string>> {
   const mark = line.marks[end];
-  if (mark === undefined || !SHARED_MARKS.has(mark)) return {};
+  if (mark === undefined || !LINE_ENDS[mark].shared) return {};
   return { [as]: JSON.stringify([line.kind, line.status ?? null, line.emphasis, count ?? null]) };
 }
 
