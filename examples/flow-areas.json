@@ -1,0 +1,41 @@
+{
+  "type": "flow",
+  "title": "Repair café: fixing a broken toaster",
+  "description": "Who does each step: the visitor at home, then the volunteers at the welcome desk and the repair bench.",
+  "groupAreas": true,
+  "areas": [
+    { "id": "visitor", "label": "Visitor" },
+    { "id": "cafe", "label": "Repair café" },
+    { "id": "desk", "label": "Welcome desk", "parent": "cafe" },
+    { "id": "bench", "label": "Repair bench", "parent": "cafe" }
+  ],
+  "nodes": [
+    { "id": "broken", "label": "Toaster won't heat up", "shape": "start", "area": "visitor" },
+    { "id": "book", "label": "Book a repair slot", "shape": "io", "area": "visitor" },
+    { "id": "sign", "label": "Sign the safety form", "shape": "step", "area": "desk" },
+    { "id": "queue", "label": "Wait for a free fixer", "shape": "step", "area": "desk" },
+    { "id": "safe", "label": "Safe to open?", "shape": "decision", "area": "bench" },
+    { "id": "unplug", "label": "Unplug it and let it cool", "shape": "step", "area": "bench" },
+    { "id": "fault", "label": "Find the fault", "shape": "subprocess", "area": "bench" },
+    { "id": "fixable", "label": "Fixable today?", "shape": "decision", "area": "bench" },
+    { "id": "repair", "label": "Repair and test it", "shape": "step", "area": "bench" },
+    { "id": "parts", "label": "Write down the parts needed", "shape": "io", "area": "bench" },
+    { "id": "home", "label": "Take it home", "shape": "end", "area": "cafe" },
+    { "id": "later", "label": "Come back with the part", "shape": "end", "area": "cafe" },
+    { "id": "tip", "label": "Check the crumb tray first", "shape": "note", "about": "fault" }
+  ],
+  "edges": [
+    { "from": "broken", "to": "book" },
+    { "from": "book", "to": "sign" },
+    { "from": "sign", "to": "queue" },
+    { "from": "queue", "to": "safe" },
+    { "from": "safe", "to": "fault", "label": "yes" },
+    { "from": "safe", "to": "unplug", "label": "no" },
+    { "from": "unplug", "to": "safe" },
+    { "from": "fault", "to": "fixable" },
+    { "from": "fixable", "to": "repair", "label": "yes" },
+    { "from": "fixable", "to": "parts", "label": "no" },
+    { "from": "repair", "to": "home" },
+    { "from": "parts", "to": "later" }
+  ]
+}

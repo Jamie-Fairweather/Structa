@@ -1,0 +1,227 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="704" height="1409" viewBox="0 0 704 1409">
+<defs>
+<pattern id="structa-grid-dark" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="9" cy="9" r="1" fill="#6e7681" fill-opacity="0.4"/></pattern>
+<filter id="structa-shadow-dark" x="-20%" y="-30%" width="140%" height="170%"><feDropShadow dx="0" dy="1" stdDeviation="3" flood-color="#010409" flood-opacity="0.5"/></filter>
+</defs>
+<rect width="704" height="1409" fill="#0d1117"/>
+<rect width="704" height="1409" fill="url(#structa-grid-dark)"/>
+<g class="title">
+<text x="32" y="50.55" font-family="Structa Inter, Inter, sans-serif" font-size="18" font-weight="700" fill="#e6edf3">Repair café: fixing a broken toaster</text>
+</g>
+<g class="description">
+<text x="32" y="73.73" font-family="Structa Inter, Inter, sans-serif" font-size="13" font-weight="400" fill="#8b949e">Who does each step: the visitor at home, then the volunteers at the welcome desk and the repair bench.</text>
+</g>
+<g class="area" data-id="visitor">
+<title>Visitor</title>
+<rect class="area-box" x="425.67" y="102" width="221" height="184" rx="12" fill="#8b949e" fill-opacity="0.07" stroke="#30363d" stroke-width="1"/>
+</g>
+<g class="area" data-id="cafe">
+<title>Repair café</title>
+<rect class="area-box" x="32" y="350" width="640" height="987" rx="12" fill="#8b949e" fill-opacity="0.07" stroke="#30363d" stroke-width="1"/>
+</g>
+<g class="area" data-id="desk" data-parent="cafe">
+<title>Welcome desk</title>
+<rect class="area-box" x="435.17" y="390" width="202" height="184" rx="12" fill="#8b949e" fill-opacity="0.07" stroke="#30363d" stroke-width="1"/>
+</g>
+<g class="area" data-id="bench" data-parent="cafe">
+<title>Repair bench</title>
+<rect class="area-box" x="48" y="638" width="608" height="583" rx="12" fill="#8b949e" fill-opacity="0.07" stroke="#30363d" stroke-width="1"/>
+</g>
+<g class="card" data-id="broken" data-kind="start" data-area="visitor">
+<title>Toaster won't heat up</title>
+<rect class="outline" x="441.67" y="134" width="189" height="44" rx="22" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
+<text x="536.17" y="161.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Toaster won't heat up</text>
+</g>
+<g class="card" data-id="book" data-kind="io" data-area="visitor">
+<title>Book a repair slot</title>
+<path class="outline" d="M468.17 226 L618.17 226 L604.17 270 L454.17 270 Z" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)" stroke-linejoin="round"/>
+<text x="536.17" y="253.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Book a repair slot</text>
+</g>
+<g class="card" data-id="sign" data-kind="step" data-area="desk">
+<title>Sign the safety form</title>
+<rect class="outline" x="451.17" y="422" width="170" height="44" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
+<text x="536.17" y="449.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Sign the safety form</text>
+</g>
+<g class="card" data-id="queue" data-kind="step" data-area="desk">
+<title>Wait for a free fixer</title>
+<rect class="outline" x="454.17" y="514" width="164" height="44" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
+<text x="536.17" y="541.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Wait for a free fixer</text>
+</g>
+<g class="card" data-id="safe" data-kind="decision" data-area="bench">
+<title>Safe to open?</title>
+<path class="outline" d="M536.17 670 L619.17 711 L536.17 752 L453.17 711 Z" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)" stroke-linejoin="round"/>
+<text x="536.17" y="716.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Safe to open?</text>
+</g>
+<g class="card" data-id="unplug" data-kind="step" data-area="bench">
+<title>Unplug it and let it cool</title>
+<rect class="outline" x="453" y="868" width="187" height="44" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
+<text x="546.5" y="895.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Unplug it and let it cool</text>
+</g>
+<g class="card" data-id="fault" data-kind="subprocess" data-area="bench">
+<title>Find the fault</title>
+<rect class="outline" x="273" y="868" width="140" height="44" rx="4" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
+<path class="marks" d="M283 868 L283 912 M403 868 L403 912" fill="none" stroke="#30363d" stroke-width="1"/>
+<text x="343" y="895.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Find the fault</text>
+</g>
+<g class="card" data-id="fixable" data-kind="decision" data-area="bench">
+<title>Fixable today?</title>
+<path class="outline" d="M343 960 L428.5 1002.5 L343 1045 L257.5 1002.5 Z" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)" stroke-linejoin="round"/>
+<text x="343" y="1007.59" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Fixable today?</text>
+</g>
+<g class="card" data-id="repair" data-kind="step" data-area="bench">
+<title>Repair and test it</title>
+<rect class="outline" x="64" y="1161" width="146" height="44" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
+<text x="137" y="1188.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Repair and test it</text>
+</g>
+<g class="card" data-id="parts" data-kind="io" data-area="bench">
+<title>Write down the parts needed</title>
+<path class="outline" d="M264 1161 L493 1161 L479 1205 L250 1205 Z" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)" stroke-linejoin="round"/>
+<text x="371.5" y="1188.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Write down the parts needed</text>
+</g>
+<g class="card" data-id="home" data-kind="end" data-area="cafe">
+<title>Take it home</title>
+<rect class="outline" x="73" y="1277" width="128" height="44" rx="22" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
+<text x="137" y="1304.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Take it home</text>
+</g>
+<g class="card" data-id="later" data-kind="end" data-area="cafe">
+<title>Come back with the part</title>
+<rect class="outline" x="269" y="1277" width="205" height="44" rx="22" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
+<text x="371.5" y="1304.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Come back with the part</text>
+</g>
+<g class="card" data-id="tip" data-kind="note" data-area="bench">
+<title>Check the crumb tray first</title>
+<path class="outline" d="M64 871 L249 871 L249 899 L239 909 L64 909 Z" fill="#0d1117" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)" stroke-linejoin="round"/>
+<path class="marks" d="M239 909 L239 899 L249 899" fill="none" stroke="#30363d" stroke-width="1"/>
+<text x="156.5" y="894.73" font-family="Structa Inter, Inter, sans-serif" font-size="13" font-weight="400" fill="#e6edf3" text-anchor="middle">Check the crumb tray first</text>
+</g>
+<g class="connector" data-kind="note" data-from="tip" data-to="fault">
+<title>Check the crumb tray first (about Find the fault)</title>
+<path d="M249 890 L273 890" fill="none" stroke="#6e7681" stroke-width="1" stroke-dasharray="2 3"/>
+</g>
+<g class="line" data-id="edges[0]" data-kind="flow" data-from="broken" data-to="book">
+<title>Toaster won't heat up → Book a repair slot</title>
+<path d="M536.17 178 L536.17 217" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M536.17 226 L531.67 217 L540.67 217 Z" fill="#6e7681"/>
+</g>
+<g class="line" data-id="edges[1]" data-kind="flow" data-from="book" data-to="sign">
+<title>Book a repair slot → Sign the safety form</title>
+<path d="M536.17 270 L536.17 413" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M536.17 422 L531.67 413 L540.67 413 Z" fill="#6e7681"/>
+</g>
+<g class="line" data-id="edges[2]" data-kind="flow" data-from="sign" data-to="queue">
+<title>Sign the safety form → Wait for a free fixer</title>
+<path d="M536.17 466 L536.17 505" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M536.17 514 L531.67 505 L540.67 505 Z" fill="#6e7681"/>
+</g>
+<g class="line" data-id="edges[3]" data-kind="flow" data-from="queue" data-to="safe">
+<title>Wait for a free fixer → Safe to open?</title>
+<path d="M536.17 558 L536.17 661" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M536.17 670 L531.67 661 L540.67 661 Z" fill="#6e7681"/>
+</g>
+<g class="line" data-id="edges[4]" data-kind="flow" data-from="safe" data-to="fault">
+<title>Safe to open? → Find the fault: yes</title>
+<path d="M494.67 731.5 L494.67 768 Q494.67 776 486.67 776 L351 776 Q343 776 343 784 L343 859" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M343 868 L338.5 859 L347.5 859 Z" fill="#6e7681"/>
+</g>
+<g class="line" data-id="edges[5]" data-kind="flow" data-from="safe" data-to="unplug">
+<title>Safe to open? → Unplug it and let it cool: no</title>
+<path d="M577.67 731.5 L577.67 859" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M577.67 868 L573.17 859 L582.17 859 Z" fill="#6e7681"/>
+</g>
+<g class="line" data-id="edges[6]" data-kind="flow" data-from="unplug" data-to="safe">
+<title>Unplug it and let it cool → Safe to open?</title>
+<path d="M515.33 868 L515.33 852 Q515.33 844 523.33 844 L528.17 844 Q536.17 844 536.17 836 L536.17 761" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M536.17 752 L540.67 761 L531.67 761 Z" fill="#6e7681"/>
+</g>
+<g class="line" data-id="edges[7]" data-kind="flow" data-from="fault" data-to="fixable">
+<title>Find the fault → Fixable today?</title>
+<path d="M343 912 L343 951" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M343 960 L338.5 951 L347.5 951 Z" fill="#6e7681"/>
+</g>
+<g class="line" data-id="edges[8]" data-kind="flow" data-from="fixable" data-to="repair">
+<title>Fixable today? → Repair and test it: yes</title>
+<path d="M314.5 1030.83 L314.5 1061 Q314.5 1069 306.5 1069 L145 1069 Q137 1069 137 1077 L137 1152" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M137 1161 L132.5 1152 L141.5 1152 Z" fill="#6e7681"/>
+</g>
+<g class="line" data-id="edges[9]" data-kind="flow" data-from="fixable" data-to="parts">
+<title>Fixable today? → Write down the parts needed: no</title>
+<path d="M371.5 1030.83 L371.5 1152" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M371.5 1161 L367 1152 L376 1152 Z" fill="#6e7681"/>
+</g>
+<g class="line" data-id="edges[10]" data-kind="flow" data-from="repair" data-to="home">
+<title>Repair and test it → Take it home</title>
+<path d="M137 1205 L137 1268" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M137 1277 L132.5 1268 L141.5 1268 Z" fill="#6e7681"/>
+</g>
+<g class="line" data-id="edges[11]" data-kind="flow" data-from="parts" data-to="later">
+<title>Write down the parts needed → Come back with the part</title>
+<path d="M371.5 1205 L371.5 1268" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M371.5 1277 L367 1268 L376 1268 Z" fill="#6e7681"/>
+</g>
+<g class="area-names">
+<g class="area-name" data-area="visitor">
+<rect x="438.67" y="110" width="43.91" height="16" fill="#161a20"/>
+<text x="441.67" y="122.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="600" fill="#8b949e">Visitor</text>
+</g>
+<g class="area-name" data-area="cafe">
+<rect x="45" y="358" width="71.87" height="16" fill="#161a20"/>
+<text x="48" y="370.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="600" fill="#8b949e">Repair café</text>
+</g>
+<g class="area-name" data-area="desk">
+<rect x="448.17" y="398" width="91.71" height="16" fill="#1e2329"/>
+<text x="451.17" y="410.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="600" fill="#8b949e">Welcome desk</text>
+</g>
+<g class="area-name" data-area="bench">
+<rect x="61" y="646" width="82.49" height="16" fill="#1e2329"/>
+<text x="64" y="658.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="600" fill="#8b949e">Repair bench</text>
+</g>
+</g>
+<g class="line-labels">
+<g class="line-label" data-line="edges[4]">
+<title>Safe to open? → Find the fault: yes</title>
+<rect x="324.5" y="800" width="37" height="20" rx="10" fill="#161b22" stroke="#6e7681" stroke-width="1"/>
+<text x="343" y="814.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">yes</text>
+</g>
+<g class="line-label" data-line="edges[5]">
+<title>Safe to open? → Unplug it and let it cool: no</title>
+<rect x="562.17" y="800" width="31" height="20" rx="10" fill="#161b22" stroke="#6e7681" stroke-width="1"/>
+<text x="577.67" y="814.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">no</text>
+</g>
+<g class="line-label" data-line="edges[8]">
+<title>Fixable today? → Repair and test it: yes</title>
+<rect x="118.5" y="1093" width="37" height="20" rx="10" fill="#161b22" stroke="#6e7681" stroke-width="1"/>
+<text x="137" y="1107.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">yes</text>
+</g>
+<g class="line-label" data-line="edges[9]">
+<title>Fixable today? → Write down the parts needed: no</title>
+<rect x="356" y="1093" width="31" height="20" rx="10" fill="#161b22" stroke="#6e7681" stroke-width="1"/>
+<text x="371.5" y="1107.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">no</text>
+</g>
+</g>
+<g class="legend">
+<g class="legend-item" data-area="visitor">
+<g class="tag" data-area="visitor">
+<rect x="32" y="1361" width="44" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
+<text x="54" y="1372.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Visitor</text>
+</g>
+</g>
+<g class="legend-item" data-area="cafe">
+<g class="tag" data-area="cafe">
+<rect x="96" y="1361" width="67" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
+<text x="129.5" y="1372.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Repair café</text>
+</g>
+</g>
+<g class="legend-item" data-area="desk">
+<g class="tag" data-area="desk">
+<rect x="183" y="1361" width="84" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
+<text x="225" y="1372.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Welcome desk</text>
+</g>
+</g>
+<g class="legend-item" data-area="bench">
+<g class="tag" data-area="bench">
+<rect x="287" y="1361" width="76" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
+<text x="325" y="1372.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Repair bench</text>
+</g>
+</g>
+</g>
+</svg>
