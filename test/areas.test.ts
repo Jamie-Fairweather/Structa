@@ -865,10 +865,91 @@ describe("area boxes", () => {
     expect(lines(b).map((l) => lineEnds(l))).toEqual(lines(a).map((l) => lineEnds(l)));
   });
 
+  it("lays out class cards in area boxes too", async () => {
+    const shed = {
+      type: "class",
+      groupAreas: true,
+      areas: [
+        { id: "tools", label: "Garden tools" },
+        { id: "blades", label: "Blades", parent: "tools" },
+      ],
+      nodes: [
+        { id: "rake", label: "Rake", area: "tools", status: "new", properties: [{ text: "tines: int" }] },
+        { id: "shears", label: "Shears", area: "blades", methods: [{ text: "sharpen(): void" }] },
+        { id: "shed", label: "Shed" },
+      ],
+      edges: [
+        { from: "shed", to: "rake", kind: "association" },
+        { from: "shed", to: "shears", kind: "association" },
+      ],
+    };
+    const doc = await svgDoc(shed);
+    const [tools, blades] = areaBoxes(doc);
+
+    expect(inside(cardExtent(cardById(doc, "rake")), tools!.box, 1)).toBe(true);
+    expect(inside(cardExtent(cardById(doc, "shears")), blades!.box, 1)).toBe(true);
+    expect(inside(blades!.box, tools!.box, 1)).toBe(true);
+    expect(overlaps(cardExtent(cardById(doc, "shed")), tools!.box)).toBe(false);
+  });
+
   it("gives the same bytes every time", async () => {
     const first = await render(market(), opts);
     await render(bakery(), opts);
 
     expect((await render(market(), opts)).svg).toBe(first.svg);
+  });
+});
+
+describe("the legend's areas", () => {
+  function legendItems(doc: Document): Element[] {
+    const legend = allElements(doc).find((el) => el.getAttribute("class") === "legend");
+    return legend ? byClassIn(legend, "legend-item") : [];
+  }
+
+  it.each([false, true])("lists every area as a tag, in the order of the areas, after the statuses (groupAreas %s)", async (groupAreas) => {
+    // The cards use the areas in another order than they're listed in.
+    const input = { ...bakery(), groupAreas, nodes: [...bakery().nodes].reverse() };
+    input.nodes[0] = { ...input.nodes[0]!, status: "new" };
+    const doc = await svgDoc(input);
+
+    expect(legendItems(doc).map((item) => [item.getAttribute("data-status"), item.getAttribute("data-area")])).toEqual([
+      ["new", null],
+      [null, "shop"],
+      [null, "counter"],
+      [null, "bakehouse"],
+    ]);
+    expect(legendItems(doc).slice(1).map((item) => textLines(tagOf(item)!.tag))).toEqual([["Shop"], ["Counter"], ["Bakehouse"]]);
+  });
+
+  it("draws an area's legend tag just like the tags on its cards", async () => {
+    const doc = await svgDoc(bakery());
+    const onCard = tagOf(cardById(doc, "bake"))!;
+    const inLegend = tagOf(legendItems(doc).find((item) => item.getAttribute("data-area") === "bakehouse")!)!;
+    const look = (el: Element) => {
+      const rect = el.getElementsByTagName("rect")[0]!;
+      const text = el.getElementsByTagName("text")[0]!;
+      return [rect.getAttribute("fill"), rect.getAttribute("stroke"), rect.getAttribute("rx"), text.getAttribute("fill"), text.getAttribute("font-size")];
+    };
+
+    expect(look(inLegend.tag)).toEqual(look(onCard.tag));
+    expect([inLegend.box.width, inLegend.box.height]).toEqual([onCard.box.width, onCard.box.height]);
+  });
+
+  it("puts the legend's items in a row at the bottom, apart, with only areas when nothing has a status", async () => {
+    const doc = await svgDoc(bakery());
+    const boxes = legendItems(doc).map((item) => tagBox(item)!);
+    const lowest = Math.max(...cards(doc).map((card) => cardExtent(card).y + cardExtent(card).height));
+
+    expect(boxes).toHaveLength(3);
+    expect(new Set(boxes.map((b) => b.y)).size).toBe(1);
+    boxes.slice(1).forEach((b, i) => expect(b.x).toBeGreaterThan(boxes[i]!.x + boxes[i]!.width));
+    expect(boxes[0]!.y).toBeGreaterThan(lowest);
+  });
+
+  it("is left out with legend: false", async () => {
+    const doc = await svgDoc({ ...bakery(), legend: false });
+
+    expect(legendItems(doc)).toEqual([]);
+    expect(allElements(doc).some((el) => el.getAttribute("class") === "legend")).toBe(false);
   });
 });

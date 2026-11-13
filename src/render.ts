@@ -62,7 +62,7 @@ export async function render<F extends Format = "svg">(
   const header = buildHeader(diagram.title, diagram.description, theme.sizes);
   // Every card's status, its rows' (taken from the card included) and every line's.
   const statuses = [...cards.flatMap((card) => [card.status, ...card.rows.map((row) => row.status)]), ...lines.map((line) => line.status)];
-  const legend = diagram.legend ? buildLegend(statuses, theme.sizes) : undefined;
+  const legend = diagram.legend ? buildLegend(statuses, diagram.areas, theme.sizes) : undefined;
   const drawing = { scene, header, legend };
 
   const result: Partial<Outputs> = {};

@@ -4,6 +4,7 @@ import {
   entry,
   nearest,
   type AreaBox,
+  type AreaItem,
   type Badge,
   type Card,
   type Connector,
@@ -13,6 +14,7 @@ import {
   type Line,
   type LineLabel,
   type Row,
+  type StatusItem,
   type Tag,
   type TextLine,
 } from "../shapes";
@@ -186,23 +188,33 @@ function headerText(header: Header, at: Point, pen: Pen): string[] {
 function legendItems(legend: Legend, at: Point, pen: Pen): string[] {
   return [
     open("g", [["class", "legend"]]),
-    ...legend.items.flatMap((item) => [
-      open("g", [["class", "legend-item"], ...statusAttr(item.status)]),
-      el("line", [
-        ["class", "swatch"],
-        ["x1", at.x + item.swatch.x1],
-        ["y1", at.y + item.swatch.y],
-        ["x2", at.x + item.swatch.x2],
-        ["y2", at.y + item.swatch.y],
-        ["stroke", lineColour(item.status, pen.theme)],
-        ["stroke-width", pen.theme.sizes.line.width],
-        ["stroke-linecap", "round"],
-      ]),
-      ...badge(item.badge, at.x, at.y, pen),
-      "</g>",
-    ]),
+    ...legend.items.flatMap((item) => (item.kind === "status" ? statusItem(item, at, pen) : areaItem(item, at, pen))),
     "</g>",
   ];
+}
+
+/** A status in the legend: a short line in its line colour, then its badge. */
+function statusItem(item: StatusItem, at: Point, pen: Pen): string[] {
+  return [
+    open("g", [["class", "legend-item"], ...statusAttr(item.status)]),
+    el("line", [
+      ["class", "swatch"],
+      ["x1", at.x + item.swatch.x1],
+      ["y1", at.y + item.swatch.y],
+      ["x2", at.x + item.swatch.x2],
+      ["y2", at.y + item.swatch.y],
+      ["stroke", lineColour(item.status, pen.theme)],
+      ["stroke-width", pen.theme.sizes.line.width],
+      ["stroke-linecap", "round"],
+    ]),
+    ...badge(item.badge, at.x, at.y, pen),
+    "</g>",
+  ];
+}
+
+/** An area in the legend: its tag, as its cards show it. */
+function areaItem(item: AreaItem, at: Point, pen: Pen): string[] {
+  return [open("g", [["class", "legend-item"], ["data-area", item.tag.area]]), ...tag(item.tag, at.x, at.y, pen), "</g>"];
 }
 
 /**
