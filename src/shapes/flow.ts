@@ -1,3 +1,4 @@
+import type { Size } from "../geometry";
 // Text faces come from the input definitions, which check each field's text against them.
 import { CARD_DESCRIPTION_FACE, NOTE_LABEL_FACE, STEP_LABEL_FACE, type FlowNode, type FlowShape } from "../input";
 import type { Sizes } from "../theme";
@@ -9,7 +10,7 @@ interface Geometry {
   /** How wide its text may wrap. */
   readonly wrapWidth: number;
   /** Its outline's size for a block of text this big, at least `minWidth` wide and `minHeight` tall. */
-  size(text: { readonly width: number; readonly height: number }, minWidth: number, minHeight: number): { width: number; height: number };
+  size(text: Size, minWidth: number, minHeight: number): Size;
   outline(width: number, height: number): OutlineShape;
   marks?(width: number, height: number): Mark[];
   /** Where its badge and tag sit on its top border. */

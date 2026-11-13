@@ -1,7 +1,9 @@
 /**
  * The shared input definitions: the one description of the JSON format.
  * The validator (check.ts) and the JSON Schema (schema.ts) are both generated
- * from these, so they can't disagree. Every new field goes here.
+ * from these, so they can't disagree, and the input's TypeScript types are
+ * derived from them (see Checked), so those can't drift either. Every new
+ * field goes here.
  */
 import type { Problem } from "../errors";
 import type { FaceId } from "../text";
@@ -31,7 +33,11 @@ export const TEXT_KINDS: readonly TextKind[] = [TITLE, LABEL, DESCRIPTION, LINE_
 /** What a change does to a card, row or line: the same words the badges show. */
 export const STATUSES = ["new", "changed", "removed", "unchanged"] as const;
 export type Status = (typeof STATUSES)[number];
-const STATUS: Def = { kind: "choice", values: STATUSES, later: false };
+const STATUS: ChoiceDef<Status> = { kind: "choice", values: STATUSES, later: false };
+
+/** Which way a diagram flows: top to bottom, or left to right. */
+const DIRECTIONS = ["down", "right"] as const;
+export type Direction = (typeof DIRECTIONS)[number];
 
 /**
  * Node, edge, row and area ids: letters, digits and `-_.:`. Brackets can't
@@ -42,33 +48,59 @@ export const ID_PATTERN = "^[A-Za-z0-9_.:-]+$";
 /** How deep areas may nest: an area with no parent is 1 level deep. */
 export const MAX_AREA_DEPTH = 4;
 
-export type Def =
-  | ObjectDef
-  | ListDef
-  | TextDef
-  /** Node and edge ids are unique across the diagram; a row's id only within its card, and an area's among the areas. */
-  | { readonly kind: "id"; readonly of: "node" | "edge" | "row" | "area" }
-  | RefDef
-  | ChoiceDef
-  | { readonly kind: "boolean" }
-  /** A whole number from `min` to `max`. */
-  | { readonly kind: "count"; readonly min: number; readonly max: number }
-  | { readonly kind: "const"; readonly value: number }
-  | { readonly kind: "any" };
+export type Def = ObjectDef | ListDef | TextDef | IdDef | RefDef | ChoiceDef | BooleanDef | CountDef | ConstDef | AnyDef;
 
-const BOOLEAN: Def = { kind: "boolean" };
+/** Node and edge ids are unique across the diagram; a row's id only within its card, and an area's among the areas. */
+export interface IdDef {
+  readonly kind: "id";
+  readonly of: "node" | "edge" | "row" | "area";
+}
 
-export interface ObjectDef {
-  readonly kind: "object";
+export interface BooleanDef {
+  readonly kind: "boolean";
+}
+
+/** A whole number from `min` to `max`. */
+export interface CountDef {
+  readonly kind: "count";
+  readonly min: number;
+  readonly max: number;
+}
+
+export interface ConstDef<V extends number = number> {
+  readonly kind: "const";
+  readonly value: V;
+}
+
+/** Anything at all, unchecked: the nodes and edges of a diagram whose type isn't known. */
+export interface AnyDef {
+  readonly kind: "any";
+}
+
+const BOOLEAN: BooleanDef = { kind: "boolean" };
+const ANY: AnyDef = { kind: "any" };
+
+/** What an object definition says: everything but its kind. */
+interface ObjectSpec<F extends Field> {
   /** What one of these is called in messages: "node", "edge", "diagram". */
   readonly noun: string;
   /** Shown in the schema: what one of these is, and the rules it must follow that a schema can't say. */
   readonly description?: string;
-  readonly fields: readonly Field[];
+  readonly fields: readonly F[];
   /** Lets other fields through unchecked. Only for a type that isn't built yet, whose fields aren't known. */
   readonly otherFields?: "allowed";
   /** Checks across its fields, run once its fields have been checked. */
   readonly rules?: readonly Rule[];
+}
+
+/** An object, with its fields. `F` keeps each field's name and definition, for its checked type. */
+export interface ObjectDef<F extends Field = Field> extends ObjectSpec<F> {
+  readonly kind: "object";
+}
+
+/** An object definition built from `spec`, its fields kept in its type. */
+function object<F extends Field>(spec: ObjectSpec<F>): ObjectDef<F> {
+  return { kind: "object", ...spec };
 }
 
 /**
@@ -80,11 +112,11 @@ export type Rule = (checked: Fields, given: Fields, path: string) => readonly Re
 
 type Fields = { readonly [name: string]: unknown };
 
-export interface ListDef {
+export interface ListDef<I extends Def = Def> {
   readonly kind: "list";
   /** What the items are called in messages: "nodes", "edges". */
   readonly noun: string;
-  readonly items: Def;
+  readonly items: I;
   readonly maxItems: number;
   /** What to do about too many items. */
   readonly limitHint: string;
@@ -110,19 +142,23 @@ export interface RefDef {
 }
 
 /** One of a fixed list of words. With `later`, other values are "not supported yet". */
-export interface ChoiceDef {
+export interface ChoiceDef<V extends string = string> {
   readonly kind: "choice";
-  readonly values: readonly string[];
+  readonly values: readonly V[];
   readonly later: boolean;
 }
 
-export interface Field {
-  readonly name: string;
-  readonly def: Def;
-  readonly required: boolean;
+/** A field's default, filled in when it's left out. */
+type Default = string | boolean | readonly [];
+
+/** One field of an object. `N`, `D` and `R` keep its name, its definition and whether it's required, for its object's checked type. */
+export interface Field<N extends string = string, D extends Def = Def, R extends boolean = boolean> {
+  readonly name: N;
+  readonly def: D;
+  readonly required: R;
   /** Shown in the schema, and in the hint when a required field is missing. */
   readonly description: string;
-  readonly default?: string | boolean | readonly [];
+  readonly default?: Default;
   /**
    * Allowed only when every one of these conditions holds, as "about" is only
    * for notes. Such a field has no default. When several don't hold, the first
@@ -143,11 +179,18 @@ export interface Condition {
   readonly hint: string;
 }
 
-function required(name: string, def: Def, description: string): Field {
+function required<const N extends string, const D extends Def>(name: N, def: D, description: string): Field<N, D, true> {
   return { name, def, required: true, description };
 }
 
-function optional(name: string, def: Def, description: string, defaultValue?: Field["default"]): Field {
+function optional<const N extends string, const D extends Def>(name: N, def: D, description: string): Field<N, D, false>;
+function optional<const N extends string, const D extends Def>(
+  name: N,
+  def: D,
+  description: string,
+  defaultValue: Default,
+): Field<N, D, false> & { readonly default: Default };
+function optional(name: string, def: Def, description: string, defaultValue?: Default): Field {
   return defaultValue === undefined
     ? { name, def, required: false, description }
     : { name, def, required: false, description, default: defaultValue };
@@ -157,72 +200,107 @@ function optional(name: string, def: Def, description: string, defaultValue?: Fi
  * An optional field allowed only when every condition in `onlyWhen` holds.
  * It has no default: filling one in would give the field where it isn't allowed.
  */
-function conditional(name: string, def: Def, description: string, ...onlyWhen: [Condition, ...Condition[]]): Field {
+function conditional<const N extends string, const D extends Def>(
+  name: N,
+  def: D,
+  description: string,
+  ...onlyWhen: [Condition, ...Condition[]]
+): Field<N, D, false> {
   return { ...optional(name, def, description), onlyWhen };
 }
 
-/** The diagram types implemented so far, in the spec's order. Each has an example, examples/<type>.json. */
-export const DIAGRAM_TYPES: readonly string[] = ["class", "er", "flow", "architecture"];
+/**
+ * What input that passes the definition `D` is once checked: its text tidied
+ * and its defaults filled in. In an object, a field that's required or has a
+ * default is always there, and any other may be left out. The input's types
+ * are all derived from this.
+ */
+export type Checked<D extends Def> =
+  D extends ObjectDef<infer F>
+    ? Flat<{ readonly [P in Present<F> as P["name"]]: Checked<P["def"]> } & { readonly [P in Exclude<F, Present<F>> as P["name"]]?: Checked<P["def"]> }>
+    : D extends ListDef<infer I>
+      ? readonly Checked<I>[]
+      : D extends ChoiceDef<infer V>
+        ? V
+        : D extends ConstDef<infer V>
+          ? V
+          : D extends BooleanDef
+            ? boolean
+            : D extends CountDef
+              ? number
+              : D extends TextDef | IdDef | RefDef
+                ? string
+                : unknown;
+
+/** The fields among `F` that are always there once checked: required, or filled in with their default. */
+type Present<F> = F extends { readonly required: true } | { readonly default: unknown } ? F : never;
+
+/** A type written out as one object, so it reads plainly where it's shown. */
+export type Flat<T> = { [K in keyof T]: T[K] };
 
 const LIMITS = { nodes: 500, edges: 1000, areas: 100 } as const;
 const SPLIT_HINT = "split the diagram into smaller ones";
 
 /**
- * The top level of one diagram type. `direction` is its default: "right" for
+ * The fields at the top of a diagram whose `type` is one of `types`, with
+ * these nodes and edges, and `direction` as its default direction.
+ */
+function topFields<const T extends string, N extends Def, E extends Def>(types: readonly T[], node: N, edge: E, direction: Direction) {
+  return [
+    optional("version", { kind: "const", value: 1 }, "the format version; leave it out to mean the current one"),
+    required("type", { kind: "choice", values: types, later: true }, "the kind of diagram"),
+    optional("title", { kind: "text", text: TITLE, faces: [TITLE_FACE] }, "a title drawn at the top-left"),
+    optional("description", { kind: "text", text: DESCRIPTION, faces: [DESCRIPTION_FACE] }, "a sentence or two drawn under the title"),
+    optional(
+      "theme",
+      { kind: "choice", values: THEME_NAMES, later: false },
+      "the colours to draw in; the --theme flag and render()'s theme option win over it",
+      "light",
+    ),
+    optional(
+      "direction",
+      { kind: "choice", values: DIRECTIONS, later: false },
+      "which way the diagram flows: top to bottom or left to right; by default right for ER diagrams, down for the others",
+      direction,
+    ),
+    optional(
+      "groupAreas",
+      BOOLEAN,
+      "true draws a box round each area's cards, nested as the areas are; otherwise each card shows its area as a tag",
+      false,
+    ),
+    optional("legend", BOOLEAN, "false leaves out the legend of statuses and areas at the bottom", true),
+    optional(
+      "areas",
+      { kind: "list", noun: "areas", items: AREA, maxItems: LIMITS.areas, limitHint: SPLIT_HINT },
+      "named groupings that cards can be in, such as the parts of a system; drawn in this order",
+      [],
+    ),
+    required(
+      "nodes",
+      { kind: "list", noun: "nodes", items: node, maxItems: LIMITS.nodes, limitHint: SPLIT_HINT },
+      "the cards, in reading order; the order gently guides the layout",
+    ),
+    optional("edges", { kind: "list", noun: "edges", items: edge, maxItems: LIMITS.edges, limitHint: SPLIT_HINT }, "the lines between cards", []),
+  ];
+}
+
+/**
+ * One diagram type's definition: the top level of a diagram whose `type` is
+ * `type`, with its nodes and edges. `direction` is its default: "right" for
  * ER, "down" for the rest. `rules` check across its nodes and areas.
  */
-function diagram(node: Def, edge: Def, direction: "down" | "right", rules: readonly Rule[]): ObjectDef {
-  return {
-    kind: "object",
-    noun: "diagram",
-    rules,
-    fields: [
-      optional("version", { kind: "const", value: 1 }, "the format version; leave it out to mean the current one"),
-      required("type", { kind: "choice", values: DIAGRAM_TYPES, later: true }, "the kind of diagram"),
-      optional("title", { kind: "text", text: TITLE, faces: [TITLE_FACE] }, "a title drawn at the top-left"),
-      optional(
-        "description",
-        { kind: "text", text: DESCRIPTION, faces: [DESCRIPTION_FACE] },
-        "a sentence or two drawn under the title",
-      ),
-      optional(
-        "theme",
-        { kind: "choice", values: THEME_NAMES, later: false },
-        "the colours to draw in; the --theme flag and render()'s theme option win over it",
-        "light",
-      ),
-      optional(
-        "direction",
-        { kind: "choice", values: ["down", "right"], later: false },
-        "which way the diagram flows: top to bottom or left to right; by default right for ER diagrams, down for the others",
-        direction,
-      ),
-      optional(
-        "groupAreas",
-        BOOLEAN,
-        "true draws a box round each area's cards, nested as the areas are; otherwise each card shows its area as a tag",
-        false,
-      ),
-      optional("legend", BOOLEAN, "false leaves out the legend of statuses and areas at the bottom", true),
-      optional(
-        "areas",
-        { kind: "list", noun: "areas", items: AREA, maxItems: LIMITS.areas, limitHint: SPLIT_HINT },
-        "named groupings that cards can be in, such as the parts of a system; drawn in this order",
-        [],
-      ),
-      required(
-        "nodes",
-        { kind: "list", noun: "nodes", items: node, maxItems: LIMITS.nodes, limitHint: SPLIT_HINT },
-        "the cards, in reading order; the order gently guides the layout",
-      ),
-      optional(
-        "edges",
-        { kind: "list", noun: "edges", items: edge, maxItems: LIMITS.edges, limitHint: SPLIT_HINT },
-        "the lines between cards",
-        [],
-      ),
-    ],
-  };
+function diagram<const T extends string, N extends Def, E extends Def>(type: T, node: N, edge: E, direction: Direction, rules: readonly Rule[]) {
+  return { type, definition: object({ noun: "diagram", rules, fields: topFields([type], node, edge, direction) }) };
+}
+
+/**
+ * The fields every type shares, for a diagram whose `type` is one of
+ * `types`, with its nodes and edges left unchecked. The schema's top level
+ * shows these. Without known nodes, the rules across them can't be checked.
+ */
+export function sharedDefinition(types: readonly string[]) {
+  return object({ noun: "diagram", rules: [], fields: topFields(types, ANY, ANY, "down") });
 }
 
 /**
@@ -252,8 +330,7 @@ export const ABSTRACT_ROW_TEXT_FACE: FaceId = "mono-italic";
 /** An area's name, wherever it's drawn: on a card's tag, at the top-left of its box and in the legend. */
 export const AREA_LABEL_FACE: FaceId = "inter-semibold";
 
-const AREA: ObjectDef = {
-  kind: "object",
+const AREA = object({
   noun: "area",
   description:
     `A named grouping of cards. Areas nest through "parent", at most ${MAX_AREA_DEPTH} levels deep and never in a loop, ` +
@@ -267,10 +344,10 @@ const AREA: ObjectDef = {
     ),
     optional("parent", { kind: "ref", to: "area" }, "the id of the area this one is inside; leave it out for an outermost area"),
   ],
-};
+});
 
 /** A card's area field, shared by every type of node. */
-function areaField(description: string): Field {
+function areaField(description: string) {
   return optional("area", { kind: "ref", to: "area" }, description);
 }
 
@@ -405,8 +482,7 @@ const noteAreaRule: Rule = (checked) => {
   });
 };
 
-const FLOW_NODE: ObjectDef = {
-  kind: "object",
+const FLOW_NODE = object({
   noun: "node",
   fields: [
     required("id", { kind: "id", of: "node" }, "a unique id made of letters, digits and - _ . :"),
@@ -435,7 +511,7 @@ const FLOW_NODE: ObjectDef = {
       { field: "shape", value: "note", hint: 'remove "about", or make this node a note' },
     ),
   ],
-};
+});
 
 /** Lines join shapes; a note is joined to its shape by its own "about" instead. */
 const LINE_END: RefDef = {
@@ -454,9 +530,8 @@ const LINE_END: RefDef = {
  * them, and `extra` fields follow the shared ones. `description` says what
  * the schema can't.
  */
-function edge(end: RefDef, endNote: string, extra: readonly Field[], description?: string): ObjectDef {
-  return {
-    kind: "object",
+function edge<X extends Field = never>(end: RefDef, endNote: string, extra: readonly X[], description?: string) {
+  return object({
     noun: "edge",
     ...(description === undefined ? {} : { description }),
     fields: [
@@ -468,8 +543,11 @@ function edge(end: RefDef, endNote: string, extra: readonly Field[], description
       optional("emphasis", BOOLEAN, "true draws the line thicker, to point out the main path", false),
       ...extra,
     ],
-  };
+  });
 }
+
+/** The definition of what every type's edges share, with no fields of their own. */
+export type SharedEdgeDefinition = ReturnType<typeof edge<never>>;
 
 const FLOW_EDGE = edge(LINE_END, ", which can't be a note", []);
 
@@ -495,7 +573,7 @@ const ENUM: Condition = { field: "stereotype", value: "enum", hint: 'add "stereo
 const NOT_ENUM: Condition = { field: "stereotype", value: "enum", not: true, hint: "list an enum's rows in values" };
 
 /** How many rows a card leaves out on purpose. */
-const MORE: Def = { kind: "count", min: 1, max: 9999 };
+const MORE: CountDef = { kind: "count", min: 1, max: 9999 };
 
 /** The most rows one card may have, all its sections together. */
 const ROWS_PER_CARD = 100;
@@ -555,9 +633,8 @@ const MEMBER_TEXT = "the member as you'd write it, such as a name and type or a 
 const VALUE_TEXT = "the value as you'd write it, such as a constant's name";
 
 /** One row of a class: a property, a method or an enum value, called `noun` in messages, its text described by `text`. */
-function classRow(section: ClassSection, noun: string, text: string): ObjectDef {
-  return {
-    kind: "object",
+function classRow(section: ClassSection, noun: string, text: string) {
+  return object({
     noun,
     fields: [
       required("text", { kind: "text", text: ROW_TEXT, faces: [ROW_TEXT_FACE, ABSTRACT_ROW_TEXT_FACE] }, text),
@@ -571,7 +648,7 @@ function classRow(section: ClassSection, noun: string, text: string): ObjectDef 
       optional("abstract", BOOLEAN, "true draws the row's text in italics", false),
       optional("status", STATUS, "what the change does to this row; leave it out for no status"),
     ],
-  };
+  });
 }
 
 /** What a class must follow, which a schema can't say: how its rows' statuses agree with its own, and how many rows it may have. */
@@ -585,19 +662,28 @@ const CLASS_RULES =
  * abstract flag, its rows and its "more" count. In a class diagram every node
  * has them; in an architecture diagram only a class, so there `onlyClasses`
  * makes each one need "kind": "class" too.
+ *
+ * Each is typed as a field that may be left out, as it may be wherever it
+ * needs a condition. Only a class diagram's abstract flag, which has a
+ * default there, is in fact always there; reading a class fills it in anyway.
  */
-function classCardFields(onlyClasses: boolean): Field[] {
-  const field = (name: string, def: Def, description: string, own: readonly Condition[], defaultValue?: Field["default"]): Field => {
+function classCardFields(onlyClasses: boolean) {
+  const field = <const N extends string, const D extends Def>(
+    name: N,
+    def: D,
+    description: string,
+    own: readonly Condition[],
+    defaultValue?: Default,
+  ): Field<N, D, false> => {
     const onlyWhen = [
       ...(onlyClasses ? [{ field: "kind", value: "class", hint: `remove "${name}", or make this node "kind": "class"` }] : []),
       ...own,
     ];
     const [first, ...rest] = onlyWhen;
-    return first
-      ? conditional(name, def, `${description}${onlyClasses ? '. Only for "kind": "class"' : ""}`, first, ...rest)
-      : optional(name, def, description, defaultValue);
+    if (first) return conditional(name, def, `${description}${onlyClasses ? '. Only for "kind": "class"' : ""}`, first, ...rest);
+    return defaultValue === undefined ? optional(name, def, description) : optional(name, def, description, defaultValue);
   };
-  const rows = (section: ClassSection, noun: string, text: string): ListDef => ({
+  const rows = (section: ClassSection, noun: string, text: string): ListDef<ReturnType<typeof classRow>> => ({
     kind: "list",
     noun: section,
     items: classRow(section, noun, text),
@@ -619,8 +705,10 @@ function classCardFields(onlyClasses: boolean): Field[] {
   ];
 }
 
-const CLASS_NODE: ObjectDef = {
-  kind: "object",
+/** The names of a class card's own fields. */
+export type ClassCardField = ReturnType<typeof classCardFields>[number]["name"];
+
+const CLASS_NODE = object({
   noun: "node",
   description: `One class. An enum (stereotype "enum") lists values instead of properties and methods, and only an enum has values. ${CLASS_RULES}`,
   rules: [rowStatusRule(CLASS_SECTIONS), rowLimitRule],
@@ -636,7 +724,7 @@ const CLASS_NODE: ObjectDef = {
     optional("status", STATUS, "what the change does to this card; leave it out for no status"),
     ...classCardFields(false),
   ],
-};
+});
 
 /** The relationships a class line can show, as UML draws them. */
 export const CLASS_EDGE_KINDS = ["inherits", "implements", "composition", "aggregation", "association", "dependency"] as const;
@@ -736,8 +824,7 @@ export type ArchitectureKind = (typeof ARCHITECTURE_KINDS)[number];
 /** The kinds drawn as component cards: every kind but a class. */
 export type ComponentKind = Exclude<ArchitectureKind, "class">;
 
-const ARCHITECTURE_NODE: ObjectDef = {
-  kind: "object",
+const ARCHITECTURE_NODE = object({
   noun: "node",
   description:
     `One part of a system. Every kind but "class" is a component card with its kind's icon and word. ` +
@@ -764,7 +851,7 @@ const ARCHITECTURE_NODE: ObjectDef = {
     ),
     ...classCardFields(true),
   ],
-};
+});
 
 /** How one part of a system talks to another: a call it waits on, or a message or event it doesn't. */
 export const ARCHITECTURE_EDGE_KINDS = ["call", "async"] as const;
@@ -783,8 +870,7 @@ const COLUMNS_PER_TABLE = 100;
 const COLUMNS_HINT = 'split the table, or leave dull columns out and count them with "more"';
 
 /** One column of a table: a row of its card. */
-const COLUMN: ObjectDef = {
-  kind: "object",
+const COLUMN = object({
   noun: "column",
   fields: [
     required(
@@ -799,7 +885,7 @@ const COLUMN: ObjectDef = {
     optional("nullable", BOOLEAN, "true lets the column be null, drawn as ? after its type", false),
     optional("status", STATUS, "what the change does to this column; leave it out for no status"),
   ],
-};
+});
 
 /** A column is known by its name, so no two columns of a table share one, compared as tidied. */
 const uniqueColumnNames: Rule = (checked, _given, path) => {
@@ -823,8 +909,7 @@ const uniqueColumnNames: Rule = (checked, _given, path) => {
   });
 };
 
-const TABLE_NODE: ObjectDef = {
-  kind: "object",
+const TABLE_NODE = object({
   noun: "node",
   description:
     `One table. Its columns' names are unique within it. Its columns' statuses must agree with its own: a column in a new or removed table can only have the table's status, and takes it when it has none; ` +
@@ -849,14 +934,14 @@ const TABLE_NODE: ObjectDef = {
     ),
     optional("more", MORE, 'how many columns were left out on purpose, drawn as a muted "… N more" row'),
   ],
-};
+});
 
 /** How many rows at one end of a relationship go with one row at the other, drawn as that end's crow's foot. */
 export const CARDINALITIES = ["one", "zero-or-one", "many", "one-or-many", "zero-or-many"] as const;
-const CARDINALITY: Def = { kind: "choice", values: CARDINALITIES, later: false };
+const CARDINALITY: ChoiceDef<(typeof CARDINALITIES)[number]> = { kind: "choice", values: CARDINALITIES, later: false };
 
 /** A line's end that names a column: the name of a column of the table at that end, drawn as that column's name is. */
-const COLUMN_END: Def = { kind: "text", text: COLUMN_NAME, faces: [COLUMN_NAME_FACE] };
+const COLUMN_END: TextDef = { kind: "text", text: COLUMN_NAME, faces: [COLUMN_NAME_FACE] };
 
 /** Each end of an ER line that can name a column: the field naming its table, and the field naming the column. */
 const COLUMN_ENDS = [
@@ -939,29 +1024,17 @@ const ER_EDGE = edge({ kind: "ref", to: "node" }, "", [
   optional("enforced", BOOLEAN, "false shows a relationship the database doesn't enforce with a foreign key, drawn dotted", true),
 ]);
 
-/** Each implemented type's definition, in DIAGRAM_TYPES order. */
-export const DEFINITIONS: ReadonlyMap<string, ObjectDef> = new Map([
-  ["class", diagram(CLASS_NODE, CLASS_EDGE, "down", [areaRule, parentLoopRule])],
-  ["er", diagram(TABLE_NODE, ER_EDGE, "right", [areaRule, columnEndsRule])],
-  ["flow", diagram(FLOW_NODE, FLOW_EDGE, "down", [areaRule, noteAreaRule])],
-  ["architecture", diagram(ARCHITECTURE_NODE, ARCHITECTURE_EDGE, "down", [areaRule])],
-]);
+/** Each implemented type's definition. The registry of diagram types lists them, in the spec's order. */
+export const CLASS_DIAGRAM = diagram("class", CLASS_NODE, CLASS_EDGE, "down", [areaRule, parentLoopRule]);
+export const ER_DIAGRAM = diagram("er", TABLE_NODE, ER_EDGE, "right", [areaRule, columnEndsRule]);
+export const FLOW_DIAGRAM = diagram("flow", FLOW_NODE, FLOW_EDGE, "down", [areaRule, noteAreaRule]);
+export const ARCHITECTURE_DIAGRAM = diagram("architecture", ARCHITECTURE_NODE, ARCHITECTURE_EDGE, "down", [areaRule]);
 
 /**
- * The fields every type shares, with its nodes and edges left unchecked. The
- * schema's top level shows these. Without known nodes, the rules across them
- * can't be checked.
+ * What a diagram whose `type` names none of `types` is checked against: only
+ * the fields every type shares, as its other fields, and everything inside
+ * its nodes and edges, aren't known.
  */
-export const SHARED: ObjectDef = diagram({ kind: "any" }, { kind: "any" }, "down", []);
-
-/**
- * When the type isn't one we implement, only the fields every type shares can
- * be checked: its other fields, and everything inside its nodes and edges,
- * aren't known.
- */
-const ANY_TYPE: ObjectDef = { ...SHARED, otherFields: "allowed" };
-
-/** The definition to check a diagram against, chosen by its `type`. */
-export function diagramDefinition(type: unknown): ObjectDef {
-  return (typeof type === "string" && DEFINITIONS.get(type)) || ANY_TYPE;
+export function unknownTypeDefinition(types: readonly string[]): ObjectDef {
+  return { ...sharedDefinition(types), otherFields: "allowed" };
 }

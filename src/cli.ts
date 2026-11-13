@@ -2,7 +2,7 @@ import { constants, type Stats } from "node:fs";
 import { access, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
 import { basename, extname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { DIAGRAM_TYPES, jsonSchema } from "./input";
+import { DIAGRAM_TYPES, jsonSchema, type Diagram } from "./diagrams";
 import { DEFAULT_SCALE, SCALES, type Scale } from "./raster";
 import { render, type Format } from "./render";
 import { THEME_NAMES, type ThemeName } from "./theme";
@@ -28,7 +28,7 @@ type Command =
       readonly scale?: Scale;
     }
   | { readonly kind: "schema" }
-  | { readonly kind: "example"; readonly type: string }
+  | { readonly kind: "example"; readonly type: Diagram["type"] }
   | { readonly kind: "help" };
 
 const THEMES = THEME_NAMES.join(" or ");
@@ -269,8 +269,9 @@ function parseArgs(args: readonly string[]): Command | string {
     if (drawFlags) return "example takes no other arguments";
     if (type === undefined) return `example needs a diagram type (${types})`;
     if (more.length > 0) return `give one diagram type, not two (${JSON.stringify(type)} and ${JSON.stringify(more[0])})`;
-    if (!DIAGRAM_TYPES.includes(type)) return `unknown diagram type ${JSON.stringify(type)} (${types})`;
-    return { kind: "example", type };
+    const known = DIAGRAM_TYPES.find((name) => name === type);
+    if (known === undefined) return `unknown diagram type ${JSON.stringify(type)} (${types})`;
+    return { kind: "example", type: known };
   }
   if (input === undefined) return "give the diagram's JSON file, or - to read it from standard input";
   if (rest.length > 0) return `give one input, not two (${JSON.stringify(input)} and ${JSON.stringify(rest[0])})`;

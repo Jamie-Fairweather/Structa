@@ -1,8 +1,14 @@
 // Text faces come from the input definitions, which check each field's text against them.
-import { CARD_DESCRIPTION_FACE, COMPONENT_LABEL_FACE, KIND_WORD_FACE, type ComponentNode } from "../input";
+import { CARD_DESCRIPTION_FACE, COMPONENT_LABEL_FACE, KIND_WORD_FACE, type ArchitectureNode, type ComponentNode } from "../input";
 import { baseline, measure } from "../text";
 import type { Sizes } from "../theme";
-import { fit, paragraph, type CardBody, type TextBlock, type TextLine } from "./frame";
+import { classBody } from "./class";
+import { described, fit, paragraph, type CardBody, type TextBlock, type TextLine } from "./frame";
+
+/** An architecture diagram's card: a component card, or for a class the same class card a class diagram draws. */
+export function architectureBody(node: ArchitectureNode, sizes: Sizes, minWidth: number, minHeight: number): CardBody {
+  return node.kind === "class" ? classBody(node, sizes, minWidth) : componentBody(node, sizes, minWidth, minHeight);
+}
 
 /**
  * A component card. Every kind has the same rounded card: its kind's icon
@@ -49,7 +55,7 @@ export function componentBody(node: ComponentNode, sizes: Sizes, minWidth: numbe
     width,
     height,
     outline: { kind: "rounded", radius: sizes.card.radius },
-    tooltip: node.description === undefined ? named : `${named}: ${node.description}`,
+    tooltip: described(named, node.description),
     icon: { name: node.kind, x: left, y: top + (c.kindWord.lineHeight - iconSize) / 2, size: iconSize },
     texts: [
       word,

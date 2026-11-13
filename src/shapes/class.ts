@@ -13,7 +13,7 @@ import {
 } from "../input";
 import { baseline, measure, wrap, type FaceId } from "../text";
 import type { Sizes } from "../theme";
-import { cardHead, measureBadge, moreLine, rowBadge, rowBand, underline, type CardBody, type Row, type TextLine } from "./frame";
+import { cardHead, described, measureBadge, rowBadge, rowBand, rowSections, underline, type CardBody, type PlaceRow, type Row, type TextLine } from "./frame";
 
 const SYMBOLS = new Map<Visibility, string>([
   ["public", "+"],
@@ -43,8 +43,7 @@ export function classBody(node: ClassNode, sizes: Sizes, minWidth: number): Card
   const c = sizes.standardCard;
   const width = Math.max(c.width, minWidth);
   const nameFace = node.abstract || node.stereotype === "abstract" ? ABSTRACT_CLASS_NAME_FACE : CLASS_NAME_FACE;
-  const { texts, bottom } = cardHead(node.label, nameFace, node.description, CLASS_DESCRIPTION_FACE, width, sizes, node.stereotype);
-  let y = bottom;
+  const head = cardHead(node.label, nameFace, node.description, CLASS_DESCRIPTION_FACE, width, sizes, node.stereotype);
 
   // An enum has only its values; any other class only its members.
   const drawn: readonly ClassSection[] = node.stereotype === "enum" ? ENUM_SECTIONS : MEMBER_SECTIONS;
@@ -53,32 +52,15 @@ export function classBody(node: ClassNode, sizes: Sizes, minWidth: number): Card
   const textX = c.paddingX + (symbols ? measure("+ ", ROW_TEXT_FACE, sizes.row.fontSize) : 0);
 
   // Every section up to the last one with rows, empty ones included.
-  const sections = drawn.filter((_, i) => drawn.slice(i).some((section) => node[section].length > 0));
-  // The "… N more" line ends the last section, or has a section of its own on a class with no rows.
-  const count = Math.max(sections.length, node.more === undefined ? 0 : 1);
-  const dividers: number[] = [];
-  const rows: Row[] = [];
-  let more: TextLine | undefined;
-  for (let i = 0; i < count; i++) {
-    dividers.push(y);
-    y += c.sectionPaddingY;
-    const section = sections[i];
-    for (const member of section ? node[section] : []) {
-      const { row, height } = classRow(member, ROW_KINDS.get(section!)!, y, width, textX, sizes);
-      rows.push(row);
-      y += height;
-    }
-    if (i === count - 1 && node.more !== undefined) {
-      more = moreLine(node.more, y, textX, ROW_TEXT_FACE, sizes);
-      y += 2 * sizes.row.paddingY + sizes.row.lineHeight;
-    }
-    y += c.sectionPaddingY;
-  }
+  const sections = drawn
+    .filter((_, i) => drawn.slice(i).some((section) => node[section].length > 0))
+    .map((section) => node[section].map((member): PlaceRow => (top) => classRow(member, ROW_KINDS.get(section)!, top, width, textX, sizes)));
+  const more = node.more === undefined ? undefined : { count: node.more, x: textX, face: ROW_TEXT_FACE };
+  const { bottom, ...rows } = rowSections(sections, more, head.bottom, sizes);
 
   const named = node.stereotype === undefined ? node.label : `«${node.stereotype}» ${node.label}`;
-  const tooltip = node.description === undefined ? named : `${named}: ${node.description}`;
   const outline = { kind: "rounded", radius: sizes.card.radius } as const;
-  return { kind: "class", width, height: y, outline, tooltip, texts, dividers, rows, ...(more ? { more } : {}) };
+  return { kind: "class", width, height: bottom, outline, tooltip: described(named, node.description), texts: head.texts, ...rows };
 }
 
 /**

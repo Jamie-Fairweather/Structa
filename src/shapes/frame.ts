@@ -1,7 +1,8 @@
+import type { Box, Point } from "../geometry";
 import { AREA_LABEL_FACE, STEREOTYPE_FACE, type ArchitectureKind, type ComponentKind, type FlowShape, type Status } from "../input";
 import { baseline, measure, wrap, type FaceId } from "../text";
 import type { Sizes, ThemeColors } from "../theme";
-import { distanceToBox, entry, move, placeOutline, type Mark, type Outline, type OutlineShape, type Point } from "./outline";
+import { distanceToBox, entry, move, placeOutline, type Mark, type Outline, type OutlineShape } from "./outline";
 
 /** A line of text, positioned relative to the top-left corner of whatever holds it. */
 export interface TextLine {
@@ -26,13 +27,6 @@ export interface LevelLine {
   readonly x1: number;
   readonly x2: number;
   readonly y: number;
-}
-
-export interface Box {
-  readonly x: number;
-  readonly y: number;
-  readonly width: number;
-  readonly height: number;
 }
 
 /** The status word in a small pill. Its colours come from the status. */
@@ -536,14 +530,62 @@ function centred(text: string, face: FaceId, size: number, lineHeight: number, t
   };
 }
 
+/** One row of a card, placed from `top` down, and how tall it is. */
+export type PlaceRow = (top: number) => { readonly row: Row; readonly height: number };
+
+/** A card's "… N more" line: how many rows were left out, and where its text starts, in the face the rows are drawn in. */
+export interface More {
+  readonly count: number;
+  readonly x: number;
+  readonly face: FaceId;
+}
+
 /**
- * The muted "… N more" line, placed like a one-line row from `top` down, in
- * line with the rows' text, in the face the rows are drawn in.
+ * A standard card's sections of rows, from `top` down, each under a divider
+ * and padded above and below, its rows one after another. The muted "… N
+ * more" line ends the last section, or has a section of its own on a card
+ * with none. Returns the dividers' heights, the rows, the "more" line and
+ * where the last section ends.
  */
-export function moreLine(count: number, top: number, textX: number, face: FaceId, sizes: Sizes): TextLine {
+export function rowSections(
+  sections: readonly (readonly PlaceRow[])[],
+  more: More | undefined,
+  top: number,
+  sizes: Sizes,
+): { dividers: number[]; rows: Row[]; more?: TextLine; bottom: number } {
+  const { sectionPaddingY } = sizes.standardCard;
+  const all = sections.length === 0 && more !== undefined ? [[]] : sections;
+  const dividers: number[] = [];
+  const rows: Row[] = [];
+  let line: TextLine | undefined;
+  let y = top;
+  all.forEach((section, i) => {
+    dividers.push(y);
+    y += sectionPaddingY;
+    for (const place of section) {
+      const { row, height } = place(y);
+      rows.push(row);
+      y += height;
+    }
+    if (i === all.length - 1 && more !== undefined) {
+      line = moreLine(more, y, sizes);
+      y += 2 * sizes.row.paddingY + sizes.row.lineHeight;
+    }
+    y += sectionPaddingY;
+  });
+  return { dividers, rows, ...(line ? { more: line } : {}), bottom: y };
+}
+
+/** The muted "… N more" line, placed like a one-line row from `top` down, in line with the rows' text. */
+function moreLine({ count, x, face }: More, top: number, sizes: Sizes): TextLine {
   const r = sizes.row;
   const y = top + r.paddingY + baseline(face, r.fontSize, r.lineHeight);
-  return { text: `… ${count} more`, x: textX, y, face, size: r.fontSize, anchor: "start", color: "mutedText" };
+  return { text: `… ${count} more`, x, y, face, size: r.fontSize, anchor: "start", color: "mutedText" };
+}
+
+/** A tooltip naming something, with any description after it: "name: description". */
+export function described(name: string, description: string | undefined): string {
+  return description === undefined ? name : `${name}: ${description}`;
 }
 
 /**

@@ -1,8 +1,9 @@
+import type { Box } from "../geometry";
 // The area's name is drawn in the face the input definitions check it against.
 import { AREA_LABEL_FACE, type Area } from "../input";
 import { baseline, measure } from "../text";
 import type { Sizes } from "../theme";
-import type { Box, TextLine } from "./frame";
+import type { TextLine } from "./frame";
 
 /**
  * An area's box, sized before layout as far as it can be: ELK sizes it round
