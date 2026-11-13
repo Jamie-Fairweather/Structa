@@ -8,7 +8,6 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { releaseSkill, type Release } from "../scripts/lib/skill";
 import { readTtf, type TtfFont } from "../scripts/lib/ttf";
 import { render } from "../src/index";
-import { CHARACTER_RANGES } from "../src/text/faces";
 import { buildChangedProject, buildSkillForTest, type BuiltSkill } from "./helpers/skill";
 
 const examplesDir = fileURLToPath(new URL("../examples/", import.meta.url));
@@ -180,7 +179,30 @@ describe("the fonts inside structa.mjs", () => {
     "jetbrains-mono/JetBrainsMono-Italic.ttf",
   ];
   const postScriptName = (font: TtfFont) => font.names.find((n) => n.nameId === 6 && n.platformId === 3)?.value;
-  const inSharedRanges = (codePoint: number) => CHARACTER_RANGES.some(([first, last]) => codePoint >= first && codePoint <= last);
+  // The characters the spec keeps, written out: Basic Latin, Latin-1 Supplement and Latin Extended-A, plus common
+  // symbols such as arrows, …, •, ≤, ≥, quotes and dashes. Control characters are left out. × is in Latin-1.
+  const keptByTheSpec: readonly (readonly [first: number, last: number])[] = [
+    [0x0020, 0x007e], // Basic Latin, from the space to ~
+    [0x00a0, 0x00ff], // Latin-1 Supplement, from the no-break space to ÿ
+    [0x0100, 0x017f], // Latin Extended-A, Ā to ſ
+    [0x2010, 0x2015], // dashes: ‐ ‑ ‒ – — ―
+    [0x2018, 0x201f], // quotes: ‘ ’ ‚ ‛ “ ” „ ‟
+    [0x2020, 0x2022], // † ‡ •
+    [0x2026, 0x2026], // …
+    [0x2030, 0x2030], // ‰
+    [0x2032, 0x2033], // ′ ″
+    [0x2039, 0x203a], // ‹ ›
+    [0x20ac, 0x20ac], // €
+    [0x2122, 0x2122], // ™
+    [0x2190, 0x2195], // arrows: ← ↑ → ↓ ↔ ↕
+    [0x21d0, 0x21d5], // double arrows: ⇐ ⇑ ⇒ ⇓ ⇔ ⇕
+    [0x2212, 0x2212], // − (minus)
+    [0x221e, 0x221e], // ∞
+    [0x2248, 0x2248], // ≈
+    [0x2260, 0x2260], // ≠
+    [0x2264, 0x2265], // ≤ ≥
+  ];
+  const inSharedRanges = (codePoint: number) => keptByTheSpec.some(([first, last]) => codePoint >= first && codePoint <= last);
 
   function shippedFonts(): TtfFont[] {
     const module = readFileSync(join(skill.dir, "structa.mjs"), "utf8");
