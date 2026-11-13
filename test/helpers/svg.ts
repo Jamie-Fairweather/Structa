@@ -290,8 +290,12 @@ function drawnPoints(el: Element): Point[] {
 /** How close anything a line or a note's connector draws comes to any card's badge or tag: infinitely far when there are none. */
 export function nearestBadgeOrTag(doc: Document, el: Element): number {
   const boxes = cards(doc).flatMap((card) => [badgeBox(card), tagBox(card)].filter((box) => box !== undefined));
-  const points = drawnPoints(el);
-  return Math.min(Number.POSITIVE_INFINITY, ...boxes.map((box) => Math.min(...points.map((p) => distanceOutside(p, box)))));
+  return Math.min(Number.POSITIVE_INFINITY, ...boxes.map((box) => distanceToDrawn(el, box)));
+}
+
+/** How close anything a line or a note's connector draws comes to a box: 0 when it touches it or runs inside it. */
+export function distanceToDrawn(el: Element, box: Box): number {
+  return Math.min(...drawnPoints(el).map((p) => distanceOutside(p, box)));
 }
 
 /** How far a point is outside a box (0 when on its outline or inside it). */

@@ -152,14 +152,17 @@ export const SIZES = {
   /**
    * Where lines meet a card's top: at least `clearance` from its badge and
    * its tag, so neither they nor the marks at their ends touch them, and
-   * `pitch` apart. A card is widened to leave them that room.
+   * `pitch` apart. A card is widened to leave them that room. Lines keep
+   * `clearance` from an area's name too.
    */
   landing: { clearance: 12, pitch: 16 },
   /**
    * An area box: its cards and the areas inside it `padding` in from its
    * sides and bottom, and below its name. The name sits `nameTop` below the
    * box's top, `padding` in from its left, with `nameGap` under it. Behind
-   * it, `nameMargin` wider each side, it covers whatever runs under it.
+   * it, `nameMargin` wider each side, it covers whatever runs under it. When
+   * a line would come within the landing's `clearance` of that, the cards
+   * and areas inside start that far right of it instead.
    */
   area: { radius: 12, padding: 16, nameSize: 12, nameLineHeight: 16, nameTop: 8, nameGap: 8, nameMargin: 3, borderWidth: 1 },
   /**

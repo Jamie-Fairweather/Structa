@@ -19,8 +19,14 @@ export interface AreaBox {
   readonly padding: { readonly top: number; readonly side: number; readonly bottom: number };
   /** The area's name at the top-left, relative to the box's top-left corner. */
   readonly name: Omit<TextLine, "color">;
-  /** Round the name, a little wider than it: covered in the box's colour, so a line under it doesn't cut through it. */
+  /** Round the name, a little wider than it: covered in the box's colour, so a line that ran under it wouldn't cut through it. */
   readonly nameBox: Box;
+  /**
+   * How far lines keep from `nameBox`, so that neither they nor the marks
+   * at their ends touch it. When a line would come closer, layout moves
+   * everything in the box that far right of the name.
+   */
+  readonly nameClearance: number;
 }
 
 /**
@@ -55,6 +61,8 @@ export function buildAreaBoxes(areas: readonly Area[], sizes: Sizes): AreaBox[] 
         anchor: "start",
       },
       nameBox: { x: s.padding - s.nameMargin, y: s.nameTop, width: nameWidth + 2 * s.nameMargin, height: s.nameLineHeight },
+      // Lines keep as far from an area's name as from a card's badge and tag.
+      nameClearance: sizes.landing.clearance,
     };
   });
 }

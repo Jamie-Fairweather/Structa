@@ -15,6 +15,7 @@ import {
   connectors,
   depthInShape,
   depthInTag,
+  distanceToDrawn,
   distanceToShape,
   drawnTextBoxes,
   lineEnds,
@@ -865,6 +866,115 @@ describe("area boxes", () => {
     expect(distanceToShape(end, cardById(doc, "healthy"))).toBeLessThanOrEqual(1);
   });
 
+  /**
+   * Three vans unloading at a cold store, every line into its one card, at
+   * the top-left of its box: inside a depot's box too, at its top-left, when `nested`.
+   */
+  function unloading(direction: "down" | "right", nested: boolean) {
+    return {
+      type: "architecture",
+      direction,
+      groupAreas: true,
+      areas: [
+        ...(nested ? [{ id: "depot", label: "Riverside depot" }] : []),
+        { id: "store", label: "Cold store", ...(nested ? { parent: "depot" } : {}) },
+      ],
+      nodes: [
+        { id: "farm", label: "Farm van", kind: "external" },
+        { id: "bakery", label: "Bakery van", kind: "external" },
+        { id: "returns", label: "Returns desk", kind: "ui" },
+        { id: "shelf", label: "Dairy shelf", kind: "database", area: "store" },
+      ],
+      edges: [
+        { from: "farm", to: "shelf", label: "milk" },
+        { from: "bakery", to: "shelf" },
+        { from: "returns", to: "shelf" },
+      ],
+    };
+  }
+
+  // Going right, lines come into a card from its left, below the name, so
+  // they keep clear of it without being moved: those cases check they still do.
+  it.each([
+    [false, "down"],
+    [false, "right"],
+    [true, "down"],
+    [true, "right"],
+  ] as const)("keeps the lines into a card at the top-left of an area box clear of the area's name (nested %s), direction %s", async (nested, direction) => {
+    const doc = await svgDoc(unloading(direction, nested));
+
+    expect(areaBoxes(doc)).toHaveLength(nested ? 2 : 1);
+    for (const { id, backing } of areaBoxes(doc)) {
+      for (const line of lines(doc)) {
+        expect(distanceToDrawn(line, rectBox(backing)), `${line.getAttribute("data-from")} under ${id}'s name`).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  /**
+   * An order taken, then served in the kitchen. Going down, the one line
+   * comes straight down into the middle of the kitchen's one shape, just past
+   * the end of the kitchen's short name, so its arrowhead, wider than the
+   * line, would reach under the name.
+   */
+  function serving(direction: "down" | "right") {
+    return {
+      type: "flow",
+      direction,
+      groupAreas: true,
+      areas: [{ id: "kitchen", label: "Kitchen" }],
+      nodes: [
+        { id: "order", label: "Take the order", shape: "start" },
+        { id: "served", label: "Served", shape: "end", area: "kitchen" },
+      ],
+      edges: [{ from: "order", to: "served" }],
+    };
+  }
+
+  /**
+   * A bakery's customers, outside its box, and their orders and deliveries
+   * in it. Going down, the relationship into the orders table, at the
+   * top-left of the box, would run down under the bakery's name.
+   */
+  function ordering(direction: "down" | "right") {
+    const table = (id: string, area: string | undefined, column: Obj) => ({
+      id,
+      label: id,
+      ...(area ? { area } : {}),
+      columns: [{ name: "id", type: "uuid", pk: true }, column],
+    });
+    return {
+      type: "er",
+      direction,
+      groupAreas: true,
+      areas: [{ id: "bakery", label: "Bakery" }],
+      nodes: [
+        table("customers", undefined, { name: "name", type: "text" }),
+        table("orders", "bakery", { name: "loaves", type: "int" }),
+        table("deliveries", "bakery", { name: "street", type: "text" }),
+      ],
+      edges: [
+        { from: "customers", to: "orders", fromCardinality: "one", toCardinality: "zero-or-many" },
+        { from: "customers", to: "deliveries", fromCardinality: "one", toCardinality: "zero-or-many" },
+      ],
+    };
+  }
+
+  it.each([
+    ["a flowchart's arrowhead", "down", serving],
+    ["a flowchart's arrowhead", "right", serving],
+    ["a relationship's crow's feet", "down", ordering],
+    ["a relationship's crow's feet", "right", ordering],
+  ] as const)("keeps a line and the marks at its end clear of the name of the area it comes into: %s, direction %s", async (_, direction, diagram) => {
+    const doc = await svgDoc(diagram(direction));
+
+    for (const { id, backing } of areaBoxes(doc)) {
+      for (const line of lines(doc)) {
+        expect(distanceToDrawn(line, rectBox(backing)), `${line.getAttribute("data-from")} to ${line.getAttribute("data-to")} near ${id}'s name`).toBeGreaterThan(0);
+      }
+    }
+  });
+
   it("puts a note about a shape in that shape's box, and a note in an area in its box", async () => {
     const doc = await svgDoc(nursery());
     const boxes = new Map(areaBoxes(doc).map(({ id, box }) => [id, box]));
@@ -1038,6 +1148,20 @@ describe("every example with areas", () => {
     }
     expect(areaBoxes(doc)).toHaveLength(input.groupAreas ? input.areas.length : 0);
   });
+
+  it.each(examples.flatMap((example) => (["down", "right"] as const).map((direction) => ({ ...example, direction }))))(
+    "runs no line or note's connector under an area's name, with the boxes drawn: $file, direction $direction",
+    async ({ input, direction }) => {
+      const doc = await svgDoc({ ...input, groupAreas: true, direction });
+
+      for (const { id, backing } of areaBoxes(doc)) {
+        for (const line of [...lines(doc), ...connectors(doc)]) {
+          const name = line.getAttribute("data-id") ?? `the note ${line.getAttribute("data-from")}'s connector`;
+          expect(distanceToDrawn(line, rectBox(backing)), `${name} under ${id}'s name`).toBeGreaterThan(0);
+        }
+      }
+    },
+  );
 });
 
 describe("the legend's areas", () => {
