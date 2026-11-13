@@ -16,7 +16,8 @@
     "test": "bun run generate && vitest run",
     "build": "bun run generate && bun scripts/build.ts",
     "gallery": "bun run build && bun scripts/gallery.ts",
-    "release": "bun run generate && bun scripts/release.ts"
+    "release": "bun run generate && bun scripts/release.ts",
+    "readme-images": "bun run build && bun scripts/readme-images.ts"
   },
   "devDependencies": {
     "@commitlint/cli": "21.2.4",
