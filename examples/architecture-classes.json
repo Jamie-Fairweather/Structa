@@ -1,0 +1,47 @@
+{
+  "type": "architecture",
+  "title": "Parcel lockers: choosing a locker size",
+  "description": "Bookings name a size, so small parcels stop taking the big lockers.",
+  "nodes": [
+    { "id": "app", "label": "Locker app", "kind": "ui", "status": "changed", "description": "Adds a size picker" },
+    { "id": "api", "label": "Locker API", "kind": "api", "status": "unchanged" },
+    {
+      "id": "booking",
+      "label": "LockerBooking",
+      "kind": "class",
+      "status": "changed",
+      "properties": [
+        { "text": "lockerId: LockerId", "visibility": "private" },
+        { "text": "size: LockerSize", "visibility": "private", "status": "new" },
+        { "text": "anyFree: bool", "visibility": "private", "status": "removed" }
+      ],
+      "methods": [
+        { "text": "hold(parcel: Parcel): Hold", "visibility": "public", "status": "changed" },
+        { "text": "fits(parcel: Parcel): bool", "visibility": "public", "status": "new" },
+        { "text": "release(): void", "visibility": "public" }
+      ],
+      "more": 3
+    },
+    {
+      "id": "size",
+      "label": "LockerSize",
+      "kind": "class",
+      "stereotype": "enum",
+      "status": "new",
+      "values": [{ "text": "SMALL" }, { "text": "MEDIUM" }, { "text": "LARGE" }]
+    },
+    { "id": "store", "label": "Bookings", "kind": "database", "status": "changed", "description": "Adds a size column" },
+    { "id": "events", "label": "Locker events", "kind": "queue" },
+    { "id": "stats", "label": "Size report", "kind": "job", "status": "new", "description": "Weekly use of each size" },
+    { "id": "legacy", "label": "Free-locker finder", "kind": "service", "status": "removed" }
+  ],
+  "edges": [
+    { "from": "app", "to": "api", "label": "POST /bookings", "status": "changed", "emphasis": true },
+    { "from": "api", "to": "booking", "label": "hold", "emphasis": true },
+    { "from": "booking", "to": "size", "status": "new" },
+    { "from": "booking", "to": "store", "label": "save", "status": "changed", "emphasis": true },
+    { "from": "booking", "to": "events", "kind": "async", "label": "held" },
+    { "from": "stats", "to": "events", "kind": "async", "label": "read holds", "status": "new" },
+    { "from": "api", "to": "legacy", "status": "removed" }
+  ]
+}

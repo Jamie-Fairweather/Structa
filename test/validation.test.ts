@@ -73,16 +73,16 @@ describe("the top level", () => {
 
   it("requires a type", async () => {
     expect(await problems(pondWith((p) => delete p.type))).toEqual([
-      { path: "type", message: 'missing required field "type"', hint: 'add "type": the kind of diagram, "class" or "flow"' },
+      { path: "type", message: 'missing required field "type"', hint: 'add "type": the kind of diagram, "class", "flow" or "architecture"' },
     ]);
   });
 
   it.each([
     ["er", '"er" is not supported yet'],
-    ["architecture", '"architecture" is not supported yet'],
+    ["sequence", '"sequence" is not supported yet'],
     [7, "7 is not a valid type"],
   ])("accepts only implemented types, not %j", async (type, message) => {
-    expect(await problems({ ...pond(), type })).toEqual([{ path: "type", message, hint: 'use "class" or "flow"' }]);
+    expect(await problems({ ...pond(), type })).toEqual([{ path: "type", message, hint: 'use "class", "flow" or "architecture"' }]);
   });
 
   it("doesn't guess at the fields of a type it doesn't support", async () => {
@@ -93,7 +93,7 @@ describe("the top level", () => {
       edges: [{ fromColumn: "id" }],
     };
 
-    expect(await problems(tables)).toEqual([{ path: "type", message: '"er" is not supported yet', hint: 'use "class" or "flow"' }]);
+    expect(await problems(tables)).toEqual([{ path: "type", message: '"er" is not supported yet', hint: 'use "class", "flow" or "architecture"' }]);
   });
 
   it("requires nodes", async () => {

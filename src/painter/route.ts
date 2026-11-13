@@ -28,6 +28,18 @@ export function roundedRoute(points: readonly Point[], radius: number, endGap: n
 
 /** A filled triangle with its tip on the route's last point, pointing along the last segment. */
 export function arrowhead(points: readonly Point[], length: number, width: number): string {
+  const { tip, left, right } = arrowCorners(points, length, width);
+  return `M${xy(tip)} L${xy(left)} L${xy(right)} Z`;
+}
+
+/** An open arrowhead: two strokes meeting at its tip on the route's last point, pointing along the last segment. */
+export function openArrowhead(points: readonly Point[], length: number, width: number): string {
+  const { tip, left, right } = arrowCorners(points, length, width);
+  return `M${xy(left)} L${xy(tip)} L${xy(right)}`;
+}
+
+/** The tip and the two back corners of an arrowhead on the route's last point. */
+function arrowCorners(points: readonly Point[], length: number, width: number): { tip: Point; left: Point; right: Point } {
   const pts = withoutRepeats(points);
   const tip = pts[pts.length - 1]!;
   const from = pts[pts.length - 2] ?? { x: tip.x, y: tip.y - 1 };
@@ -36,9 +48,11 @@ export function arrowhead(points: readonly Point[], length: number, width: numbe
   const uy = (tip.y - from.y) / len;
   const base = { x: tip.x - ux * length, y: tip.y - uy * length };
   const half = width / 2;
-  const left = { x: base.x - uy * half, y: base.y + ux * half };
-  const right = { x: base.x + uy * half, y: base.y - ux * half };
-  return `M${xy(tip)} L${xy(left)} L${xy(right)} Z`;
+  return {
+    tip,
+    left: { x: base.x - uy * half, y: base.y + ux * half },
+    right: { x: base.x + uy * half, y: base.y - ux * half },
+  };
 }
 
 function withoutRepeats(points: readonly Point[]): Point[] {

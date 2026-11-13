@@ -1,0 +1,28 @@
+{
+  "type": "architecture",
+  "title": "Parcel lockers",
+  "description": "How a customer books a locker, and how the door code reaches them.",
+  "nodes": [
+    { "id": "customer", "label": "Customer", "kind": "actor" },
+    { "id": "app", "label": "Locker app", "kind": "ui", "description": "iOS and Android" },
+    { "id": "scanner", "label": "Barcode reader", "kind": "library" },
+    { "id": "api", "label": "Locker API", "kind": "api" },
+    { "id": "bookings", "label": "Booking service", "kind": "service", "description": "Holds a locker for 48 hours" },
+    { "id": "codes", "label": "Door codes", "kind": "cache" },
+    { "id": "store", "label": "Bookings", "kind": "database" },
+    { "id": "events", "label": "Locker events", "kind": "queue" },
+    { "id": "sms", "label": "SMS gateway", "kind": "external" },
+    { "id": "sweep", "label": "Expiry sweep", "kind": "job", "description": "Every night at 02:00" }
+  ],
+  "edges": [
+    { "from": "customer", "to": "app", "label": "books a locker" },
+    { "from": "app", "to": "scanner", "label": "scan parcel" },
+    { "from": "app", "to": "api", "label": "POST /bookings" },
+    { "from": "api", "to": "bookings" },
+    { "from": "bookings", "to": "codes", "label": "store code" },
+    { "from": "bookings", "to": "store" },
+    { "from": "bookings", "to": "events", "kind": "async", "label": "booking made" },
+    { "from": "events", "to": "sms", "kind": "async", "label": "send code" },
+    { "from": "sweep", "to": "store", "label": "release expired" }
+  ]
+}

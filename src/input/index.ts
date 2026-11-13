@@ -4,7 +4,9 @@ import { check } from "./check";
 import {
   CLASS_SECTIONS,
   diagramDefinition,
+  type ARCHITECTURE_EDGE_KINDS,
   type CLASS_EDGE_KINDS,
+  type ComponentKind,
   type FlowShape,
   type Status,
   type STEREOTYPES,
@@ -20,9 +22,11 @@ export {
   CLASS_DESCRIPTION_FACE,
   CLASS_NAME_FACE,
   CLASS_SECTIONS,
+  COMPONENT_LABEL_FACE,
   DESCRIPTION_FACE,
   DIAGRAM_TYPES,
   ENUM_SECTIONS,
+  KIND_WORD_FACE,
   LINE_LABEL_FACE,
   MEMBER_SECTIONS,
   NOTE_LABEL_FACE,
@@ -31,7 +35,9 @@ export {
   STEP_LABEL_FACE,
   STEREOTYPE_FACE,
   TITLE_FACE,
+  type ArchitectureKind,
   type ClassSection,
+  type ComponentKind,
   type FlowShape,
   type Status,
 } from "./definitions";
@@ -113,6 +119,30 @@ export interface ClassNode {
   readonly more?: number;
 }
 
+/** A component of an architecture diagram: any kind but a class, which has a class card. */
+export interface ComponentNode {
+  readonly id: string;
+  /** Tidied, like every text field. */
+  readonly label: string;
+  readonly description?: string;
+  /** The id of the innermost area the card is in. */
+  readonly area?: string;
+  readonly status?: Status;
+  readonly kind: ComponentKind;
+}
+
+/** A class in an architecture diagram, drawn as a class card. */
+export interface ArchitectureClassNode extends ClassNode {
+  readonly kind: "class";
+}
+
+export type ArchitectureNode = ComponentNode | ArchitectureClassNode;
+
+export interface ArchitectureEdge extends FlowEdge {
+  /** "call" when the input leaves it out. */
+  readonly kind: (typeof ARCHITECTURE_EDGE_KINDS)[number];
+}
+
 /** Which way the diagram flows. */
 export type Direction = "down" | "right";
 
@@ -135,7 +165,8 @@ interface DiagramBase<T extends string, N, E> {
 
 export type FlowDiagram = DiagramBase<"flow", FlowNode, FlowEdge>;
 export type ClassDiagram = DiagramBase<"class", ClassNode, ClassEdge>;
-export type Diagram = FlowDiagram | ClassDiagram;
+export type ArchitectureDiagram = DiagramBase<"architecture", ArchitectureNode, ArchitectureEdge>;
+export type Diagram = FlowDiagram | ClassDiagram | ArchitectureDiagram;
 
 export type ParseResult =
   | { readonly ok: true; readonly diagram: Diagram }
@@ -159,9 +190,19 @@ export function parseDiagram(input: unknown): ParseResult {
 
   // Without problems, the checked value has exactly the shape the definitions describe, less the ids made here.
   const diagram = checked.value as Omit<Diagram, "nodes" | "edges"> & {
-    nodes: readonly (FlowNode | WithoutIds<ClassNode>)[];
+    nodes: readonly (FlowNode | WithoutIds<ClassNode> | ComponentNode | WithoutIds<ArchitectureClassNode>)[];
     edges: readonly (Omit<FlowEdge, "id"> & { id?: string })[];
   };
+  const nodes =
+    diagram.type === "class"
+      ? (diagram.nodes as WithoutIds<ClassNode>[]).map(classNode)
+      : diagram.type === "architecture"
+        ? (diagram.nodes as (ComponentNode | WithoutIds<ArchitectureClassNode>)[]).map((node) =>
+            node.kind === "class" ? { ...classNode(node), kind: "class" as const } : node,
+          )
+        : diagram.groupAreas
+          ? notesInAreas(diagram.nodes as FlowNode[])
+          : (diagram.nodes as FlowNode[]);
   return {
     ok: true,
     diagram: {
@@ -173,12 +214,7 @@ export function parseDiagram(input: unknown): ParseResult {
       groupAreas: diagram.groupAreas,
       legend: diagram.legend,
       areas: diagram.areas,
-      nodes:
-        diagram.type === "class"
-          ? (diagram.nodes as WithoutIds<ClassNode>[]).map(classNode)
-          : diagram.groupAreas
-            ? notesInAreas(diagram.nodes as FlowNode[])
-            : (diagram.nodes as FlowNode[]),
+      nodes,
       edges: diagram.edges.map((edge, i) => ({ ...edge, id: edge.id ?? `edges[${i}]` })),
     } as Diagram,
   };
@@ -197,15 +233,21 @@ function notesInAreas(nodes: readonly FlowNode[]): FlowNode[] {
   });
 }
 
-/** A class node as checked: a list left out isn't there, and rows may have no id yet. */
-type WithoutIds<N extends ClassNode> = Omit<N, (typeof CLASS_SECTIONS)[number]> & {
+/**
+ * A class node as checked: a list left out isn't there, and rows may have no
+ * id yet. The abstract flag may be missing too: in an architecture diagram,
+ * where only a class may have it, it has no default.
+ */
+type WithoutIds<N extends ClassNode> = Omit<N, (typeof CLASS_SECTIONS)[number] | "abstract"> & {
+  readonly abstract?: boolean;
+} & {
   readonly [section in (typeof CLASS_SECTIONS)[number]]?: readonly (Omit<ClassRow, "id"> & { id?: string })[];
 };
 
 /**
- * Gives the card every list, empty when left out, and every row its id (its
- * own, or its section and position) and its status: a row without one in a
- * new or removed card takes the card's.
+ * Gives the card every list, empty when left out, its abstract flag, false
+ * when left out, and every row its id (its own, or its section and position)
+ * and its status: a row without one in a new or removed card takes the card's.
  */
 function classNode(node: WithoutIds<ClassNode>): ClassNode {
   const inherited = node.status === "new" || node.status === "removed" ? node.status : undefined;
@@ -215,5 +257,5 @@ function classNode(node: WithoutIds<ClassNode>): ClassNode {
       return { ...row, id: row.id ?? `${section}[${i}]`, ...(status === undefined ? {} : { status }) };
     }),
   );
-  return { ...node, properties: properties!, methods: methods!, values: values! };
+  return { ...node, abstract: node.abstract ?? false, properties: properties!, methods: methods!, values: values! };
 }

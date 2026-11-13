@@ -156,10 +156,10 @@ export function check(def: ObjectDef, input: unknown): { value: unknown; problem
       const at = fieldPath(path, field.name);
       const fieldValue = given(field.name);
       if (fieldValue !== undefined) {
-        // A field given without its condition is reported as a whole: what's inside it doesn't matter.
-        if (field.onlyWhen && !allowedHere(def, field.onlyWhen, given(field.onlyWhen.field))) {
-          report(at, conditionMessage(def, field.name, field.onlyWhen), field.onlyWhen.hint);
-        } else result[field.name] = walk(field.def, fieldValue, at, field);
+        // A field given without its conditions is reported as a whole, at the first that fails: what's inside it doesn't matter.
+        const unmet = field.onlyWhen?.find((condition) => !allowedHere(def, condition, given(condition.field)));
+        if (unmet) report(at, conditionMessage(def, field.name, unmet), unmet.hint);
+        else result[field.name] = walk(field.def, fieldValue, at, field);
       } else if (field.required) report(at, `missing required field "${field.name}"`, missingHint(field));
       else if (field.default !== undefined) {
         result[field.name] = field.default;

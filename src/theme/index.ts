@@ -37,6 +37,8 @@ export interface ThemeColors {
   readonly divider: string;
   readonly text: string;
   readonly mutedText: string;
+  /** A component card's icon. */
+  readonly icon: string;
   /** Lines with no status, and unchanged lines. */
   readonly line: string;
   /** A note's dotted line to the shape it's about. */
@@ -74,6 +76,7 @@ const COLORS: { readonly [name in ThemeName]: ThemeColors } = {
     divider: "#d1d9e0",
     text: "#1f2328",
     mutedText: "#59636e",
+    icon: "#59636e",
     line: "#8c959f",
     connector: "#8c959f",
     fadedOpacity: 0.55,
@@ -104,6 +107,7 @@ const COLORS: { readonly [name in ThemeName]: ThemeColors } = {
     divider: "#30363d",
     text: "#e6edf3",
     mutedText: "#8b949e",
+    icon: "#8b949e",
     line: "#6e7681",
     connector: "#6e7681",
     fadedOpacity: 0.5,
@@ -159,6 +163,8 @@ export const SIZES = {
   /** A line under underlined text, such as a static class member, `drop` font sizes below the baseline. */
   underline: { width: 1, drop: 0.15 },
   line: { width: 1.5, emphasisWidth: 3, cornerRadius: 8, arrowLength: 9, arrowWidth: 9 },
+  /** Dashed lines, such as async ones: dashes `dash` px long, `gap` px apart. */
+  dashed: { dash: 6, gap: 4 },
   /** A note's connector: thinner than a line, in `dash` px dots `gap` px apart. */
   connector: { width: 1, dash: 2, gap: 3 },
   /** A line's label: text in a pill bordered in the line's colour, wrapped to `maxWidth`. */
@@ -205,6 +211,24 @@ export const SIZES = {
   subprocess: { paddingX: 14, paddingY: 12, minWidth: 140, maxWidth: 260, minHeight: 44, barInset: 10, radius: 4 },
   /** An aside: its label smaller and lighter than a shape's, its bottom-right corner folded over by `fold` px. */
   note: { fontSize: 13, lineHeight: 18, paddingX: 12, paddingY: 10, minWidth: 100, maxWidth: 220, minHeight: 38, fold: 10 },
+  /**
+   * An architecture diagram's component card, sized to its text between
+   * `minWidth` and `maxWidth`. At its top, its icon, `size` px square and
+   * drawn in lines `strokeWidth` wide, then `gap` after it its kind word, in a
+   * muted line; then its label `labelGap` under that, and any description
+   * `gap` under the label, each centred.
+   */
+  component: {
+    paddingX: 16,
+    paddingY: 12,
+    minWidth: 140,
+    maxWidth: 260,
+    icon: { size: 14, gap: 5, strokeWidth: 1.25 },
+    kindWord: { fontSize: 11, lineHeight: 16 },
+    label: { fontSize: 14, lineHeight: 20 },
+    labelGap: 2,
+    description: { fontSize: 12, lineHeight: 16, gap: 2 },
+  },
 } as const;
 
 export type Sizes = typeof SIZES;

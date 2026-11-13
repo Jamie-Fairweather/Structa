@@ -3,6 +3,7 @@ import {
   DESCRIPTION_FACE,
   LINE_LABEL_FACE,
   TITLE_FACE,
+  type ArchitectureEdge,
   type ClassEdge,
   type Diagram,
   type FlowEdge,
@@ -12,22 +13,25 @@ import {
 import { baseline, measure, wrap, type FaceId } from "../text";
 import type { Sizes } from "../theme";
 import { classBody } from "./class";
+import { componentBody } from "./component";
 import { shapeBody } from "./flow";
 import { frameCards, strikeThrough, type Card, type TextLine } from "./frame";
 
 export { buildAreaBoxes, type AreaBox } from "./area";
-export { type Badge, type Box, type Card, type LevelLine, type Row, type Tag, type TextLine } from "./frame";
+export { type Badge, type Box, type Card, type Icon, type LevelLine, type Row, type Tag, type TextLine } from "./frame";
 export { buildLegend, type AreaItem, type Legend, type LegendItem, type StatusItem } from "./legend";
 export { entry, nearest, type Mark, type Outline, type Point } from "./outline";
 
 export interface Line {
   readonly id: string;
-  /** A flowchart's line, or the relationship a class line shows. */
-  readonly kind: "flow" | ClassEdge["kind"];
+  /** A flowchart's line, the relationship a class line shows, or how one part of a system talks to another. */
+  readonly kind: LineKind;
   readonly from: string;
   readonly to: string;
-  /** Whether an arrowhead is drawn where the line meets `to`. */
-  readonly arrow: boolean;
+  /** What the line's stroke looks like, which shows its kind: dashed for an async line. */
+  readonly pattern: "solid" | "dashed";
+  /** What's drawn where the line meets `to`: a filled arrowhead, an open one of two strokes, or nothing. */
+  readonly arrow: "filled" | "open" | "none";
   readonly status?: Status;
   readonly emphasis: boolean;
   /** Sized here; ELK places it. */
@@ -109,6 +113,12 @@ export function buildCards(diagram: Diagram, sizes: Sizes): Card[] {
   const tagOf = (node: { readonly area?: string }) =>
     diagram.groupAreas || node.area === undefined ? undefined : names.get(node.area);
   if (diagram.type === "class") return frameCards(diagram.nodes, sizes, tagOf, (node, minWidth) => classBody(node, sizes, minWidth));
+  if (diagram.type === "architecture") {
+    // A class in an architecture diagram is the same class card a class diagram draws.
+    return frameCards(diagram.nodes, sizes, tagOf, (node, minWidth) =>
+      node.kind === "class" ? classBody(node, sizes, minWidth) : componentBody(node, sizes, minWidth),
+    );
+  }
   return frameCards(diagram.nodes, sizes, tagOf, (node, minWidth) => shapeBody(node, sizes, minWidth));
 }
 
@@ -134,19 +144,32 @@ export function buildConnector(note: FlowNode, about: FlowNode): Connector {
   };
 }
 
+type LineKind = "flow" | ClassEdge["kind"] | ArchitectureEdge["kind"];
+
+/** How each kind of line is drawn: its pattern means its kind, as its colour means its status. */
+const LINE_LOOKS = new Map<LineKind, Pick<Line, "pattern" | "arrow">>([
+  ["flow", { pattern: "solid", arrow: "filled" }],
+  ["association", { pattern: "solid", arrow: "none" }],
+  ["call", { pattern: "solid", arrow: "filled" }],
+  ["async", { pattern: "dashed", arrow: "open" }],
+]);
+
 /**
- * A line between two cards. A flowchart's line has an arrow at `to`; an
- * association is a plain line, so its tooltip names the two ends without one.
+ * A line between two cards. A flowchart's line and a call have a filled
+ * arrow at `to`, and an async line an open one; an association is a plain
+ * line, so its tooltip names the two ends without one. An async line's
+ * tooltip says so, since a dash is easy to miss.
  */
-export function buildLine(edge: FlowEdge | ClassEdge, fromLabel: string, toLabel: string, sizes: Sizes): Line {
+export function buildLine(edge: FlowEdge | ClassEdge | ArchitectureEdge, fromLabel: string, toLabel: string, sizes: Sizes): Line {
   const kind = "kind" in edge ? edge.kind : "flow";
-  const arrow = kind === "flow";
-  const ends = `${fromLabel} ${arrow ? "→" : "–"} ${toLabel}`;
+  const { pattern, arrow } = LINE_LOOKS.get(kind)!;
+  const ends = `${fromLabel} ${arrow === "none" ? "–" : "→"} ${toLabel}${kind === "async" ? " (async)" : ""}`;
   return {
     id: edge.id,
     kind,
     from: edge.from,
     to: edge.to,
+    pattern,
     arrow,
     ...(edge.status === undefined ? {} : { status: edge.status }),
     emphasis: edge.emphasis,
