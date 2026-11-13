@@ -1,6 +1,7 @@
 import type { ELK, ElkNode } from "elkjs/lib/elk-api";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { render, StructaError } from "../src/index";
+import { render, type StructaError } from "../src/index";
+import { rejection } from "./helpers/errors";
 
 // ELK is the one outside library in the pipeline. These tests wrap the real
 // engine at its loader and damage what it returns, to check that render()
@@ -45,13 +46,9 @@ const compost = {
 const hint = "this is a bug in Structa: please report it with the input JSON";
 
 async function layoutFailure(): Promise<StructaError> {
-  const error = await render(compost).then(
-    () => undefined,
-    (e: unknown) => e,
-  );
-  expect(error).toBeInstanceOf(StructaError);
-  expect((error as StructaError).code).toBe("LAYOUT_FAILED");
-  return error as StructaError;
+  const error = await rejection(render(compost));
+  expect(error.code).toBe("LAYOUT_FAILED");
+  return error;
 }
 
 describe("render() when the layout engine misbehaves", () => {
@@ -125,13 +122,10 @@ describe("render() when the layout engine misbehaves", () => {
     ])("fails with LAYOUT_FAILED when ELK %s", async (_name, damage, path, message) => {
       engine.damage = damage;
 
-      const error = await render(boxed).then(
-        () => undefined,
-        (e: unknown) => e,
-      );
+      const error = await rejection(render(boxed));
 
-      expect((error as StructaError).code).toBe("LAYOUT_FAILED");
-      expect((error as StructaError).problems).toEqual([{ path, message, hint }]);
+      expect(error.code).toBe("LAYOUT_FAILED");
+      expect(error.problems).toEqual([{ path, message, hint }]);
     });
   });
 
@@ -171,13 +165,10 @@ describe("render() when the layout engine misbehaves", () => {
     ])("fails with LAYOUT_FAILED when ELK, on a %s line, %s", async (kind, _name, damage, path, message) => {
       engine.damage = damage;
 
-      const error = await render(bin(kind)).then(
-        () => undefined,
-        (e: unknown) => e,
-      );
+      const error = await rejection(render(bin(kind)));
 
-      expect((error as StructaError).code).toBe("LAYOUT_FAILED");
-      expect((error as StructaError).problems).toEqual([{ path, message, hint }]);
+      expect(error.code).toBe("LAYOUT_FAILED");
+      expect(error.problems).toEqual([{ path, message, hint }]);
     });
 
     it("fails with LAYOUT_FAILED when ELK returns a count at a shared end that only the first line there gave it", async () => {
@@ -186,13 +177,10 @@ describe("render() when the layout engine misbehaves", () => {
       await expect(render(input)).resolves.toHaveProperty("svg");
       engine.damage = (g) => void (g.edges![1]!.labels = [{ ...label(g, 0, "s0"), id: "s1" }]);
 
-      const error = await render(input).then(
-        () => undefined,
-        (e: unknown) => e,
-      );
+      const error = await rejection(render(input));
 
-      expect((error as StructaError).code).toBe("LAYOUT_FAILED");
-      expect((error as StructaError).problems).toEqual([{ path: "edges[1]", message: 'the layout engine returned an unexpected label "s1"', hint }]);
+      expect(error.code).toBe("LAYOUT_FAILED");
+      expect(error.problems).toEqual([{ path: "edges[1]", message: 'the layout engine returned an unexpected label "s1"', hint }]);
     });
   });
 
@@ -211,14 +199,10 @@ describe("render() when the layout engine misbehaves", () => {
     await expect(render(swap)).resolves.toHaveProperty("svg");
     engine.damage = damage;
 
-    const error = await render(swap).then(
-      () => undefined,
-      (e: unknown) => e,
-    );
+    const error = await rejection(render(swap));
 
-    expect(error).toBeInstanceOf(StructaError);
-    expect((error as StructaError).code).toBe("LAYOUT_FAILED");
-    expect((error as StructaError).problems).toEqual([{ path: "edges[0]", message: "the layout engine moved this line's ends off its ports", hint }]);
+    expect(error.code).toBe("LAYOUT_FAILED");
+    expect(error.problems).toEqual([{ path: "edges[0]", message: "the layout engine moved this line's ends off its ports", hint }]);
   });
 
   it("fails with LAYOUT_FAILED when ELK throws", async () => {

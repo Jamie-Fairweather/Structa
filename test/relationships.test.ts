@@ -1,7 +1,8 @@
 import { readdirSync, readFileSync } from "node:fs";
 import type { Document, Element } from "@xmldom/xmldom";
 import { describe, expect, it } from "vitest";
-import { render, StructaError, type Problem } from "../src/index";
+import { render } from "../src/index";
+import { problems } from "./helpers/errors";
 import {
   allElements,
   alongRuns,
@@ -31,16 +32,6 @@ import {
 
 const KINDS = ["inherits", "implements", "composition", "aggregation", "association", "dependency"] as const;
 type Kind = (typeof KINDS)[number];
-
-async function problems(input: object): Promise<readonly Problem[]> {
-  const error = await render(input).then(
-    () => undefined,
-    (e: unknown) => e,
-  );
-  expect(error).toBeInstanceOf(StructaError);
-  expect((error as StructaError).code).toBe("INVALID_INPUT");
-  return (error as StructaError).problems;
-}
 
 /** Two classes in a potting shed, joined by one line with whatever fields a test adds. */
 function shed(edge: object = {}) {

@@ -1,6 +1,6 @@
 import type { Document } from "@xmldom/xmldom";
 import { describe, expect, it } from "vitest";
-import { render, StructaError, type Problem } from "../src/index";
+import { problems } from "./helpers/errors";
 import {
   allElements,
   byClassIn,
@@ -212,16 +212,6 @@ describe("notes", () => {
 });
 
 describe("checking notes", () => {
-  async function problems(input: object): Promise<readonly Problem[]> {
-    const error = await render(input).then(
-      () => undefined,
-      (e: unknown) => e,
-    );
-    expect(error).toBeInstanceOf(StructaError);
-    expect((error as StructaError).code).toBe("INVALID_INPUT");
-    return (error as StructaError).problems;
-  }
-
   it("rejects lines to or from a note, wherever they are", async () => {
     const input = garlic("down", {
       edges: [

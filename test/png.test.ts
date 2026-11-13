@@ -1,7 +1,8 @@
 import type { Element } from "@xmldom/xmldom";
 import { describe, expect, it } from "vitest";
 import { readTtf } from "../scripts/lib/ttf";
-import { render, StructaError } from "../src/index";
+import { render } from "../src/index";
+import { rejection } from "./helpers/errors";
 import { colourDifference, decodePng, inkEdges, pixel, pngSize, svgSize, type Region } from "./helpers/png";
 import { byClassIn, cards, fontFaceRules, outlineBox, parseSvg } from "./helpers/svg";
 
@@ -198,15 +199,6 @@ function seedTrays(columns: number, rows: number, firstColumn = "Tray #") {
     }
   }
   return { type: "flow", nodes, edges };
-}
-
-async function rejection(promise: Promise<unknown>): Promise<StructaError> {
-  const error = await promise.then(
-    () => undefined,
-    (e: unknown) => e,
-  );
-  expect(error).toBeInstanceOf(StructaError);
-  return error as StructaError;
 }
 
 /** The size of a diagram's SVG, which is its PNG's size at scale 1. */

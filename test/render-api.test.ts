@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { render, StructaError } from "../src/index";
+import { render } from "../src/index";
+import { rejection } from "./helpers/errors";
 
 const tidyShed = {
   type: "flow",
@@ -9,15 +10,6 @@ const tidyShed = {
   ],
   edges: [{ from: "sort", to: "hang" }],
 };
-
-async function rejection(promise: Promise<unknown>): Promise<StructaError> {
-  const error = await promise.then(
-    () => undefined,
-    (e: unknown) => e,
-  );
-  expect(error).toBeInstanceOf(StructaError);
-  return error as StructaError;
-}
 
 describe("render()", () => {
   it("accepts a JSON string or an already-parsed object, with the same result", async () => {

@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { render, StructaError, type Problem } from "../src/index";
+import { render } from "../src/index";
+import { problems, rejection } from "./helpers/errors";
 import { cardById, lines, parseSvg, textLines, titleOf } from "./helpers/svg";
 
 type Obj = Record<string, unknown>;
@@ -26,20 +27,6 @@ function pondWith(change: (input: ReturnType<typeof pond>) => void): Obj {
   const input = pond();
   change(input);
   return input;
-}
-
-async function rejection(input: unknown): Promise<StructaError> {
-  const error = await render(input as object).then(
-    () => undefined,
-    (e: unknown) => e,
-  );
-  expect(error).toBeInstanceOf(StructaError);
-  expect((error as StructaError).code).toBe("INVALID_INPUT");
-  return error as StructaError;
-}
-
-async function problems(input: unknown): Promise<readonly Problem[]> {
-  return (await rejection(input)).problems;
 }
 
 const opts = { embedFonts: false } as const;
@@ -728,21 +715,24 @@ describe("JSON syntax errors", () => {
 
 describe("several problems", () => {
   it("reports them all at once, in a fixed order, each with a path and hint, one per line", async () => {
-    const error = await rejection({
-      version: 3,
-      type: "flow",
-      nodes: [
-        { id: "dig", label: "Dig the hole", shape: "step" },
-        { id: "dig", label: "Lay\tthe liner", shape: "step", size: "large" },
-        { id: "fill", shape: "oval" },
-      ],
-      edges: [
-        { from: "dig", to: "pump" },
-        { id: "fill", from: "rake", to: "fill" },
-      ],
-      colour: "green",
-    });
+    const error = await rejection(
+      render({
+        version: 3,
+        type: "flow",
+        nodes: [
+          { id: "dig", label: "Dig the hole", shape: "step" },
+          { id: "dig", label: "Lay\tthe liner", shape: "step", size: "large" },
+          { id: "fill", shape: "oval" },
+        ],
+        edges: [
+          { from: "dig", to: "pump" },
+          { id: "fill", from: "rake", to: "fill" },
+        ],
+        colour: "green",
+      }),
+    );
 
+    expect(error.code).toBe("INVALID_INPUT");
     expect(error.problems).toEqual([
       { path: "colour", message: 'unknown field "colour"', hint: "allowed fields: version, type, title, description, theme, direction, groupAreas, legend, areas, nodes, edges" },
       { path: "version", message: "3 is not supported", hint: "use 1, or leave version out" },

@@ -1,7 +1,8 @@
 import { readFileSync } from "node:fs";
 import type { Element } from "@xmldom/xmldom";
 import { describe, expect, it } from "vitest";
-import { render, StructaError, type Problem } from "../src/index";
+import { render } from "../src/index";
+import { problems } from "./helpers/errors";
 import {
   allElements,
   badgeBox,
@@ -63,16 +64,6 @@ function symbolOf(row: Element): Element | undefined {
 
 function numberAttr(el: Element, name: string): number {
   return Number(el.getAttribute(name));
-}
-
-async function problems(input: object): Promise<readonly Problem[]> {
-  const error = await render(input).then(
-    () => undefined,
-    (e: unknown) => e,
-  );
-  expect(error).toBeInstanceOf(StructaError);
-  expect((error as StructaError).code).toBe("INVALID_INPUT");
-  return (error as StructaError).problems;
 }
 
 describe("class layout", () => {
