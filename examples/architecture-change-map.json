@@ -1,7 +1,7 @@
 {
   "type": "architecture",
   "title": "Town museum: taking an object off display",
-  "description": "Curators can now take an object off display from the admin portal. Its audio guide stops and floor map pin go at once, so the nightly guide export is retired. Each part of the system is drawn as a box.",
+  "description": "Curators can now take an object off display from the admin portal. Its audio guide entry and floor map pin go at once, so the nightly guide export is retired. Each part of the system is drawn as a box.",
   "groupAreas": true,
   "areas": [
     { "id": "portal", "label": "Admin portal" },
@@ -48,12 +48,12 @@
       "properties": [{ "text": "displays: DisplayStore", "visibility": "private" }],
       "methods": [
         { "text": "takeOff(object: MuseumObject, reason: string): Removal", "visibility": "public" },
-        { "text": "stopsFor(object: MuseumObject): GuideStop[]", "visibility": "private" }
+        { "text": "entriesFor(object: MuseumObject): GuideEntry[]", "visibility": "private" }
       ]
     },
     { "id": "events", "label": "Display events", "kind": "queue", "area": "services", "status": "new" },
     { "id": "map", "label": "Floor map", "kind": "service", "area": "services", "status": "new", "description": "Drops the object's pin" },
-    { "id": "stops", "label": "Guide stops", "kind": "service", "area": "guide", "status": "changed", "description": "Skips every stop for the object at once" },
+    { "id": "entries", "label": "Guide entries", "kind": "service", "area": "guide", "status": "changed", "description": "Hides the object's entry at once" },
     { "id": "export", "label": "Nightly guide export", "kind": "job", "area": "guide", "status": "removed" },
     { "id": "db", "label": "Museum database", "kind": "database", "area": "data", "status": "changed", "description": "Adds a removals table" }
   ],
@@ -65,10 +65,10 @@
     { "from": "controller", "to": "removals", "label": "take off", "status": "new", "emphasis": true },
     { "from": "removals", "to": "db", "label": "save removal", "status": "new", "emphasis": true },
     { "from": "removals", "to": "events", "kind": "async", "label": "object removed", "status": "new" },
-    { "from": "events", "to": "stops", "kind": "async", "label": "skip its stops", "status": "new" },
+    { "from": "events", "to": "entries", "kind": "async", "label": "hide its entry", "status": "new" },
     { "from": "events", "to": "map", "kind": "async", "label": "drop its pin", "status": "new" },
     { "from": "collection", "to": "db", "label": "read objects", "status": "unchanged" },
-    { "from": "stops", "to": "db", "label": "mark skipped", "status": "changed" },
+    { "from": "entries", "to": "db", "label": "mark hidden", "status": "changed" },
     { "from": "export", "to": "db", "label": "read displays", "status": "removed" }
   ]
 }
