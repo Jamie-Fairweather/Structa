@@ -74,9 +74,9 @@ describe("the top level", () => {
   it("doesn't guess at the fields of a type it doesn't support", async () => {
     const messages = {
       type: "sequence",
-      title: "Checkout",
-      nodes: [{ id: "till", label: "Till", lifeline: true }],
-      edges: [{ message: "scan basket" }],
+      title: "Ordering a cake",
+      nodes: [{ id: "baker", label: "Baker", lifeline: true }],
+      edges: [{ message: "ask for a sponge" }],
     };
 
     expect(await problems(messages)).toEqual([

@@ -595,17 +595,17 @@ function rota(direction?: string) {
   };
 }
 
-/** Three tables that point at one depot, top to bottom, and a depot that points at itself. */
-function depot() {
-  const link = (from: string) => ({ from, to: "depots", fromCardinality: "zero-or-many", toCardinality: "one" });
+/** Three tables that point at one tool store, top to bottom, and a store that points at itself. */
+function toolStore() {
+  const link = (from: string) => ({ from, to: "stores", fromCardinality: "zero-or-many", toCardinality: "one" });
   return {
     type: "er",
     direction: "down",
     nodes: [
-      ...["mowers", "barrows", "hoses"].map((id) => ({ id, label: id, columns: [{ name: "depot_id", type: "uuid", fk: true }] })),
-      { id: "depots", label: "depots", columns: [{ name: "id", type: "uuid", pk: true }, { name: "parent_id", type: "uuid", fk: true, nullable: true }] },
+      ...["mowers", "barrows", "hoses"].map((id) => ({ id, label: id, columns: [{ name: "store_id", type: "uuid", fk: true }] })),
+      { id: "stores", label: "stores", columns: [{ name: "id", type: "uuid", pk: true }, { name: "parent_id", type: "uuid", fk: true, nullable: true }] },
     ],
-    edges: [link("mowers"), link("barrows"), link("hoses"), { from: "depots", to: "depots", fromCardinality: "zero-or-many", toCardinality: "zero-or-one" }],
+    edges: [link("mowers"), link("barrows"), link("hoses"), { from: "stores", to: "stores", fromCardinality: "zero-or-many", toCardinality: "zero-or-one" }],
   };
 }
 
@@ -710,7 +710,7 @@ describe("where relationships attach", () => {
   });
 
   it.each([
-    ["a fan into one table, and its link to itself", depot()],
+    ["a fan into one table, and its link to itself", toolStore()],
     ["a loop of links and a link to itself", rota("down")],
     ["a tree", schema([["plots", "sites"], ["sheds", "sites"], ["beds", "plots"], ["paths", "plots"]], { direction: "down" })],
     ["a diamond", schema([["plots", "sites"], ["sheds", "sites"], ["keys", "plots"], ["keys", "sheds"]], { direction: "down" })],
@@ -724,7 +724,7 @@ describe("where relationships attach", () => {
   });
 
   it("covers tables apart, tables that overlap across the flow, and a table's link to itself, direction down", async () => {
-    const rule = sideRule(await svgDoc(depot()), "down");
+    const rule = sideRule(await svgDoc(toolStore()), "down");
 
     expect(new Set(rule.map(({ order }) => order))).toEqual(new Set(["apart", "overlapping", "self"]));
   });
@@ -798,7 +798,7 @@ describe("where relationships attach", () => {
   });
 
   it("gives two relationships between the same two tables an end each at both tables", async () => {
-    // A tool loan has a borrower and, once approved, an approver: two lines from loans to members.
+    // A book loan has a borrower and, once approved, an approver: two lines from loans to members.
     const input = {
       type: "er",
       nodes: ["members", "loans"].map((id) => ({ id, label: id })),
@@ -987,12 +987,12 @@ describe("lines that name columns", () => {
   it.each(["right", "down"] as const)(
     "brings every end on one side of a column's row to one point at its middle, each with its marks full size, direction %s",
     async (direction) => {
-      // A repair ticket's item_id points at a bike, a lamp or a kettle: three lines from one column, nothing to enforce them.
+      // A museum caption's object_id points at a painting, a vase or a clock: three lines from one column, nothing to enforce them.
       const table = (id: string, ...columns: object[]) => ({ id, label: id, columns: [{ name: "id", type: "uuid", pk: true }, ...columns] });
       const item = (to: string, fromCardinality: string, status: string) => ({
-        from: "tickets",
+        from: "captions",
         to,
-        fromColumn: "item_id",
+        fromColumn: "object_id",
         toColumn: "id",
         fromCardinality,
         toCardinality: "one",
@@ -1002,19 +1002,19 @@ describe("lines that name columns", () => {
       const input = {
         type: "er",
         direction,
-        nodes: [table("tickets", { name: "item_id", type: "uuid" }, { name: "fault", type: "text" }), table("bikes"), table("lamps"), table("kettles")],
-        edges: [item("bikes", "zero-or-many", "unchanged"), item("lamps", "many", "new"), item("kettles", "one-or-many", "removed")],
+        nodes: [table("captions", { name: "object_id", type: "uuid" }, { name: "wording", type: "text" }), table("paintings"), table("vases"), table("clocks")],
+        edges: [item("paintings", "zero-or-many", "unchanged"), item("vases", "many", "new"), item("clocks", "one-or-many", "removed")],
       };
       const doc = parseSvg((await render(input)).svg);
 
-      const tickets = cardById(doc, "tickets");
-      const ends = columnEnds(doc, input).filter(({ table }) => table === "tickets");
+      const captions = cardById(doc, "captions");
+      const ends = columnEnds(doc, input).filter(({ table }) => table === "captions");
       expect(ends).toHaveLength(3);
       const sides = new Map<string | undefined, Point[]>();
-      for (const { at } of ends) sides.set(sideOf(at, tickets), [...(sides.get(sideOf(at, tickets)) ?? []), at]);
+      for (const { at } of ends) sides.set(sideOf(at, captions), [...(sides.get(sideOf(at, captions)) ?? []), at]);
       // Laid out to the right, the three lines all leave the same side.
       if (direction === "right") expect([...sides.values()].map((shared) => shared.length)).toEqual([3]);
-      const middle = rowSpans(doc).get("tickets")!.get("item_id")!.middle;
+      const middle = rowSpans(doc).get("captions")!.get("object_id")!.middle;
       for (const [side, [first, ...others]] of sides) {
         expect([side, first!.y]).toEqual([expect.stringMatching(/^(left|right)$/), expect.closeTo(middle, 1)]);
         for (const at of others) expect([side, at.x, at.y]).toEqual([side, expect.closeTo(first!.x, 2), expect.closeTo(first!.y, 2)]);

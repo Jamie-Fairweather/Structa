@@ -26,26 +26,26 @@ import {
 
 const KINDS = '"service", "api", "ui", "job", "queue", "database", "cache", "external", "library", "actor" or "class"';
 
-/** A bike-hire scheme: a docking app calling a service, with whatever extra node fields a test gives the service. */
-function bikeHire(fields: object = {}) {
+/** A public library: its app calling a loan service, with whatever extra node fields a test gives the service. */
+function library(fields: object = {}) {
   return {
     type: "architecture",
     nodes: [
-      { id: "app", label: "Rider app", kind: "ui" },
-      { id: "docks", label: "Dock service", kind: "service", ...fields },
+      { id: "app", label: "Library app", kind: "ui" },
+      { id: "loans", label: "Loan service", kind: "service", ...fields },
     ],
-    edges: [{ from: "app", to: "docks" }],
+    edges: [{ from: "app", to: "loans" }],
   };
 }
 
 describe("component cards", () => {
   it("draws each node as a card of its kind, with its kind word and its label", async () => {
-    const doc = await svgDoc(bikeHire());
+    const doc = await svgDoc(library());
 
-    const card = cardById(doc, "docks");
+    const card = cardById(doc, "loans");
     expect(card.getAttribute("data-kind")).toBe("service");
-    expect(textLines(card)).toEqual(["service", "Dock service"]);
-    expect(titleOf(card)).toBe("Dock service (service)");
+    expect(textLines(card)).toEqual(["service", "Loan service"]);
+    expect(titleOf(card)).toBe("Loan service (service)");
   });
 
   /** One card of `kind` with this label and any other fields. */
@@ -55,13 +55,13 @@ describe("component cards", () => {
     return { card, box: outlineBox(card), lines: textLines(card) };
   }
 
-  const LONG = "Works out which docks will run out of bikes before the morning rush, and sends vans to fill them";
+  const LONG = "Works out which branches will run short of picture books before half term, and sends more to them";
 
   it.each(COMPONENTS)("sizes a %s card to its text, between a minimum and a maximum width", async (kind) => {
     const tiny = await componentCard(kind, "Go");
     const alsoTiny = await componentCard(kind, "Up");
-    const medium = await componentCard(kind, "Dock status service");
-    const longer = await componentCard(kind, "Dock status service gateway");
+    const medium = await componentCard(kind, "Loan status service");
+    const longer = await componentCard(kind, "Loan status service gateway");
     const huge = await componentCard(kind, LONG);
     // Runs of W fill every wrapped line to the same width, so both reach the maximum.
     const widest = await componentCard(kind, "W".repeat(90));
@@ -80,7 +80,7 @@ describe("component cards", () => {
   });
 
   it("gives every kind the same card: a box with gently rounded corners, the same size for the same text", async () => {
-    const boxes = await Promise.all(COMPONENTS.map((kind) => componentCard(kind, "Docking station service")));
+    const boxes = await Promise.all(COMPONENTS.map((kind) => componentCard(kind, "Branch catalogue service")));
 
     for (const { card, box } of boxes) {
       const outline = byClassIn(card, "outline")[0]!;
@@ -95,11 +95,11 @@ describe("component cards", () => {
       ["light", "#1f2328", "#59636e"],
       ["dark", "#e6edf3", "#8b949e"],
     ] as const)("draws a %s description under the label, wrapped, smaller and muted", async (theme, text, muted) => {
-      const description = "Knows which docks are free and which bikes are out, and tells the app within a second";
-      const card = cardById(await svgDoc(bikeHire({ description }), theme), "docks");
+      const description = "Knows which books are on the shelf and which are out, and tells the app within a second";
+      const card = cardById(await svgDoc(library({ description }), theme), "loans");
 
       const [, label, ...under] = Array.from(card.getElementsByTagName("text"));
-      expect(label!.textContent).toBe("Dock service");
+      expect(label!.textContent).toBe("Loan service");
       expect(under.length).toBeGreaterThan(1);
       expect(under.map((t) => t.textContent).join(" ")).toBe(description);
       expect(label!.getAttribute("fill")).toBe(text);
@@ -115,27 +115,27 @@ describe("component cards", () => {
     });
 
     it("puts the description in the tooltip, after the label and kind", async () => {
-      const card = cardById(await svgDoc(bikeHire({ description: "Tracks free docks" })), "docks");
+      const card = cardById(await svgDoc(library({ description: "Tracks books on loan" })), "loans");
 
-      expect(titleOf(card)).toBe("Dock service (service): Tracks free docks");
+      expect(titleOf(card)).toBe("Loan service (service): Tracks books on loan");
     });
 
     it("makes the card bigger to hold it", async () => {
       const bare = await componentCard("queue", "Go");
       const short = await componentCard("queue", "Go", { description: "Now" });
-      const wide = await componentCard("queue", "Go", { description: "Every dock event, in the order it happened" });
+      const wide = await componentCard("queue", "Go", { description: "Every loan event, in the order it happened" });
 
       expect(short.box.height).toBeGreaterThan(bare.box.height);
       expect(wide.box.width).toBeGreaterThan(short.box.width);
     });
 
     it("doesn't strike through a removed card's description, only its label", async () => {
-      const card = cardById(await svgDoc(bikeHire({ status: "removed", description: "Tracks free docks" })), "docks");
+      const card = cardById(await svgDoc(library({ status: "removed", description: "Tracks books on loan" })), "loans");
 
       const struck = byClassIn(card, "strike");
       expect(struck).toHaveLength(1);
       // Through the label's letters: above its baseline, by less than its size.
-      const label = Array.from(card.getElementsByTagName("text")).find((t) => t.textContent === "Dock service")!;
+      const label = Array.from(card.getElementsByTagName("text")).find((t) => t.textContent === "Loan service")!;
       const rise = Number(label.getAttribute("y")) - Number(struck[0]!.getAttribute("y1"));
       expect(rise).toBeGreaterThan(0);
       expect(rise).toBeLessThan(Number(label.getAttribute("font-size")));
@@ -162,7 +162,7 @@ describe("component cards", () => {
 const COMPONENTS = ["service", "api", "ui", "job", "queue", "database", "cache", "external", "library", "actor"] as const;
 
 function everyKind(extra: object = {}) {
-  return { type: "architecture", nodes: COMPONENTS.map((kind) => ({ id: kind, label: `Hire ${kind}`, kind, ...extra })) };
+  return { type: "architecture", nodes: COMPONENTS.map((kind) => ({ id: kind, label: `Loans ${kind}`, kind, ...extra })) };
 }
 
 /**
@@ -280,18 +280,18 @@ describe("icons", () => {
   });
 });
 
-/** A hire flow with one line of each kind: the app calls the API, and the API posts an event the dock service picks up. */
-function hireFlow(call: object = {}, async: object = {}) {
+/** A loan flow with one line of each kind: the app calls the API, and the API puts an event on the queue. */
+function loanFlow(call: object = {}, async: object = {}) {
   return {
     type: "architecture",
     nodes: [
-      { id: "app", label: "Rider app", kind: "ui" },
-      { id: "api", label: "Hire API", kind: "api" },
-      { id: "events", label: "Hire events", kind: "queue" },
+      { id: "app", label: "Library app", kind: "ui" },
+      { id: "api", label: "Loans API", kind: "api" },
+      { id: "events", label: "Loan events", kind: "queue" },
     ],
     edges: [
-      { id: "hire", from: "app", to: "api", ...call },
-      { id: "post", from: "api", to: "events", kind: "async", ...async },
+      { id: "borrow", from: "app", to: "api", ...call },
+      { id: "publish", from: "api", to: "events", kind: "async", ...async },
     ],
   };
 }
@@ -311,9 +311,9 @@ function routeAndHead(line: Element): [Element, Element] {
 
 describe("architecture lines", () => {
   it("draws a call, the default, as a solid line with a filled arrowhead at its outline", async () => {
-    const doc = await svgDoc(hireFlow());
+    const doc = await svgDoc(loanFlow());
 
-    const line = lineById(doc, "hire");
+    const line = lineById(doc, "borrow");
     expect(line.getAttribute("data-kind")).toBe("call");
     const [route, head] = routeAndHead(line);
     expect(route.hasAttribute("stroke-dasharray")).toBe(false);
@@ -324,13 +324,13 @@ describe("architecture lines", () => {
   });
 
   it('draws "kind": "call" just as it draws a line with no kind', async () => {
-    expect((await render(hireFlow({ kind: "call" }), { embedFonts: false })).svg).toBe((await render(hireFlow(), { embedFonts: false })).svg);
+    expect((await render(loanFlow({ kind: "call" }), { embedFonts: false })).svg).toBe((await render(loanFlow(), { embedFonts: false })).svg);
   });
 
   it.each(["light", "dark"] as const)("draws an async line dashed, with an open arrowhead at its outline, in %s", async (theme) => {
-    const doc = await svgDoc(hireFlow(), theme);
+    const doc = await svgDoc(loanFlow(), theme);
 
-    const line = lineById(doc, "post");
+    const line = lineById(doc, "publish");
     expect(line.getAttribute("data-kind")).toBe("async");
     const [route, head] = routeAndHead(line);
     expect(route.getAttribute("stroke-dasharray")).toMatch(/^\d+(\.\d+)? \d+(\.\d+)?$/);
@@ -350,45 +350,45 @@ describe("architecture lines", () => {
   });
 
   it("draws a call's and an async line's status by colour, their arrowheads too", async () => {
-    const doc = await svgDoc(hireFlow({ status: "new" }, { status: "removed" }));
+    const doc = await svgDoc(loanFlow({ status: "new" }, { status: "removed" }));
 
-    const [callRoute, callHead] = routeAndHead(lineById(doc, "hire"));
+    const [callRoute, callHead] = routeAndHead(lineById(doc, "borrow"));
     expect([callRoute.getAttribute("stroke"), callHead.getAttribute("fill")]).toEqual(["#1f883d", "#1f883d"]);
-    const [asyncRoute, asyncHead] = routeAndHead(lineById(doc, "post"));
+    const [asyncRoute, asyncHead] = routeAndHead(lineById(doc, "publish"));
     expect([asyncRoute.getAttribute("stroke"), asyncHead.getAttribute("stroke")]).toEqual(["#cf222e", "#cf222e"]);
     expect((asyncHead.parentNode as Element).getAttribute("class")).toBe("faded");
   });
 
   it("draws an emphasised async line's arrowhead as thick as the line", async () => {
-    const doc = await svgDoc(hireFlow({}, { emphasis: true }));
+    const doc = await svgDoc(loanFlow({}, { emphasis: true }));
 
-    const [route, head] = routeAndHead(lineById(doc, "post"));
+    const [route, head] = routeAndHead(lineById(doc, "publish"));
     expect(Number(route.getAttribute("stroke-width"))).toBe(3);
     expect(head.getAttribute("stroke-width")).toBe("3");
   });
 
   it("gives both kinds label pills, and names the ends, the kind and the label in the tooltip", async () => {
-    const doc = await svgDoc(hireFlow({ label: "start hire" }, { label: "hire started" }));
+    const doc = await svgDoc(loanFlow({ label: "borrow a book" }, { label: "book borrowed" }));
 
     const pills = lines(doc).map((l) => l.getAttribute("data-id"));
-    expect(pills).toEqual(["hire", "post"]);
+    expect(pills).toEqual(["borrow", "publish"]);
     const labels = allElements(doc).filter((el) => el.getAttribute("class") === "line-label");
     expect(labels.map((pill) => [pill.getAttribute("data-line"), textLines(pill)])).toEqual([
-      ["hire", ["start hire"]],
-      ["post", ["hire started"]],
+      ["borrow", ["borrow a book"]],
+      ["publish", ["book borrowed"]],
     ]);
-    expect(titleOf(lineById(doc, "hire"))).toBe("Rider app → Hire API: start hire");
-    expect(titleOf(lineById(doc, "post"))).toBe("Hire API → Hire events (async): hire started");
+    expect(titleOf(lineById(doc, "borrow"))).toBe("Library app → Loans API: borrow a book");
+    expect(titleOf(lineById(doc, "publish"))).toBe("Loans API → Loan events (async): book borrowed");
   });
 
   it.each(["sync", "event", "Call", true])("rejects the line kind %j", async (kind) => {
-    expect(await problems(hireFlow({ kind }))).toEqual([
+    expect(await problems(loanFlow({ kind }))).toEqual([
       { path: "edges[0].kind", message: `${JSON.stringify(kind)} is not a valid kind`, hint: 'use "call" or "async"' },
     ]);
   });
 
   it("allows a line from a card to itself", async () => {
-    const doc = await svgDoc({ ...hireFlow(), edges: [{ from: "events", to: "events", kind: "async", label: "retry" }] });
+    const doc = await svgDoc({ ...loanFlow(), edges: [{ from: "events", to: "events", kind: "async", label: "retry" }] });
 
     const [start, end] = lineEnds(lines(doc)[0]!);
     expect(distanceToDrawn(start, cardById(doc, "events"))).toBeLessThanOrEqual(1);
@@ -399,14 +399,14 @@ describe("architecture lines", () => {
 /** A class with every class-card field, as a class diagram would give it. */
 const LEDGER = {
   id: "ledger",
-  label: "HireLedger",
-  description: "Every hire, start to finish.",
+  label: "LoanLedger",
+  description: "Every loan, start to finish.",
   status: "changed",
   stereotype: "abstract",
-  properties: [{ text: "hires: Hire[]", visibility: "private" }, { text: "VERSION: int", static: true }],
+  properties: [{ text: "loans: Loan[]", visibility: "private" }, { text: "VERSION: int", static: true }],
   methods: [
-    { text: "open(bike: BikeId): Hire", visibility: "public", status: "new" },
-    { text: "close(hire: Hire): Charge", visibility: "public", abstract: true, status: "changed" },
+    { text: "open(book: BookId): Loan", visibility: "public", status: "new" },
+    { text: "close(loan: Loan): Fine", visibility: "public", abstract: true, status: "changed" },
   ],
   more: 4,
 };
@@ -424,22 +424,22 @@ describe("class cards in architecture diagrams", () => {
   });
 
   it("draws an enum's values", async () => {
-    const node = { id: "state", label: "HireState", kind: "class", stereotype: "enum", values: [{ text: "OPEN" }, { text: "CLOSED" }] };
+    const node = { id: "state", label: "LoanState", kind: "class", stereotype: "enum", values: [{ text: "OPEN" }, { text: "CLOSED" }] };
 
     const card = cardById(await svgDoc({ type: "architecture", nodes: [node] }), "state");
-    expect(textLines(card)).toEqual(["«enum»", "HireState", "OPEN", "CLOSED"]);
+    expect(textLines(card)).toEqual(["«enum»", "LoanState", "OPEN", "CLOSED"]);
   });
 
   it("sets class cards beside component cards, with lines between them", async () => {
     const doc = await svgDoc({
       type: "architecture",
       nodes: [
-        { id: "api", label: "Hire API", kind: "api" },
+        { id: "api", label: "Loans API", kind: "api" },
         { ...LEDGER, kind: "class" },
-        { id: "db", label: "Hire records", kind: "database" },
+        { id: "db", label: "Loan records", kind: "database" },
       ],
       edges: [
-        { from: "api", to: "ledger", label: "open hire" },
+        { from: "api", to: "ledger", label: "open loan" },
         { from: "ledger", to: "db", kind: "async" },
       ],
     });
@@ -454,9 +454,9 @@ describe("class cards in architecture diagrams", () => {
   });
 
   it.each(["stereotype", "abstract", "properties", "methods", "more"])("allows %s only on a class", async (field) => {
-    const value = { stereotype: "record", abstract: true, properties: [], methods: [{ text: "dock(): void" }], more: 3 }[field];
+    const value = { stereotype: "record", abstract: true, properties: [], methods: [{ text: "renew(): void" }], more: 3 }[field];
 
-    expect(await problems(bikeHire({ [field]: value }))).toEqual([
+    expect(await problems(library({ [field]: value }))).toEqual([
       {
         path: `nodes[1].${field}`,
         message: `only a node with "kind": "class" can have "${field}"`,
@@ -468,21 +468,21 @@ describe("class cards in architecture diagrams", () => {
   it("allows values only on a class that's an enum", async () => {
     const values = [{ text: "OPEN" }];
 
-    expect(await problems(bikeHire({ values }))).toEqual([
+    expect(await problems(library({ values }))).toEqual([
       {
         path: "nodes[1].values",
         message: 'only a node with "kind": "class" can have "values"',
         hint: 'remove "values", or make this node "kind": "class"',
       },
     ]);
-    expect(await problems(bikeHire({ kind: "class", values }))).toEqual([
+    expect(await problems(library({ kind: "class", values }))).toEqual([
       {
         path: "nodes[1].values",
         message: 'only a node with "stereotype": "enum" can have "values"',
         hint: 'add "stereotype": "enum", or list the rows in properties and methods',
       },
     ]);
-    expect(await problems(bikeHire({ kind: "class", stereotype: "enum", values, methods: [] }))).toEqual([
+    expect(await problems(library({ kind: "class", stereotype: "enum", values, methods: [] }))).toEqual([
       {
         path: "nodes[1].methods",
         message: 'a node with "stereotype": "enum" can\'t have "methods"',
@@ -500,7 +500,7 @@ describe("class cards in architecture diagrams", () => {
   });
 
   it("doesn't judge class-only fields when the kind itself is wrong", async () => {
-    expect(await problems(bikeHire({ kind: "classes", properties: [] }))).toEqual([
+    expect(await problems(library({ kind: "classes", properties: [] }))).toEqual([
       expect.objectContaining({ path: "nodes[1].kind", message: '"classes" is not a valid kind' }),
     ]);
   });
@@ -508,7 +508,7 @@ describe("class cards in architecture diagrams", () => {
 
 describe("architecture nodes", () => {
   it("require a kind, and say which there are", async () => {
-    const input = bikeHire();
+    const input = library();
     delete (input.nodes[1] as { kind?: string }).kind;
 
     expect(await problems(input)).toEqual([
@@ -521,32 +521,32 @@ describe("architecture nodes", () => {
   });
 
   it.each(["server", "Service", "step", 3])("reject the kind %j, alongside other problems", async (kind) => {
-    const input = bikeHire({ kind });
-    input.edges.push({ from: "app", to: "depot" });
+    const input = library({ kind });
+    input.edges.push({ from: "app", to: "branch" });
 
     expect(await problems(input)).toEqual([
       { path: "nodes[1].kind", message: `${JSON.stringify(kind)} is not a valid kind`, hint: `use ${KINDS}` },
-      { path: "edges[1].to", message: 'no node with id "depot"', hint: "use the id of one of the nodes" },
+      { path: "edges[1].to", message: 'no node with id "branch"', hint: "use the id of one of the nodes" },
     ]);
   });
 
   it("check labels and descriptions against the Inter faces they're drawn in", async () => {
     // Inter draws →; only JetBrains Mono draws ⇑.
-    expect(await render(bikeHire({ label: "Docks → vans", description: "Bikes → docks" }), { embedFonts: false })).toHaveProperty("svg");
-    expect(await problems(bikeHire({ label: "Docks ⇑", description: "Up ⇑" }))).toEqual([
+    expect(await render(library({ label: "Shelves → loans", description: "Books → shelves" }), { embedFonts: false })).toHaveProperty("svg");
+    expect(await problems(library({ label: "Loans ⇑", description: "Up ⇑" }))).toEqual([
       expect.objectContaining({ path: "nodes[1].label", message: 'contains "⇑" (U+21D1), which Structa\'s fonts can\'t draw' }),
       expect.objectContaining({ path: "nodes[1].description", message: 'contains "⇑" (U+21D1), which Structa\'s fonts can\'t draw' }),
     ]);
   });
 
   it("embed the faces their kind words, labels and descriptions are drawn in", async () => {
-    const doc = parseSvg((await render(bikeHire({ description: "Tracks free docks" }))).svg);
+    const doc = parseSvg((await render(library({ description: "Tracks books on loan" }))).svg);
 
     expect(fontFaceRules(doc).map((rule) => rule.face)).toEqual(["Structa Inter 400 normal", "Structa Inter 600 normal"]);
   });
 
   it("reject a field no architecture node has, listing the ones they do", async () => {
-    expect(await problems(bikeHire({ shape: "step" }))).toEqual([
+    expect(await problems(library({ shape: "step" }))).toEqual([
       expect.objectContaining({ path: "nodes[1].shape", message: 'unknown field "shape"' }),
     ]);
   });
