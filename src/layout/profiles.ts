@@ -7,7 +7,6 @@ import type { LayoutOptions } from "elkjs/lib/elk-api";
  * option changes: every snapshot of that type must then be re-reviewed.
  */
 export interface LayoutProfile {
-  readonly name: string;
   readonly version: number;
   readonly options: LayoutOptions;
   /**
@@ -35,7 +34,6 @@ const LAYERED: LayoutOptions = {
 };
 
 export const CLASS_PROFILE: LayoutProfile = {
-  name: "class",
   version: 1,
   options: {
     ...LAYERED,
@@ -45,7 +43,6 @@ export const CLASS_PROFILE: LayoutProfile = {
 };
 
 export const ER_PROFILE: LayoutProfile = {
-  name: "er",
   version: 2,
   options: {
     ...LAYERED,
@@ -66,7 +63,6 @@ export const ER_PROFILE: LayoutProfile = {
 };
 
 export const FLOW_PROFILE: LayoutProfile = {
-  name: "flow",
   version: 4,
   options: {
     ...LAYERED,
@@ -82,7 +78,6 @@ export const FLOW_PROFILE: LayoutProfile = {
 };
 
 export const ARCHITECTURE_PROFILE: LayoutProfile = {
-  name: "architecture",
   version: 1,
   options: {
     ...LAYERED,

@@ -20,7 +20,7 @@ type JsonSchema = { [key: string]: unknown };
  * branch chosen by `type`. The validator also checks what a schema can't
  * say: references and unique ids.
  */
-export function jsonSchema(types: readonly { readonly type: string; readonly definition: ObjectDef }[]): JsonSchema {
+export function schemaOf(types: readonly { readonly type: string; readonly definition: ObjectDef }[]): JsonSchema {
   const shared = sharedDefinition(types.map(({ type }) => type));
   return {
     $schema: "https://json-schema.org/draft/2020-12/schema",

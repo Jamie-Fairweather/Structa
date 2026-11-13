@@ -546,6 +546,9 @@ function edge<X extends Field = never>(end: RefDef, endNote: string, extra: read
   });
 }
 
+/** The definition of what every type's edges share, with no fields of their own. */
+export type SharedEdgeDefinition = ReturnType<typeof edge<never>>;
+
 const FLOW_EDGE = edge(LINE_END, ", which can't be a note", []);
 
 /** What kind of class a card is, drawn as a «…» line above its name. */

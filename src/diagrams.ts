@@ -12,7 +12,7 @@ import {
   CLASS_INPUT,
   ER_INPUT,
   FLOW_INPUT,
-  jsonSchema as schemaOf,
+  schemaOf,
   selectType,
   type DiagramEdge,
   type DiagramModel,

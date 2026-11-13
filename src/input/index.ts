@@ -15,6 +15,7 @@ import {
   type ComponentKind,
   type Flat,
   type ObjectDef,
+  type SharedEdgeDefinition,
   type Status,
   type STEREOTYPES,
   type VISIBILITIES,
@@ -55,7 +56,7 @@ export {
   type Status,
 } from "./definitions";
 export { fieldPath, type Result } from "./check";
-export { jsonSchema } from "./schema";
+export { schemaOf } from "./schema";
 
 /*
  * Every type below is derived from the shared input definitions, through
@@ -132,8 +133,8 @@ export interface DiagramNode {
   readonly status?: Status;
 }
 
-/** What every edge has, whatever its diagram's type: a flowchart's edges have nothing more. */
-export type DiagramEdge = FlowEdge;
+/** What every edge has, whatever its diagram's type: the fields every type's edges share, and its id. */
+export type DiagramEdge = WithId<Checked<SharedEdgeDefinition>>;
 
 /** One diagram type, as far as its input goes: its name, its definition, and how a value is checked against it and read. */
 export interface InputType<T extends string, M> {
