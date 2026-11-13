@@ -349,9 +349,14 @@ const rowStatusRule: Rule = (checked, given, path) => {
     .map((row) => ({ path: row.path, message: `a row in ${article} ${card.status} card can't be "${row.status}"`, hint }));
 };
 
-/** At most ROWS_PER_CARD rows in a card, every section together. A section over it alone was reported already. */
-const rowLimitRule: Rule = (_checked, given, path) => {
-  const counts = CLASS_SECTIONS.map((section) => (Array.isArray(given[section]) ? given[section].length : 0));
+/**
+ * At most ROWS_PER_CARD rows in a card, every section together. A section over
+ * it alone was reported already, and so was one the card can't have, which
+ * isn't counted.
+ */
+const rowLimitRule: Rule = (checked, _given, path) => {
+  const card = checked as CheckedRows;
+  const counts = CLASS_SECTIONS.map((section) => card[section]?.length ?? 0);
   const total = counts.reduce((sum, n) => sum + n, 0);
   if (counts.some((n) => n > ROWS_PER_CARD) || total <= ROWS_PER_CARD) return [];
   return [{ path, message: `has ${total} rows; the limit is ${ROWS_PER_CARD} per card`, hint: ROWS_HINT }];

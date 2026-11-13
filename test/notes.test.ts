@@ -249,6 +249,23 @@ describe("checking notes", () => {
     ]);
   });
 
+  it("reports about on a shape once, whatever it names", async () => {
+    const input = garlic();
+    input.nodes[1] = { ...input.nodes[1]!, about: 3 };
+
+    expect((await problems(input)).map((p) => p.path)).toEqual(["nodes[1].about"]);
+  });
+
+  it.each([
+    ["left out", undefined, 'missing required field "shape"'],
+    ["not a shape", "blob", '"blob" is not a valid shape'],
+  ])("doesn't judge about by a shape that's %s, which is reported on its own", async (_name, shape, message) => {
+    const input = garlic();
+    input.nodes[4] = { ...input.nodes[4]!, shape };
+
+    expect(await problems(input)).toEqual([expect.objectContaining({ path: "nodes[4].shape", message })]);
+  });
+
   it("requires about to name a node", async () => {
     const input = garlic();
     input.nodes[4] = { ...input.nodes[4]!, about: "harvest" };

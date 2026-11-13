@@ -561,6 +561,12 @@ describe("enums", () => {
     ]);
   });
 
+  it("reports values on a class once, whatever is in them", async () => {
+    expect(await problems(packet({ values: "SPRING" }))).toEqual([
+      expect.objectContaining({ path: "nodes[0].values", message: 'only a node with "stereotype": "enum" can have "values"' }),
+    ]);
+  });
+
   it("rejects properties and methods on an enum, even empty ones, each at its list", async () => {
     expect(await problems(season({ properties: [], methods: [{ text: "next(): SowingSeason" }] }))).toEqual(
       ["properties", "methods"].map((section) => ({
@@ -1175,6 +1181,13 @@ describe("class limits", () => {
         hint: 'split the class, or leave dull members out and count them with "more"',
       },
     ]);
+  });
+
+  it.each([
+    ["an enum's properties", { stereotype: "enum", properties: many(60), values: many(60) }, "properties", 'a node with "stereotype": "enum" can\'t have "properties"'],
+    ["a class's values", { methods: many(60), values: many(60) }, "values", 'only a node with "stereotype": "enum" can have "values"'],
+  ])("doesn't count %s toward the row limit, as the card can't have them", async (_name, fields, section, message) => {
+    expect(await problems(packet(fields))).toEqual([expect.objectContaining({ path: `nodes[0].${section}`, message })]);
   });
 
   it("reports 101 rows in one section once, at that section", async () => {
