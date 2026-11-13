@@ -33,33 +33,44 @@ export function move(p: Point, by: { readonly x: number; readonly y: number }): 
   return { x: p.x + by.x, y: p.y + by.y };
 }
 
+/** What's drawn of a card that lines end on: its outline, and the badge and the tag on its border. */
+interface Drawn {
+  readonly outline: Outline;
+  /** A pill. */
+  readonly badge?: Box;
+  /** A box with corners of `radius`. */
+  readonly tag?: Box & { readonly radius: number };
+}
+
 /**
  * Where the straight line from `from` through `to` first meets what's drawn
- * of a card, its outline or the badge on it, coming from `from`'s side: the
- * first meeting point along the whole line, even one behind `from`.
+ * of a card, its outline or the badge or tag on it, coming from `from`'s
+ * side: the first meeting point along the whole line, even one behind `from`.
  * Undefined when the line misses them. Everything is relative to the card's box.
  */
-export function entry(card: { readonly outline: Outline; readonly badge?: Box }, from: Point, to: Point): Point | undefined {
+export function entry(card: Drawn, from: Point, to: Point): Point | undefined {
   const direction = { x: to.x - from.x, y: to.y - from.y };
   if (Math.hypot(direction.x, direction.y) < EPSILON) return undefined;
-  const { outline, badge } = card;
+  const { outline, badge, tag } = card;
   const meets = [
     ...(outline.kind === "rounded" ? roundedMeets(outline, outline.radius, from, direction) : polygonMeets(outline.points, from, direction)),
     ...(badge ? roundedMeets(badge, badge.height / 2, from, direction) : []),
+    ...(tag ? roundedMeets(tag, tag.radius, from, direction) : []),
   ];
   if (meets.length === 0) return undefined;
   const t = Math.min(...meets);
   return { x: from.x + t * direction.x, y: from.y + t * direction.y };
 }
 
-/** The point on what's drawn of a card, its outline or the badge on it, nearest to `p`. Relative to the card's box. */
-export function nearest(card: { readonly outline: Outline; readonly badge?: Box }, p: Point): Point {
-  const { outline, badge } = card;
+/** The point on what's drawn of a card, its outline or the badge or tag on it, nearest to `p`. Relative to the card's box. */
+export function nearest(card: Drawn, p: Point): Point {
+  const { outline, badge, tag } = card;
   const found = [
     ...(outline.kind === "rounded"
       ? [roundedNearest(outline, outline.radius, p)]
       : outline.points.map((a, i) => segmentNearest(a, outline.points[(i + 1) % outline.points.length]!, p))),
     ...(badge ? [roundedNearest(badge, badge.height / 2, p)] : []),
+    ...(tag ? [roundedNearest(tag, tag.radius, p)] : []),
   ];
   const away = (q: Point) => Math.hypot(q.x - p.x, q.y - p.y);
   return found.reduce((best, q) => (away(q) < away(best) ? q : best));

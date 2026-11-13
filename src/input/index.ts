@@ -15,6 +15,7 @@ import { parseJson } from "./json";
 export {
   ABSTRACT_CLASS_NAME_FACE,
   ABSTRACT_ROW_TEXT_FACE,
+  AREA_LABEL_FACE,
   CARD_DESCRIPTION_FACE,
   CLASS_DESCRIPTION_FACE,
   CLASS_NAME_FACE,
@@ -36,12 +37,23 @@ export {
 } from "./definitions";
 export { jsonSchema } from "./schema";
 
+/** A named grouping of cards. */
+export interface Area {
+  readonly id: string;
+  /** Tidied, like every text field. */
+  readonly label: string;
+  /** The id of the area it's inside. Areas nest at most 4 levels deep, never in a loop. */
+  readonly parent?: string;
+}
+
 export interface FlowNode {
   readonly id: string;
   /** Tidied: runs of spaces collapsed and the ends trimmed. */
   readonly label: string;
   /** Tidied, like every text field. */
   readonly description?: string;
+  /** The id of the innermost area the card is in. With groupAreas, a note about a shape is in that shape's area. */
+  readonly area?: string;
   readonly status?: Status;
   readonly shape: FlowShape;
   /** A note's subject: the id of a node that isn't a note. Only notes have one. */
@@ -86,6 +98,8 @@ export interface ClassNode {
   /** The class name, tidied. */
   readonly label: string;
   readonly description?: string;
+  /** The id of the innermost area the card is in. */
+  readonly area?: string;
   readonly status?: Status;
   readonly stereotype?: Stereotype;
   /** Set by the flag only; a class whose stereotype is "abstract" is abstract too. */
@@ -109,8 +123,12 @@ interface DiagramBase<T extends string, N, E> {
   readonly description?: string;
   readonly theme: ThemeName;
   readonly direction: Direction;
-  /** Whether to draw the legend of the statuses used. */
+  /** Draw a box round each area's cards, rather than a tag on each card. */
+  readonly groupAreas: boolean;
+  /** Whether to draw the legend of the statuses and areas used. */
   readonly legend: boolean;
+  /** In the order given. Every one holds a card, directly or through the areas inside it. */
+  readonly areas: readonly Area[];
   readonly nodes: readonly N[];
   readonly edges: readonly E[];
 }
@@ -152,11 +170,31 @@ export function parseDiagram(input: unknown): ParseResult {
       ...(diagram.description === undefined ? {} : { description: diagram.description }),
       theme: diagram.theme,
       direction: diagram.direction,
+      groupAreas: diagram.groupAreas,
       legend: diagram.legend,
-      nodes: diagram.type === "class" ? (diagram.nodes as WithoutIds<ClassNode>[]).map(classNode) : diagram.nodes,
+      areas: diagram.areas,
+      nodes:
+        diagram.type === "class"
+          ? (diagram.nodes as WithoutIds<ClassNode>[]).map(classNode)
+          : diagram.groupAreas
+            ? notesInAreas(diagram.nodes as FlowNode[])
+            : (diagram.nodes as FlowNode[]),
       edges: diagram.edges.map((edge, i) => ({ ...edge, id: edge.id ?? `edges[${i}]` })),
     } as Diagram,
   };
+}
+
+/**
+ * With area boxes, a note about a shape is in that shape's box, whether it
+ * says so or not: ELK can't join a note to a shape in another area. Tags
+ * show only the area a note is given.
+ */
+function notesInAreas(nodes: readonly FlowNode[]): FlowNode[] {
+  const areas = new Map(nodes.map((node) => [node.id, node.area]));
+  return nodes.map((node) => {
+    const area = node.about === undefined ? undefined : areas.get(node.about);
+    return area === undefined || node.area !== undefined ? node : { ...node, area };
+  });
 }
 
 /** A class node as checked: a list left out isn't there, and rows may have no id yet. */

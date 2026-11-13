@@ -1252,7 +1252,7 @@ describe("class input", () => {
       {
         path: "nodes[0].shape",
         message: 'unknown field "shape"',
-        hint: "allowed fields: id, label, description, status, stereotype, abstract, properties, methods, values, more",
+        hint: "allowed fields: id, label, description, area, status, stereotype, abstract, properties, methods, values, more",
       },
     ]);
   });

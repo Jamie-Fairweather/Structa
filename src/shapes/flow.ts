@@ -2,7 +2,7 @@
 import { CARD_DESCRIPTION_FACE, NOTE_LABEL_FACE, STEP_LABEL_FACE, type FlowNode, type FlowShape } from "../input";
 import { baseline, measure, wrap, type FaceId } from "../text";
 import type { Sizes } from "../theme";
-import type { BadgePlace, CardBody, CardFill, TextLine } from "./frame";
+import type { BorderPlace, CardBody, CardFill, TextLine } from "./frame";
 import type { Mark, OutlineShape } from "./outline";
 
 /** A shape's text, wrapped: its lines from the top of the block, and the block's size. */
@@ -21,7 +21,8 @@ interface Geometry {
   size(text: { readonly width: number; readonly height: number }, minWidth: number): { width: number; height: number };
   outline(width: number, height: number): OutlineShape;
   marks?(width: number, height: number): Mark[];
-  badge?(width: number, height: number): BadgePlace;
+  /** Where its badge and tag sit on its top border. */
+  border?(width: number, height: number): BorderPlace;
   readonly fill?: CardFill;
 }
 
@@ -38,7 +39,7 @@ export function shapeBody(node: FlowNode, sizes: Sizes, minWidth: number): CardB
     outline: geometry.outline(width, height),
     ...(geometry.marks ? { marks: geometry.marks(width, height) } : {}),
     ...(geometry.fill ? { fill: geometry.fill } : {}),
-    ...(geometry.badge ? { badge: geometry.badge(width, height) } : {}),
+    ...(geometry.border ? { border: geometry.border(width, height) } : {}),
     tooltip: node.description === undefined ? node.label : `${node.label}\n${node.description}`,
     texts: text.lines.map((line) => ({ ...line, x: width / 2, y: top + line.y })),
   };
@@ -128,8 +129,8 @@ function terminal(sizes: Sizes): Geometry {
   return {
     ...box(s, 0),
     outline: (_width, height) => ({ kind: "rounded", radius: radius(height) }),
-    // In from the end far enough that the badge still meets the curving end.
-    badge: (_width, height) => ({ align: "end", inset: Math.max(sizes.badge.inset, radius(height) / 2) }),
+    // In from the ends far enough that the badge and the tag still meet the curving ends.
+    border: (_width, height) => ({ align: "end", inset: Math.max(sizes.badge.inset, radius(height) / 2) }),
   };
 }
 
@@ -158,8 +159,8 @@ function decision(sizes: Sizes): Geometry {
         { x: 0, y: height / 2 },
       ],
     }),
-    // On the top corner: anywhere else it would float off the slanted edges.
-    badge: () => ({ align: "middle" }),
+    // On the top corner: anywhere else they would float off the slanted edges.
+    border: () => ({ align: "middle" }),
   };
 }
 
@@ -171,6 +172,8 @@ function io(sizes: Sizes): Geometry {
   const s = sizes.io;
   return {
     ...box(s, 0, s.slant / 2),
+    // The top edge starts `slant` in from the box's left: the tag keeps the inset from where it starts.
+    border: () => ({ align: "end", inset: sizes.badge.inset, tagInset: s.slant + sizes.badge.inset }),
     outline: (width, height) => ({
       kind: "polygon",
       points: [

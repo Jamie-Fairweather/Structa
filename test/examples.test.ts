@@ -78,6 +78,22 @@ describe("examples", () => {
     expect(flows().some(fits)).toBe(true);
   });
 
+  type WithAreas = { type: string; groupAreas?: boolean; areas?: { parent?: string }[]; nodes: { area?: string }[] };
+  const withAreas = () => examples.map(({ json }) => JSON.parse(json) as WithAreas).filter((d) => (d.areas ?? []).length > 0);
+
+  it("includes a flowchart with nested area boxes as swimlanes", () => {
+    const fits = (d: WithAreas) =>
+      d.type === "flow" && d.groupAreas === true && d.areas!.length >= 3 && d.areas!.some((area) => area.parent !== undefined);
+
+    expect(withAreas().some(fits)).toBe(true);
+  });
+
+  it("includes a diagram with area tags only, some cards without an area", () => {
+    const fits = (d: WithAreas) => d.groupAreas !== true && d.nodes.some((node) => node.area === undefined);
+
+    expect(withAreas().some(fits)).toBe(true);
+  });
+
   it("uses every flowchart shape somewhere", () => {
     const used = new Set(flows().flatMap((d) => d.nodes.map((node) => node.shape)));
 

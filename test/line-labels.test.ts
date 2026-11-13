@@ -130,6 +130,31 @@ describe("line labels", () => {
     }
   });
 
+  it.each(["down", "right"] as const)("places each pill on its own line in area boxes too, inside and across them, direction %s", async (direction) => {
+    // The kettle in the kitchen, the pot on a tray inside the dining room: the labelled lines cross into and out of the boxes.
+    const input = {
+      ...tea(direction),
+      groupAreas: true,
+      areas: [
+        { id: "kitchen", label: "Kitchen" },
+        { id: "dining", label: "Dining room" },
+        { id: "tray", label: "Tray", parent: "dining" },
+      ],
+    };
+    const inAreas = ["kitchen", "kitchen", "tray", "dining"];
+    input.nodes = input.nodes.map((node, i) => ({ ...node, area: inAreas[i]! }));
+    const doc = await svgDoc(input);
+
+    expect(pills(doc)).toHaveLength(3);
+    for (const line of lines(doc)) {
+      const label = pillOf(doc, line);
+      if (!label) continue;
+      const centre = { x: label.box.x + label.box.width / 2, y: label.box.y + label.box.height / 2 };
+      expect(distanceToRoute(centre, corners(line)), line.getAttribute("data-id")!).toBeLessThanOrEqual(1);
+      for (const card of cards(doc)) expect(overlaps(label.box, outlineBox(card))).toBe(false);
+    }
+  });
+
   it.each(["down", "right"] as const)(
     "never draws a line across another line's pill, even with two labelled loops on one card, direction %s",
     async (direction) => {

@@ -120,6 +120,13 @@ describe("the JSON Schema", () => {
     edge = items("flow", "edges");
   });
 
+  /** Puts the first card in an area of its own, and returns the area. */
+  const withArea = (input: Node) => {
+    input.areas = [{ id: "beds", label: "Raised beds" }];
+    input.nodes[0].area = "beds";
+    return input.areas[0];
+  };
+
   /**
    * The class card's property and method rows, as parts of the schema, in the
    * class node at `n`, and an enum's value rows, in the fixture's enum.
@@ -173,6 +180,7 @@ describe("the JSON Schema", () => {
     ["a class node", "class", () => items("class", "nodes"), (input: Node) => input.nodes[0], "nodes[0]."],
     ["a class edge", "class", () => items("class", "edges"), (input: Node) => input.edges[0], "edges[0]."],
     ...rowParts(0),
+    ["an area", "flow", () => root.properties.areas.items, withArea, "areas[0]."],
   ])("lists exactly the fields render() allows on %s", async (_name, type, part, target, prefix) => {
     const input = FIXTURES.get(type)!();
     target(input).mulch = true;
@@ -190,6 +198,7 @@ describe("the JSON Schema", () => {
     ["a class node", "class", () => items("class", "nodes"), (input: Node) => input.nodes[1], "nodes[1]."],
     ["a class edge", "class", () => items("class", "edges"), (input: Node) => input.edges[0], "edges[0]."],
     ...rowParts(1),
+    ["an area", "flow", () => root.properties.areas.items, withArea, "areas[0]."],
   ])("requires exactly the fields render() requires on %s", async (_name, type, part, target, prefix) => {
     for (const field of Object.keys(part().properties)) {
       const input = FIXTURES.get(type)!();
@@ -274,6 +283,7 @@ describe("the JSON Schema", () => {
   it.each<readonly [name: string, type: string, part: () => Node, set: (input: Node, value: unknown) => void]>([
     ["legend", "flow", () => root, (input, value) => (input.legend = value)],
     ["emphasis", "flow", () => edge, (input, value) => (input.edges[0].emphasis = value)],
+    ["groupAreas", "flow", () => root, (input, value) => (input.groupAreas = value)],
     ["class abstract", "class", () => items("class", "nodes"), (input, value) => (input.nodes[0].abstract = value)],
     ...ROW_SECTIONS.flatMap(([section, n]) => {
       const { part, row } = classRow(section, n);
@@ -320,12 +330,18 @@ describe("the JSON Schema", () => {
     expect(root.properties.theme.default).toBe("light");
     expect(root.properties.direction.default).toBe("down");
     expect(root.properties.edges.default).toEqual([]);
+    expect(root.properties.areas.default).toEqual([]);
+    expect(root.properties.groupAreas.default).toBe(false);
 
     const { edges, ...withoutEdges } = greenhouse();
     const bare = await render({ ...withoutEdges, edges: [] }, opts);
     expect((await render(withoutEdges, opts)).svg).toBe(bare.svg);
     expect((await render({ ...greenhouse(), direction: "down" }, opts)).svg).toBe((await render(greenhouse(), opts)).svg);
     expect((await render({ ...greenhouse(), theme: "light" }, opts)).svg).toBe((await render(greenhouse(), opts)).svg);
+    expect((await render({ ...greenhouse(), areas: [], groupAreas: false }, opts)).svg).toBe((await render(greenhouse(), opts)).svg);
+    const inBeds = greenhouse();
+    withArea(inBeds);
+    expect((await render({ ...inBeds, groupAreas: false }, opts)).svg).toBe((await render(inBeds, opts)).svg);
   });
 
   it("documents only defaults that, filled in, keep the input valid and draw the same", async () => {
@@ -385,11 +401,16 @@ describe("the JSON Schema", () => {
     expect(edge.properties.id.$ref).toBe("#/$defs/id");
     expect(edge.properties.from.$ref).toBe("#/$defs/id");
     expect(edge.properties.to.$ref).toBe("#/$defs/id");
+    expect(node.properties.area.$ref).toBe("#/$defs/id");
+    expect(items("class", "nodes").properties.area.$ref).toBe("#/$defs/id");
+    expect(root.properties.areas.items.properties.id.$ref).toBe("#/$defs/id");
+    expect(root.properties.areas.items.properties.parent.$ref).toBe("#/$defs/id");
   });
 
   it("shows the node and edge limits render() enforces: 500 nodes and 1,000 edges", () => {
     expect(root.properties.nodes.maxItems).toBe(500);
     expect(root.properties.edges.maxItems).toBe(1000);
+    expect(root.properties.areas.maxItems).toBe(100);
   });
 
   it("shows the label length limit render() enforces", async () => {
@@ -422,7 +443,7 @@ describe("the JSON Schema", () => {
   });
 
   it("sets the length limits for titles, labels, descriptions, line labels and row text in one place, and rules out blank text", () => {
-    for (const kind of ["title", "label", "description", "lineLabel", "rowText"]) {
+    for (const kind of ["title", "label", "description", "lineLabel", "rowText", "areaLabel"]) {
       expect(root.$defs[kind]).toMatchObject({ type: "string", minLength: 1, maxLength: expect.any(Number), pattern: "[^ ]" });
     }
   });

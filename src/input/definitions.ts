@@ -20,7 +20,9 @@ const LABEL: TextKind = { name: "label", maxLength: 100, description: "the name 
 const DESCRIPTION: TextKind = { name: "description", maxLength: 300, description: "a sentence or two about a diagram or card" };
 const LINE_LABEL: TextKind = { name: "lineLabel", maxLength: 60, description: "a short label on a line" };
 const ROW_TEXT: TextKind = { name: "rowText", maxLength: 200, description: "one row of a card, such as a class member" };
-export const TEXT_KINDS: readonly TextKind[] = [TITLE, LABEL, DESCRIPTION, LINE_LABEL, ROW_TEXT];
+/** Short, as it's drawn on one line in a tag on a card's border. */
+const AREA_LABEL: TextKind = { name: "areaLabel", maxLength: 40, description: "an area's name, on its cards' tags or its box" };
+export const TEXT_KINDS: readonly TextKind[] = [TITLE, LABEL, DESCRIPTION, LINE_LABEL, ROW_TEXT, AREA_LABEL];
 
 /** What a change does to a card, row or line: the same words the badges show. */
 export const STATUSES = ["new", "changed", "removed", "unchanged"] as const;
@@ -33,12 +35,15 @@ const STATUS: Def = { kind: "choice", values: STATUSES, later: false };
  */
 export const ID_PATTERN = "^[A-Za-z0-9_.:-]+$";
 
+/** How deep areas may nest: an area with no parent is 1 level deep. */
+export const MAX_AREA_DEPTH = 4;
+
 export type Def =
   | ObjectDef
   | ListDef
   | TextDef
-  /** Node and edge ids are unique across the diagram; a row's id only within its card. */
-  | { readonly kind: "id"; readonly of: "node" | "edge" | "row" }
+  /** Node and edge ids are unique across the diagram; a row's id only within its card, and an area's among the areas. */
+  | { readonly kind: "id"; readonly of: "node" | "edge" | "row" | "area" }
   | RefDef
   | ChoiceDef
   | { readonly kind: "boolean" }
@@ -88,10 +93,10 @@ export interface TextDef {
   readonly faces: readonly FaceId[];
 }
 
-/** The id of a node. */
+/** The id of a node, or of an area. */
 export interface RefDef {
   readonly kind: "ref";
-  readonly to: "node";
+  readonly to: "node" | "area";
   /**
    * A kind of node it may not name: one whose `field` is `value`. The message
    * reads `"<id>" is a <value>, and <reason>`. The schema can't say this; only
@@ -151,14 +156,18 @@ function conditional(name: string, def: Def, description: string, onlyWhen: Cond
 /** The diagram types implemented so far, in the spec's order. Each has an example, examples/<type>.json. */
 export const DIAGRAM_TYPES: readonly string[] = ["class", "flow"];
 
-const LIMITS = { nodes: 500, edges: 1000 } as const;
+const LIMITS = { nodes: 500, edges: 1000, areas: 100 } as const;
 const SPLIT_HINT = "split the diagram into smaller ones";
 
-/** The top level of one diagram type. `direction` is its default: "right" for ER, "down" for the rest. */
-function diagram(node: Def, edge: Def, direction: "down" | "right"): ObjectDef {
+/**
+ * The top level of one diagram type. `direction` is its default: "right" for
+ * ER, "down" for the rest. `rules` check across its nodes and areas.
+ */
+function diagram(node: Def, edge: Def, direction: "down" | "right", rules: readonly Rule[]): ObjectDef {
   return {
     kind: "object",
     noun: "diagram",
+    rules,
     fields: [
       optional("version", { kind: "const", value: 1 }, "the format version; leave it out to mean the current one"),
       required("type", { kind: "choice", values: DIAGRAM_TYPES, later: true }, "the kind of diagram"),
@@ -180,7 +189,19 @@ function diagram(node: Def, edge: Def, direction: "down" | "right"): ObjectDef {
         "which way the diagram flows: top to bottom or left to right",
         direction,
       ),
-      optional("legend", BOOLEAN, "false leaves out the legend of statuses at the bottom", true),
+      optional(
+        "groupAreas",
+        BOOLEAN,
+        "true draws a box round each area's cards, nested as the areas are; otherwise each card shows its area as a tag",
+        false,
+      ),
+      optional("legend", BOOLEAN, "false leaves out the legend of statuses and areas at the bottom", true),
+      optional(
+        "areas",
+        { kind: "list", noun: "areas", items: AREA, maxItems: LIMITS.areas, limitHint: SPLIT_HINT },
+        "named groupings that cards can be in, such as the parts of a system; drawn in this order",
+        [],
+      ),
       required(
         "nodes",
         { kind: "list", noun: "nodes", items: node, maxItems: LIMITS.nodes, limitHint: SPLIT_HINT },
@@ -218,6 +239,111 @@ export const CLASS_DESCRIPTION_FACE: FaceId = "inter-regular";
 export const ROW_TEXT_FACE: FaceId = "mono-regular";
 /** An abstract member's text: real italics, as UML draws it. */
 export const ABSTRACT_ROW_TEXT_FACE: FaceId = "mono-italic";
+/** An area's name, wherever it's drawn: on a card's tag, at the top-left of its box and in the legend. */
+export const AREA_LABEL_FACE: FaceId = "inter-semibold";
+
+const AREA: ObjectDef = {
+  kind: "object",
+  noun: "area",
+  description:
+    `A named grouping of cards. Areas nest through "parent", at most ${MAX_AREA_DEPTH} levels deep and never in a loop, ` +
+    "and each must hold a card, directly or in an area inside it. Areas have no colours.",
+  fields: [
+    required("id", { kind: "id", of: "area" }, "a unique id among the areas, made of letters, digits and - _ . :"),
+    required(
+      "label",
+      { kind: "text", text: AREA_LABEL, faces: [AREA_LABEL_FACE] },
+      "the area's name, shown on its cards' tags or at the top-left of its box",
+    ),
+    optional("parent", { kind: "ref", to: "area" }, "the id of the area this one is inside; leave it out for an outermost area"),
+  ],
+};
+
+/** A card's area field, shared by every type of node. */
+function areaField(description: string): Field {
+  return optional("area", { kind: "ref", to: "area" }, description);
+}
+
+/** An area as checked: a field that had a problem is missing. */
+interface CheckedArea {
+  readonly id?: string;
+  readonly parent?: string;
+}
+
+const VALID_ID = new RegExp(ID_PATTERN);
+
+/**
+ * Areas nest in a tree, at most MAX_AREA_DEPTH levels deep, and every area
+ * holds a card, directly or through the areas inside it. A parent that names
+ * no area was reported already, so here its area has no parent; a loop is
+ * reported once, at the first of its areas.
+ */
+const areaRule: Rule = (checked, given) => {
+  const areas = (checked.areas ?? []) as readonly CheckedArea[];
+  // The first area with each id: a repeated id was reported already.
+  const index = new Map<string, number>();
+  areas.forEach((area, i) => {
+    if (typeof area.id === "string" && !index.has(area.id)) index.set(area.id, i);
+  });
+  const parentOf = (i: number) => {
+    const parent = areas[i]!.parent;
+    return parent === undefined ? undefined : index.get(parent);
+  };
+
+  // Each problem with the area it's about, and its place among that area's problems.
+  const found: { at: number; order: number; problem: Required<Problem> }[] = [];
+  // Each area's depth, or null when its parents loop or lead into a loop.
+  const depths = new Map<number, number | null>();
+  areas.forEach((_, start) => {
+    // Up through the parents until an area whose depth is known, the top, or an area seen on the way.
+    const chain: number[] = [];
+    let i: number | undefined = start;
+    while (i !== undefined && !depths.has(i) && !chain.includes(i)) {
+      chain.push(i);
+      i = parentOf(i);
+    }
+    let depth: number | null = i === undefined ? 0 : (depths.get(i) ?? null);
+    if (i !== undefined && chain.includes(i)) {
+      // The chain came back round to an area on it: from there on, it's a loop.
+      const loop = chain.splice(chain.indexOf(i));
+      const first = Math.min(...loop);
+      const from = loop.indexOf(first);
+      const names = [...loop.slice(from), ...loop.slice(0, from), first].map((j) => JSON.stringify(areas[j]!.id));
+      const hint = "give one of them no parent, or a parent outside the loop";
+      found.push({ at: first, order: 0, problem: { path: `areas[${first}].parent`, message: `the areas' parents go round in a loop: ${names.join(" → ")}`, hint } });
+      for (const j of loop) depths.set(j, null);
+      depth = null;
+    }
+    // Back down from the top, so each area is one level deeper than its parent.
+    for (const j of chain.reverse()) {
+      depth = depth === null ? null : depth + 1;
+      depths.set(j, depth);
+      // Only the first area too deep: those inside it move up with it.
+      if (depth !== MAX_AREA_DEPTH + 1) continue;
+      const message = `puts ${JSON.stringify(areas[j]!.id)} ${depth} levels deep; areas nest at most ${MAX_AREA_DEPTH} levels`;
+      found.push({ at: j, order: 0, problem: { path: `areas[${j}].parent`, message, hint: "give it a parent higher up, or no parent" } });
+    }
+  });
+
+  // Without a list of nodes, which areas hold cards isn't known.
+  if (Array.isArray(given.nodes)) {
+    const held = new Set<number>();
+    for (const node of (checked.nodes ?? []) as readonly { readonly area?: unknown }[]) {
+      let i = typeof node.area === "string" ? index.get(node.area) : undefined;
+      while (i !== undefined && !held.has(i)) {
+        held.add(i);
+        i = parentOf(i);
+      }
+    }
+    for (const [id, i] of index) {
+      // An area whose id isn't valid was reported already, and can't be named.
+      if (held.has(i) || !VALID_ID.test(id)) continue;
+      const message = `${JSON.stringify(id)} has no cards, in it or in the areas inside it`;
+      found.push({ at: i, order: 1, problem: { path: `areas[${i}]`, message, hint: `put a card in it with "area": ${JSON.stringify(id)}, or remove it` } });
+    }
+  }
+  return found.sort((a, b) => a.at - b.at || a.order - b.order).map((f) => f.problem);
+};
 
 /**
  * The flowchart shapes: start and end are pills, a step a rounded box, a
@@ -226,6 +352,40 @@ export const ABSTRACT_ROW_TEXT_FACE: FaceId = "mono-italic";
  */
 export const FLOW_SHAPES = ["start", "end", "step", "decision", "io", "subprocess", "note"] as const;
 export type FlowShape = (typeof FLOW_SHAPES)[number];
+
+/** A node as checked, for the rules across a flowchart's nodes. */
+interface CheckedFlowNode {
+  readonly id?: string;
+  readonly shape?: string;
+  readonly about?: string;
+  readonly area?: string;
+}
+
+/**
+ * With area boxes, a note about a shape is in that shape's box, so it can
+ * only name the same area. A reference that names nothing, or the wrong kind
+ * of node, was reported already. Tags don't nest, so without boxes a note
+ * can name any area.
+ */
+const noteAreaRule: Rule = (checked) => {
+  if (checked.groupAreas !== true) return [];
+  const nodes = (checked.nodes ?? []) as readonly CheckedFlowNode[];
+  const areas = new Set(((checked.areas ?? []) as readonly CheckedArea[]).map((area) => area.id));
+  const byId = new Map<string, CheckedFlowNode>();
+  for (const node of nodes) if (typeof node.id === "string" && !byId.has(node.id)) byId.set(node.id, node);
+  return nodes.flatMap((note, i) => {
+    if (note.shape !== "note" || note.about === undefined || note.area === undefined || !areas.has(note.area)) return [];
+    const shape = byId.get(note.about);
+    if (shape === undefined || shape.shape === "note" || shape.area === note.area) return [];
+    if (shape.area !== undefined && !areas.has(shape.area)) return [];
+    const about = JSON.stringify(note.about);
+    const area = JSON.stringify(note.area);
+    const where = shape.area === undefined ? "no area" : JSON.stringify(shape.area);
+    const hint = shape.area === undefined ? `leave "area" out, or put ${about} in ${area} too` : `leave "area" out, or make it ${where}`;
+    const message = `with groupAreas, a note is in the area of the shape it's about, and ${about} is in ${where}`;
+    return [{ path: `nodes[${i}].area`, message, hint }];
+  });
+};
 
 const FLOW_NODE: ObjectDef = {
   kind: "object",
@@ -238,6 +398,7 @@ const FLOW_NODE: ObjectDef = {
       { kind: "text", text: DESCRIPTION, faces: [CARD_DESCRIPTION_FACE] },
       "a sentence or two drawn smaller under the label, and shown in the tooltip",
     ),
+    areaField("the id of the area the shape is in; with groupAreas, a note about a shape is in that shape's area, so it can leave this out"),
     optional("status", STATUS, "what the change does to this card; leave it out for no status"),
     required("shape", { kind: "choice", values: FLOW_SHAPES, later: false }, "the shape drawn"),
     conditional(
@@ -404,6 +565,7 @@ const CLASS_NODE: ObjectDef = {
       { kind: "text", text: DESCRIPTION, faces: [CLASS_DESCRIPTION_FACE] },
       "a short sentence drawn under the name",
     ),
+    areaField("the id of the area the class is in"),
     optional("status", STATUS, "what the change does to this card; leave it out for no status"),
     optional(
       "stereotype",
@@ -451,12 +613,16 @@ const CLASS_EDGE = edge({ kind: "ref", to: "node" }, "", [
 
 /** Each implemented type's definition, in DIAGRAM_TYPES order. */
 export const DEFINITIONS: ReadonlyMap<string, ObjectDef> = new Map([
-  ["class", diagram(CLASS_NODE, CLASS_EDGE, "down")],
-  ["flow", diagram(FLOW_NODE, FLOW_EDGE, "down")],
+  ["class", diagram(CLASS_NODE, CLASS_EDGE, "down", [areaRule])],
+  ["flow", diagram(FLOW_NODE, FLOW_EDGE, "down", [areaRule, noteAreaRule])],
 ]);
 
-/** The fields every type shares, with its nodes and edges left unchecked. The schema's top level shows these. */
-export const SHARED: ObjectDef = diagram({ kind: "any" }, { kind: "any" }, "down");
+/**
+ * The fields every type shares, with its nodes and edges left unchecked. The
+ * schema's top level shows these. Without known nodes, the rules across them
+ * can't be checked.
+ */
+export const SHARED: ObjectDef = diagram({ kind: "any" }, { kind: "any" }, "down", []);
 
 /**
  * When the type isn't one we implement, only the fields every type shares can

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Structa diagram",
-  "description": "One diagram for Structa to draw. Text is plain text in Latin letters, digits and common symbols, with no control characters; runs of spaces collapse to one, and text can't be only spaces. Ids must be unique across nodes and edges, and a row's id within its card; \"from\", \"to\" and \"about\" must name a node that isn't a note.",
+  "description": "One diagram for Structa to draw. Text is plain text in Latin letters, digits and common symbols, with no control characters; runs of spaces collapse to one, and text can't be only spaces. Ids must be unique across nodes and edges, a row's id within its card, and an area's among the areas; \"from\", \"to\" and \"about\" must name a node that isn't a note (lines connect cards only, never areas), and a node's \"area\" and an area's \"parent\" must name an area.",
   "type": "object",
   "properties": {
     "version": {
@@ -43,10 +43,46 @@
       ],
       "default": "down"
     },
+    "groupAreas": {
+      "description": "true draws a box round each area's cards, nested as the areas are; otherwise each card shows its area as a tag",
+      "type": "boolean",
+      "default": false
+    },
     "legend": {
-      "description": "false leaves out the legend of statuses at the bottom",
+      "description": "false leaves out the legend of statuses and areas at the bottom",
       "type": "boolean",
       "default": true
+    },
+    "areas": {
+      "description": "named groupings that cards can be in, such as the parts of a system; drawn in this order",
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "description": "A named grouping of cards. Areas nest through \"parent\", at most 4 levels deep and never in a loop, and each must hold a card, directly or in an area inside it. Areas have no colours.",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "a unique id among the areas, made of letters, digits and - _ . :",
+            "$ref": "#/$defs/id"
+          },
+          "label": {
+            "description": "the area's name, shown on its cards' tags or at the top-left of its box",
+            "$ref": "#/$defs/areaLabel",
+            "type": "string",
+            "pattern": "^[\\u0020-\\u007E\\u00A0-\\u00AC\\u00AE-\\u0148\\u014A-\\u017F\\u2010-\\u2015\\u2018-\\u2022\\u2026\\u2030\\u2032-\\u2033\\u2039-\\u203A\\u20AC\\u2122\\u2190-\\u2195\\u21D0\\u21D2\\u21D4\\u2212\\u221E\\u2248\\u2260\\u2264-\\u2265]*$"
+          },
+          "parent": {
+            "description": "the id of the area this one is inside; leave it out for an outermost area",
+            "$ref": "#/$defs/id"
+          }
+        },
+        "required": [
+          "id",
+          "label"
+        ],
+        "additionalProperties": false
+      },
+      "default": []
     },
     "nodes": {
       "description": "the cards, in reading order; the order gently guides the layout",
@@ -100,6 +136,10 @@
                   "$ref": "#/$defs/description",
                   "type": "string",
                   "pattern": "^[\\u0020-\\u007E\\u00A0-\\u00AC\\u00AE-\\u0148\\u014A-\\u017F\\u2010-\\u2015\\u2018-\\u2022\\u2026\\u2030\\u2032-\\u2033\\u2039-\\u203A\\u20AC\\u2122\\u2190-\\u2195\\u21D0\\u21D2\\u21D4\\u2212\\u221E\\u2248\\u2260\\u2264-\\u2265]*$"
+                },
+                "area": {
+                  "description": "the id of the area the class is in",
+                  "$ref": "#/$defs/id"
                 },
                 "status": {
                   "description": "what the change does to this card; leave it out for no status",
@@ -419,6 +459,10 @@
                   "type": "string",
                   "pattern": "^[\\u0020-\\u007E\\u00A0-\\u00AC\\u00AE-\\u0148\\u014A-\\u017F\\u2010-\\u2015\\u2018-\\u2022\\u2026\\u2030\\u2032-\\u2033\\u2039-\\u203A\\u20AC\\u2122\\u2190-\\u2195\\u21D0\\u21D2\\u21D4\\u2212\\u221E\\u2248\\u2260\\u2264-\\u2265]*$"
                 },
+                "area": {
+                  "description": "the id of the area the shape is in; with groupAreas, a note about a shape is in that shape's area, so it can leave this out",
+                  "$ref": "#/$defs/id"
+                },
                 "status": {
                   "description": "what the change does to this card; leave it out for no status",
                   "enum": [
@@ -553,6 +597,13 @@
       "type": "string",
       "minLength": 1,
       "maxLength": 200,
+      "pattern": "[^ ]"
+    },
+    "areaLabel": {
+      "description": "an area's name, on its cards' tags or its box: plain text",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 40,
       "pattern": "[^ ]"
     }
   }

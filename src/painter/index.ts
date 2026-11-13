@@ -1,8 +1,10 @@
 import type { Status } from "../input";
-import type { PlacedCard, Point, RoutedLine, Scene } from "../layout";
+import type { PlacedArea, PlacedCard, Point, RoutedLine, Scene } from "../layout";
 import {
   entry,
   nearest,
+  type AreaBox,
+  type AreaItem,
   type Badge,
   type Card,
   type Connector,
@@ -12,6 +14,8 @@ import {
   type Line,
   type LineLabel,
   type Row,
+  type StatusItem,
+  type Tag,
   type TextLine,
 } from "../shapes";
 import { FACES, faceStyle, fontDataUrl, type FaceId } from "../text";
@@ -21,7 +25,7 @@ import { el, escapeText, num, open, type Attrs } from "./svg";
 
 /** Everything drawn: the laid-out scene, the title above it and the legend below it. */
 export interface Drawing {
-  readonly scene: Scene<Card, Line | Connector>;
+  readonly scene: Scene<Card, Line | Connector, AreaBox>;
   readonly header?: Header;
   readonly legend?: Legend;
 }
@@ -60,10 +64,13 @@ export function paint({ scene, header, legend }: Drawing, theme: Theme, options:
   const lines = scene.lines.filter((l): l is RoutedLine<Line> => l.line.kind !== "connector");
   const content = [
     ...(header ? headerText(header, { x: pad, y: headerTop! }, pen) : []),
+    // Under everything else in the scene, each parent before the areas inside it.
+    ...scene.areas.flatMap((a) => areaBox(a, origin, pen)),
     ...scene.cards.flatMap((p) => card(p, origin, pen, ids.shadow)),
     // Under the lines: a note's connector is an aside, not part of the flow.
     ...scene.lines.flatMap(({ line: l, points }) => (l.kind === "connector" ? connector(l, routed(l, points), origin, pen) : [])),
     ...lines.flatMap(({ line: l, points }) => line(l, routed(l, points), origin, pen)),
+    ...areaNames(scene.areas, origin, pen),
     ...lineLabels(lines, origin, pen),
     ...(legend ? legendItems(legend, { x: pad, y: legendTop! }, pen) : []),
   ];
@@ -181,23 +188,106 @@ function headerText(header: Header, at: Point, pen: Pen): string[] {
 function legendItems(legend: Legend, at: Point, pen: Pen): string[] {
   return [
     open("g", [["class", "legend"]]),
-    ...legend.items.flatMap((item) => [
-      open("g", [["class", "legend-item"], ...statusAttr(item.status)]),
-      el("line", [
-        ["class", "swatch"],
-        ["x1", at.x + item.swatch.x1],
-        ["y1", at.y + item.swatch.y],
-        ["x2", at.x + item.swatch.x2],
-        ["y2", at.y + item.swatch.y],
-        ["stroke", lineColour(item.status, pen.theme)],
-        ["stroke-width", pen.theme.sizes.line.width],
-        ["stroke-linecap", "round"],
-      ]),
-      ...badge(item.badge, at.x, at.y, pen),
-      "</g>",
+    ...legend.items.flatMap((item) => (item.kind === "status" ? statusItem(item, at, pen) : areaItem(item, at, pen))),
+    "</g>",
+  ];
+}
+
+/** A status in the legend: a short line in its line colour, then its badge. */
+function statusItem(item: StatusItem, at: Point, pen: Pen): string[] {
+  return [
+    open("g", [["class", "legend-item"], ...statusAttr(item.status)]),
+    el("line", [
+      ["class", "swatch"],
+      ["x1", at.x + item.swatch.x1],
+      ["y1", at.y + item.swatch.y],
+      ["x2", at.x + item.swatch.x2],
+      ["y2", at.y + item.swatch.y],
+      ["stroke", lineColour(item.status, pen.theme)],
+      ["stroke-width", pen.theme.sizes.line.width],
+      ["stroke-linecap", "round"],
+    ]),
+    ...badge(item.badge, at.x, at.y, pen),
+    "</g>",
+  ];
+}
+
+/** An area in the legend: its tag, as its cards show it. */
+function areaItem(item: AreaItem, at: Point, pen: Pen): string[] {
+  return [open("g", [["class", "legend-item"], ["data-area", item.tag.area]]), ...tag(item.tag, at.x, at.y, pen), "</g>"];
+}
+
+/**
+ * An area's box, offset by `at`: every box in the same see-through fill, so
+ * one inside another comes out stronger, with a thin border. Its name is
+ * drawn later, over the lines.
+ */
+function areaBox({ area, x, y, width, height }: PlacedArea<AreaBox>, at: Point, pen: Pen): string[] {
+  const { colors, sizes } = pen.theme;
+  return [
+    open("g", [["class", "area"], ["data-area", area.id], ...(area.parent === undefined ? [] : ([["data-parent", area.parent]] as const))]),
+    el("title", [], escapeText(area.tooltip)),
+    el("rect", [
+      ["class", "area-box"],
+      ["x", x + at.x],
+      ["y", y + at.y],
+      ["width", width],
+      ["height", height],
+      ["rx", sizes.area.radius],
+      ["fill", colors.areaFill],
+      ["fill-opacity", colors.areaFillOpacity],
+      ["stroke", colors.areaBorder],
+      ["stroke-width", sizes.area.borderWidth],
     ]),
     "</g>",
   ];
+}
+
+/**
+ * Each area's name at the top-left of its box, offset by `at`, over the
+ * lines: behind it, a patch of exactly the colour its box shows (the canvas
+ * under one layer of the see-through fill for each box it's in), so a line
+ * running under the name stops at it rather than cutting through it.
+ */
+function areaNames(areas: readonly PlacedArea<AreaBox>[], at: Point, pen: Pen): string[] {
+  if (areas.length === 0) return [];
+  const { colors } = pen.theme;
+  // Each parent comes before the areas inside it, so its colour is known first.
+  const shown = new Map<string, Rgb>();
+  const names = areas.flatMap(({ area, x: boxX, y: boxY }) => {
+    const under = area.parent === undefined ? rgb(colors.background) : shown.get(area.parent)!;
+    const colour = over(under, rgb(colors.areaFill), colors.areaFillOpacity);
+    shown.set(area.id, colour);
+    const x = boxX + at.x;
+    const y = boxY + at.y;
+    const { nameBox } = area;
+    return [
+      open("g", [["class", "area-name"], ["data-area", area.id]]),
+      el("rect", [["x", x + nameBox.x], ["y", y + nameBox.y], ["width", nameBox.width], ["height", nameBox.height], ["fill", hex(colour)]]),
+      ...text(area.name, x, y, colors.areaName, pen),
+      "</g>",
+    ];
+  });
+  return [open("g", [["class", "area-names"]]), ...names, "</g>"];
+}
+
+/** A colour's red, green and blue, from 0 to 255, unrounded. */
+type Rgb = readonly number[];
+
+/** A theme colour written as #rrggbb. */
+function rgb(colour: string): Rgb {
+  const value = Number.parseInt(colour.slice(1), 16);
+  return [(value >> 16) & 255, (value >> 8) & 255, value & 255];
+}
+
+/** `top` laid over `under` at `opacity`. */
+function over(under: Rgb, top: Rgb, opacity: number): Rgb {
+  return under.map((part, i) => part * (1 - opacity) + top[i]! * opacity);
+}
+
+/** A colour as #rrggbb, each part rounded to the nearest whole number. */
+function hex(colour: Rgb): string {
+  return `#${colour.map((part) => Math.round(part).toString(16).padStart(2, "0")).join("")}`;
 }
 
 function card({ card, x: cardX, y: cardY }: PlacedCard<Card>, at: Point, pen: Pen, shadowId: string): string[] {
@@ -213,7 +303,13 @@ function card({ card, x: cardX, y: cardY }: PlacedCard<Card>, at: Point, pen: Pe
   const look: Attrs = [["fill", colors[card.fill]], ...stroke, ["filter", `url(#${shadowId})`]];
   const box = { x, y };
   return [
-    open("g", [["class", "card"], ["data-id", card.id], ["data-kind", card.kind], ...statusAttr(card.status)]),
+    open("g", [
+      ["class", "card"],
+      ["data-id", card.id],
+      ["data-kind", card.kind],
+      ...statusAttr(card.status),
+      ...(card.area === undefined ? [] : ([["data-area", card.area]] as const)),
+    ]),
     el("title", [], escapeText(card.tooltip)),
     ...fadedIf(card.status === "removed", pen.theme, [
       outline.kind === "rounded"
@@ -247,8 +343,29 @@ function card({ card, x: cardX, y: cardY }: PlacedCard<Card>, at: Point, pen: Pe
     ]),
     // Rows fade themselves, so a removed card's rows aren't faded twice.
     ...card.rows.flatMap((r) => row(r, x, y, pen)),
-    // The badge stays at full strength, so a removed card's REMOVED reads clearly.
+    // The badge and the tag stay at full strength, so a removed card's REMOVED and its area read clearly.
     ...(card.badge ? badge(card.badge, x, y, pen) : []),
+    ...(card.tag ? tag(card.tag, x, y, pen) : []),
+    "</g>",
+  ];
+}
+
+/** An area's tag offset by (x, y): its name in a neutral chip, opaque so the border it sits on doesn't show through. */
+function tag(t: Tag, x: number, y: number, pen: Pen): string[] {
+  const { colors, sizes } = pen.theme;
+  return [
+    open("g", [["class", "tag"], ["data-area", t.area]]),
+    el("rect", [
+      ["x", x + t.x],
+      ["y", y + t.y],
+      ["width", t.width],
+      ["height", t.height],
+      ["rx", t.radius],
+      ["fill", colors.tagFill],
+      ["stroke", colors.tagBorder],
+      ["stroke-width", sizes.tag.borderWidth],
+    ]),
+    ...text(t.word, x, y, colors.tagText, pen),
     "</g>",
   ];
 }

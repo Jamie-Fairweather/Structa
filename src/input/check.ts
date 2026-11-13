@@ -1,13 +1,32 @@
 import type { Problem } from "../errors";
 import { undrawable } from "../text";
 import { describeChar } from "./chars";
-import { ID_PATTERN, type Condition, type Def, type Field, type ObjectDef, type RefDef, type TextDef } from "./definitions";
+import {
+  ID_PATTERN,
+  type Condition,
+  type Def,
+  type Field,
+  type ListDef,
+  type ObjectDef,
+  type RefDef,
+  type TextDef,
+} from "./definitions";
 
 type Json = { readonly [key: string]: unknown };
 
+/** What a reference can name. */
+type Target = RefDef["to"];
+
 const ID = new RegExp(ID_PATTERN);
 const ID_HINT = "use only letters, digits and - _ . :";
-const REF_HINT = "use the id of one of the nodes";
+const REF_HINTS = new Map<Target, { readonly noun: string; readonly hint: string }>([
+  ["node", { noun: "node", hint: "use the id of one of the nodes" }],
+  ["area", { noun: "area", hint: 'use the id of one of the areas in "areas"' }],
+]);
+const DUPLICATE_HINTS = new Map([
+  ["row", "give every row in a card its own id"],
+  ["area", "give every area its own id"],
+]);
 const DRAW_HINT = "use Latin letters, digits and common symbols";
 /** Characters a field can't draw are named one by one up to this many; the rest are counted. */
 const NAMED_CHARS = 5;
@@ -35,12 +54,20 @@ export function check(def: ObjectDef, input: unknown): { value: unknown; problem
   const ids = new Map<string, string>();
   /** The explicit row ids of the node being read, with where each was first used. Each node starts afresh. */
   let rowIds = new Map<string, string>();
-  /** Every string a node gave as its id, valid or not, so lines to it aren't also reported. */
-  const nodeIds = new Set<string>();
+  /** Every area id with where it was first used: areas have ids of their own, apart from nodes and edges. */
+  const areaIds = new Map<string, string>();
+  /** Every string a node or an area gave as its id, valid or not, so references to it aren't also reported. */
+  const given = new Map<Target, Set<string>>([
+    ["node", new Set()],
+    ["area", new Set()],
+  ]);
   /** The first node with each id, as given, so a reference can check what kind of node it names. */
   const nodes = new Map<string, Json>();
-  /** References are only checked once a list of nodes was read: without one, nothing is known. */
-  let nodesListed = false;
+  /**
+   * References to nodes or areas are only checked once their list was read,
+   * or left out (so empty): without it, nothing is known.
+   */
+  const listed = new Set<Target>();
   const refs: { path: string; target: string; seq: number; def: RefDef }[] = [];
 
   function walk(def: Def, value: unknown, path: string, field?: Field): unknown {
@@ -53,25 +80,26 @@ export function check(def: ObjectDef, input: unknown): { value: unknown; problem
           return [];
         }
         if (value.length > def.maxItems) report(path, `has ${value.length} ${def.noun}; the limit is ${def.maxItems}`, def.limitHint);
-        if (def.items.kind === "object" && isNode(def.items)) nodesListed = true;
+        const target = targetOf(def);
+        if (target) listed.add(target);
         return value.map((item: unknown, i) => walk(def.items, item, `${path}[${i}]`));
       }
       case "text":
         return walkText(def, value, path);
       case "id": {
         if (typeof value !== "string") return report(path, "must be a string", ID_HINT);
-        if (def.of === "node") nodeIds.add(value);
-        const used = def.of === "row" ? rowIds : ids;
+        if (def.of === "node" || def.of === "area") given.get(def.of)!.add(value);
+        const used = def.of === "row" ? rowIds : def.of === "area" ? areaIds : ids;
         if (value === "") report(path, "must not be empty", ID_HINT);
         else if (!ID.test(value)) report(path, `${show(value)} is not a valid id`, ID_HINT);
         else if (used.has(value)) {
-          const hint = def.of === "row" ? "give every row in a card its own id" : "give every node and edge its own id";
+          const hint = DUPLICATE_HINTS.get(def.of) ?? "give every node and edge its own id";
           report(path, `the id ${show(value)} is already used by ${used.get(value)}`, hint);
         } else used.set(value, path.slice(0, path.lastIndexOf(".")));
         return value;
       }
       case "ref":
-        if (typeof value !== "string") return report(path, "must be a node id", REF_HINT);
+        if (typeof value !== "string") return report(path, `must be ${def.to === "area" ? "an" : "a"} ${def.to} id`, REF_HINTS.get(def.to)!.hint);
         refs.push({ path, target: value, seq: seq++, def });
         return value;
       case "choice": {
@@ -133,7 +161,12 @@ export function check(def: ObjectDef, input: unknown): { value: unknown; problem
           report(at, conditionMessage(def, field.name, field.onlyWhen), field.onlyWhen.hint);
         } else result[field.name] = walk(field.def, fieldValue, at, field);
       } else if (field.required) report(at, `missing required field "${field.name}"`, missingHint(field));
-      else if (field.default !== undefined) result[field.name] = field.default;
+      else if (field.default !== undefined) {
+        result[field.name] = field.default;
+        // A list left out is empty, so what it would have listed is known: nothing.
+        const target = field.def.kind === "list" ? targetOf(field.def) : undefined;
+        if (target) listed.add(target);
+      }
     }
     for (const rule of def.rules ?? []) {
       for (const problem of rule(result, value, path)) report(problem.path, problem.message, problem.hint);
@@ -163,9 +196,13 @@ export function check(def: ObjectDef, input: unknown): { value: unknown; problem
 
   const value = walk(def, input, "$");
   for (const { path, target, seq: at, def: ref } of refs) {
-    if (!nodesListed) continue;
-    if (!nodeIds.has(target)) report(path, `no node with id ${show(target)}`, REF_HINT, at);
-    else if (ref.notTo && nodes.get(target)?.[ref.notTo.field] === ref.notTo.value) {
+    if (!listed.has(ref.to)) continue;
+    if (!given.get(ref.to)!.has(target)) {
+      // Lines connect cards only: an area's id gets its own message.
+      if (ref.to === "node" && given.get("area")!.has(target)) {
+        report(path, `${show(target)} is an area, and lines connect cards only`, "point the line at a card in the area", at);
+      } else report(path, `no ${REF_HINTS.get(ref.to)!.noun} with id ${show(target)}`, REF_HINTS.get(ref.to)!.hint, at);
+    } else if (ref.notTo && nodes.get(target)?.[ref.notTo.field] === ref.notTo.value) {
       const { value: kind, reason, hint } = ref.notTo;
       report(path, `${show(target)} is a ${kind}, and ${reason}`, hint, at);
     }
@@ -182,6 +219,15 @@ function nodeIdField(def: ObjectDef): Field | undefined {
 /** Whether objects of this definition are nodes: they have a node id. */
 function isNode(def: ObjectDef): boolean {
   return nodeIdField(def) !== undefined;
+}
+
+/** What references can name in a list of this definition: its items' ids, when they're nodes or areas. */
+function targetOf(def: ListDef): Target | undefined {
+  if (def.items.kind !== "object") return undefined;
+  for (const field of def.items.fields) {
+    if (field.def.kind === "id" && (field.def.of === "node" || field.def.of === "area")) return field.def.of;
+  }
+  return undefined;
 }
 
 /**

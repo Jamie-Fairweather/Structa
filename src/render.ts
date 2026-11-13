@@ -3,7 +3,7 @@ import { parseDiagram } from "./input";
 import { layout, PROFILES } from "./layout";
 import { paint } from "./painter";
 import { DEFAULT_SCALE, rasterise, SCALES, type Scale } from "./raster";
-import { buildCards, buildConnector, buildHeader, buildLegend, buildLine } from "./shapes";
+import { buildAreaBoxes, buildCards, buildConnector, buildHeader, buildLegend, buildLine } from "./shapes";
 import { getTheme, THEME_NAMES, type ThemeName } from "./theme";
 
 interface Outputs {
@@ -53,11 +53,21 @@ export async function render<F extends Format = "svg">(
     const target = index.get(node.about)!;
     return [{ ...buildConnector(node, flowNodes[target]!), source: i, target, path: `nodes[${i}].about` }];
   });
-  const scene = await layout({ cards, lines: [...connectors, ...lines] }, PROFILES.get(diagram.type)!, diagram.direction);
+  // Area boxes only when asked for: otherwise the areas don't affect the layout at all.
+  const areaIndex = new Map(diagram.areas.map((area, i) => [area.id, i]));
+  const areas = diagram.groupAreas
+    ? buildAreaBoxes(diagram.areas, theme.sizes).map((box) => ({ ...box, path: `areas[${areaIndex.get(box.id)}]` }))
+    : [];
+  const scene = await layout({ cards, lines: [...connectors, ...lines], areas }, PROFILES.get(diagram.type)!, diagram.direction);
   const header = buildHeader(diagram.title, diagram.description, theme.sizes);
   // Every card's status, its rows' (taken from the card included) and every line's.
   const statuses = [...cards.flatMap((card) => [card.status, ...card.rows.map((row) => row.status)]), ...lines.map((line) => line.status)];
-  const legend = diagram.legend ? buildLegend(statuses, theme.sizes) : undefined;
+  // The areas named in the drawing: each box names its area, and each tag only its card's own.
+  const tagged = new Set(cards.map((card) => card.area));
+  const named = diagram.groupAreas ? diagram.areas : diagram.areas.filter((area) => tagged.has(area.id));
+  // The legend wraps to the diagram's width, or to the title's widest when that's wider, so it never widens the image.
+  const legendWidth = Math.max(scene.width, theme.sizes.header.maxWidth);
+  const legend = diagram.legend ? buildLegend(statuses, named, legendWidth, theme.sizes) : undefined;
   const drawing = { scene, header, legend };
 
   const result: Partial<Outputs> = {};
