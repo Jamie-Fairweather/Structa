@@ -1,128 +1,128 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="2590" height="490" viewBox="0 0 2590 490">
+<svg xmlns="http://www.w3.org/2000/svg" width="2582" height="490" viewBox="0 0 2582 490">
 <defs>
 <pattern id="structa-grid-light" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="9" cy="9" r="1" fill="#8c959f" fill-opacity="0.5"/></pattern>
 <filter id="structa-shadow-light" x="-20%" y="-30%" width="140%" height="170%"><feDropShadow dx="0" dy="1" stdDeviation="3" flood-color="#1f2328" flood-opacity="0.1"/></filter>
 </defs>
-<rect width="2590" height="490" fill="#f4f5f7"/>
-<rect width="2590" height="490" fill="url(#structa-grid-light)"/>
+<rect width="2582" height="490" fill="#f4f5f7"/>
+<rect width="2582" height="490" fill="url(#structa-grid-light)"/>
 <g class="title">
-<text x="32" y="50.55" font-family="Structa Inter, Inter, sans-serif" font-size="18" font-weight="700" fill="#1f2328">Bike co-op</text>
+<text x="32" y="50.55" font-family="Structa Inter, Inter, sans-serif" font-size="18" font-weight="700" fill="#1f2328">School baking club</text>
 </g>
 <g class="description">
-<text x="32" y="73.73" font-family="Structa Inter, Inter, sans-serif" font-size="13" font-weight="400" fill="#59636e">Members book repairs that other members fix, with parts from the workshop's store. A refund names a</text>
-<text x="32" y="91.73" font-family="Structa Inter, Inter, sans-serif" font-size="13" font-weight="400" fill="#59636e">fitted part by its two-column key.</text>
+<text x="32" y="73.73" font-family="Structa Inter, Inter, sans-serif" font-size="13" font-weight="400" fill="#59636e">Members bake for the club's tasting days, and other members taste, with ingredients from the club's</text>
+<text x="32" y="91.73" font-family="Structa Inter, Inter, sans-serif" font-size="13" font-weight="400" fill="#59636e">pantry. An allergy note names an ingredient in a bake by its two-column key.</text>
 </g>
 <g class="area" data-area="people">
 <title>Members</title>
-<rect class="area-box" x="2094" y="146" width="464" height="182" rx="12" fill="#818b98" fill-opacity="0.08" stroke="#d1d9e0" stroke-width="1"/>
+<rect class="area-box" x="2086" y="146" width="464" height="182" rx="12" fill="#818b98" fill-opacity="0.08" stroke="#d1d9e0" stroke-width="1"/>
 </g>
-<g class="area" data-area="workshop">
-<title>Workshop</title>
+<g class="area" data-area="kitchen">
+<title>Kitchen</title>
 <rect class="area-box" x="561" y="120" width="1296" height="298" rx="12" fill="#818b98" fill-opacity="0.08" stroke="#d1d9e0" stroke-width="1"/>
 </g>
-<g class="area" data-area="store" data-parent="workshop">
-<title>Parts store</title>
+<g class="area" data-area="pantry" data-parent="kitchen">
+<title>Pantry</title>
 <rect class="area-box" x="585" y="183" width="824" height="219" rx="12" fill="#818b98" fill-opacity="0.08" stroke="#d1d9e0" stroke-width="1"/>
 </g>
 <g class="card" data-id="members" data-kind="table" data-area="people">
 <title>members</title>
-<rect class="outline" x="2182" y="178" width="360" height="134" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
-<line class="divider" x1="2182.5" y1="222" x2="2541.5" y2="222" stroke="#d1d9e0" stroke-width="1"/>
-<text x="2362" y="205.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">members</text>
+<rect class="outline" x="2174" y="178" width="360" height="134" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<line class="divider" x1="2174.5" y1="222" x2="2533.5" y2="222" stroke="#d1d9e0" stroke-width="1"/>
+<text x="2354" y="205.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">members</text>
 <g class="row" data-id="id" data-kind="column">
 <title>PK id: uuid</title>
 <g class="symbol">
-<text x="2196" y="245.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#59636e">PK</text>
+<text x="2188" y="245.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#59636e">PK</text>
 </g>
-<text x="2220" y="245.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">id</text>
-<text x="2272" y="245.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">uuid</text>
+<text x="2212" y="245.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">id</text>
+<text x="2264" y="245.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">uuid</text>
 </g>
 <g class="row" data-id="name" data-kind="column">
 <title>name: text</title>
-<text x="2220" y="271.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">name</text>
-<text x="2272" y="271.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">text</text>
+<text x="2212" y="271.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">name</text>
+<text x="2264" y="271.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">text</text>
 </g>
 <g class="row" data-id="email" data-kind="column">
 <title>UQ email: text</title>
 <g class="symbol">
-<text x="2196" y="297.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#59636e">UQ</text>
+<text x="2188" y="297.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#59636e">UQ</text>
 </g>
-<text x="2220" y="297.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">email</text>
-<text x="2272" y="297.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">text</text>
+<text x="2212" y="297.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">email</text>
+<text x="2264" y="297.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">text</text>
 </g>
 </g>
-<g class="card" data-id="jobs" data-kind="table" data-area="workshop">
-<title>jobs</title>
+<g class="card" data-id="bakes" data-kind="table" data-area="kitchen">
+<title>bakes</title>
 <rect class="outline" x="1481" y="152" width="360" height="186" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
 <line class="divider" x1="1481.5" y1="196" x2="1840.5" y2="196" stroke="#d1d9e0" stroke-width="1"/>
-<text x="1661" y="179.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">jobs</text>
+<text x="1661" y="179.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">bakes</text>
 <g class="row" data-id="id" data-kind="column">
 <title>PK id: uuid</title>
 <g class="symbol">
 <text x="1495" y="219.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#59636e">PK</text>
 </g>
 <text x="1517" y="219.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">id</text>
-<text x="1613" y="219.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">uuid</text>
+<text x="1598" y="219.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">uuid</text>
 </g>
-<g class="row" data-id="customer_id" data-kind="column">
-<title>FK customer_id: uuid</title>
+<g class="row" data-id="baker_id" data-kind="column">
+<title>FK baker_id: uuid</title>
 <g class="symbol">
 <text x="1495" y="245.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#59636e">FK</text>
 </g>
-<text x="1517" y="245.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">customer_id</text>
-<text x="1613" y="245.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">uuid</text>
+<text x="1517" y="245.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">baker_id</text>
+<text x="1598" y="245.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">uuid</text>
 </g>
-<g class="row" data-id="mechanic_id" data-kind="column">
-<title>FK mechanic_id: uuid?</title>
+<g class="row" data-id="taster_id" data-kind="column">
+<title>FK taster_id: uuid?</title>
 <g class="symbol">
 <text x="1495" y="271.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#59636e">FK</text>
 </g>
-<text x="1517" y="271.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">mechanic_id</text>
-<text x="1613" y="271.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">uuid?</text>
+<text x="1517" y="271.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">taster_id</text>
+<text x="1598" y="271.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">uuid?</text>
 </g>
-<g class="row" data-id="bike" data-kind="column">
-<title>bike: text</title>
-<text x="1517" y="297.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">bike</text>
-<text x="1613" y="297.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">text</text>
+<g class="row" data-id="recipe" data-kind="column">
+<title>recipe: text</title>
+<text x="1517" y="297.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">recipe</text>
+<text x="1598" y="297.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">text</text>
 </g>
-<g class="row" data-id="booked_on" data-kind="column">
-<title>booked_on: date</title>
-<text x="1517" y="323.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">booked_on</text>
-<text x="1613" y="323.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">date</text>
+<g class="row" data-id="baked_on" data-kind="column">
+<title>baked_on: date</title>
+<text x="1517" y="323.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">baked_on</text>
+<text x="1598" y="323.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">date</text>
 </g>
 </g>
-<g class="card" data-id="job-parts" data-kind="table" data-area="store">
-<title>job_parts</title>
+<g class="card" data-id="bake-ingredients" data-kind="table" data-area="pantry">
+<title>bake_ingredients</title>
 <rect class="outline" x="601" y="226" width="360" height="134" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
 <line class="divider" x1="601.5" y1="270" x2="960.5" y2="270" stroke="#d1d9e0" stroke-width="1"/>
-<text x="781" y="253.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">job_parts</text>
-<g class="row" data-id="job_id" data-kind="column">
-<title>PK FK job_id: uuid</title>
+<text x="781" y="253.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">bake_ingredients</text>
+<g class="row" data-id="bake_id" data-kind="column">
+<title>PK FK bake_id: uuid</title>
 <g class="symbol">
 <text x="615" y="293.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#59636e">PK FK</text>
 </g>
-<text x="653" y="293.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">job_id</text>
-<text x="734" y="293.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">uuid</text>
+<text x="653" y="293.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">bake_id</text>
+<text x="777" y="293.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">uuid</text>
 </g>
-<g class="row" data-id="part_code" data-kind="column">
-<title>PK FK part_code: text</title>
+<g class="row" data-id="ingredient_code" data-kind="column">
+<title>PK FK ingredient_code: text</title>
 <g class="symbol">
 <text x="615" y="319.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#59636e">PK FK</text>
 </g>
-<text x="653" y="319.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">part_code</text>
-<text x="734" y="319.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">text</text>
+<text x="653" y="319.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">ingredient_code</text>
+<text x="777" y="319.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">text</text>
 </g>
-<g class="row" data-id="quantity" data-kind="column">
-<title>quantity: int</title>
-<text x="653" y="345.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">quantity</text>
-<text x="734" y="345.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">int</text>
+<g class="row" data-id="grams" data-kind="column">
+<title>grams: int</title>
+<text x="653" y="345.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">grams</text>
+<text x="777" y="345.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">int</text>
 </g>
 </g>
-<g class="card" data-id="parts" data-kind="table" data-area="store">
-<title>parts</title>
+<g class="card" data-id="ingredients" data-kind="table" data-area="pantry">
+<title>ingredients</title>
 <rect class="outline" x="1033" y="252" width="360" height="134" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
 <line class="divider" x1="1033.5" y1="296" x2="1392.5" y2="296" stroke="#d1d9e0" stroke-width="1"/>
-<text x="1213" y="279.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">parts</text>
+<text x="1213" y="279.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">ingredients</text>
 <g class="row" data-id="code" data-kind="column">
 <title>PK code: text</title>
 <g class="symbol">
@@ -136,72 +136,72 @@
 <text x="1069" y="345.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">description</text>
 <text x="1165" y="345.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">text</text>
 </g>
-<g class="row" data-id="price" data-kind="column">
-<title>price: numeric(6,2)</title>
-<text x="1069" y="371.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">price</text>
+<g class="row" data-id="cost_per_kg" data-kind="column">
+<title>cost_per_kg: numeric(6,2)</title>
+<text x="1069" y="371.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">cost_per_kg</text>
 <text x="1165" y="371.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">numeric(6,2)</text>
 </g>
 </g>
-<g class="card" data-id="refunds" data-kind="table">
-<title>refunds</title>
+<g class="card" data-id="allergy-notes" data-kind="table">
+<title>allergy_notes</title>
 <rect class="outline" x="32" y="226" width="360" height="160" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
 <line class="divider" x1="32.5" y1="270" x2="391.5" y2="270" stroke="#d1d9e0" stroke-width="1"/>
-<text x="212" y="253.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">refunds</text>
+<text x="212" y="253.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">allergy_notes</text>
 <g class="row" data-id="id" data-kind="column">
 <title>PK id: uuid</title>
 <g class="symbol">
 <text x="46" y="293.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#59636e">PK</text>
 </g>
 <text x="68" y="293.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">id</text>
-<text x="149" y="293.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">uuid</text>
+<text x="192" y="293.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">uuid</text>
 </g>
-<g class="row" data-id="job_id" data-kind="column">
-<title>FK job_id: uuid</title>
+<g class="row" data-id="bake_id" data-kind="column">
+<title>FK bake_id: uuid</title>
 <g class="symbol">
 <text x="46" y="319.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#59636e">FK</text>
 </g>
-<text x="68" y="319.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">job_id</text>
-<text x="149" y="319.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">uuid</text>
+<text x="68" y="319.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">bake_id</text>
+<text x="192" y="319.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">uuid</text>
 </g>
-<g class="row" data-id="part_code" data-kind="column">
-<title>FK part_code: text</title>
+<g class="row" data-id="ingredient_code" data-kind="column">
+<title>FK ingredient_code: text</title>
 <g class="symbol">
 <text x="46" y="345.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#59636e">FK</text>
 </g>
-<text x="68" y="345.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">part_code</text>
-<text x="149" y="345.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">text</text>
+<text x="68" y="345.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">ingredient_code</text>
+<text x="192" y="345.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">text</text>
 </g>
-<g class="row" data-id="amount" data-kind="column">
-<title>amount: numeric(6,2)</title>
-<text x="68" y="371.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">amount</text>
-<text x="149" y="371.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">numeric(6,2)</text>
+<g class="row" data-id="note" data-kind="column">
+<title>note: text</title>
+<text x="68" y="371.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">note</text>
+<text x="192" y="371.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">text</text>
 </g>
 </g>
-<g class="line" data-id="edges[0]" data-kind="relationship" data-from="jobs" data-to="members">
-<title>jobs (zero-or-many) – members (one): booked by</title>
-<path d="M1841 241 L2182 241" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<g class="line" data-id="edges[0]" data-kind="relationship" data-from="bakes" data-to="members">
+<title>bakes (zero-or-many) – members (one): baked by</title>
+<path d="M1841 241 L2174 241" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
 <g class="end" data-end="from" data-cardinality="zero-or-many">
 <path d="M1841 234 L1853 241 L1841 248" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
 <circle cx="1862" cy="241" r="4" fill="#f4f5f7" stroke="#8c959f" stroke-width="1.5"/>
 </g>
 <g class="end" data-end="to" data-cardinality="one">
-<path d="M2176 248 L2176 234 M2171 248 L2171 234" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M2168 248 L2168 234 M2163 248 L2163 234" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
 </g>
 </g>
-<g class="line" data-id="edges[1]" data-kind="relationship" data-from="jobs" data-to="members">
-<title>jobs (zero-or-many) – members (zero-or-one): fixed by</title>
-<path d="M1841 267 L1895.5 267 Q1901 267 1901 272.5 L1901 272.5 Q1901 278 1906.5 278 L2042 278 Q2050 278 2050 270 L2050 259 Q2050 251 2058 251 L2141 251 Q2146 251 2146 246 L2146 246 Q2146 241 2151 241 L2182 241" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<g class="line" data-id="edges[1]" data-kind="relationship" data-from="bakes" data-to="members">
+<title>bakes (zero-or-many) – members (zero-or-one): tasted by</title>
+<path d="M1841 267 L1895.5 267 Q1901 267 1901 272.5 L1901 272.5 Q1901 278 1906.5 278 L2034 278 Q2042 278 2042 270 L2042 259 Q2042 251 2050 251 L2133 251 Q2138 251 2138 246 L2138 246 Q2138 241 2143 241 L2174 241" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
 <g class="end" data-end="from" data-cardinality="zero-or-many">
 <path d="M1841 260 L1853 267 L1841 274" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
 <circle cx="1862" cy="267" r="4" fill="#f4f5f7" stroke="#8c959f" stroke-width="1.5"/>
 </g>
 <g class="end" data-end="to" data-cardinality="zero-or-one">
-<path d="M2176 248 L2176 234" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
-<circle cx="2167" cy="241" r="4" fill="#f4f5f7" stroke="#8c959f" stroke-width="1.5"/>
+<path d="M2168 248 L2168 234" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<circle cx="2159" cy="241" r="4" fill="#f4f5f7" stroke="#8c959f" stroke-width="1.5"/>
 </g>
 </g>
-<g class="line" data-id="edges[2]" data-kind="relationship" data-from="job-parts" data-to="jobs">
-<title>job_parts (zero-or-many) – jobs (one)</title>
+<g class="line" data-id="edges[2]" data-kind="relationship" data-from="bake-ingredients" data-to="bakes">
+<title>bake_ingredients (zero-or-many) – bakes (one)</title>
 <path d="M961 289 L989 289 Q997 289 997 281 L997 223 Q997 215 1005 215 L1481 215" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
 <g class="end" data-end="from" data-cardinality="zero-or-many">
 <path d="M961 282 L973 289 L961 296" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
@@ -211,8 +211,8 @@
 <path d="M1475 222 L1475 208 M1470 222 L1470 208" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
 </g>
 </g>
-<g class="line" data-id="edges[3]" data-kind="relationship" data-from="job-parts" data-to="parts">
-<title>job_parts (zero-or-many) – parts (one)</title>
+<g class="line" data-id="edges[3]" data-kind="relationship" data-from="bake-ingredients" data-to="ingredients">
+<title>bake_ingredients (zero-or-many) – ingredients (one)</title>
 <path d="M961 315 L1033 315" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
 <g class="end" data-end="from" data-cardinality="zero-or-many">
 <path d="M961 308 L973 315 L961 322" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
@@ -222,8 +222,8 @@
 <path d="M1027 322 L1027 308 M1022 322 L1022 308" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
 </g>
 </g>
-<g class="line" data-id="edges[4]" data-kind="relationship" data-from="refunds" data-to="job-parts">
-<title>refunds (zero-or-many) – job_parts (one): for</title>
+<g class="line" data-id="edges[4]" data-kind="relationship" data-from="allergy-notes" data-to="bake-ingredients">
+<title>allergy_notes (zero-or-many) – bake_ingredients (one): for</title>
 <path d="M392 248 L601 248" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
 <g class="end" data-end="from" data-cardinality="zero-or-many">
 <path d="M392 241 L404 248 L392 255" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
@@ -235,31 +235,31 @@
 </g>
 <g class="area-names">
 <g class="area-name" data-area="people">
-<rect x="2107" y="154" width="60.91" height="16" fill="#ebedef"/>
-<text x="2110" y="166.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="600" fill="#59636e">Members</text>
+<rect x="2099" y="154" width="60.91" height="16" fill="#ebedef"/>
+<text x="2102" y="166.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="600" fill="#59636e">Members</text>
 </g>
-<g class="area-name" data-area="workshop">
-<rect x="574" y="128" width="65.88" height="16" fill="#ebedef"/>
-<text x="577" y="140.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="600" fill="#59636e">Workshop</text>
+<g class="area-name" data-area="kitchen">
+<rect x="574" y="128" width="50.59" height="16" fill="#ebedef"/>
+<text x="577" y="140.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="600" fill="#59636e">Kitchen</text>
 </g>
-<g class="area-name" data-area="store">
-<rect x="598" y="191" width="69.24" height="16" fill="#e2e5e8"/>
-<text x="601" y="203.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="600" fill="#59636e">Parts store</text>
+<g class="area-name" data-area="pantry">
+<rect x="598" y="191" width="44.03" height="16" fill="#e2e5e8"/>
+<text x="601" y="203.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="600" fill="#59636e">Pantry</text>
 </g>
 </g>
 <g class="line-labels">
 <g class="line-label" data-line="edges[0]">
-<title>jobs (zero-or-many) – members (one): booked by</title>
-<rect x="1937" y="230.5" width="77" height="20" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1"/>
-<text x="1975.5" y="244.87" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">booked by</text>
+<title>bakes (zero-or-many) – members (one): baked by</title>
+<rect x="1937" y="230.5" width="69" height="20" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1"/>
+<text x="1971.5" y="244.87" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">baked by</text>
 </g>
 <g class="line-label" data-line="edges[1]">
-<title>jobs (zero-or-many) – members (zero-or-one): fixed by</title>
-<rect x="1944.5" y="267.5" width="62" height="20" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1"/>
-<text x="1975.5" y="281.87" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">fixed by</text>
+<title>bakes (zero-or-many) – members (zero-or-one): tasted by</title>
+<rect x="1937" y="267.5" width="69" height="20" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1"/>
+<text x="1971.5" y="281.87" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">tasted by</text>
 </g>
 <g class="line-label" data-line="edges[4]">
-<title>refunds (zero-or-many) – job_parts (one): for</title>
+<title>allergy_notes (zero-or-many) – bake_ingredients (one): for</title>
 <rect x="456" y="237.5" width="33" height="20" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1"/>
 <text x="472.5" y="251.87" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">for</text>
 </g>
@@ -271,16 +271,16 @@
 <text x="61" y="453.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#59636e" text-anchor="middle">Members</text>
 </g>
 </g>
-<g class="legend-item" data-area="workshop">
-<g class="tag" data-area="workshop">
-<rect x="110" y="442" width="62" height="16" rx="4" fill="#f6f8fa" stroke="#d1d9e0" stroke-width="1"/>
-<text x="141" y="453.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#59636e" text-anchor="middle">Workshop</text>
+<g class="legend-item" data-area="kitchen">
+<g class="tag" data-area="kitchen">
+<rect x="110" y="442" width="50" height="16" rx="4" fill="#f6f8fa" stroke="#d1d9e0" stroke-width="1"/>
+<text x="135" y="453.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#59636e" text-anchor="middle">Kitchen</text>
 </g>
 </g>
-<g class="legend-item" data-area="store">
-<g class="tag" data-area="store">
-<rect x="192" y="442" width="65" height="16" rx="4" fill="#f6f8fa" stroke="#d1d9e0" stroke-width="1"/>
-<text x="224.5" y="453.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#59636e" text-anchor="middle">Parts store</text>
+<g class="legend-item" data-area="pantry">
+<g class="tag" data-area="pantry">
+<rect x="180" y="442" width="44" height="16" rx="4" fill="#f6f8fa" stroke="#d1d9e0" stroke-width="1"/>
+<text x="202" y="453.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#59636e" text-anchor="middle">Pantry</text>
 </g>
 </g>
 </g>

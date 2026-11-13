@@ -1,7 +1,7 @@
 {
   "type": "class",
-  "title": "Weather station sensors",
-  "description": "Every sensor can be read, and most can be calibrated. The digital barometer is new, and the wind vane only reports a direction, so it skips calibration.",
+  "title": "Greenhouse sensors",
+  "description": "Every sensor can be read, and most can be calibrated. The light meter is new, and the vent switch only reports open or shut, so it skips calibration.",
   "nodes": [
     {
       "id": "sensor",
@@ -32,20 +32,20 @@
       "methods": [{ "text": "convert(volts: float): float", "visibility": "protected" }]
     },
     {
-      "id": "rain-gauge",
-      "label": "RainGauge",
-      "properties": [{ "text": "funnelArea: SquareCentimetres", "visibility": "private" }],
+      "id": "moisture",
+      "label": "SoilMoistureProbe",
+      "properties": [{ "text": "depth: Centimetres", "visibility": "private" }],
       "methods": [{ "text": "convert(volts: float): float", "visibility": "protected" }]
     },
     {
-      "id": "heated-gauge",
-      "label": "HeatedRainGauge",
-      "description": "Melts snow before measuring it.",
-      "methods": [{ "text": "heaterOn(): bool", "visibility": "public" }]
+      "id": "deep-probe",
+      "label": "DeepRootProbe",
+      "description": "Reaches down to a fruit tree's roots.",
+      "methods": [{ "text": "extend(cm: int): void", "visibility": "public" }]
     },
     {
-      "id": "barometer",
-      "label": "DigitalBarometer",
+      "id": "light",
+      "label": "LightMeter",
       "status": "new",
       "methods": [
         { "text": "read(): Reading", "visibility": "public" },
@@ -53,8 +53,8 @@
       ]
     },
     {
-      "id": "vane",
-      "label": "WindVane",
+      "id": "vent",
+      "label": "VentSwitch",
       "methods": [{ "text": "read(): Reading", "visibility": "public" }]
     }
   ],
@@ -62,10 +62,10 @@
     { "from": "analogue", "to": "sensor", "kind": "implements" },
     { "from": "analogue", "to": "calibratable", "kind": "implements" },
     { "from": "thermometer", "to": "analogue", "kind": "inherits" },
-    { "from": "rain-gauge", "to": "analogue", "kind": "inherits" },
-    { "from": "heated-gauge", "to": "rain-gauge", "kind": "inherits" },
-    { "from": "barometer", "to": "sensor", "kind": "implements", "status": "new" },
-    { "from": "barometer", "to": "calibratable", "kind": "implements", "status": "new" },
-    { "from": "vane", "to": "sensor", "kind": "implements" }
+    { "from": "moisture", "to": "analogue", "kind": "inherits" },
+    { "from": "deep-probe", "to": "moisture", "kind": "inherits" },
+    { "from": "light", "to": "sensor", "kind": "implements", "status": "new" },
+    { "from": "light", "to": "calibratable", "kind": "implements", "status": "new" },
+    { "from": "vent", "to": "sensor", "kind": "implements" }
   ]
 }

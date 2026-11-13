@@ -6,10 +6,10 @@
 <rect width="1941" height="468" fill="#0d1117"/>
 <rect width="1941" height="468" fill="url(#structa-grid-dark)"/>
 <g class="title">
-<text x="32" y="50.55" font-family="Structa Inter, Inter, sans-serif" font-size="18" font-weight="700" fill="#e6edf3">Tool library</text>
+<text x="32" y="50.55" font-family="Structa Inter, Inter, sans-serif" font-size="18" font-weight="700" fill="#e6edf3">Town library</text>
 </g>
 <g class="description">
-<text x="32" y="73.73" font-family="Structa Inter, Inter, sans-serif" font-size="13" font-weight="400" fill="#8b949e">Members borrow tools; the front desk notes any damage against a loan.</text>
+<text x="32" y="73.73" font-family="Structa Inter, Inter, sans-serif" font-size="13" font-weight="400" fill="#8b949e">Members borrow books; the front desk notes any damage against a loan.</text>
 </g>
 <g class="card" data-id="members" data-kind="table">
 <title>members</title>
@@ -62,12 +62,12 @@
 <text x="605" y="264.82" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">id</text>
 <text x="701" y="264.82" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">uuid</text>
 </g>
-<g class="row" data-id="tool_id" data-kind="column">
-<title>FK tool_id: uuid</title>
+<g class="row" data-id="book_id" data-kind="column">
+<title>FK book_id: uuid</title>
 <g class="symbol">
 <text x="583" y="290.82" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e">FK</text>
 </g>
-<text x="605" y="290.82" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">tool_id</text>
+<text x="605" y="290.82" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">book_id</text>
 <text x="701" y="290.82" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">uuid</text>
 </g>
 <g class="row" data-id="member_id" data-kind="column">
@@ -89,11 +89,11 @@
 <text x="701" y="368.82" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">timestamptz?</text>
 </g>
 </g>
-<g class="card" data-id="tools" data-kind="table">
-<title>tools: Everything on the shelves that members can take home.</title>
+<g class="card" data-id="books" data-kind="table">
+<title>books: Everything on the shelves that members can take home.</title>
 <rect class="outline" x="1001" y="102" width="360" height="152" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
 <line class="divider" x1="1001.5" y1="164" x2="1360.5" y2="164" stroke="#30363d" stroke-width="1"/>
-<text x="1181" y="129.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">tools</text>
+<text x="1181" y="129.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">books</text>
 <text x="1181" y="148.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#8b949e" text-anchor="middle">Everything on the shelves that members can take home.</text>
 <g class="row" data-id="id" data-kind="column">
 <title>PK id: uuid</title>
@@ -101,17 +101,17 @@
 <text x="1015" y="187.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e">PK</text>
 </g>
 <text x="1037" y="187.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">id</text>
-<text x="1111" y="187.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">uuid</text>
+<text x="1089" y="187.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">uuid</text>
 </g>
-<g class="row" data-id="name" data-kind="column">
-<title>name: text</title>
-<text x="1037" y="213.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">name</text>
-<text x="1111" y="213.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">text</text>
+<g class="row" data-id="title" data-kind="column">
+<title>title: text</title>
+<text x="1037" y="213.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">title</text>
+<text x="1089" y="213.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">text</text>
 </g>
-<g class="row" data-id="category" data-kind="column">
-<title>category: text?</title>
-<text x="1037" y="239.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">category</text>
-<text x="1111" y="239.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">text?</text>
+<g class="row" data-id="genre" data-kind="column">
+<title>genre: text?</title>
+<text x="1037" y="239.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">genre</text>
+<text x="1089" y="239.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">text?</text>
 </g>
 </g>
 <g class="card" data-id="damage-reports" data-kind="table">
@@ -149,8 +149,8 @@
 <path d="M1419 319.5 L1419 305.5 M1414 319.5 L1414 305.5" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
 </g>
 </g>
-<g class="line" data-id="edges[1]" data-kind="relationship" data-from="loans" data-to="tools">
-<title>loans (zero-or-many) – tools (one)</title>
+<g class="line" data-id="edges[1]" data-kind="relationship" data-from="loans" data-to="books">
+<title>loans (zero-or-many) – books (one)</title>
 <path d="M929 286.5 L957 286.5 Q965 286.5 965 278.5 L965 191 Q965 183 973 183 L1001 183" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
 <g class="end" data-end="from" data-cardinality="zero-or-many">
 <path d="M929 279.5 L941 286.5 L929 293.5" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>

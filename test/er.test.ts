@@ -694,7 +694,7 @@ describe("where relationships attach", () => {
 
   it.each([
     ["a loop of links and a link to itself", rota()],
-    ["the tool library example", EXAMPLE("er")],
+    ["the town library example", EXAMPLE("er")],
     ["the loan reminders example", EXAMPLE("er-status")],
   ])("follows the side rule for every line, direction right: %s", async (_name, input) => {
     const rule = sideRule(await svgDoc(input), "right");
@@ -715,7 +715,7 @@ describe("where relationships attach", () => {
     ["a tree", schema([["plots", "sites"], ["sheds", "sites"], ["beds", "plots"], ["paths", "plots"]], { direction: "down" })],
     ["a diamond", schema([["plots", "sites"], ["sheds", "sites"], ["keys", "plots"], ["keys", "sheds"]], { direction: "down" })],
     ["a chain with a shortcut", schema([["crops", "beds"], ["beds", "plots"], ["plots", "sites"], ["crops", "sites"], ["sheds", "sites"]], { direction: "down" })],
-    ["the tool library example", { ...EXAMPLE("er"), direction: "down" }],
+    ["the town library example", { ...EXAMPLE("er"), direction: "down" }],
     ["the loan reminders example", { ...EXAMPLE("er-status"), direction: "down" }],
   ])("follows the side rule for every line, direction down: %s", async (_name, input) => {
     const rule = sideRule(await svgDoc(input), "down");

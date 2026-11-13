@@ -1,13 +1,13 @@
 {
   "type": "class",
   "title": "Village bakery: ordering ahead online",
-  "description": "Customers can now order bread online for collection or delivery. Each class sits in the part of the bakery it belongs to.",
+  "description": "Customers can now order bread online and collect it from the shop. Each class sits in the part of the bakery it belongs to.",
   "groupAreas": true,
   "areas": [
     { "id": "shop", "label": "Shop website" },
     { "id": "bakehouse", "label": "Bakehouse" },
     { "id": "ovens", "label": "Ovens", "parent": "bakehouse" },
-    { "id": "rounds", "label": "Delivery rounds" }
+    { "id": "counter", "label": "Shop counter" }
   ],
   "nodes": [
     {
@@ -27,7 +27,7 @@
       "status": "new",
       "properties": [
         { "text": "collectOn: Date", "visibility": "public" },
-        { "text": "delivered: bool", "visibility": "public" }
+        { "text": "collected: bool", "visibility": "public" }
       ]
     },
     {
@@ -67,18 +67,18 @@
       "properties": [{ "text": "trays: int", "visibility": "public" }]
     },
     {
-      "id": "round",
-      "label": "VanRound",
-      "area": "rounds",
+      "id": "shelf",
+      "label": "PickupShelf",
+      "area": "counter",
       "status": "new",
-      "methods": [{ "text": "stops(): Address[]", "visibility": "public" }]
+      "methods": [{ "text": "ordersFor(day: Date): WebOrder[]", "visibility": "public" }]
     }
   ],
   "edges": [
     { "from": "customer", "to": "order", "kind": "association", "directed": true, "fromLabel": "1", "toLabel": "0..*", "label": "places", "status": "new" },
     { "from": "order", "to": "line", "kind": "composition", "fromLabel": "1", "toLabel": "1..*", "status": "new" },
     { "from": "line", "to": "loaf", "kind": "association", "directed": true, "fromLabel": "0..*", "toLabel": "1", "status": "new" },
-    { "from": "order", "to": "round", "kind": "association", "fromLabel": "0..*", "toLabel": "0..1", "label": "delivered on", "status": "new" },
+    { "from": "order", "to": "shelf", "kind": "association", "fromLabel": "0..*", "toLabel": "0..1", "label": "waits on", "status": "new" },
     { "from": "sourdough", "to": "loaf", "kind": "inherits" },
     { "from": "batch", "to": "loaf", "kind": "aggregation", "fromLabel": "0..1", "toLabel": "1..*", "label": "bakes" },
     { "from": "batch", "to": "oven", "kind": "association", "directed": true, "fromLabel": "0..*", "toLabel": "1" }

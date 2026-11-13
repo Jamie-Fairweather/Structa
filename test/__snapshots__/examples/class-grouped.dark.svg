@@ -1,15 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="2122" viewBox="0 0 1024 2122">
+<svg xmlns="http://www.w3.org/2000/svg" width="1012" height="2122" viewBox="0 0 1012 2122">
 <defs>
 <pattern id="structa-grid-dark" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="9" cy="9" r="1" fill="#6e7681" fill-opacity="0.4"/></pattern>
 <filter id="structa-shadow-dark" x="-20%" y="-30%" width="140%" height="170%"><feDropShadow dx="0" dy="1" stdDeviation="3" flood-color="#010409" flood-opacity="0.5"/></filter>
 </defs>
-<rect width="1024" height="2122" fill="#0d1117"/>
-<rect width="1024" height="2122" fill="url(#structa-grid-dark)"/>
+<rect width="1012" height="2122" fill="#0d1117"/>
+<rect width="1012" height="2122" fill="url(#structa-grid-dark)"/>
 <g class="title">
 <text x="32" y="50.55" font-family="Structa Inter, Inter, sans-serif" font-size="18" font-weight="700" fill="#e6edf3">Village bakery: ordering ahead online</text>
 </g>
 <g class="description">
-<text x="32" y="73.73" font-family="Structa Inter, Inter, sans-serif" font-size="13" font-weight="400" fill="#8b949e">Customers can now order bread online for collection or delivery. Each class sits in the part of the</text>
+<text x="32" y="73.73" font-family="Structa Inter, Inter, sans-serif" font-size="13" font-weight="400" fill="#8b949e">Customers can now order bread online and collect it from the shop. Each class sits in the part of the</text>
 <text x="32" y="91.73" font-family="Structa Inter, Inter, sans-serif" font-size="13" font-weight="400" fill="#8b949e">bakery it belongs to.</text>
 </g>
 <g class="area" data-area="shop">
@@ -18,14 +18,14 @@
 </g>
 <g class="area" data-area="bakehouse">
 <title>Bakehouse</title>
-<rect class="area-box" x="319.5" y="917" width="672" height="893" rx="12" fill="#8b949e" fill-opacity="0.07" stroke="#30363d" stroke-width="1"/>
+<rect class="area-box" x="308" y="917" width="672" height="893" rx="12" fill="#8b949e" fill-opacity="0.07" stroke="#30363d" stroke-width="1"/>
 </g>
 <g class="area" data-area="ovens" data-parent="bakehouse">
 <title>Ovens</title>
-<rect class="area-box" x="335.5" y="949" width="452" height="399" rx="12" fill="#8b949e" fill-opacity="0.07" stroke="#30363d" stroke-width="1"/>
+<rect class="area-box" x="324" y="949" width="452" height="399" rx="12" fill="#8b949e" fill-opacity="0.07" stroke="#30363d" stroke-width="1"/>
 </g>
-<g class="area" data-area="rounds">
-<title>Delivery rounds</title>
+<g class="area" data-area="counter">
+<title>Shop counter</title>
 <rect class="area-box" x="32" y="1882" width="392" height="168" rx="12" fill="#8b949e" fill-opacity="0.07" stroke="#30363d" stroke-width="1"/>
 </g>
 <g class="card" data-id="customer" data-kind="class" data-status="changed" data-area="shop">
@@ -85,12 +85,12 @@
 </g>
 </g>
 <g class="row" data-id="properties[1]" data-kind="property" data-status="new">
-<title>+ delivered: bool</title>
+<title>+ collected: bool</title>
 <rect x="199" y="561" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
 <g class="symbol">
 <text x="207" y="577.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
 </g>
-<text x="221.4" y="577.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">delivered: bool</text>
+<text x="221.4" y="577.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">collected: bool</text>
 <g class="badge">
 <rect x="502" y="565" width="37" height="16" rx="8" fill="#161b22"/>
 <rect x="502" y="565" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
@@ -129,98 +129,98 @@
 </g>
 <g class="card" data-id="loaf" data-kind="class" data-area="bakehouse">
 <title>«abstract» Loaf</title>
-<rect class="outline" x="615.5" y="1542" width="360" height="98" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
-<line class="divider" x1="616" y1="1602" x2="975" y2="1602" stroke="#30363d" stroke-width="1"/>
-<text x="795.5" y="1566.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#8b949e" text-anchor="middle">«abstract»</text>
-<text x="795.5" y="1585.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" font-style="italic" fill="#e6edf3" text-anchor="middle">Loaf</text>
+<rect class="outline" x="604" y="1542" width="360" height="98" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
+<line class="divider" x1="604.5" y1="1602" x2="963.5" y2="1602" stroke="#30363d" stroke-width="1"/>
+<text x="784" y="1566.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#8b949e" text-anchor="middle">«abstract»</text>
+<text x="784" y="1585.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" font-style="italic" fill="#e6edf3" text-anchor="middle">Loaf</text>
 <g class="row" data-id="properties[0]" data-kind="property">
 <title>+ weight: Grams</title>
 <g class="symbol">
-<text x="629.5" y="1625.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
+<text x="618" y="1625.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
 </g>
-<text x="643.9" y="1625.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">weight: Grams</text>
+<text x="632.4" y="1625.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">weight: Grams</text>
 </g>
 </g>
 <g class="card" data-id="sourdough" data-kind="class" data-area="bakehouse">
 <title>Sourdough</title>
-<rect class="outline" x="615.5" y="1712" width="360" height="82" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
-<line class="divider" x1="616" y1="1756" x2="975" y2="1756" stroke="#30363d" stroke-width="1"/>
-<text x="795.5" y="1739.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">Sourdough</text>
+<rect class="outline" x="604" y="1712" width="360" height="82" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
+<line class="divider" x1="604.5" y1="1756" x2="963.5" y2="1756" stroke="#30363d" stroke-width="1"/>
+<text x="784" y="1739.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">Sourdough</text>
 <g class="row" data-id="properties[0]" data-kind="property">
 <title>+ proofHours: int</title>
 <g class="symbol">
-<text x="629.5" y="1779.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
+<text x="618" y="1779.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
 </g>
-<text x="643.9" y="1779.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">proofHours: int</text>
+<text x="632.4" y="1779.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">proofHours: int</text>
 </g>
 </g>
 <g class="card" data-id="batch" data-kind="class" data-status="changed" data-area="ovens">
 <title>BakeBatch</title>
-<rect class="outline" x="411.5" y="989" width="360" height="120" rx="10" fill="#161b22" stroke="#d29922" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
-<line class="divider" x1="412.25" y1="1033" x2="770.75" y2="1033" stroke="#30363d" stroke-width="1"/>
-<line class="divider" x1="412.25" y1="1045" x2="770.75" y2="1045" stroke="#30363d" stroke-width="1"/>
-<text x="591.5" y="1016.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">BakeBatch</text>
+<rect class="outline" x="400" y="989" width="360" height="120" rx="10" fill="#161b22" stroke="#d29922" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
+<line class="divider" x1="400.75" y1="1033" x2="759.25" y2="1033" stroke="#30363d" stroke-width="1"/>
+<line class="divider" x1="400.75" y1="1045" x2="759.25" y2="1045" stroke="#30363d" stroke-width="1"/>
+<text x="580" y="1016.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">BakeBatch</text>
 <g class="row" data-id="methods[0]" data-kind="method" data-status="new">
 <title>+ plan(orders: WebOrder[]): void</title>
-<rect x="417.5" y="1052" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
+<rect x="406" y="1052" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
 <g class="symbol">
-<text x="425.5" y="1068.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
+<text x="414" y="1068.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
 </g>
-<text x="439.9" y="1068.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">plan(orders: WebOrder[]): void</text>
+<text x="428.4" y="1068.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">plan(orders: WebOrder[]): void</text>
 <g class="badge">
-<rect x="720.5" y="1056" width="37" height="16" rx="8" fill="#161b22"/>
-<rect x="720.5" y="1056" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
-<text x="739" y="1067.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
+<rect x="709" y="1056" width="37" height="16" rx="8" fill="#161b22"/>
+<rect x="709" y="1056" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
+<text x="727.5" y="1067.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
 </g>
 </g>
 <g class="row" data-id="methods[1]" data-kind="method" data-status="removed">
 <title>+ plan(day: Weekday): void</title>
 <g class="faded" opacity="0.5">
-<rect x="417.5" y="1078" width="348" height="24" rx="4" fill="#f85149" fill-opacity="0.12"/>
+<rect x="406" y="1078" width="348" height="24" rx="4" fill="#f85149" fill-opacity="0.12"/>
 <g class="symbol">
-<text x="425.5" y="1094.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
+<text x="414" y="1094.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
 </g>
-<text x="439.9" y="1094.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">plan(day: Weekday): void</text>
-<line class="strike" x1="439.9" y1="1090.72" x2="612.7" y2="1090.72" stroke="#e6edf3" stroke-width="1.25"/>
-</g>
-<g class="badge">
-<rect x="694.5" y="1082" width="63" height="16" rx="8" fill="#161b22"/>
-<rect x="694.5" y="1082" width="63" height="16" rx="8" fill="#f85149" fill-opacity="0.25" stroke="#f85149" stroke-width="1"/>
-<text x="726" y="1093.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#ff7b72" text-anchor="middle">REMOVED</text>
-</g>
+<text x="428.4" y="1094.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">plan(day: Weekday): void</text>
+<line class="strike" x1="428.4" y1="1090.72" x2="601.2" y2="1090.72" stroke="#e6edf3" stroke-width="1.25"/>
 </g>
 <g class="badge">
-<rect x="696.5" y="981" width="63" height="16" rx="8" fill="#161b22"/>
-<rect x="696.5" y="981" width="63" height="16" rx="8" fill="#d29922" fill-opacity="0.25" stroke="#d29922" stroke-width="1"/>
-<text x="728" y="992.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#e3b341" text-anchor="middle">CHANGED</text>
+<rect x="683" y="1082" width="63" height="16" rx="8" fill="#161b22"/>
+<rect x="683" y="1082" width="63" height="16" rx="8" fill="#f85149" fill-opacity="0.25" stroke="#f85149" stroke-width="1"/>
+<text x="714.5" y="1093.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#ff7b72" text-anchor="middle">REMOVED</text>
+</g>
+</g>
+<g class="badge">
+<rect x="685" y="981" width="63" height="16" rx="8" fill="#161b22"/>
+<rect x="685" y="981" width="63" height="16" rx="8" fill="#d29922" fill-opacity="0.25" stroke="#d29922" stroke-width="1"/>
+<text x="716.5" y="992.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#e3b341" text-anchor="middle">CHANGED</text>
 </g>
 </g>
 <g class="card" data-id="oven" data-kind="class" data-area="ovens">
 <title>Oven</title>
-<rect class="outline" x="351.5" y="1250" width="360" height="82" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
-<line class="divider" x1="352" y1="1294" x2="711" y2="1294" stroke="#30363d" stroke-width="1"/>
-<text x="531.5" y="1277.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">Oven</text>
+<rect class="outline" x="340" y="1250" width="360" height="82" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
+<line class="divider" x1="340.5" y1="1294" x2="699.5" y2="1294" stroke="#30363d" stroke-width="1"/>
+<text x="520" y="1277.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">Oven</text>
 <g class="row" data-id="properties[0]" data-kind="property">
 <title>+ trays: int</title>
 <g class="symbol">
-<text x="365.5" y="1317.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
+<text x="354" y="1317.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
 </g>
-<text x="379.9" y="1317.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">trays: int</text>
+<text x="368.4" y="1317.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">trays: int</text>
 </g>
 </g>
-<g class="card" data-id="round" data-kind="class" data-status="new" data-area="rounds">
-<title>VanRound</title>
+<g class="card" data-id="shelf" data-kind="class" data-status="new" data-area="counter">
+<title>PickupShelf</title>
 <rect class="outline" x="48" y="1940" width="360" height="94" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
 <line class="divider" x1="48.75" y1="1984" x2="407.25" y2="1984" stroke="#30363d" stroke-width="1"/>
 <line class="divider" x1="48.75" y1="1996" x2="407.25" y2="1996" stroke="#30363d" stroke-width="1"/>
-<text x="228" y="1967.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">VanRound</text>
+<text x="228" y="1967.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">PickupShelf</text>
 <g class="row" data-id="methods[0]" data-kind="method" data-status="new">
-<title>+ stops(): Address[]</title>
+<title>+ ordersFor(day: Date): WebOrder[]</title>
 <rect x="54" y="2003" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
 <g class="symbol">
 <text x="62" y="2019.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
 </g>
-<text x="76.4" y="2019.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">stops(): Address[]</text>
+<text x="76.4" y="2019.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">ordersFor(day: Date): WebOrder[]</text>
 <g class="badge">
 <rect x="357" y="2007" width="37" height="16" rx="8" fill="#161b22"/>
 <rect x="357" y="2007" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
@@ -257,17 +257,17 @@
 </g>
 <g class="line" data-id="edges[2]" data-kind="association" data-from="line" data-to="loaf" data-status="new">
 <title>OrderLine (0..*) → Loaf (1)</title>
-<path d="M433 803 L433 861 Q433 869 441 869 L847.5 869 Q855.5 869 855.5 877 L855.5 1542" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-linejoin="round"/>
-<path d="M851 1533 L855.5 1542 L860 1533" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M433 803 L433 861 Q433 869 441 869 L836 869 Q844 869 844 877 L844 1542" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M839.5 1533 L844 1542 L848.5 1533" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 <g class="end-label" data-end="from">
 <text x="447.5" y="817" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#e6edf3" text-anchor="middle">0..*</text>
 </g>
 <g class="end-label" data-end="to">
-<text x="863" y="1516" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#e6edf3" text-anchor="middle">1</text>
+<text x="851.5" y="1516" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#e6edf3" text-anchor="middle">1</text>
 </g>
 </g>
-<g class="line" data-id="edges[3]" data-kind="association" data-from="order" data-to="round" data-status="new">
-<title>WebOrder (0..*) – VanRound (0..1): delivered on</title>
+<g class="line" data-id="edges[3]" data-kind="association" data-from="order" data-to="shelf" data-status="new">
+<title>WebOrder (0..*) – PickupShelf (0..1): waits on</title>
 <path d="M313 592 L313 647 Q313 655 305 655 L236 655 Q228 655 228 663 L228 1940" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-linejoin="round"/>
 <g class="end-label" data-end="from">
 <text x="327.5" y="606" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#e6edf3" text-anchor="middle">0..*</text>
@@ -278,29 +278,29 @@
 </g>
 <g class="line" data-id="edges[4]" data-kind="inherits" data-from="sourdough" data-to="loaf">
 <title>Sourdough inherits from Loaf</title>
-<path d="M795.5 1712 L795.5 1654" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
-<path d="M795.5 1640 L802.5 1654 L788.5 1654 Z" fill="#161b22" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M784 1712 L784 1654" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M784 1640 L791 1654 L777 1654 Z" fill="#161b22" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
 </g>
 <g class="line" data-id="edges[5]" data-kind="aggregation" data-from="batch" data-to="loaf">
 <title>BakeBatch (0..1) has Loaf (1..*): bakes</title>
-<path d="M651.5 1127 L651.5 1164 Q651.5 1172 659.5 1172 L727.5 1172 Q735.5 1172 735.5 1180 L735.5 1542" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
-<path d="M651.5 1109 L656.5 1118 L651.5 1127 L646.5 1118 Z" fill="#161b22" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M640 1127 L640 1164 Q640 1172 648 1172 L716 1172 Q724 1172 724 1180 L724 1542" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M640 1109 L645 1118 L640 1127 L635 1118 Z" fill="#161b22" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
 <g class="end-label" data-end="from">
-<text x="665.5" y="1144" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#e6edf3" text-anchor="middle">0..1</text>
+<text x="654" y="1144" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#e6edf3" text-anchor="middle">0..1</text>
 </g>
 <g class="end-label" data-end="to">
-<text x="749" y="1528" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#e6edf3" text-anchor="middle">1..*</text>
+<text x="737.5" y="1528" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#e6edf3" text-anchor="middle">1..*</text>
 </g>
 </g>
 <g class="line" data-id="edges[6]" data-kind="association" data-from="batch" data-to="oven">
 <title>BakeBatch (0..*) → Oven (1)</title>
-<path d="M531.5 1109 L531.5 1250" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
-<path d="M527 1241 L531.5 1250 L536 1241" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M520 1109 L520 1250" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M515.5 1241 L520 1250 L524.5 1241" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 <g class="end-label" data-end="from">
-<text x="546" y="1123" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#e6edf3" text-anchor="middle">0..*</text>
+<text x="534.5" y="1123" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#e6edf3" text-anchor="middle">0..*</text>
 </g>
 <g class="end-label" data-end="to">
-<text x="539" y="1224" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#e6edf3" text-anchor="middle">1</text>
+<text x="527.5" y="1224" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#e6edf3" text-anchor="middle">1</text>
 </g>
 </g>
 <g class="area-names">
@@ -309,16 +309,16 @@
 <text x="193" y="140.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="600" fill="#8b949e">Shop website</text>
 </g>
 <g class="area-name" data-area="bakehouse">
-<rect x="332.5" y="925" width="70.42" height="16" fill="#161a20"/>
-<text x="335.5" y="937.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="600" fill="#8b949e">Bakehouse</text>
+<rect x="321" y="925" width="70.42" height="16" fill="#161a20"/>
+<text x="324" y="937.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="600" fill="#8b949e">Bakehouse</text>
 </g>
 <g class="area-name" data-area="ovens">
-<rect x="348.5" y="957" width="43.29" height="16" fill="#1e2329"/>
-<text x="351.5" y="969.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="600" fill="#8b949e">Ovens</text>
+<rect x="337" y="957" width="43.29" height="16" fill="#1e2329"/>
+<text x="340" y="969.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="600" fill="#8b949e">Ovens</text>
 </g>
-<g class="area-name" data-area="rounds">
-<rect x="45" y="1890" width="97.87" height="16" fill="#161a20"/>
-<text x="48" y="1902.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="600" fill="#8b949e">Delivery rounds</text>
+<g class="area-name" data-area="counter">
+<rect x="45" y="1890" width="84.05" height="16" fill="#161a20"/>
+<text x="48" y="1902.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="600" fill="#8b949e">Shop counter</text>
 </g>
 </g>
 <g class="line-labels">
@@ -328,14 +328,14 @@
 <text x="373" y="376.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">places</text>
 </g>
 <g class="line-label" data-line="edges[3]">
-<title>WebOrder (0..*) – VanRound (0..1): delivered on</title>
-<rect x="184.5" y="1349.5" width="87" height="20" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
-<text x="228" y="1363.87" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">delivered on</text>
+<title>WebOrder (0..*) – PickupShelf (0..1): waits on</title>
+<rect x="196" y="1349.5" width="64" height="20" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
+<text x="228" y="1363.87" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">waits on</text>
 </g>
 <g class="line-label" data-line="edges[5]">
 <title>BakeBatch (0..1) has Loaf (1..*): bakes</title>
-<rect x="710" y="1420" width="51" height="20" rx="10" fill="#161b22" stroke="#6e7681" stroke-width="1"/>
-<text x="735.5" y="1434.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">bakes</text>
+<rect x="698.5" y="1420" width="51" height="20" rx="10" fill="#161b22" stroke="#6e7681" stroke-width="1"/>
+<text x="724" y="1434.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">bakes</text>
 </g>
 </g>
 <g class="legend">
@@ -389,10 +389,10 @@
 <text x="663" y="2085.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Ovens</text>
 </g>
 </g>
-<g class="legend-item" data-area="rounds">
-<g class="tag" data-area="rounds">
-<rect x="705" y="2074" width="89" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
-<text x="749.5" y="2085.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Delivery rounds</text>
+<g class="legend-item" data-area="counter">
+<g class="tag" data-area="counter">
+<rect x="705" y="2074" width="78" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
+<text x="744" y="2085.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Shop counter</text>
 </g>
 </g>
 </g>

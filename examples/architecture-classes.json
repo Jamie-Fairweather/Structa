@@ -1,47 +1,47 @@
 {
   "type": "architecture",
-  "title": "Parcel lockers: choosing a locker size",
-  "description": "Bookings name a size, so small parcels stop taking the big lockers.",
+  "title": "Recipe app: choosing how many it serves",
+  "description": "Recipes now name how many they serve, so a cook can scale one up or down instead of halving it by hand.",
   "nodes": [
-    { "id": "app", "label": "Locker app", "kind": "ui", "status": "changed", "description": "Adds a size picker" },
-    { "id": "api", "label": "Locker API", "kind": "api", "status": "unchanged" },
+    { "id": "app", "label": "Recipe app", "kind": "ui", "status": "changed", "description": "Adds a servings picker" },
+    { "id": "api", "label": "Recipe API", "kind": "api", "status": "unchanged" },
     {
-      "id": "booking",
-      "label": "LockerBooking",
+      "id": "recipe",
+      "label": "Recipe",
       "kind": "class",
       "status": "changed",
       "properties": [
-        { "text": "lockerId: LockerId", "visibility": "private" },
-        { "text": "size: LockerSize", "visibility": "private", "status": "new" },
-        { "text": "anyFree: bool", "visibility": "private", "status": "removed" }
+        { "text": "title: string", "visibility": "private" },
+        { "text": "serves: Servings", "visibility": "private", "status": "new" },
+        { "text": "halved: bool", "visibility": "private", "status": "removed" }
       ],
       "methods": [
-        { "text": "hold(parcel: Parcel): Hold", "visibility": "public", "status": "changed" },
-        { "text": "fits(parcel: Parcel): bool", "visibility": "public", "status": "new" },
-        { "text": "release(): void", "visibility": "public" }
+        { "text": "ingredients(serves: Servings): Ingredient[]", "visibility": "public", "status": "changed" },
+        { "text": "scale(by: float): Recipe", "visibility": "public", "status": "new" },
+        { "text": "print(): void", "visibility": "public" }
       ],
       "more": 3
     },
     {
-      "id": "size",
-      "label": "LockerSize",
+      "id": "servings",
+      "label": "Servings",
       "kind": "class",
       "stereotype": "enum",
       "status": "new",
-      "values": [{ "text": "SMALL" }, { "text": "MEDIUM" }, { "text": "LARGE" }]
+      "values": [{ "text": "TWO" }, { "text": "FOUR" }, { "text": "SIX" }]
     },
-    { "id": "store", "label": "Bookings", "kind": "database", "status": "changed", "description": "Adds a size column" },
-    { "id": "events", "label": "Locker events", "kind": "queue" },
-    { "id": "stats", "label": "Size report", "kind": "job", "status": "new", "description": "Weekly use of each size" },
-    { "id": "legacy", "label": "Free-locker finder", "kind": "service", "status": "removed" }
+    { "id": "store", "label": "Recipes", "kind": "database", "status": "changed", "description": "Adds a servings column" },
+    { "id": "events", "label": "Recipe events", "kind": "queue" },
+    { "id": "stats", "label": "Servings report", "kind": "job", "status": "new", "description": "Weekly count of each size cooked" },
+    { "id": "legacy", "label": "Half-recipe maker", "kind": "service", "status": "removed" }
   ],
   "edges": [
-    { "from": "app", "to": "api", "label": "POST /bookings", "status": "changed", "emphasis": true },
-    { "from": "api", "to": "booking", "label": "hold", "emphasis": true },
-    { "from": "booking", "to": "size", "status": "new" },
-    { "from": "booking", "to": "store", "label": "save", "status": "changed", "emphasis": true },
-    { "from": "booking", "to": "events", "kind": "async", "label": "held" },
-    { "from": "stats", "to": "events", "kind": "async", "label": "read holds", "status": "new" },
+    { "from": "app", "to": "api", "label": "GET /recipes/{id}", "status": "changed", "emphasis": true },
+    { "from": "api", "to": "recipe", "label": "scale", "emphasis": true },
+    { "from": "recipe", "to": "servings", "status": "new" },
+    { "from": "recipe", "to": "store", "label": "load", "status": "changed", "emphasis": true },
+    { "from": "recipe", "to": "events", "kind": "async", "label": "cooked" },
+    { "from": "stats", "to": "events", "kind": "async", "label": "count sizes", "status": "new" },
     { "from": "api", "to": "legacy", "status": "removed" }
   ]
 }
