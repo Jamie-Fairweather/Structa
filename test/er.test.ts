@@ -13,6 +13,7 @@ import {
   cardExtent,
   cards,
   distanceOutside,
+  drawnTextBoxes,
   lines,
   outlineBox,
   overlaps,
@@ -887,15 +888,148 @@ function lettings(edges: readonly object[], fields: object = {}): { type: string
     type: "er",
     nodes: [
       table("sites", { name: "name", type: "text" }),
-      table("plots", { name: "site_id", type: "uuid", fk: true }, { name: "number", type: "text" }, { name: "tenant_id", type: "uuid", fk: true, nullable: true }),
-      table("tenants", { name: "email", type: "text", unique: true }),
+      table(
+        "plots",
+        { name: "site_id", type: "uuid", fk: true },
+        { name: "number", type: "text" },
+        { name: "tenant_id", type: "uuid", fk: true, nullable: true },
+        { name: "last_tenant_id", type: "uuid", fk: true, nullable: true },
+      ),
+      table("tenants", { name: "email", type: "text", unique: true }, { name: "referred_by", type: "uuid", fk: true, nullable: true }),
     ],
     edges: edges.map((edge) => ({ fromCardinality: "zero-or-many", toCardinality: "one", ...edge })),
     ...fields,
   };
 }
 
+/** How far a table's column row reaches down the card. */
+interface RowSpan {
+  readonly top: number;
+  readonly bottom: number;
+  readonly middle: number;
+}
+
+/**
+ * Each column row of each table, by table and column name. Rows are stacked
+ * with the same room above their text as below it, so each reaches halfway to
+ * the next row's text, and the first and last rows as far past their text as
+ * the others do; a table's only row reaches from its divider to its bottom.
+ * The SVG must have been rendered with its fonts, to measure the text.
+ */
+function rowSpans(doc: Document): Map<string, Map<string, RowSpan>> {
+  const drawn = drawnTextBoxes(doc);
+  return new Map(
+    cards(doc).map((card) => {
+      const texts = rows(card).map((row) => {
+        const boxes = columnTexts(row).map((t) => drawn.get(t)!);
+        return { name: row.getAttribute("data-id")!, top: Math.min(...boxes.map((b) => b.y)), bottom: Math.max(...boxes.map((b) => b.y + b.height)) };
+      });
+      const room = texts.length > 1 ? (texts[1]!.top - texts[0]!.bottom) / 2 : undefined;
+      const outline = outlineBox(card);
+      const spans = texts.map(({ name, top, bottom }): [string, RowSpan] => {
+        const span =
+          room === undefined
+            ? { top: numberAttr(byClassIn(card, "divider")[0]!, "y1"), bottom: outline.y + outline.height }
+            : { top: top - room, bottom: bottom + room };
+        return [name, { ...span, middle: (top + bottom) / 2 }];
+      });
+      return [card.getAttribute("data-id")!, new Map(spans)];
+    }),
+  );
+}
+
+/** Each end of each line that names a column: the column's row, and where the line meets its table. */
+function columnEnds(doc: Document, input: { edges: readonly Json[] }) {
+  const edges = new Map(input.edges.map((edge, i) => [edge.id ?? `edges[${i}]`, edge]));
+  const spans = rowSpans(doc);
+  return relationshipEnds(doc).flatMap(({ id, from, to, start, end }) => {
+    const edge = edges.get(id)!;
+    return [
+      ["from", from, start, edge.fromColumn],
+      ["to", to, end, edge.toColumn],
+    ].flatMap(([which, card, at, column]) => {
+      if (column === undefined) return [];
+      const table = (card as Element).getAttribute("data-id")!;
+      return [{ id, end: which as string, table, column: column as string, at: at as Point, row: spans.get(table)!.get(column as string)! }];
+    });
+  });
+}
+
 describe("lines that name columns", () => {
+  it.each(["right", "down"] as const)(
+    "attaches an end that names a column at the middle of that column's row, on the side the side rule picks, direction %s",
+    async (direction) => {
+      const input = lettings(
+        [
+          { from: "plots", to: "sites", fromColumn: "site_id", toColumn: "id" },
+          { from: "plots", to: "tenants", fromColumn: "tenant_id", toColumn: "id" },
+        ],
+        { direction },
+      );
+      const doc = parseSvg((await render(input)).svg);
+
+      for (const { id, order, sides, expected } of sideRule(doc, direction)) expect([id, order, ...sides]).toEqual([id, order, ...expected]);
+      const ends = columnEnds(doc, input);
+      expect(ends.map(({ id, end, table, column }) => [id, end, table, column])).toEqual([
+        ["edges[0]", "from", "plots", "site_id"],
+        ["edges[0]", "to", "sites", "id"],
+        ["edges[1]", "from", "plots", "tenant_id"],
+        ["edges[1]", "to", "tenants", "id"],
+      ]);
+      for (const { id, end, at, row } of ends) expect([id, end, at.y]).toEqual([id, end, expect.closeTo(row.middle, 1)]);
+    },
+  );
+
+  it.each(["right", "down"] as const)(
+    "gives ends that share a side of one column's row a place each, close about its middle and within the row, direction %s",
+    async (direction) => {
+      // A plot's tenant and its last tenant both point at a tenant's id.
+      const input = lettings(
+        [
+          { from: "plots", to: "tenants", fromColumn: "tenant_id", toColumn: "id", status: "unchanged" },
+          { from: "plots", to: "tenants", fromColumn: "last_tenant_id", toColumn: "id", toCardinality: "zero-or-one", status: "new" },
+        ],
+        { direction },
+      );
+      const doc = parseSvg((await render(input)).svg);
+
+      const [tenant, last] = relationshipEnds(doc);
+      expect(sideOf(tenant!.end, tenant!.to)).toBe(sideOf(last!.end, last!.to));
+      const shared = columnEnds(doc, input).filter(({ end }) => end === "to");
+      const [row] = shared.map(({ row }) => row);
+      const ys = shared.map(({ at }) => at.y).sort((a, b) => a - b);
+      expect((ys[0]! + ys[1]!) / 2).toBeCloseTo(row!.middle, 1);
+      expect(ys[1]! - ys[0]!).toBeCloseTo(12, 1);
+      for (const y of ys) expect([y > row!.top, y < row!.bottom]).toEqual([true, true]);
+      // Each end's marks stand alone, in its own line's colour.
+      expect(overlaps(marksBox(tenant!.line, "to"), marksBox(last!.line, "to"))).toBe(false);
+    },
+  );
+
+  it.each(["right", "down"] as const)(
+    "loops a table's link from one of its columns to another out of its right side, each end at its own row's middle, direction %s",
+    async (direction) => {
+      // A tenant can be referred by another tenant.
+      const input = lettings([{ from: "tenants", to: "tenants", fromColumn: "referred_by", toColumn: "id", toCardinality: "zero-or-one" }], { direction });
+      const doc = parseSvg((await render(input)).svg);
+
+      const [self] = relationshipEnds(doc);
+      expect([sideOf(self!.start, self!.from), sideOf(self!.end, self!.to)]).toEqual(["right", "right"]);
+      for (const { end, at, row } of columnEnds(doc, input)) expect([end, at.y]).toEqual([end, expect.closeTo(row.middle, 1)]);
+      expect(Math.max(...route(self!.line).map((p) => p.x))).toBeGreaterThan(outlineBox(self!.from).x + outlineBox(self!.from).width + 20);
+    },
+  );
+
+  it("attaches an end that names no column at its table's header, beside an end that names one", async () => {
+    // The plot points at its site from its site_id column, but the site's end names no column.
+    const input = lettings([{ from: "plots", to: "sites", fromColumn: "site_id" }]);
+    const doc = parseSvg((await render(input)).svg);
+
+    const [{ to, start, end }] = relationshipEnds(doc) as [ReturnType<typeof relationshipEnds>[number]];
+    expect(end.y).toBeCloseTo(headerOf(to).middle, 1);
+    expect(start.y).toBeCloseTo(rowSpans(doc).get("plots")!.get("site_id")!.middle, 1);
+  });
+
   const COLUMN_HINT = (end: string, table: string) => `use the name of a column in "${table}", or leave ${end}Column out to attach the line at the table's header`;
 
   it("rejects a fromColumn or toColumn that names no column of its own table, at each one", async () => {

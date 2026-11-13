@@ -205,16 +205,31 @@ export function buildLine(
   };
 }
 
+/** The columns a line's ends name, by name: an end that names none attaches at its table's header. */
+export interface LineColumns {
+  readonly from?: string;
+  readonly to?: string;
+}
+
 /**
- * Where a line between two tables attaches: on each table's header, from
- * the top of its box. A lone end sits at the header's middle; ends that share
- * a side of it, such as a table's link to itself, are spread either side of
- * the middle, kept below the card's rounded corners and as far above the
- * header's divider. Nothing for cards that lines may meet anywhere.
+ * Where a line between two tables attaches, from the top of each table's box:
+ * at the row of the column its end names, or else at the table's header. A
+ * lone end sits at the middle of its row or header. Ends that share a side of
+ * one, such as a table's link to itself, are spread either side of the
+ * middle: within a header, kept below the card's rounded corners and as far
+ * above its divider; within a row, closer together, down its lines of text.
+ * Nothing for cards that lines may meet anywhere.
  */
-export function linePorts(from: Card, to: Card, sizes: Sizes): { source: PortSpan; target: PortSpan } | undefined {
+export function linePorts(from: Card, to: Card, columns: LineColumns, sizes: Sizes): { source: PortSpan; target: PortSpan } | undefined {
   if (!from.header || !to.header) return undefined;
-  return { source: headerPorts(from.header, sizes), target: headerPorts(to.header, sizes) };
+  return { source: endPorts(from, from.header, columns.from, sizes), target: endPorts(to, to.header, columns.to, sizes) };
+}
+
+/** Where one end attaches: the row of the column it names, which validation made sure is there, or the header. */
+function endPorts(card: Card, header: Span, column: string | undefined, sizes: Sizes): PortSpan {
+  if (column === undefined) return headerPorts(header, sizes);
+  const { top, bottom } = card.rows.find((row) => row.id === column)!.textSpan!;
+  return { top, bottom, gap: sizes.tableCard.columnPortGap };
 }
 
 function headerPorts({ top, bottom }: Span, sizes: Sizes): PortSpan {
