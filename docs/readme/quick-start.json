@@ -1,0 +1,18 @@
+{
+  "type": "flow",
+  "title": "Making a cup of tea",
+  "nodes": [
+    { "id": "boil", "label": "Boil the kettle", "shape": "start" },
+    { "id": "brew", "label": "Brew for four minutes", "shape": "step", "status": "changed" },
+    { "id": "milk", "label": "Milk?", "shape": "decision" },
+    { "id": "splash", "label": "Add a splash", "shape": "step", "status": "new" },
+    { "id": "drink", "label": "Drink it", "shape": "end" }
+  ],
+  "edges": [
+    { "from": "boil", "to": "brew" },
+    { "from": "brew", "to": "milk" },
+    { "from": "milk", "to": "splash", "label": "yes" },
+    { "from": "milk", "to": "drink", "label": "no" },
+    { "from": "splash", "to": "drink" }
+  ]
+}
