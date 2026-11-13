@@ -30,7 +30,7 @@
 </g>
 <g class="area" data-area="data">
 <title>Database</title>
-<rect class="area-box" x="250.2" y="2002" width="270" height="136" rx="12" fill="#8b949e" fill-opacity="0.07" stroke="#30363d" stroke-width="1"/>
+<rect class="area-box" x="251.2" y="2002" width="269" height="136" rx="12" fill="#8b949e" fill-opacity="0.07" stroke="#30363d" stroke-width="1"/>
 </g>
 <g class="card" data-id="console" data-kind="ui" data-status="changed" data-area="portal">
 <title>Curator admin (ui): Adds a Take off display button</title>
@@ -375,8 +375,8 @@
 <text x="211.5" y="1682.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="600" fill="#8b949e">Audio guide</text>
 </g>
 <g class="area-name" data-area="data">
-<rect x="263.2" y="2010" width="60.75" height="16" fill="#161a20"/>
-<text x="266.2" y="2022.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="600" fill="#8b949e">Database</text>
+<rect x="264.2" y="2010" width="60.75" height="16" fill="#161a20"/>
+<text x="267.2" y="2022.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="600" fill="#8b949e">Database</text>
 </g>
 </g>
 <g class="line-labels">

@@ -15,16 +15,18 @@ export interface AreaBox {
   readonly parent?: string;
   readonly tooltip: string;
   readonly minWidth: number;
-  /**
-   * The top padding holds the name and a gap under it. When everything in
-   * the box must go right of the name, so no line passes under it, the left
-   * padding is `beside`: the name, and as much room past it as it's in from the box's left.
-   */
-  readonly padding: { readonly top: number; readonly side: number; readonly bottom: number; readonly beside: number };
+  /** The top padding holds the name and a gap under it. */
+  readonly padding: { readonly top: number; readonly side: number; readonly bottom: number };
   /** The area's name at the top-left, relative to the box's top-left corner. */
   readonly name: Omit<TextLine, "color">;
-  /** Round the name, a little wider than it: no line passes under it, and it's covered in the box's colour, so one that did wouldn't cut through it. */
+  /** Round the name, a little wider than it: covered in the box's colour, so a line that ran under it wouldn't cut through it. */
   readonly nameBox: Box;
+  /**
+   * How far lines keep from `nameBox`, so that neither they nor the marks
+   * at their ends touch it. When a line would come closer, layout moves
+   * everything in the box that far right of the name.
+   */
+  readonly nameClearance: number;
 }
 
 /**
@@ -44,14 +46,12 @@ export function buildAreaBoxes(areas: readonly Area[], sizes: Sizes): AreaBox[] 
   addInside(undefined);
   return ordered.map((area) => {
     const nameWidth = measure(area.label, AREA_LABEL_FACE, s.nameSize);
-    // The name with the padding either side of it.
-    const named = Math.ceil(nameWidth + 2 * s.padding);
     return {
       id: area.id,
       ...(area.parent === undefined ? {} : { parent: area.parent }),
       tooltip: area.label,
-      minWidth: named,
-      padding: { top: s.nameTop + s.nameLineHeight + s.nameGap, side: s.padding, bottom: s.padding, beside: named },
+      minWidth: Math.ceil(nameWidth + 2 * s.padding),
+      padding: { top: s.nameTop + s.nameLineHeight + s.nameGap, side: s.padding, bottom: s.padding },
       name: {
         text: area.label,
         x: s.padding,
@@ -61,6 +61,8 @@ export function buildAreaBoxes(areas: readonly Area[], sizes: Sizes): AreaBox[] 
         anchor: "start",
       },
       nameBox: { x: s.padding - s.nameMargin, y: s.nameTop, width: nameWidth + 2 * s.nameMargin, height: s.nameLineHeight },
+      // Lines keep as far from an area's name as from a card's badge and tag.
+      nameClearance: sizes.landing.clearance,
     };
   });
 }

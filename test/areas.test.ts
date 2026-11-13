@@ -893,6 +893,8 @@ describe("area boxes", () => {
     };
   }
 
+  // Going right, lines come into a card from its left, below the name, so
+  // they keep clear of it without being moved: those cases check they still do.
   it.each([
     [false, "down"],
     [false, "right"],
@@ -905,6 +907,70 @@ describe("area boxes", () => {
     for (const { id, backing } of areaBoxes(doc)) {
       for (const line of lines(doc)) {
         expect(distanceToDrawn(line, rectBox(backing)), `${line.getAttribute("data-from")} under ${id}'s name`).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  /**
+   * An order taken, then served in the kitchen. Going down, the one line
+   * comes straight down into the middle of the kitchen's one shape, just past
+   * the end of the kitchen's short name, so its arrowhead, wider than the
+   * line, would reach under the name.
+   */
+  function serving(direction: "down" | "right") {
+    return {
+      type: "flow",
+      direction,
+      groupAreas: true,
+      areas: [{ id: "kitchen", label: "Kitchen" }],
+      nodes: [
+        { id: "order", label: "Take the order", shape: "start" },
+        { id: "served", label: "Served", shape: "end", area: "kitchen" },
+      ],
+      edges: [{ from: "order", to: "served" }],
+    };
+  }
+
+  /**
+   * A bakery's customers, outside its box, and their orders and deliveries
+   * in it. Going down, the relationship into the orders table, at the
+   * top-left of the box, would run down under the bakery's name.
+   */
+  function ordering(direction: "down" | "right") {
+    const table = (id: string, area: string | undefined, column: Obj) => ({
+      id,
+      label: id,
+      ...(area ? { area } : {}),
+      columns: [{ name: "id", type: "uuid", pk: true }, column],
+    });
+    return {
+      type: "er",
+      direction,
+      groupAreas: true,
+      areas: [{ id: "bakery", label: "Bakery" }],
+      nodes: [
+        table("customers", undefined, { name: "name", type: "text" }),
+        table("orders", "bakery", { name: "loaves", type: "int" }),
+        table("deliveries", "bakery", { name: "street", type: "text" }),
+      ],
+      edges: [
+        { from: "customers", to: "orders", fromCardinality: "one", toCardinality: "zero-or-many" },
+        { from: "customers", to: "deliveries", fromCardinality: "one", toCardinality: "zero-or-many" },
+      ],
+    };
+  }
+
+  it.each([
+    ["a flowchart's arrowhead", "down", serving],
+    ["a flowchart's arrowhead", "right", serving],
+    ["a relationship's crow's feet", "down", ordering],
+    ["a relationship's crow's feet", "right", ordering],
+  ] as const)("keeps a line and the marks at its end clear of the name of the area it comes into: %s, direction %s", async (_, direction, diagram) => {
+    const doc = await svgDoc(diagram(direction));
+
+    for (const { id, backing } of areaBoxes(doc)) {
+      for (const line of lines(doc)) {
+        expect(distanceToDrawn(line, rectBox(backing)), `${line.getAttribute("data-from")} to ${line.getAttribute("data-to")} near ${id}'s name`).toBeGreaterThan(0);
       }
     }
   });

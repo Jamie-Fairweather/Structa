@@ -51,14 +51,16 @@ export interface LayoutArea {
   /** The id of the area it's inside. */
   readonly parent?: string;
   readonly minWidth: number;
-  /**
-   * The room inside its edges: at the top, room for its name. No line may
-   * pass under its name, so when one would, everything in the box is moved
-   * right of the name: then the room on its left is `beside`.
-   */
-  readonly padding: { readonly top: number; readonly side: number; readonly bottom: number; readonly beside: number };
+  /** The room inside its edges: at the top, room for its name. */
+  readonly padding: { readonly top: number; readonly side: number; readonly bottom: number };
   /** The box round its name, from the box's top-left corner. */
   readonly nameBox: Rect;
+  /**
+   * How far lines keep from `nameBox`, so that neither they nor the marks at
+   * their ends touch it. When a line would come closer, everything in the
+   * box is moved that far right of the name, beside it.
+   */
+  readonly nameClearance: number;
   readonly path: string;
 }
 
@@ -225,7 +227,10 @@ interface Sides {
 /** In pass 1, every line with ports has provisional ones, which ELK places as it would any line's ends. */
 const PROVISIONAL: Sides = { source: "free", target: "free", reversed: false };
 
-/** The most layout passes a diagram with ports gets: pass 1, then pass 2 and its reruns. */
+/**
+ * The most layout passes the side rule gets: pass 1, then pass 2 and its
+ * reruns. Keeping lines clear of areas' names can take more.
+ */
 const MAX_PASSES = 6;
 
 /**
@@ -235,31 +240,6 @@ const MAX_PASSES = 6;
  * area boxes when there are any. Each card keeps the lines ELK ends on it
  * where its landing says.
  *
- * No line passes under an area's name: ELK runs a line into a card at the
- * top-left of a box straight down past the name, or ends one there. So when
- * a line passes under an area's name, the graph is laid out again with
- * everything in that area's box moved right of its name, beside it. That
- * moves everything else too, so it's done again for each area a line then
- * passes under the name of: at most once for each area.
- */
-export async function layout<C extends LayoutCard, L extends LayoutLine, A extends LayoutArea>(
-  graph: Graph<C, L, A>,
-  profile: LayoutProfile,
-  direction: Direction,
-): Promise<Scene<C, L, A>> {
-  let beside = new Set<number>();
-  for (;;) {
-    const scene = await arrange(graph, profile, direction, beside);
-    const under = underNames(scene).filter((i) => !beside.has(i));
-    if (under.length === 0) return scene;
-    beside = new Set([...beside, ...under]);
-  }
-}
-
-/**
- * Lays the graph out once, with everything in the areas `beside` moved right
- * of their names.
- *
  * Lines with ports are laid out at least twice. Pass 1 gives each line end a
  * provisional port; the side rule then picks each end's side from where pass
  * 1 put the cards, and pass 2 lays the graph out again with only the ports
@@ -267,36 +247,62 @@ export async function layout<C extends LayoutCard, L extends LayoutLine, A exten
  * make room for the lines at its sides, so that a side picked no longer
  * faces, those sides are picked again from where pass 2 put the tables, and
  * pass 2 runs again from there.
+ *
+ * No line comes near an area's name: ELK runs a line into a card at the
+ * top-left of a box straight down past the name, or right beside it, where
+ * the mark at its end reaches the name. So when a pass brings a line within
+ * an area's name clearance, every later pass moves everything in that
+ * area's box that far right of the name, beside it. That moves everything
+ * else too, so passes go on until one brings no line too near a name it
+ * hasn't moved for yet. With ports, areas are moved in the side rule's
+ * passes, which run anyway. Any pass after those moves at least one more
+ * area, so there's at most one more pass for each area.
  */
-async function arrange<C extends LayoutCard, L extends LayoutLine, A extends LayoutArea>(
+export async function layout<C extends LayoutCard, L extends LayoutLine, A extends LayoutArea>(
   graph: Graph<C, L, A>,
   profile: LayoutProfile,
   direction: Direction,
-  beside: ReadonlySet<number>,
 ): Promise<Scene<C, L, A>> {
-  if (!graph.lines.some((line) => line.ports)) return run(graph, profile, direction, { beside });
-  let scene = await run(graph, profile, direction, { sides: graph.lines.map(() => PROVISIONAL), beside });
-  let sides = pickSides(graph.lines, scene, direction);
-  for (let pass = 2; ; pass++) {
+  const ports = graph.lines.some((line) => line.ports);
+  // The areas, by their place in the list, with everything in them beside their names.
+  const beside = new Set<number>();
+  // Without ports there's no side rule, so no pass 1, and each pass lays out afresh.
+  let scene = ports ? await run(graph, profile, direction, { sides: graph.lines.map(() => PROVISIONAL), beside }) : undefined;
+  let sides = scene ? pickSides(graph.lines, scene, direction) : [];
+  for (let pass = ports ? 2 : 1; ; pass++) {
     const next = await run(graph, profile, direction, { sides, from: scene, beside });
-    const again = pickSides(graph.lines, next, direction, sides);
+    const near = nearNames(next).filter((i) => !beside.has(i));
+    const again = ports ? pickSides(graph.lines, next, direction, sides) : sides;
     const held = again.every((s, i) => s.source === sides[i]!.source && s.target === sides[i]!.target);
-    if (held || pass === MAX_PASSES) return next;
-    scene = next;
+    if (near.length === 0 && (held || pass >= MAX_PASSES)) return next;
+    for (const i of near) beside.add(i);
+    if (ports) scene = next;
     sides = again;
   }
 }
 
 /**
- * The areas, by their place in the list, whose name some line passes under:
- * a straight run of it, or of a note's connector, touches the box round the name.
+ * The areas, by their place in the list, whose name some line comes too
+ * near: a straight run of it, or of a note's connector, comes within the
+ * area's name clearance of the box round its name.
  */
-function underNames(scene: Scene<unknown, unknown, LayoutArea>): number[] {
+function nearNames(scene: Scene<unknown, unknown, LayoutArea>): number[] {
   return scene.areas.flatMap(({ area, x, y }, i) => {
-    const name = { ...area.nameBox, x: x + area.nameBox.x, y: y + area.nameBox.y };
-    const under = scene.lines.some(({ points }) => points.some((p, k) => k > 0 && overlaps(segmentBox(points[k - 1]!, p), name)));
-    return under ? [i] : [];
+    const room = nameRoom(area);
+    const kept = { ...room, x: x + room.x, y: y + room.y };
+    const near = scene.lines.some(({ points }) => points.some((p, k) => k > 0 && overlaps(segmentBox(points[k - 1]!, p), kept)));
+    return near ? [i] : [];
   });
+}
+
+/** The room round an area's name that lines keep out of, from the box's top-left corner: its name's box and the clearance all round. */
+function nameRoom({ nameBox, nameClearance }: LayoutArea): Rect {
+  return {
+    x: nameBox.x - nameClearance,
+    y: nameBox.y - nameClearance,
+    width: nameBox.width + 2 * nameClearance,
+    height: nameBox.height + 2 * nameClearance,
+  };
 }
 
 /**
@@ -620,16 +626,18 @@ function joinPorts(lines: readonly LayoutLine[], against: readonly boolean[]) {
 }
 
 /**
- * An area box's own options: room for its name, and its padding, with room
- * for the name on its left too when everything in it goes `beside` the name.
- * ELK 0.12.1 reads a compound node's minimum size the other way round when
- * laying out downwards, so the width goes second then. It also fails inside
- * a compound node that asks for the model-order hint, so each area box turns
- * it off: the root's hint, from the profile, still orders the cards in every area.
+ * An area box's own options: room for its name, and its padding. When
+ * everything in it goes `beside` the name, its left padding reaches past
+ * the room lines keep out of round the name. ELK 0.12.1 reads a compound
+ * node's minimum size the other way round when laying out downwards, so the
+ * width goes second then. It also fails inside a compound node that asks for
+ * the model-order hint, so each area box turns it off: the root's hint, from
+ * the profile, still orders the cards in every area.
  */
 function areaOptions(area: LayoutArea, direction: Direction, beside: boolean): Record<string, string> {
   const { top, side, bottom } = area.padding;
-  const left = beside ? area.padding.beside : side;
+  const room = nameRoom(area);
+  const left = beside ? Math.ceil(room.x + room.width) : side;
   return {
     "elk.padding": `[top=${top},left=${left},bottom=${bottom},right=${side}]`,
     "elk.nodeSize.constraints": "MINIMUM_SIZE",
