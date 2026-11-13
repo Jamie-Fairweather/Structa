@@ -5,10 +5,7 @@
 It is built for AI agents. The whole tool is one JavaScript file that runs on plain Node. Drop it into a skills folder and an agent can draw class, ER, flowchart and architecture diagrams with a single command, with nothing to install.
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/images/class-status-dark.svg">
-    <img alt="A class diagram of a seed library. Changed, new and removed classes and members are marked with amber, green and red badges." src="docs/images/class-status-light.svg" width="640">
-  </picture>
+  <img alt="An architecture diagram of a recipe app: UI, API, service, database, queue and job cards alongside class cards whose methods are marked new, changed or removed in green, amber and red." src="docs/images/architecture-classes-light.svg" width="640">
 </p>
 
 ## What it does
@@ -54,25 +51,27 @@ node structa.mjs tea.json -o tea.png
 ```
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/images/quick-start-dark.svg">
-    <img alt="The tea flowchart drawn by Structa, with the changed brewing step in amber and the new milk step in green." src="docs/images/quick-start-light.svg" width="300">
-  </picture>
+  <img alt="The tea flowchart drawn by Structa, with the changed brewing step in amber and the new milk step in green." src="docs/images/quick-start-light.svg" width="300">
 </p>
 
 ## Examples
 
-Every example below is drawn from a file in [`examples/`](examples). The images switch with your GitHub theme.
+A few highlights, each drawn from a file in [`examples/`](examples). **[EXAMPLES.md](EXAMPLES.md) shows all 20 examples, each in both the light and the dark theme.**
 
 ### Architecture: a change across a whole system
 
-An admin portal, an API, services and a database, each drawn as an area box. Class cards show exactly which methods change; component cards stand for the UI, API, services, queue and database. From [`examples/architecture-change-map.json`](examples/architecture-change-map.json).
+An admin portal, an API, services and a database, each drawn as a nested area box. Class cards show exactly which methods change; component cards stand for the UI, API, services, queue and database. From [`examples/architecture-change-map.json`](examples/architecture-change-map.json).
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/images/architecture-change-map-dark.svg">
-    <img alt="An architecture diagram of a museum system, grouped into admin portal, API, services and database areas, with new, changed and removed parts colour-coded." src="docs/images/architecture-change-map-light.svg" width="560">
-  </picture>
+  <img alt="An architecture diagram of a museum system, grouped into admin portal, API, services and database areas, with new, changed and removed parts colour-coded." src="docs/images/architecture-change-map-light.svg" width="560">
+</p>
+
+### Class: UML with change status, grouped by area
+
+Classes with their members, inheritance, composition and aggregation, end counts such as `0..*`, and an abstract class in italics. Each class sits in the nested area box for the part of the system it belongs to. From [`examples/class-grouped.json`](examples/class-grouped.json).
+
+<p align="center">
+  <img alt="A UML class diagram of a bakery's online ordering, with classes in shop website, bakehouse, ovens and shop counter area boxes, and new, changed and removed members colour-coded." src="docs/images/class-grouped-light.svg" width="560">
 </p>
 
 ### ER: a schema change
@@ -80,35 +79,18 @@ An admin portal, an API, services and a database, each drawn as an area box. Cla
 Tables with their columns, keys and types. Relationship lines land on the exact columns they join, with crow's-foot ends. From [`examples/er-status.json`](examples/er-status.json).
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/images/er-status-dark.svg">
-    <img alt="An ER diagram adding loan reminders: a new reminders table, a changed loans table and a removed notice log table." src="docs/images/er-status-light.svg">
-  </picture>
+  <img alt="An ER diagram adding loan reminders: a new reminders table, a changed loans table and a removed notice log table." src="docs/images/er-status-light.svg">
 </p>
 
-### Flowchart: a process that changes
+### Flowchart: swimlanes, decisions and notes
 
-Start and end pills, steps, decisions, input/output and subprocess shapes, with labelled and looping lines. From [`examples/flow-status.json`](examples/flow-status.json).
+Who does each step, shown as nested area boxes. It uses every flowchart shape: start and end pills, steps, decisions, input/output, a subprocess and a note, with labelled and looping lines. From [`examples/flow-areas.json`](examples/flow-areas.json).
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/images/flow-status-dark.svg">
-    <img alt="A flowchart of weekend bread orders, where phone orders are removed and a weighing step is added." src="docs/images/flow-status-light.svg" width="440">
-  </picture>
+  <img alt="A flowchart of a first violin lesson, split into pupil, music school, front desk and lesson room areas, with decisions, a loop back to tuning and a note." src="docs/images/flow-areas-light.svg" width="480">
 </p>
 
-### Class: a UML hierarchy
-
-Interfaces, abstract classes in italics, visibility symbols, and the standard UML lines for inheriting, implementing, owning and using. Parents always sit above their children. From [`examples/class-hierarchy.json`](examples/class-hierarchy.json).
-
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/images/class-hierarchy-dark.svg">
-    <img alt="A UML class diagram of greenhouse sensors, with two interfaces, an abstract sensor class and the classes that implement and extend them." src="docs/images/class-hierarchy-light.svg" width="640">
-  </picture>
-</p>
-
-You can see every example in both themes on one page by running `bun run gallery` (see [Developing Structa](#developing-structa)).
+You can also see every example on one local page by running `bun run gallery` (see [Developing Structa](#developing-structa)).
 
 ## Getting Structa
 
@@ -200,7 +182,7 @@ bun run test             # the full test suite (add a file path to run one file)
 bun run typecheck        # type-check everything
 bun run build            # build the skill folder into dist/structa/
 bun run gallery          # draw every example, light and dark, into dist/gallery/index.html
-bun run readme-images    # redraw this README's pictures into docs/images/
+bun run docs-images      # redraw the pictures in docs/images/ and rewrite EXAMPLES.md
 bun run release          # build dist/structa.zip, as the release workflow does
 ```
 

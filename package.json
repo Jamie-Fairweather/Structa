@@ -17,7 +17,7 @@
     "build": "bun run generate && bun scripts/build.ts",
     "gallery": "bun run build && bun scripts/gallery.ts",
     "release": "bun run generate && bun scripts/release.ts",
-    "readme-images": "bun run build && bun scripts/readme-images.ts"
+    "docs-images": "bun run build && bun scripts/docs-images.ts"
   },
   "devDependencies": {
     "@commitlint/cli": "21.2.4",
