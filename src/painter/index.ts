@@ -213,7 +213,13 @@ function card({ card, x: cardX, y: cardY }: PlacedCard<Card>, at: Point, pen: Pe
   const look: Attrs = [["fill", colors[card.fill]], ...stroke, ["filter", `url(#${shadowId})`]];
   const box = { x, y };
   return [
-    open("g", [["class", "card"], ["data-id", card.id], ["data-kind", card.kind], ...statusAttr(card.status)]),
+    open("g", [
+      ["class", "card"],
+      ["data-id", card.id],
+      ["data-kind", card.kind],
+      ...statusAttr(card.status),
+      ...(card.area === undefined ? [] : ([["data-area", card.area]] as const)),
+    ]),
     el("title", [], escapeText(card.tooltip)),
     ...fadedIf(card.status === "removed", pen.theme, [
       outline.kind === "rounded"

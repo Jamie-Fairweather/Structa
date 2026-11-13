@@ -98,6 +98,8 @@ export interface CardBody {
 export interface Card {
   readonly id: string;
   readonly kind: CardBody["kind"];
+  /** The id of the innermost area the card is in. */
+  readonly area?: string;
   readonly status?: Status;
   readonly width: number;
   readonly height: number;
@@ -119,7 +121,7 @@ export interface CardHeader {
 }
 
 /** A node the frame can build a card from. */
-type Framed = CardHeader & { readonly id: string };
+type Framed = CardHeader & { readonly id: string; readonly area?: string };
 
 /** Badge words are fixed, so they need no checking against the font. */
 const BADGE_FACE: FaceId = "inter-bold";
@@ -170,6 +172,7 @@ function frameCard<N extends Framed>(node: N, top: number, sizes: Sizes, build: 
   return {
     id,
     kind: body.kind,
+    ...(node.area === undefined ? {} : { area: node.area }),
     ...(status === undefined ? {} : { status }),
     width,
     height: top + body.height,
