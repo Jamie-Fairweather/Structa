@@ -266,15 +266,15 @@ describe("checking areas", () => {
 
   it("allows 100 areas and rejects 101 as INVALID_INPUT", async () => {
     /** n areas, each with a card in it. An unknown field stops the render before layout, so it stays quick. */
-    const stalls = (n: number) => ({
+    const benches = (n: number) => ({
       type: "flow",
-      areas: Array.from({ length: n }, (_, i) => ({ id: `stall-${i}`, label: `Stall ${i}` })),
-      nodes: Array.from({ length: n }, (_, i) => ({ id: `sell-${i}`, label: `Sell at stall ${i}`, shape: "step", area: `stall-${i}` })),
+      areas: Array.from({ length: n }, (_, i) => ({ id: `bench-${i}`, label: `Bench ${i}` })),
+      nodes: Array.from({ length: n }, (_, i) => ({ id: `water-${i}`, label: `Water bench ${i}`, shape: "step", area: `bench-${i}` })),
       colour: "red",
     });
 
-    expect(await problems(stalls(100))).toEqual([expect.objectContaining({ path: "colour" })]);
-    expect(await problems(stalls(101))).toEqual([
+    expect(await problems(benches(100))).toEqual([expect.objectContaining({ path: "colour" })]);
+    expect(await problems(benches(101))).toEqual([
       expect.objectContaining({ path: "colour" }),
       { path: "areas", message: "has 101 areas; the limit is 100", hint: "split the diagram into smaller ones" },
     ]);
@@ -365,39 +365,39 @@ describe("checking areas", () => {
   });
 
   it("checks areas in architecture diagrams too, on component and class cards", async () => {
-    const hire = bikeHire();
-    hire.nodes.push(
-      { id: "repairs", label: "Repair queue", kind: "queue", area: "depot" },
-      { id: "bike", label: "Bike", kind: "class", area: "depot" },
+    const input = library();
+    input.nodes.push(
+      { id: "returns", label: "Returns queue", kind: "queue", area: "stockroom" },
+      { id: "book", label: "Book", kind: "class", area: "stockroom" },
     );
 
-    expect(await problems(hire)).toEqual([
-      { path: "nodes[4].area", message: 'no area with id "depot"', hint: AREA_HINT },
-      { path: "nodes[5].area", message: 'no area with id "depot"', hint: AREA_HINT },
+    expect(await problems(input)).toEqual([
+      { path: "nodes[4].area", message: 'no area with id "stockroom"', hint: AREA_HINT },
+      { path: "nodes[5].area", message: 'no area with id "stockroom"', hint: AREA_HINT },
     ]);
   });
 });
 
-/** A bike-hire system: a kiosk inside the docking stations, a component in the cloud, and a class card. */
-function bikeHire(extra: Obj = {}): Diagram {
+/** A library system: a kiosk inside the branches, a component in the cloud, and a class card. */
+function library(extra: Obj = {}): Diagram {
   return {
     type: "architecture",
     ...extra,
     areas: [
-      { id: "stations", label: "Docking stations" },
-      { id: "kiosk", label: "Kiosk", parent: "stations" },
-      { id: "cloud", label: "Hire cloud" },
+      { id: "branches", label: "Branch libraries" },
+      { id: "kiosk", label: "Kiosk", parent: "branches" },
+      { id: "cloud", label: "Library cloud" },
     ],
     nodes: [
       { id: "screen", label: "Kiosk screen", kind: "ui", area: "kiosk", status: "new" },
-      { id: "rentals", label: "Rental service", kind: "service", area: "cloud" },
-      { id: "dock", label: "Dock", kind: "class", area: "stations", properties: [{ text: "bikes: Bike[]" }] },
-      { id: "rides", label: "Ride log", kind: "database" },
+      { id: "loans", label: "Loan service", kind: "service", area: "cloud" },
+      { id: "shelf", label: "Shelf", kind: "class", area: "branches", properties: [{ text: "books: Book[]" }] },
+      { id: "history", label: "Loan history", kind: "database" },
     ],
     edges: [
-      { from: "screen", to: "rentals" },
-      { from: "rentals", to: "dock" },
-      { from: "rentals", to: "rides", kind: "async" },
+      { from: "screen", to: "loans" },
+      { from: "loans", to: "shelf" },
+      { from: "loans", to: "history", kind: "async" },
     ],
   };
 }
@@ -524,9 +524,9 @@ describe("area tags", () => {
   });
 
   it("puts tags on an architecture diagram's component and class cards, and none on a card with no area", async () => {
-    const doc = await svgDoc(bikeHire());
+    const doc = await svgDoc(library());
 
-    for (const [id, name] of [["screen", "Kiosk"], ["rentals", "Hire cloud"], ["dock", "Docking stations"]] as const) {
+    for (const [id, name] of [["screen", "Kiosk"], ["loans", "Library cloud"], ["shelf", "Branch libraries"]] as const) {
       const card = cardById(doc, id);
       const { tag, box } = tagOf(card)!;
       const outline = outlineBox(card);
@@ -538,7 +538,7 @@ describe("area tags", () => {
     }
     const screen = cardById(doc, "screen");
     expect(tagBox(screen)!.x + tagBox(screen)!.width).toBeLessThan(badgeBox(screen)!.x);
-    expect(tagOf(cardById(doc, "rides"))).toBeUndefined();
+    expect(tagOf(cardById(doc, "history"))).toBeUndefined();
   });
 
   it("widens a card to hold a long area name and its badge, never cutting the name", async () => {
@@ -693,57 +693,57 @@ function within(input: { areas: readonly Obj[] }, id: string): string[] {
   return [id, ...children.flatMap((child) => within(input, child))];
 }
 
-/** A shop that runs three ways at once, its areas nested four deep, with a note in an area of its own. */
-function market(direction: "down" | "right" = "down") {
+/** A plant nursery that runs three ways at once, its areas nested four deep, with a note in an area of its own. */
+function nursery(direction: "down" | "right" = "down") {
   return {
     type: "flow",
     direction,
     groupAreas: true,
     areas: [
-      { id: "market", label: "Market" },
-      { id: "hall", label: "Covered hall", parent: "market" },
-      { id: "stall", label: "Cheese stall", parent: "hall" },
-      { id: "fridge", label: "Fridge", parent: "stall" },
-      { id: "yard", label: "Loading yard" },
+      { id: "nursery", label: "Nursery" },
+      { id: "glass", label: "Glasshouse", parent: "nursery" },
+      { id: "bench", label: "Seedling bench", parent: "glass" },
+      { id: "mist", label: "Mist tent", parent: "bench" },
+      { id: "yard", label: "Potting yard" },
     ],
     nodes: [
-      { id: "unload", label: "Unload the van", shape: "start", area: "yard" },
-      { id: "check", label: "Check the temperature", shape: "step", area: "fridge", status: "new" },
-      { id: "cold", label: "Cold enough?", shape: "decision", area: "fridge" },
-      { id: "cut", label: "Cut and wrap", shape: "step", area: "stall" },
-      { id: "price", label: "Price it up", shape: "io", area: "stall", status: "changed" },
-      { id: "sell", label: "Sell to customers", shape: "step", area: "hall" },
-      { id: "bin", label: "Throw it out", shape: "end", area: "yard", status: "removed" },
-      { id: "count", label: "Count the takings", shape: "end", area: "market" },
-      { id: "tip", label: "Under five degrees", shape: "note", about: "cold" },
-      { id: "rule", label: "Gloves on in the hall", shape: "note", area: "hall" },
+      { id: "unpack", label: "Unpack the plug plants", shape: "start", area: "yard" },
+      { id: "check", label: "Check the roots", shape: "step", area: "mist", status: "new" },
+      { id: "healthy", label: "Roots healthy?", shape: "decision", area: "mist" },
+      { id: "pot", label: "Pot them up", shape: "step", area: "bench" },
+      { id: "price", label: "Label and price", shape: "io", area: "bench", status: "changed" },
+      { id: "sell", label: "Sell to gardeners", shape: "step", area: "glass" },
+      { id: "compost", label: "Compost them", shape: "end", area: "yard", status: "removed" },
+      { id: "count", label: "Count the takings", shape: "end", area: "nursery" },
+      { id: "tip", label: "White roots, not brown", shape: "note", about: "healthy" },
+      { id: "rule", label: "Gloves on in the glasshouse", shape: "note", area: "glass" },
     ],
     edges: [
-      { from: "unload", to: "check" },
-      { from: "check", to: "cold" },
-      { from: "cold", to: "cut", label: "yes" },
-      { from: "cold", to: "bin", label: "no" },
-      { from: "cut", to: "price" },
+      { from: "unpack", to: "check" },
+      { from: "check", to: "healthy" },
+      { from: "healthy", to: "pot", label: "yes" },
+      { from: "healthy", to: "compost", label: "no" },
+      { from: "pot", to: "price" },
       { from: "price", to: "sell", emphasis: true },
       { from: "sell", to: "count" },
-      { from: "sell", to: "cut", label: "more" },
+      { from: "sell", to: "pot", label: "more" },
     ],
   };
 }
 
 describe("area boxes", () => {
   it("draws a box for each area, each parent before the areas inside it, named at its top-left", async () => {
-    const doc = await svgDoc(market());
+    const doc = await svgDoc(nursery());
 
     expect(areaBoxes(doc).map(({ id, parent }) => [id, parent])).toEqual([
-      ["market", undefined],
-      ["hall", "market"],
-      ["stall", "hall"],
-      ["fridge", "stall"],
+      ["nursery", undefined],
+      ["glass", "nursery"],
+      ["bench", "glass"],
+      ["mist", "bench"],
       ["yard", undefined],
     ]);
     for (const { area, box, name } of areaBoxes(doc)) {
-      const label = market().areas.find((a) => a.id === area.getAttribute("data-area"))!.label;
+      const label = nursery().areas.find((a) => a.id === area.getAttribute("data-area"))!.label;
       expect(name.textContent).toBe(label);
       expect(titleOf(area)).toBe(label);
       expect(name.hasAttribute("text-anchor")).toBe(false);
@@ -757,7 +757,7 @@ describe("area boxes", () => {
   });
 
   it.each(["down", "right"] as const)("puts every card and every area inside it inside its box, direction %s", async (direction) => {
-    const input = market(direction);
+    const input = nursery(direction);
     const doc = await svgDoc(input);
     const boxes = new Map(areaBoxes(doc).map(({ id, box }) => [id, box]));
 
@@ -775,10 +775,10 @@ describe("area boxes", () => {
   });
 
   it.each(["down", "right"] as const)("keeps areas side by side apart, and cards apart, direction %s", async (direction) => {
-    const doc = await svgDoc(market(direction));
-    const [market_, , , , yard] = areaBoxes(doc);
+    const doc = await svgDoc(nursery(direction));
+    const [nursery_, , , , yard] = areaBoxes(doc);
 
-    expect(overlaps(market_!.box, yard!.box)).toBe(false);
+    expect(overlaps(nursery_!.box, yard!.box)).toBe(false);
     const extents = cards(doc).map((card) => ({ id: card.getAttribute("data-id"), box: cardExtent(card) }));
     for (const a of extents) {
       for (const b of extents) if (a !== b) expect(overlaps(a.box, b.box), `${a.id} and ${b.id}`).toBe(false);
@@ -787,8 +787,8 @@ describe("area boxes", () => {
 
   it.each(["down", "right"] as const)("keeps every area's name clear of the cards, and inside its box, direction %s", async (direction) => {
     // Rendered with its fonts, so each name's drawn width can be measured. One area's name is far wider than its one card.
-    const input = market(direction);
-    input.areas[4]!.label = "Loading yard behind the market building";
+    const input = nursery(direction);
+    input.areas[4]!.label = "Potting yard behind the nursery building";
     const doc = parseSvg((await render(input)).svg);
     const drawn = drawnTextBoxes(doc);
 
@@ -803,7 +803,7 @@ describe("area boxes", () => {
     ["light", "#818b98", "0.08", "#d1d9e0", "#59636e"],
     ["dark", "#8b949e", "0.07", "#30363d", "#8b949e"],
   ] as const)("draws every %s-theme box in one see-through neutral fill with a thin border, so nested ones come out darker", async (theme, fill, strength, border, name) => {
-    const doc = await svgDoc(market(), theme);
+    const doc = await svgDoc(nursery(), theme);
 
     for (const { rect, name: text } of areaBoxes(doc)) {
       expect([rect.getAttribute("fill"), rect.getAttribute("fill-opacity"), rect.getAttribute("stroke")]).toEqual([fill, strength, border]);
@@ -815,7 +815,7 @@ describe("area boxes", () => {
   });
 
   it("draws the boxes under the cards and lines, and their names over the lines", async () => {
-    const doc = await svgDoc(market());
+    const doc = await svgDoc(nursery());
     const order = allElements(doc)
       .map((el) => el.getAttribute("class"))
       .filter((kind) => ["area", "card", "line", "area-name", "line-label"].includes(kind!));
@@ -832,7 +832,7 @@ describe("area boxes", () => {
     ["dark", ["#161a20", "#1e2329", "#262b31", "#2d3239", "#161a20"]],
   ] as const)("backs each %s-theme name in exactly the colour its box shows, so a line under it doesn't cut through it", async (theme, colours) => {
     // Rendered with its fonts, so each name's drawn width can be measured.
-    const doc = parseSvg((await render(market(), { theme })).svg);
+    const doc = parseSvg((await render(nursery(), { theme })).svg);
     const drawn = drawnTextBoxes(doc);
 
     expect(areaBoxes(doc).map(({ backing }) => backing.getAttribute("fill"))).toEqual(colours);
@@ -844,7 +844,7 @@ describe("area boxes", () => {
   });
 
   it.each(["down", "right"] as const)("ends every line on its cards, across the boxes, direction %s", async (direction) => {
-    const input = market(direction);
+    const input = nursery(direction);
     const doc = await svgDoc(input);
 
     for (const [i, line] of lines(doc).entries()) {
@@ -855,16 +855,16 @@ describe("area boxes", () => {
     }
     const [start, end] = connectorEnds(connectors(doc)[0]!);
     expect(distanceToDrawn(start, cardById(doc, "tip"))).toBeLessThanOrEqual(1);
-    expect(distanceToDrawn(end, cardById(doc, "cold"))).toBeLessThanOrEqual(1);
+    expect(distanceToDrawn(end, cardById(doc, "healthy"))).toBeLessThanOrEqual(1);
   });
 
   it("puts a note about a shape in that shape's box, and a note in an area in its box", async () => {
-    const doc = await svgDoc(market());
+    const doc = await svgDoc(nursery());
     const boxes = new Map(areaBoxes(doc).map(({ id, box }) => [id, box]));
 
-    expect(inside(cardExtent(cardById(doc, "tip")), boxes.get("fridge")!, 1)).toBe(true);
-    expect(inside(cardExtent(cardById(doc, "rule")), boxes.get("hall")!, 1)).toBe(true);
-    expect(inside(cardExtent(cardById(doc, "rule")), boxes.get("stall")!)).toBe(false);
+    expect(inside(cardExtent(cardById(doc, "tip")), boxes.get("mist")!, 1)).toBe(true);
+    expect(inside(cardExtent(cardById(doc, "rule")), boxes.get("glass")!, 1)).toBe(true);
+    expect(inside(cardExtent(cardById(doc, "rule")), boxes.get("bench")!)).toBe(false);
   });
 
   /** Three ways to sell, in the given order, from one shared step, all in one area. */
@@ -983,23 +983,23 @@ describe("area boxes", () => {
   });
 
   it("lays out architecture component and class cards in area boxes too", async () => {
-    const doc = await svgDoc(bikeHire({ groupAreas: true }));
+    const doc = await svgDoc(library({ groupAreas: true }));
     const boxes = areaBoxes(doc);
-    const [stations, kiosk, cloud] = ["stations", "kiosk", "cloud"].map((id) => boxes.find((box) => box.id === id));
+    const [branches, kiosk, cloud] = ["branches", "kiosk", "cloud"].map((id) => boxes.find((box) => box.id === id));
 
     expect(inside(cardExtent(cardById(doc, "screen")), kiosk!.box, 1)).toBe(true);
-    expect(inside(cardExtent(cardById(doc, "dock")), stations!.box, 1)).toBe(true);
-    expect(inside(kiosk!.box, stations!.box, 1)).toBe(true);
-    expect(inside(cardExtent(cardById(doc, "rentals")), cloud!.box, 1)).toBe(true);
-    for (const box of [stations!, cloud!]) expect(overlaps(cardExtent(cardById(doc, "rides")), box.box)).toBe(false);
+    expect(inside(cardExtent(cardById(doc, "shelf")), branches!.box, 1)).toBe(true);
+    expect(inside(kiosk!.box, branches!.box, 1)).toBe(true);
+    expect(inside(cardExtent(cardById(doc, "loans")), cloud!.box, 1)).toBe(true);
+    for (const box of [branches!, cloud!]) expect(overlaps(cardExtent(cardById(doc, "history")), box.box)).toBe(false);
     for (const card of cards(doc)) expect(tagOf(card)).toBeUndefined();
   });
 
   it("gives the same bytes every time", async () => {
-    const first = await render(market(), opts);
+    const first = await render(nursery(), opts);
     await render(bakery(), opts);
 
-    expect((await render(market(), opts)).svg).toBe(first.svg);
+    expect((await render(nursery(), opts)).svg).toBe(first.svg);
   });
 });
 
@@ -1096,20 +1096,20 @@ describe("the legend's areas", () => {
     expect(allElements(doc).some((el) => el.getAttribute("class") === "legend")).toBe(false);
   });
 
-  /** A market of `n` stalls, each selling in an area of its own, in runs of ten, with a new first stall. */
-  function stalls(n: number, label: (i: number) => string, direction: "down" | "right" = "right") {
+  /** A nursery of `n` seed trays, each watered in an area of its own, in runs of ten, with a new first tray. */
+  function trays(n: number, label: (i: number) => string, direction: "down" | "right" = "right") {
     return {
       type: "flow",
       direction,
-      areas: Array.from({ length: n }, (_, i) => ({ id: `stall-${i}`, label: label(i) })),
+      areas: Array.from({ length: n }, (_, i) => ({ id: `tray-${i}`, label: label(i) })),
       nodes: Array.from({ length: n }, (_, i) => ({
-        id: `sell-${i}`,
-        label: `Sell at ${i}`,
+        id: `water-${i}`,
+        label: `Water ${i}`,
         shape: "step",
-        area: `stall-${i}`,
+        area: `tray-${i}`,
         ...(i === 0 ? { status: "new" } : {}),
       })),
-      edges: Array.from({ length: n - 1 }, (_, i) => ({ from: `sell-${i}`, to: `sell-${i + 1}` })).filter((_, i) => i % 10 !== 9),
+      edges: Array.from({ length: n - 1 }, (_, i) => ({ from: `water-${i}`, to: `water-${i + 1}` })).filter((_, i) => i % 10 !== 9),
     };
   }
 
@@ -1130,13 +1130,13 @@ describe("the legend's areas", () => {
   const TITLE_WIDTH = 640;
 
   it.each([
-    [3, (i: number) => `Stall ${i}`, "right", 1],
+    [3, (i: number) => `Tray ${i}`, "right", 1],
     // A narrow diagram: the legend wraps to the widest a title can be.
-    [12, (i: number) => `The cheese and pickle stall ${i}`, "down", 4],
-    [40, (i: number) => `Stall number ${i}`, "right", 3],
-    [100, (i: number) => `Stall number ${i}`, "right", 7],
+    [12, (i: number) => `The leek and pepper tray ${i}`, "down", 4],
+    [40, (i: number) => `Tray number ${i}`, "right", 3],
+    [100, (i: number) => `Tray number ${i}`, "right", 7],
   ] as const)("wraps %i areas into rows no wider than the diagram, or than a title can be", async (n, label, direction, rows) => {
-    const input = stalls(n, label, direction);
+    const input = trays(n, label, direction);
     const doc = await svgDoc(input);
     const plain = await svgDoc({ ...input, legend: false });
     const items = legendItems(doc);
@@ -1169,7 +1169,7 @@ describe("the legend's areas", () => {
 
   // A big picture: on CI it takes longer than Vitest's default 5 seconds.
   it("draws 100 areas as a PNG at the default scale", { timeout: 60_000 }, async () => {
-    const { svg, png } = await render(stalls(100, (i) => `Stall number ${i}`), { formats: ["svg", "png"], embedFonts: false });
+    const { svg, png } = await render(trays(100, (i) => `Tray number ${i}`), { formats: ["svg", "png"], embedFonts: false });
     const doc = parseSvg(svg);
 
     expect(pngSize(png)).toEqual({ width: 2 * width(doc), height: 2 * height(doc) });

@@ -58,7 +58,7 @@ const COLUMNS = [
   { name: "id", type: "uuid", pk: true },
   { name: "site_id", type: "uuid", fk: true },
   { name: "number", type: "text", unique: true },
-  { name: "tenant_id", type: "uuid", fk: true, nullable: true },
+  { name: "holder_id", type: "uuid", fk: true, nullable: true },
   { name: "notes", type: "text", nullable: true },
   { name: "site_and_number", type: "text", pk: true, fk: true, unique: true },
 ];
@@ -95,7 +95,7 @@ describe("ER tables", () => {
     ["light", "#59636e"],
     ["dark", "#8b949e"],
   ] as const)("draws a description under the name, muted in %s, wrapped, and above the columns", async (theme, muted) => {
-    const description = "Every plot on every site, with whoever rents it this season and the notes from the last walk round.";
+    const description = "Every plot on every site, with whoever tends it this season and the notes from the last walk round.";
     const doc = await svgDoc(plots({ description, columns: COLUMNS }), theme);
 
     const card = cardById(doc, "plots");
@@ -190,7 +190,7 @@ describe("ER columns", () => {
       ["PK", ["id", "uuid"]],
       ["FK", ["site_id", "uuid"]],
       ["UQ", ["number", "text"]],
-      ["FK", ["tenant_id", "uuid?"]],
+      ["FK", ["holder_id", "uuid?"]],
       [undefined, ["notes", "text?"]],
       ["PK FK UQ", ["site_and_number", "text"]],
     ]);
@@ -229,7 +229,7 @@ describe("ER columns", () => {
       "PK id: uuid",
       "FK site_id: uuid",
       "UQ number: text",
-      "FK tenant_id: uuid?",
+      "FK holder_id: uuid?",
       "notes: text?",
       "PK FK UQ site_and_number: text",
     ]);
@@ -299,8 +299,8 @@ describe("column status", () => {
 
   it("tints a column with a status, puts its badge at the right-hand end, and keeps the type clear of it", async () => {
     // 30 characters: one line on its own, but not beside a badge.
-    const type = "numeric(12,4) check (rent > 0)";
-    const doc = await svgDoc(plots({ status: "changed", columns: [{ name: "rent", type, status: "changed" }, { name: "deposit", type }] }));
+    const type = "numeric(12,4) check (size > 0)";
+    const doc = await svgDoc(plots({ status: "changed", columns: [{ name: "size", type, status: "changed" }, { name: "soil_ph", type }] }));
 
     const card = cardById(doc, "plots");
     const [withBadge, without] = rows(card);
@@ -351,7 +351,7 @@ describe("column status", () => {
   });
 
   it.each(["new", "removed"])("gives columns without a status in a %s table the table's status, tint and badge", async (status) => {
-    const doc = await svgDoc(plots({ status, columns: [{ name: "id", type: "uuid" }, { name: "rent", type: "money", status }] }));
+    const doc = await svgDoc(plots({ status, columns: [{ name: "id", type: "uuid" }, { name: "size", type: "numeric", status }] }));
 
     for (const row of rows(cardById(doc, "plots"))) {
       expect(row.getAttribute("data-status")).toBe(status);
@@ -410,7 +410,7 @@ describe("column status", () => {
       type: "er",
       nodes: [
         { id: "sheds", label: "sheds", status: "new", columns: [{ name: "id", type: "uuid" }] },
-        { id: "plots", label: "plots", status: "changed", columns: [{ name: "id", type: "uuid" }, { name: "rent", type: "money", status: "removed" }] },
+        { id: "plots", label: "plots", status: "changed", columns: [{ name: "id", type: "uuid" }, { name: "size", type: "numeric", status: "removed" }] },
       ],
     };
     const doc = await svgDoc(input);
@@ -419,7 +419,7 @@ describe("column status", () => {
     expect(drawn).toEqual([
       ["sheds", "id", "new"],
       ["plots", "id", null],
-      ["plots", "rent", "removed"],
+      ["plots", "size", "removed"],
     ]);
     const legend = allElements(doc).filter((el) => el.getAttribute("class") === "legend-item");
     expect(legend.map((item) => item.getAttribute("data-status"))).toEqual(["new", "changed", "removed"]);
@@ -493,7 +493,7 @@ describe("ER input", () => {
 
   it("checks column names and types against JetBrains Mono, the face they're drawn in, and the table's name against Inter", async () => {
     // Inter can draw Ĳ but JetBrains Mono can't; JetBrains Mono can draw ⇑ but Inter can't.
-    await expect(render(plots({ label: "Ĳssel", columns: [{ name: "⇑", type: "⇑" }] }), { embedFonts: false })).resolves.toHaveProperty("svg");
+    await expect(render(plots({ label: "Ĳstaart", columns: [{ name: "⇑", type: "⇑" }] }), { embedFonts: false })).resolves.toHaveProperty("svg");
 
     expect(await problems(plots({ label: "plots ⇑", columns: [{ name: "Ĳ", type: "intĲ" }] }))).toEqual([
       { path: "nodes[0].label", message: 'contains "⇑" (U+21D1), which Structa\'s fonts can\'t draw', hint: "use Latin letters, digits and common symbols" },
@@ -595,17 +595,17 @@ function rota(direction?: string) {
   };
 }
 
-/** Three tables that point at one depot, top to bottom, and a depot that points at itself. */
-function depot() {
-  const link = (from: string) => ({ from, to: "depots", fromCardinality: "zero-or-many", toCardinality: "one" });
+/** Three tables that point at one tool store, top to bottom, and a store that points at itself. */
+function toolStore() {
+  const link = (from: string) => ({ from, to: "stores", fromCardinality: "zero-or-many", toCardinality: "one" });
   return {
     type: "er",
     direction: "down",
     nodes: [
-      ...["mowers", "barrows", "hoses"].map((id) => ({ id, label: id, columns: [{ name: "depot_id", type: "uuid", fk: true }] })),
-      { id: "depots", label: "depots", columns: [{ name: "id", type: "uuid", pk: true }, { name: "parent_id", type: "uuid", fk: true, nullable: true }] },
+      ...["mowers", "barrows", "hoses"].map((id) => ({ id, label: id, columns: [{ name: "store_id", type: "uuid", fk: true }] })),
+      { id: "stores", label: "stores", columns: [{ name: "id", type: "uuid", pk: true }, { name: "parent_id", type: "uuid", fk: true, nullable: true }] },
     ],
-    edges: [link("mowers"), link("barrows"), link("hoses"), { from: "depots", to: "depots", fromCardinality: "zero-or-many", toCardinality: "zero-or-one" }],
+    edges: [link("mowers"), link("barrows"), link("hoses"), { from: "stores", to: "stores", fromCardinality: "zero-or-many", toCardinality: "zero-or-one" }],
   };
 }
 
@@ -694,7 +694,7 @@ describe("where relationships attach", () => {
 
   it.each([
     ["a loop of links and a link to itself", rota()],
-    ["the tool library example", EXAMPLE("er")],
+    ["the town library example", EXAMPLE("er")],
     ["the loan reminders example", EXAMPLE("er-status")],
   ])("follows the side rule for every line, direction right: %s", async (_name, input) => {
     const rule = sideRule(await svgDoc(input), "right");
@@ -710,12 +710,12 @@ describe("where relationships attach", () => {
   });
 
   it.each([
-    ["a fan into one table, and its link to itself", depot()],
+    ["a fan into one table, and its link to itself", toolStore()],
     ["a loop of links and a link to itself", rota("down")],
     ["a tree", schema([["plots", "sites"], ["sheds", "sites"], ["beds", "plots"], ["paths", "plots"]], { direction: "down" })],
     ["a diamond", schema([["plots", "sites"], ["sheds", "sites"], ["keys", "plots"], ["keys", "sheds"]], { direction: "down" })],
     ["a chain with a shortcut", schema([["crops", "beds"], ["beds", "plots"], ["plots", "sites"], ["crops", "sites"], ["sheds", "sites"]], { direction: "down" })],
-    ["the tool library example", { ...EXAMPLE("er"), direction: "down" }],
+    ["the town library example", { ...EXAMPLE("er"), direction: "down" }],
     ["the loan reminders example", { ...EXAMPLE("er-status"), direction: "down" }],
   ])("follows the side rule for every line, direction down: %s", async (_name, input) => {
     const rule = sideRule(await svgDoc(input), "down");
@@ -724,7 +724,7 @@ describe("where relationships attach", () => {
   });
 
   it("covers tables apart, tables that overlap across the flow, and a table's link to itself, direction down", async () => {
-    const rule = sideRule(await svgDoc(depot()), "down");
+    const rule = sideRule(await svgDoc(toolStore()), "down");
 
     expect(new Set(rule.map(({ order }) => order))).toEqual(new Set(["apart", "overlapping", "self"]));
   });
@@ -798,7 +798,7 @@ describe("where relationships attach", () => {
   });
 
   it("gives two relationships between the same two tables an end each at both tables", async () => {
-    // A tool loan has a borrower and, once approved, an approver: two lines from loans to members.
+    // A book loan has a borrower and, once approved, an approver: two lines from loans to members.
     const input = {
       type: "er",
       nodes: ["members", "loans"].map((id) => ({ id, label: id })),
@@ -885,8 +885,8 @@ describe("where relationships attach", () => {
   });
 });
 
-/** Sites, plots on them and their tenants, each with an id; a plot points at its site and its tenant from columns of its own. */
-function lettings(edges: readonly object[], fields: object = {}): { type: string; nodes: Json[]; edges: Json[] } {
+/** Sites, plots on them and their holders, each with an id; a plot points at its site and its holder from columns of its own. */
+function plotHolders(edges: readonly object[], fields: object = {}): { type: string; nodes: Json[]; edges: Json[] } {
   const table = (id: string, ...columns: object[]): Json => ({ id, label: id, columns: [{ name: "id", type: "uuid", pk: true }, ...columns] });
   return {
     type: "er",
@@ -896,10 +896,10 @@ function lettings(edges: readonly object[], fields: object = {}): { type: string
         "plots",
         { name: "site_id", type: "uuid", fk: true },
         { name: "number", type: "text" },
-        { name: "tenant_id", type: "uuid", fk: true, nullable: true },
-        { name: "last_tenant_id", type: "uuid", fk: true, nullable: true },
+        { name: "holder_id", type: "uuid", fk: true, nullable: true },
+        { name: "last_holder_id", type: "uuid", fk: true, nullable: true },
       ),
-      table("tenants", { name: "email", type: "text", unique: true }, { name: "referred_by", type: "uuid", fk: true, nullable: true }),
+      table("holders", { name: "email", type: "text", unique: true }, { name: "referred_by", type: "uuid", fk: true, nullable: true }),
     ],
     edges: edges.map((edge) => ({ fromCardinality: "zero-or-many", toCardinality: "one", ...edge })),
     ...fields,
@@ -963,10 +963,10 @@ describe("lines that name columns", () => {
   it.each(["right", "down"] as const)(
     "attaches an end that names a column at the middle of that column's row, on the side the side rule picks, direction %s",
     async (direction) => {
-      const input = lettings(
+      const input = plotHolders(
         [
           { from: "plots", to: "sites", fromColumn: "site_id", toColumn: "id" },
-          { from: "plots", to: "tenants", fromColumn: "tenant_id", toColumn: "id" },
+          { from: "plots", to: "holders", fromColumn: "holder_id", toColumn: "id" },
         ],
         { direction },
       );
@@ -977,8 +977,8 @@ describe("lines that name columns", () => {
       expect(ends.map(({ id, end, table, column }) => [id, end, table, column])).toEqual([
         ["edges[0]", "from", "plots", "site_id"],
         ["edges[0]", "to", "sites", "id"],
-        ["edges[1]", "from", "plots", "tenant_id"],
-        ["edges[1]", "to", "tenants", "id"],
+        ["edges[1]", "from", "plots", "holder_id"],
+        ["edges[1]", "to", "holders", "id"],
       ]);
       for (const { id, end, at, row } of ends) expect([id, end, at.y]).toEqual([id, end, expect.closeTo(row.middle, 1)]);
     },
@@ -987,12 +987,12 @@ describe("lines that name columns", () => {
   it.each(["right", "down"] as const)(
     "brings every end on one side of a column's row to one point at its middle, each with its marks full size, direction %s",
     async (direction) => {
-      // A repair ticket's item_id points at a bike, a lamp or a kettle: three lines from one column, nothing to enforce them.
+      // A museum caption's object_id points at a painting, a vase or a clock: three lines from one column, nothing to enforce them.
       const table = (id: string, ...columns: object[]) => ({ id, label: id, columns: [{ name: "id", type: "uuid", pk: true }, ...columns] });
       const item = (to: string, fromCardinality: string, status: string) => ({
-        from: "tickets",
+        from: "captions",
         to,
-        fromColumn: "item_id",
+        fromColumn: "object_id",
         toColumn: "id",
         fromCardinality,
         toCardinality: "one",
@@ -1002,19 +1002,19 @@ describe("lines that name columns", () => {
       const input = {
         type: "er",
         direction,
-        nodes: [table("tickets", { name: "item_id", type: "uuid" }, { name: "fault", type: "text" }), table("bikes"), table("lamps"), table("kettles")],
-        edges: [item("bikes", "zero-or-many", "unchanged"), item("lamps", "many", "new"), item("kettles", "one-or-many", "removed")],
+        nodes: [table("captions", { name: "object_id", type: "uuid" }, { name: "wording", type: "text" }), table("paintings"), table("vases"), table("clocks")],
+        edges: [item("paintings", "zero-or-many", "unchanged"), item("vases", "many", "new"), item("clocks", "one-or-many", "removed")],
       };
       const doc = parseSvg((await render(input)).svg);
 
-      const tickets = cardById(doc, "tickets");
-      const ends = columnEnds(doc, input).filter(({ table }) => table === "tickets");
+      const captions = cardById(doc, "captions");
+      const ends = columnEnds(doc, input).filter(({ table }) => table === "captions");
       expect(ends).toHaveLength(3);
       const sides = new Map<string | undefined, Point[]>();
-      for (const { at } of ends) sides.set(sideOf(at, tickets), [...(sides.get(sideOf(at, tickets)) ?? []), at]);
+      for (const { at } of ends) sides.set(sideOf(at, captions), [...(sides.get(sideOf(at, captions)) ?? []), at]);
       // Laid out to the right, the three lines all leave the same side.
       if (direction === "right") expect([...sides.values()].map((shared) => shared.length)).toEqual([3]);
-      const middle = rowSpans(doc).get("tickets")!.get("item_id")!.middle;
+      const middle = rowSpans(doc).get("captions")!.get("object_id")!.middle;
       for (const [side, [first, ...others]] of sides) {
         expect([side, first!.y]).toEqual([expect.stringMatching(/^(left|right)$/), expect.closeTo(middle, 1)]);
         for (const at of others) expect([side, at.x, at.y]).toEqual([side, expect.closeTo(first!.x, 2), expect.closeTo(first!.y, 2)]);
@@ -1029,8 +1029,8 @@ describe("lines that name columns", () => {
   it.each(["right", "down"] as const)(
     "spreads the two ends of a loop from a column back to itself apart about its row's middle, marks and all within the row, direction %s",
     async (direction) => {
-      // An odd but valid link: a tenant's id that points at a tenant's id.
-      const input = lettings([{ from: "tenants", to: "tenants", fromColumn: "id", toColumn: "id", fromCardinality: "one" }], { direction });
+      // An odd but valid link: a holder's id that points at a holder's id.
+      const input = plotHolders([{ from: "holders", to: "holders", fromColumn: "id", toColumn: "id", fromCardinality: "one" }], { direction });
       const doc = parseSvg((await render(input)).svg);
 
       const [self] = relationshipEnds(doc);
@@ -1050,8 +1050,8 @@ describe("lines that name columns", () => {
   it.each(["right", "down"] as const)(
     "loops a table's link from one of its columns to another out of its right side, each end at its own row's middle, direction %s",
     async (direction) => {
-      // A tenant can be referred by another tenant.
-      const input = lettings([{ from: "tenants", to: "tenants", fromColumn: "referred_by", toColumn: "id", toCardinality: "zero-or-one" }], { direction });
+      // A plot holder can be referred by another holder.
+      const input = plotHolders([{ from: "holders", to: "holders", fromColumn: "referred_by", toColumn: "id", toCardinality: "zero-or-one" }], { direction });
       const doc = parseSvg((await render(input)).svg);
 
       const [self] = relationshipEnds(doc);
@@ -1077,7 +1077,7 @@ describe("lines that name columns", () => {
 
   it("attaches an end that names no column at its table's header, beside an end that names one", async () => {
     // The plot points at its site from its site_id column, but the site's end names no column.
-    const input = lettings([{ from: "plots", to: "sites", fromColumn: "site_id" }]);
+    const input = plotHolders([{ from: "plots", to: "sites", fromColumn: "site_id" }]);
     const doc = parseSvg((await render(input)).svg);
 
     const [{ to, start, end }] = relationshipEnds(doc) as [ReturnType<typeof relationshipEnds>[number]];
@@ -1088,14 +1088,14 @@ describe("lines that name columns", () => {
   /** The hint for a column name that isn't one of the table's, listing the ones it has. */
   const COLUMN_HINT = (end: string, table: string, columns: string) =>
     `use one of the columns of "${table}" (${columns}), or leave ${end}Column out to attach the line at the table's header`;
-  const PLOTS = '"id", "site_id", "number", "tenant_id", "last_tenant_id"';
+  const PLOTS = '"id", "site_id", "number", "holder_id", "last_holder_id"';
   const SITES = '"id", "name"';
 
   it("rejects a fromColumn or toColumn that names no column of its own table, at each one, listing the table's columns", async () => {
-    const input = lettings([
+    const input = plotHolders([
       { from: "plots", to: "sites", fromColumn: "site", toColumn: "site_id" },
-      { from: "plots", to: "tenants", fromColumn: "tenant_id", toColumn: "id" },
-      { from: "tenants", to: "sites", fromColumn: "id", toColumn: "Name" },
+      { from: "plots", to: "holders", fromColumn: "holder_id", toColumn: "id" },
+      { from: "holders", to: "sites", fromColumn: "id", toColumn: "Name" },
       { from: "plots", to: "gates", fromColumn: "site_id", toColumn: "id" },
     ]);
     input.nodes.push({ id: "gates", label: "gates" });
@@ -1113,7 +1113,7 @@ describe("lines that name columns", () => {
   });
 
   it("matches column names as tidied, and can't name a column left out with more", async () => {
-    const input = lettings([{ from: "plots", to: "sites", fromColumn: "  site_id ", toColumn: "id" }]);
+    const input = plotHolders([{ from: "plots", to: "sites", fromColumn: "  site_id ", toColumn: "id" }]);
     await expect(render(input, { embedFonts: false })).resolves.toHaveProperty("svg");
 
     input.nodes[0]!.more = 3;
@@ -1141,11 +1141,11 @@ describe("lines that name columns", () => {
   });
 
   it("reports one problem only when the table, the column's name or the reference itself is wrong already", async () => {
-    const input = lettings([
+    const input = plotHolders([
       { from: "sheds", to: "sites", fromColumn: "site_id", toColumn: "id" },
       { from: "plots", to: "sites", fromColumn: "  ", toColumn: 7 },
-      { from: "plots", to: "tenants", fromColumn: "tenant_id", toColumn: "Ĳd" },
-      { from: "sites", to: "tenants", fromColumn: "id", toColumn: "email" },
+      { from: "plots", to: "holders", fromColumn: "holder_id", toColumn: "Ĳd" },
+      { from: "sites", to: "holders", fromColumn: "id", toColumn: "email" },
     ]);
     input.nodes[2]!.columns[0] = { name: "Ĳd", type: "uuid", pk: true };
     // A table whose columns aren't a list can't be judged.

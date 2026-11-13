@@ -9,45 +9,45 @@ const examples = readdirSync(examplesDir)
   .sort();
 
 /**
- * Sorting the post, with lines into and out of every shape from every side:
+ * Sorting the library returns, with lines into and out of every shape from every side:
  * a decision with three ways out, two loops back, a line from a shape to
  * itself, and lines crowding into the slanted box and the pills.
  */
-function post(direction: "down" | "right", statuses: boolean) {
+function returns(direction: "down" | "right", statuses: boolean) {
   const status = (s: string) => (statuses ? { status: s } : {});
   return {
     type: "flow",
     direction,
     nodes: [
-      { id: "open", label: "Open the post", shape: "start" },
-      { id: "scan", label: "Scan each letter", shape: "io", ...status("new") },
-      { id: "kind", label: "Bill, letter or advert?", shape: "decision", ...status("changed") },
-      { id: "pay", label: "Pay the bill", shape: "subprocess" },
-      { id: "reply", label: "Write back", shape: "step", ...status("unchanged") },
-      { id: "file", label: "File it away", shape: "io" },
-      { id: "recycle", label: "Recycle it", shape: "end", ...status("removed") },
-      { id: "shred", label: "Shred the envelopes", shape: "end" },
+      { id: "empty", label: "Empty the returns box", shape: "start" },
+      { id: "scan", label: "Scan each book", shape: "io", ...status("new") },
+      { id: "kind", label: "Damaged, late or fine?", shape: "decision", ...status("changed") },
+      { id: "mend", label: "Mend the spine", shape: "subprocess" },
+      { id: "late", label: "Note the late fee", shape: "step", ...status("unchanged") },
+      { id: "log", label: "Log it in the catalogue", shape: "io" },
+      { id: "shelve", label: "Back on the shelf", shape: "end", ...status("removed") },
+      { id: "lock", label: "Lock the returns box", shape: "end" },
     ],
     edges: [
-      { from: "open", to: "scan" },
+      { from: "empty", to: "scan" },
       { from: "scan", to: "kind" },
-      { from: "kind", to: "pay", label: "bill" },
-      { from: "kind", to: "reply", label: "letter" },
-      { from: "kind", to: "recycle", label: "advert" },
-      { from: "pay", to: "file" },
-      { from: "reply", to: "file" },
-      { from: "file", to: "scan", label: "more post" },
-      { from: "reply", to: "kind", label: "unsure" },
+      { from: "kind", to: "mend", label: "damaged" },
+      { from: "kind", to: "late", label: "late" },
+      { from: "kind", to: "shelve", label: "fine" },
+      { from: "mend", to: "log" },
+      { from: "late", to: "log" },
+      { from: "log", to: "scan", label: "more books" },
+      { from: "late", to: "kind", label: "unsure" },
       { from: "kind", to: "kind", label: "ask" },
-      { from: "file", to: "shred" },
-      { from: "pay", to: "shred" },
-      { from: "open", to: "shred" },
-      { from: "scan", to: "file" },
+      { from: "log", to: "lock" },
+      { from: "mend", to: "lock" },
+      { from: "empty", to: "lock" },
+      { from: "scan", to: "log" },
     ],
   };
 }
 
-function ends(doc: Document, input: ReturnType<typeof post>) {
+function ends(doc: Document, input: ReturnType<typeof returns>) {
   return lines(doc).map((line, i) => {
     const { route, arrowTip, arrowBase } = lineGeometry(line);
     const edge = input.edges[i]!;
@@ -62,7 +62,7 @@ describe("line ends", () => {
     ["down", true],
     ["right", true],
   ] as const)("meet the visible outline of every shape within 1px, direction %s, statuses %s", async (direction, statuses) => {
-    const input = post(direction, statuses);
+    const input = returns(direction, statuses);
     const doc = await svgDoc(input);
 
     for (const { what, start, arrowTip, edge } of ends(doc, input)) {
@@ -74,7 +74,7 @@ describe("line ends", () => {
   it.each(["down", "right"] as const)(
     "draw the arrowhead at the outline, pointing into the shape from outside it, direction %s",
     async (direction) => {
-      const input = post(direction, false);
+      const input = returns(direction, false);
       const doc = await svgDoc(input);
 
       let slanted = 0;
@@ -83,7 +83,7 @@ describe("line ends", () => {
         expect(Math.abs(depthInShape(arrowTip, target)), what).toBeLessThanOrEqual(1);
         expect(depthInShape(arrowBase, target), what).toBeLessThan(0);
         // Ends on a diamond's or slanted box's slanted edge, well inside the box ELK was given.
-        if (["kind", "scan", "file"].includes(edge.to)) slanted++;
+        if (["kind", "scan", "log"].includes(edge.to)) slanted++;
       }
       expect(slanted).toBeGreaterThanOrEqual(4);
     },

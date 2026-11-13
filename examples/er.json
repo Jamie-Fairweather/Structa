@@ -1,7 +1,7 @@
 {
   "type": "er",
-  "title": "Tool library",
-  "description": "Members borrow tools; the front desk notes any damage against a loan.",
+  "title": "Town library",
+  "description": "Members borrow books; the front desk notes any damage against a loan.",
   "nodes": [
     {
       "id": "members",
@@ -19,20 +19,20 @@
       "label": "loans",
       "columns": [
         { "name": "id", "type": "uuid", "pk": true },
-        { "name": "tool_id", "type": "uuid", "fk": true },
+        { "name": "book_id", "type": "uuid", "fk": true },
         { "name": "member_id", "type": "uuid", "fk": true },
         { "name": "due_on", "type": "date" },
         { "name": "returned_at", "type": "timestamptz", "nullable": true }
       ]
     },
     {
-      "id": "tools",
-      "label": "tools",
+      "id": "books",
+      "label": "books",
       "description": "Everything on the shelves that members can take home.",
       "columns": [
         { "name": "id", "type": "uuid", "pk": true },
-        { "name": "name", "type": "text" },
-        { "name": "category", "type": "text", "nullable": true }
+        { "name": "title", "type": "text" },
+        { "name": "genre", "type": "text", "nullable": true }
       ]
     },
     {
@@ -47,7 +47,7 @@
   ],
   "edges": [
     { "from": "loans", "to": "members", "fromColumn": "member_id", "toColumn": "id", "fromCardinality": "zero-or-many", "toCardinality": "one", "label": "borrowed by" },
-    { "from": "loans", "to": "tools", "fromColumn": "tool_id", "toColumn": "id", "fromCardinality": "zero-or-many", "toCardinality": "one" },
+    { "from": "loans", "to": "books", "fromColumn": "book_id", "toColumn": "id", "fromCardinality": "zero-or-many", "toCardinality": "one" },
     { "from": "members", "to": "members", "fromColumn": "referred_by", "toColumn": "id", "fromCardinality": "zero-or-many", "toCardinality": "zero-or-one", "label": "referred by" },
     { "from": "damage-reports", "to": "loans", "fromColumn": "loan_ref", "toColumn": "id", "fromCardinality": "zero-or-many", "toCardinality": "one", "enforced": false, "label": "about" }
   ]

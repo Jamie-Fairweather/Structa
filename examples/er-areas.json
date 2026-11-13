@@ -1,12 +1,12 @@
 {
   "type": "er",
-  "title": "Bike co-op",
-  "description": "Members book repairs that other members fix, with parts from the workshop's store. A refund names a fitted part by its two-column key.",
+  "title": "School baking club",
+  "description": "Members bake for the club's tasting days, and other members taste, with ingredients from the club's pantry. An allergy note names an ingredient in a bake by its two-column key.",
   "groupAreas": true,
   "areas": [
     { "id": "people", "label": "Members" },
-    { "id": "workshop", "label": "Workshop" },
-    { "id": "store", "label": "Parts store", "parent": "workshop" }
+    { "id": "kitchen", "label": "Kitchen" },
+    { "id": "pantry", "label": "Pantry", "parent": "kitchen" }
   ],
   "nodes": [
     {
@@ -20,53 +20,53 @@
       ]
     },
     {
-      "id": "jobs",
-      "label": "jobs",
-      "area": "workshop",
+      "id": "bakes",
+      "label": "bakes",
+      "area": "kitchen",
       "columns": [
         { "name": "id", "type": "uuid", "pk": true },
-        { "name": "customer_id", "type": "uuid", "fk": true },
-        { "name": "mechanic_id", "type": "uuid", "fk": true, "nullable": true },
-        { "name": "bike", "type": "text" },
-        { "name": "booked_on", "type": "date" }
+        { "name": "baker_id", "type": "uuid", "fk": true },
+        { "name": "taster_id", "type": "uuid", "fk": true, "nullable": true },
+        { "name": "recipe", "type": "text" },
+        { "name": "baked_on", "type": "date" }
       ]
     },
     {
-      "id": "job-parts",
-      "label": "job_parts",
-      "area": "store",
+      "id": "bake-ingredients",
+      "label": "bake_ingredients",
+      "area": "pantry",
       "columns": [
-        { "name": "job_id", "type": "uuid", "pk": true, "fk": true },
-        { "name": "part_code", "type": "text", "pk": true, "fk": true },
-        { "name": "quantity", "type": "int" }
+        { "name": "bake_id", "type": "uuid", "pk": true, "fk": true },
+        { "name": "ingredient_code", "type": "text", "pk": true, "fk": true },
+        { "name": "grams", "type": "int" }
       ]
     },
     {
-      "id": "parts",
-      "label": "parts",
-      "area": "store",
+      "id": "ingredients",
+      "label": "ingredients",
+      "area": "pantry",
       "columns": [
         { "name": "code", "type": "text", "pk": true },
         { "name": "description", "type": "text" },
-        { "name": "price", "type": "numeric(6,2)" }
+        { "name": "cost_per_kg", "type": "numeric(6,2)" }
       ]
     },
     {
-      "id": "refunds",
-      "label": "refunds",
+      "id": "allergy-notes",
+      "label": "allergy_notes",
       "columns": [
         { "name": "id", "type": "uuid", "pk": true },
-        { "name": "job_id", "type": "uuid", "fk": true },
-        { "name": "part_code", "type": "text", "fk": true },
-        { "name": "amount", "type": "numeric(6,2)" }
+        { "name": "bake_id", "type": "uuid", "fk": true },
+        { "name": "ingredient_code", "type": "text", "fk": true },
+        { "name": "note", "type": "text" }
       ]
     }
   ],
   "edges": [
-    { "from": "jobs", "to": "members", "fromColumn": "customer_id", "toColumn": "id", "fromCardinality": "zero-or-many", "toCardinality": "one", "label": "booked by" },
-    { "from": "jobs", "to": "members", "fromColumn": "mechanic_id", "toColumn": "id", "fromCardinality": "zero-or-many", "toCardinality": "zero-or-one", "label": "fixed by" },
-    { "from": "job-parts", "to": "jobs", "fromColumn": "job_id", "toColumn": "id", "fromCardinality": "zero-or-many", "toCardinality": "one" },
-    { "from": "job-parts", "to": "parts", "fromColumn": "part_code", "toColumn": "code", "fromCardinality": "zero-or-many", "toCardinality": "one" },
-    { "from": "refunds", "to": "job-parts", "fromCardinality": "zero-or-many", "toCardinality": "one", "label": "for" }
+    { "from": "bakes", "to": "members", "fromColumn": "baker_id", "toColumn": "id", "fromCardinality": "zero-or-many", "toCardinality": "one", "label": "baked by" },
+    { "from": "bakes", "to": "members", "fromColumn": "taster_id", "toColumn": "id", "fromCardinality": "zero-or-many", "toCardinality": "zero-or-one", "label": "tasted by" },
+    { "from": "bake-ingredients", "to": "bakes", "fromColumn": "bake_id", "toColumn": "id", "fromCardinality": "zero-or-many", "toCardinality": "one" },
+    { "from": "bake-ingredients", "to": "ingredients", "fromColumn": "ingredient_code", "toColumn": "code", "fromCardinality": "zero-or-many", "toCardinality": "one" },
+    { "from": "allergy-notes", "to": "bake-ingredients", "fromCardinality": "zero-or-many", "toCardinality": "one", "label": "for" }
   ]
 }

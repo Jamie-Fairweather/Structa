@@ -1,63 +1,63 @@
 {
   "type": "class",
-  "title": "Tool library: reserving a tool online",
-  "description": "Members can now reserve a tool from the app before they come in. Each class is tagged with the part of the system it lives in.",
+  "title": "School clubs: joining a club online",
+  "description": "Parents can now sign their child up for a club from the app. Each class is tagged with the part of the system it lives in.",
   "areas": [
-    { "id": "app", "label": "Members app" },
-    { "id": "lending", "label": "Lending" },
-    { "id": "catalogue", "label": "Catalogue", "parent": "lending" },
+    { "id": "app", "label": "Parents app" },
+    { "id": "clubs", "label": "Clubs" },
+    { "id": "activities", "label": "Activities", "parent": "clubs" },
     { "id": "messages", "label": "Messages" }
   ],
   "nodes": [
     {
       "id": "screen",
-      "label": "ReserveToolScreen",
+      "label": "JoinClubScreen",
       "area": "app",
       "status": "new",
       "methods": [
-        { "text": "show(tool: Tool): void", "visibility": "public" },
-        { "text": "confirm(from: Date, to: Date): void", "visibility": "public" }
+        { "text": "show(club: Club): void", "visibility": "public" },
+        { "text": "confirm(child: Pupil, from: Term): void", "visibility": "public" }
       ]
     },
     {
-      "id": "desk",
-      "label": "LoanDesk",
-      "area": "lending",
+      "id": "office",
+      "label": "ClubOffice",
+      "area": "clubs",
       "status": "changed",
       "methods": [
-        { "text": "lend(tool: Tool, member: Member): Loan", "visibility": "public", "status": "unchanged" },
-        { "id": "reserve", "text": "reserve(tool: Tool, member: Member, from: Date): Reservation", "visibility": "public", "status": "new" },
-        { "text": "holdShelf(): Tool[]", "visibility": "private", "status": "removed" }
+        { "text": "list(term: Term): Club[]", "visibility": "public", "status": "unchanged" },
+        { "id": "join", "text": "join(club: Club, child: Pupil, from: Term): Membership", "visibility": "public", "status": "new" },
+        { "text": "paperForms(): Form[]", "visibility": "private", "status": "removed" }
       ]
     },
     {
-      "id": "reservation",
-      "label": "Reservation",
-      "description": "A tool kept back for one member from a given day.",
-      "area": "lending",
+      "id": "membership",
+      "label": "Membership",
+      "description": "One pupil in one club from a given term.",
+      "area": "clubs",
       "status": "new",
       "properties": [
-        { "text": "from: Date", "visibility": "public" },
-        { "text": "collected: bool", "visibility": "public" }
+        { "text": "from: Term", "visibility": "public" },
+        { "text": "consentGiven: bool", "visibility": "public" }
       ]
     },
     {
-      "id": "tool",
-      "label": "Tool",
-      "area": "catalogue",
+      "id": "club",
+      "label": "Club",
+      "area": "activities",
       "status": "unchanged",
       "properties": [
         { "text": "name: string", "visibility": "public" },
-        { "text": "condition: Condition", "visibility": "public" }
+        { "text": "meetsOn: Weekday", "visibility": "public" }
       ],
       "more": 4
     },
     {
       "id": "reminder",
-      "label": "CollectionReminder",
+      "label": "FirstMeetingReminder",
       "area": "messages",
       "status": "new",
-      "methods": [{ "text": "sendDayBefore(reservation: Reservation): void", "visibility": "public" }]
+      "methods": [{ "text": "sendDayBefore(membership: Membership): void", "visibility": "public" }]
     },
     {
       "id": "clock",
@@ -67,10 +67,10 @@
     }
   ],
   "edges": [
-    { "from": "screen", "to": "desk", "kind": "association", "label": "reserves through", "status": "new" },
-    { "from": "desk", "to": "reservation", "kind": "association", "label": "makes", "status": "new" },
-    { "from": "reservation", "to": "tool", "kind": "association", "label": "holds", "status": "new" },
-    { "from": "reminder", "to": "reservation", "kind": "association", "label": "reads", "status": "new" },
+    { "from": "screen", "to": "office", "kind": "association", "label": "joins through", "status": "new" },
+    { "from": "office", "to": "membership", "kind": "association", "label": "makes", "status": "new" },
+    { "from": "membership", "to": "club", "kind": "association", "label": "for", "status": "new" },
+    { "from": "reminder", "to": "membership", "kind": "association", "label": "reads", "status": "new" },
     { "from": "reminder", "to": "clock", "kind": "association" }
   ]
 }

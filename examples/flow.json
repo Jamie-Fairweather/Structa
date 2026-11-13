@@ -1,28 +1,28 @@
 {
   "type": "flow",
   "nodes": [
-    { "id": "flat", "label": "Flat tyre", "shape": "start" },
-    { "id": "wheel", "label": "Take the wheel off", "shape": "step" },
-    { "id": "find", "label": "Find the puncture", "shape": "step" },
-    { "id": "big", "label": "Hole bigger than a patch?", "shape": "decision" },
-    { "id": "tube", "label": "Fit a new inner tube", "shape": "subprocess" },
-    { "id": "patch", "label": "Patch the tube", "shape": "step" },
-    { "id": "pump", "label": "Pump it up", "shape": "step" },
-    { "id": "holds", "label": "Holds air?", "shape": "decision" },
-    { "id": "log", "label": "Write the repair in the bike log", "shape": "io" },
-    { "id": "ride", "label": "Ride on", "shape": "end" }
+    { "id": "flat", "label": "String sounds flat", "shape": "start" },
+    { "id": "tuner", "label": "Clip on the tuner", "shape": "step" },
+    { "id": "pluck", "label": "Pluck the string", "shape": "step" },
+    { "id": "worn", "label": "String worn out?", "shape": "decision" },
+    { "id": "restring", "label": "Fit a new string", "shape": "subprocess" },
+    { "id": "peg", "label": "Turn the peg a little", "shape": "step" },
+    { "id": "again", "label": "Pluck it again", "shape": "step" },
+    { "id": "tuned", "label": "In tune?", "shape": "decision" },
+    { "id": "log", "label": "Note it in the practice log", "shape": "io" },
+    { "id": "play", "label": "Play on", "shape": "end" }
   ],
   "edges": [
-    { "from": "flat", "to": "wheel" },
-    { "from": "wheel", "to": "find" },
-    { "from": "find", "to": "big" },
-    { "from": "big", "to": "tube", "label": "yes" },
-    { "from": "big", "to": "patch", "label": "no" },
-    { "from": "tube", "to": "pump" },
-    { "from": "patch", "to": "pump" },
-    { "from": "pump", "to": "holds" },
-    { "from": "holds", "to": "log", "label": "yes" },
-    { "from": "holds", "to": "find", "label": "no" },
-    { "from": "log", "to": "ride" }
+    { "from": "flat", "to": "tuner" },
+    { "from": "tuner", "to": "pluck" },
+    { "from": "pluck", "to": "worn" },
+    { "from": "worn", "to": "restring", "label": "yes" },
+    { "from": "worn", "to": "peg", "label": "no" },
+    { "from": "restring", "to": "again" },
+    { "from": "peg", "to": "again" },
+    { "from": "again", "to": "tuned" },
+    { "from": "tuned", "to": "log", "label": "yes" },
+    { "from": "tuned", "to": "pluck", "label": "no" },
+    { "from": "log", "to": "play" }
   ]
 }

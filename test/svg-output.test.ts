@@ -9,19 +9,19 @@ import {
   passiveSvgViolations,
 } from "./helpers/svg";
 
-const bikeRepair = {
+const sponge = {
   type: "flow",
   nodes: [
-    { id: "find", label: "Find the puncture", shape: "step" },
-    { id: "patch", label: "Patch & glue the tube <carefully>", shape: "step" },
-    { id: "pump", label: 'Pump to "firm"', shape: "step" },
-    { id: "ride", label: "Test ride", shape: "step" },
+    { id: "weigh", label: "Weigh the flour", shape: "step" },
+    { id: "cream", label: "Cream butter & sugar <slowly>", shape: "step" },
+    { id: "whisk", label: 'Whisk to "ribbons"', shape: "step" },
+    { id: "taste", label: "Taste it", shape: "step" },
   ],
   edges: [
-    { from: "find", to: "patch" },
-    { from: "patch", to: "pump" },
-    { from: "pump", to: "ride" },
-    { from: "find", to: "ride" },
+    { from: "weigh", to: "cream" },
+    { from: "cream", to: "whisk" },
+    { from: "whisk", to: "taste" },
+    { from: "weigh", to: "taste" },
   ],
 };
 
@@ -31,22 +31,22 @@ async function svgOf(input: object): Promise<string> {
 
 describe("SVG output", () => {
   it("stays passive and uses only features the rasteriser supports", async () => {
-    expect(passiveSvgViolations(await svgOf(bikeRepair))).toEqual([]);
+    expect(passiveSvgViolations(await svgOf(sponge))).toEqual([]);
   });
 
   it("writes every number through one formatter: at most 2 decimals, no -0, no exponent", async () => {
-    expect(badlyFormattedNumbers(await svgOf(bikeRepair))).toEqual([]);
+    expect(badlyFormattedNumbers(await svgOf(sponge))).toEqual([]);
   });
 
   it("escapes label text so it reads exactly as written", async () => {
-    const doc = parseSvg(await svgOf(bikeRepair));
+    const doc = parseSvg(await svgOf(sponge));
 
-    expect(cardById(doc, "patch").getElementsByTagName("text")[0]!.textContent).toBe("Patch & glue the tube");
-    expect(cardById(doc, "pump").getElementsByTagName("title")[0]!.textContent).toBe('Pump to "firm"');
+    expect(cardById(doc, "cream").getElementsByTagName("text")[0]!.textContent).toBe("Cream butter & sugar");
+    expect(cardById(doc, "whisk").getElementsByTagName("title")[0]!.textContent).toBe('Whisk to "ribbons"');
   });
 
   it("has a whole-pixel size matching its viewBox", async () => {
-    const root = parseSvg(await svgOf(bikeRepair)).documentElement!;
+    const root = parseSvg(await svgOf(sponge)).documentElement!;
     const width = root.getAttribute("width")!;
     const height = root.getAttribute("height")!;
 
@@ -56,7 +56,7 @@ describe("SVG output", () => {
   });
 
   it("draws the light look: grey background, dotted grid, white rounded cards with a soft shadow, grey lines", async () => {
-    const doc = parseSvg(await svgOf(bikeRepair));
+    const doc = parseSvg(await svgOf(sponge));
     const byId = (id: string) => allElements(doc).find((el) => el.getAttribute("id") === id)!;
     const refId = (value: string | null) => /^url\(#(.+)\)$/.exec(value ?? "")![1]!;
     const rects = allElements(doc).filter((el) => el.localName === "rect");
@@ -73,7 +73,7 @@ describe("SVG output", () => {
     ]);
 
     // Cards: white, #d1d9e0 border, 10px corners, a drop shadow, #1f2328 text.
-    const card = cardById(doc, "find");
+    const card = cardById(doc, "weigh");
     const outline = card.getElementsByTagName("rect")[0]!;
     expect(outline.getAttribute("fill")).toBe("#ffffff");
     expect(outline.getAttribute("stroke")).toBe("#d1d9e0");

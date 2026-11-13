@@ -1,28 +1,28 @@
 {
   "type": "architecture",
-  "title": "Parcel lockers",
-  "description": "How a customer books a locker, and how the door code reaches them.",
+  "title": "Music school practice log",
+  "description": "How a pupil logs their practice, and how their teacher hears about it.",
   "nodes": [
-    { "id": "customer", "label": "Customer", "kind": "actor" },
-    { "id": "app", "label": "Locker app", "kind": "ui", "description": "iOS and Android" },
-    { "id": "scanner", "label": "Barcode reader", "kind": "library" },
-    { "id": "api", "label": "Locker API", "kind": "api" },
-    { "id": "bookings", "label": "Booking service", "kind": "service", "description": "Holds a locker for 48 hours" },
-    { "id": "codes", "label": "Door codes", "kind": "cache" },
-    { "id": "store", "label": "Bookings", "kind": "database" },
-    { "id": "events", "label": "Locker events", "kind": "queue" },
-    { "id": "sms", "label": "SMS gateway", "kind": "external" },
-    { "id": "sweep", "label": "Expiry sweep", "kind": "job", "description": "Every night at 02:00" }
+    { "id": "pupil", "label": "Pupil", "kind": "actor" },
+    { "id": "app", "label": "Practice app", "kind": "ui", "description": "iOS and Android" },
+    { "id": "detector", "label": "Pitch detector", "kind": "library" },
+    { "id": "api", "label": "Practice API", "kind": "api" },
+    { "id": "sessions", "label": "Practice service", "kind": "service", "description": "Keeps a week of practice per pupil" },
+    { "id": "streaks", "label": "Practice streaks", "kind": "cache" },
+    { "id": "store", "label": "Practice logs", "kind": "database" },
+    { "id": "events", "label": "Practice events", "kind": "queue" },
+    { "id": "email", "label": "Email provider", "kind": "external" },
+    { "id": "summary", "label": "Weekly summary", "kind": "job", "description": "Every Sunday at 18:00" }
   ],
   "edges": [
-    { "from": "customer", "to": "app", "label": "books a locker" },
-    { "from": "app", "to": "scanner", "label": "scan parcel" },
-    { "from": "app", "to": "api", "label": "POST /bookings" },
-    { "from": "api", "to": "bookings" },
-    { "from": "bookings", "to": "codes", "label": "store code" },
-    { "from": "bookings", "to": "store" },
-    { "from": "bookings", "to": "events", "kind": "async", "label": "booking made" },
-    { "from": "events", "to": "sms", "kind": "async", "label": "send code" },
-    { "from": "sweep", "to": "store", "label": "release expired" }
+    { "from": "pupil", "to": "app", "label": "logs a practice" },
+    { "from": "app", "to": "detector", "label": "check pitch" },
+    { "from": "app", "to": "api", "label": "POST /sessions" },
+    { "from": "api", "to": "sessions" },
+    { "from": "sessions", "to": "streaks", "label": "update streak" },
+    { "from": "sessions", "to": "store" },
+    { "from": "sessions", "to": "events", "kind": "async", "label": "session logged" },
+    { "from": "events", "to": "email", "kind": "async", "label": "tell the teacher" },
+    { "from": "summary", "to": "store", "label": "read the week" }
   ]
 }

@@ -364,13 +364,13 @@ describe("input encodings", () => {
   const notUtf8 = `it isn't UTF-8 text ${fix}`;
   // Labels with a Latin letter the fonts draw. Windows PowerShell 5.1's
   // Set-Content saves them in the ANSI code page, where é is the lone byte E9.
-  const cafe = JSON.stringify({
+  const creme = JSON.stringify({
     type: "flow",
     nodes: [
-      { id: "order", label: "Order at the café", shape: "step" },
-      { id: "sip", label: "Sip the crème", shape: "step" },
+      { id: "sieve", label: "Sieve the purée", shape: "step" },
+      { id: "whisk", label: "Whisk the crème", shape: "step" },
     ],
-    edges: [{ from: "order", to: "sip" }],
+    edges: [{ from: "sieve", to: "whisk" }],
   });
 
   it("strips a UTF-8 byte-order mark from a file", async () => {
@@ -396,7 +396,7 @@ describe("input encodings", () => {
     ["UTF-32LE without a byte-order mark", utf32(diagramJson, "LE"), notUtf8],
     ["UTF-32BE without a byte-order mark", utf32(diagramJson, "BE"), notUtf8],
     ["UTF-8 after a zero byte", Buffer.concat([Buffer.from([0]), Buffer.from(diagramJson)]), notUtf8],
-    ["the Windows ANSI code page, with a lone E9 byte for é", Buffer.from(cafe, "latin1"), notUtf8],
+    ["the Windows ANSI code page, with a lone E9 byte for é", Buffer.from(creme, "latin1"), notUtf8],
   ])("refuses a file in %s, with one line asking for UTF-8, and writes nothing", (_name, bytes, message) => {
     writeFileSync(join(skill.elsewhere, "wide.json"), bytes);
 
@@ -407,15 +407,15 @@ describe("input encodings", () => {
   });
 
   it("draws the same é label when the file is UTF-8", async () => {
-    const { svg } = await render(cafe);
-    writeFileSync(join(skill.elsewhere, "cafe.json"), cafe);
+    const { svg } = await render(creme);
+    writeFileSync(join(skill.elsewhere, "creme.json"), creme);
 
-    expect(skill.run(["cafe.json"])).toEqual({ status: 0, stdout: svg, stderr: "" });
+    expect(skill.run(["creme.json"])).toEqual({ status: 0, stdout: svg, stderr: "" });
   });
 
   it.each([
     ["UTF-16", utf16le(BOM + diagramJson), hint],
-    ["ANSI", Buffer.from(cafe, "latin1"), notUtf8],
+    ["ANSI", Buffer.from(creme, "latin1"), notUtf8],
   ])("refuses %s on standard input the same way", (_name, bytes, message) => {
     const result = skill.run(["-"], { stdin: bytes });
 
@@ -668,17 +668,17 @@ describe("exit code 1: bad input or a failed render", () => {
 
   it("writes no file at all when one of the outputs fails to draw", () => {
     // A line of 60 steps, left to right: far too wide for a PNG at scale 4.
-    const nodes = Array.from({ length: 60 }, (_, i) => ({ id: `stop${i}`, label: `Stop ${i + 1}`, shape: "step" }));
-    const edges = nodes.slice(1).map((node, i) => ({ from: `stop${i}`, to: node.id }));
+    const nodes = Array.from({ length: 60 }, (_, i) => ({ id: `step${i}`, label: `Step ${i + 1}`, shape: "step" }));
+    const edges = nodes.slice(1).map((node, i) => ({ from: `step${i}`, to: node.id }));
     const wide = JSON.stringify({ type: "flow", direction: "right", nodes, edges });
 
-    const result = skill.run(["-", "-o", "route.svg", "-o", "route.png", "--scale", "4"], { stdin: wide });
+    const result = skill.run(["-", "-o", "long.svg", "-o", "long.png", "--scale", "4"], { stdin: wide });
 
     expect(result.status).toBe(1);
     expect(result.stdout).toBe("");
     expect(result.stderr).toMatch(/^\$: the PNG would be \d+ by \d+ px, but neither side may be over 16384 px \(.+\)\n$/);
-    expect(existsSync(join(skill.elsewhere, "route.svg"))).toBe(false);
-    expect(existsSync(join(skill.elsewhere, "route.png"))).toBe(false);
+    expect(existsSync(join(skill.elsewhere, "long.svg"))).toBe(false);
+    expect(existsSync(join(skill.elsewhere, "long.png"))).toBe(false);
   });
 
   it("writes no file at all when one of the files can't be written, and leaves files already there as they were", () => {

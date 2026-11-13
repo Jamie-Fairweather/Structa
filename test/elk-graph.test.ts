@@ -27,8 +27,8 @@ afterEach(() => {
   engine.calls = [];
 });
 
-/** Beehives sit in orchards and hedgerows; an orchard can be grafted from another. Every name is one ELK must never see. */
-function apiary(direction: "right" | "down") {
+/** Fruit trees grow in orchards and hedgerows; an orchard can be grafted from another. Every name is one ELK must never see. */
+function orchard(direction: "right" | "down") {
   const table = (id: string, label: string, columns: string[]) => ({
     id,
     label,
@@ -39,23 +39,23 @@ function apiary(direction: "right" | "down") {
     type: "er",
     direction,
     nodes: [
-      table("hive-table", "beehives", ["hive_serial", "orchard_ref", "hedgerow_ref"]),
+      table("tree-table", "fruit_trees", ["tree_serial", "orchard_ref", "hedgerow_ref"]),
       table("orchard-table", "orchards", ["orchard_serial", "grafted_from_ref"]),
       table("hedgerow-table", "hedgerows", ["hedgerow_serial"]),
     ],
     edges: [
       // Ends that name columns get ports just as ends at a header do.
       {
-        id: "hive-in-orchard",
-        from: "hive-table",
+        id: "tree-in-orchard",
+        from: "tree-table",
         to: "orchard-table",
         fromColumn: "orchard_ref",
         toColumn: "orchard_serial",
         fromCardinality: "zero-or-many",
         toCardinality: "zero-or-one",
-        label: "kept in",
+        label: "planted in",
       },
-      { id: "hive-by-hedgerow", from: "hive-table", to: "hedgerow-table", fromCardinality: "zero-or-many", toCardinality: "one" },
+      { id: "tree-by-hedgerow", from: "tree-table", to: "hedgerow-table", fromCardinality: "zero-or-many", toCardinality: "one" },
       {
         id: "orchard-graft",
         from: "orchard-table",
@@ -82,7 +82,7 @@ function edgeEnds(graph: ElkNode): string[] {
 
 describe("the graph ER layout hands ELK", () => {
   it.each(["right", "down"] as const)("gives each line end a provisional, zero-size, free port in pass 1, direction %s", async (direction) => {
-    await render(apiary(direction), { embedFonts: false });
+    await render(orchard(direction), { embedFonts: false });
 
     const [first] = engine.calls;
     const ports = portsOf(first!.graph);
@@ -96,7 +96,7 @@ describe("the graph ER layout hands ELK", () => {
   it.each(["right", "down"] as const)(
     "rebuilds only the ports used in pass 2: zero-size, at fixed places on a table's left or right side, direction %s",
     async (direction) => {
-      await render(apiary(direction), { embedFonts: false });
+      await render(orchard(direction), { embedFonts: false });
 
       const fixedPasses = engine.calls.slice(1);
       expect(fixedPasses.length).toBeGreaterThanOrEqual(1);
@@ -124,7 +124,7 @@ describe("the graph ER layout hands ELK", () => {
   );
 
   it.each(["right", "down"] as const)("never shows ELK a user's ids, names or text, only generated ids, direction %s", async (direction) => {
-    const input = apiary(direction);
+    const input = orchard(direction);
     await render(input, { embedFonts: false });
 
     const words = [
@@ -150,20 +150,20 @@ describe("the graph ER layout hands ELK", () => {
 });
 
 describe("the graph class layout hands ELK", () => {
-  /** Hedgehog houses: two kinds share a parent's triangle, and a feeding station holds both with counts at each end. */
+  /** Planters: two kinds share a parent's triangle, and a patio holds both with counts at each end. */
   const garden = {
     type: "class",
     nodes: [
-      { id: "house-base", label: "HedgehogHouse", description: "A dry box under the hedge" },
-      { id: "log-house", label: "LogPileHouse", properties: [{ text: "logCount: int" }] },
-      { id: "box-house", label: "WoodenBoxHouse" },
-      { id: "feeder", label: "FeedingStation" },
+      { id: "planter-base", label: "Planter", description: "A box of soil on the patio" },
+      { id: "trough", label: "TroughPlanter", properties: [{ text: "litres: int" }] },
+      { id: "window-box", label: "WindowBox" },
+      { id: "patio", label: "Patio" },
     ],
     edges: [
-      { id: "logs-are-houses", from: "log-house", to: "house-base", kind: "inherits", fromLabel: "many" },
-      { id: "boxes-are-houses", from: "box-house", to: "house-base", kind: "inherits" },
-      { id: "feeder-near-logs", from: "feeder", to: "log-house", kind: "aggregation", fromLabel: "1", toLabel: "0..2", label: "serves" },
-      { id: "feeder-near-boxes", from: "feeder", to: "box-house", kind: "aggregation", fromLabel: "1", toLabel: "0..2" },
+      { id: "troughs-are-planters", from: "trough", to: "planter-base", kind: "inherits", fromLabel: "many" },
+      { id: "boxes-are-planters", from: "window-box", to: "planter-base", kind: "inherits" },
+      { id: "patio-holds-troughs", from: "patio", to: "trough", kind: "aggregation", fromLabel: "1", toLabel: "0..2", label: "holds" },
+      { id: "patio-holds-boxes", from: "patio", to: "window-box", kind: "aggregation", fromLabel: "1", toLabel: "0..2" },
     ],
   };
 
@@ -175,7 +175,7 @@ describe("the graph class layout hands ELK", () => {
     const words = [
       ...garden.nodes.flatMap((node) => [node.id, node.label, ...(node.description ? [node.description] : [])]),
       ...garden.edges.flatMap((edge) => [edge.id, ...(edge.label ? [edge.label] : [])]),
-      "logCount",
+      "litres",
       "0..2",
       "many",
     ];
@@ -191,7 +191,7 @@ describe("the graph class layout hands ELK", () => {
       ["t2", "t2"],
       ["t3", "t3"],
     ]);
-    // The two lines into the parent share a port on it, and so do the two from the feeding station.
+    // The two lines into the parent share a port on it, and so do the two from the patio.
     const ports = portsOf(call!.graph).map(({ node, port }) => [node.id, port.id]);
     expect(ports).toEqual([
       ["n0", "j0_0"],

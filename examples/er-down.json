@@ -1,43 +1,43 @@
 {
   "type": "er",
-  "title": "Repair café",
-  "description": "Visitors bring broken things; volunteers fix them and note any parts they fit.",
+  "title": "Museum conservation lab",
+  "description": "Donors give objects; conservators treat them and note any materials they use.",
   "direction": "down",
   "nodes": [
     {
-      "id": "parts-fitted",
-      "label": "parts_fitted",
+      "id": "materials-used",
+      "label": "materials_used",
       "columns": [
         { "name": "id", "type": "bigint", "pk": true },
-        { "name": "repair_id", "type": "uuid", "fk": true },
-        { "name": "part", "type": "text" },
+        { "name": "treatment_id", "type": "uuid", "fk": true },
+        { "name": "material", "type": "text" },
         { "name": "cost", "type": "numeric(6,2)", "nullable": true }
       ]
     },
     {
-      "id": "repairs",
-      "label": "repairs",
+      "id": "treatments",
+      "label": "treatments",
       "columns": [
         { "name": "id", "type": "uuid", "pk": true },
-        { "name": "item_id", "type": "uuid", "fk": true },
-        { "name": "fixer_id", "type": "uuid", "fk": true, "nullable": true },
+        { "name": "object_id", "type": "uuid", "fk": true },
+        { "name": "conservator_id", "type": "uuid", "fk": true, "nullable": true },
         { "name": "outcome", "type": "text" },
         { "name": "finished_at", "type": "timestamptz", "nullable": true }
       ]
     },
     {
-      "id": "items",
-      "label": "items",
+      "id": "objects",
+      "label": "objects",
       "columns": [
         { "name": "id", "type": "uuid", "pk": true },
-        { "name": "owner_id", "type": "uuid", "fk": true },
+        { "name": "donor_id", "type": "uuid", "fk": true },
         { "name": "kind", "type": "text" },
-        { "name": "fault", "type": "text" }
+        { "name": "condition", "type": "text" }
       ]
     },
     {
-      "id": "volunteers",
-      "label": "volunteers",
+      "id": "conservators",
+      "label": "conservators",
       "columns": [
         { "name": "id", "type": "uuid", "pk": true },
         { "name": "name", "type": "text" },
@@ -45,8 +45,8 @@
       ]
     },
     {
-      "id": "visitors",
-      "label": "visitors",
+      "id": "donors",
+      "label": "donors",
       "columns": [
         { "name": "id", "type": "uuid", "pk": true },
         { "name": "name", "type": "text" },
@@ -55,9 +55,9 @@
     }
   ],
   "edges": [
-    { "from": "parts-fitted", "to": "repairs", "fromColumn": "repair_id", "toColumn": "id", "fromCardinality": "zero-or-many", "toCardinality": "one" },
-    { "from": "repairs", "to": "items", "fromColumn": "item_id", "toColumn": "id", "fromCardinality": "zero-or-many", "toCardinality": "one" },
-    { "from": "repairs", "to": "volunteers", "fromColumn": "fixer_id", "toColumn": "id", "fromCardinality": "zero-or-many", "toCardinality": "zero-or-one" },
-    { "from": "items", "to": "visitors", "fromColumn": "owner_id", "toColumn": "id", "fromCardinality": "zero-or-many", "toCardinality": "one" }
+    { "from": "materials-used", "to": "treatments", "fromColumn": "treatment_id", "toColumn": "id", "fromCardinality": "zero-or-many", "toCardinality": "one" },
+    { "from": "treatments", "to": "objects", "fromColumn": "object_id", "toColumn": "id", "fromCardinality": "zero-or-many", "toCardinality": "one" },
+    { "from": "treatments", "to": "conservators", "fromColumn": "conservator_id", "toColumn": "id", "fromCardinality": "zero-or-many", "toCardinality": "zero-or-one" },
+    { "from": "objects", "to": "donors", "fromColumn": "donor_id", "toColumn": "id", "fromCardinality": "zero-or-many", "toCardinality": "one" }
   ]
 }

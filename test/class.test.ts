@@ -1276,10 +1276,10 @@ describe("class input", () => {
     // Inter can draw Ĳ but JetBrains Mono can't; JetBrains Mono can draw ⇑ but Inter can't.
     const input = sheds();
     input.nodes[0]!.methods[0]!.text = "climb(): ⇑";
-    input.nodes[1]!.label = "ĲsselStore";
+    input.nodes[1]!.label = "Ĳstaart";
     await expect(render(input, { embedFonts: false })).resolves.toHaveProperty("svg");
 
-    input.nodes[0]!.methods[0]!.text = "ĲsselStore(): void";
+    input.nodes[0]!.methods[0]!.text = "Ĳstaart(): void";
     input.nodes[1]!.label = "Store ⇑";
     expect(await problems(input)).toEqual([
       {

@@ -1,69 +1,69 @@
 {
   "type": "class",
   "direction": "right",
-  "title": "Town bike hire",
-  "description": "The scheme runs its docks, and each dock holds bikes. E-bikes are new, and every hire is priced from the current price list.",
+  "title": "Music school lessons",
+  "description": "The school runs its practice rooms, and each room holds instruments. Electric guitars are new, and every lesson is charged from the current fee list.",
   "nodes": [
     {
-      "id": "rider",
-      "label": "Rider",
-      "properties": [{ "text": "cardNumber: string", "visibility": "private" }],
-      "methods": [{ "text": "startHire(at: Dock): Hire", "visibility": "public" }]
+      "id": "pupil",
+      "label": "Pupil",
+      "properties": [{ "text": "grade: int", "visibility": "private" }],
+      "methods": [{ "text": "startLesson(room: Room): Lesson", "visibility": "public" }]
     },
     {
-      "id": "hire",
-      "label": "Hire",
+      "id": "lesson",
+      "label": "Lesson",
       "properties": [
         { "text": "startedAt: DateTime", "visibility": "public" },
         { "text": "endedAt: DateTime?", "visibility": "public" }
       ],
-      "methods": [{ "text": "cost(): Money", "visibility": "public" }]
+      "methods": [{ "text": "fee(): Money", "visibility": "public" }]
     },
     {
-      "id": "prices",
-      "label": "PriceList",
-      "methods": [{ "text": "forMinutes(minutes: int, bike: Bike): Money", "visibility": "public" }]
+      "id": "fees",
+      "label": "FeeList",
+      "methods": [{ "text": "forMinutes(minutes: int, instrument: Instrument): Money", "visibility": "public" }]
     },
     {
-      "id": "scheme",
-      "label": "HireScheme",
-      "methods": [{ "text": "nearestDock(to: Location): Dock", "visibility": "public" }]
+      "id": "school",
+      "label": "MusicSchool",
+      "methods": [{ "text": "freeRoom(at: DateTime): Room", "visibility": "public" }]
     },
     {
-      "id": "dock",
-      "label": "Dock",
-      "properties": [{ "text": "location: Location", "visibility": "public" }],
-      "methods": [{ "text": "release(bike: Bike): void", "visibility": "public" }]
+      "id": "room",
+      "label": "Room",
+      "properties": [{ "text": "floor: int", "visibility": "public" }],
+      "methods": [{ "text": "lend(instrument: Instrument): void", "visibility": "public" }]
     },
     {
-      "id": "bike",
-      "label": "Bike",
-      "properties": [{ "text": "frameNumber: string", "visibility": "public" }]
+      "id": "instrument",
+      "label": "Instrument",
+      "properties": [{ "text": "serialNumber: string", "visibility": "public" }]
     },
     {
-      "id": "ebike",
-      "label": "EBike",
+      "id": "guitar",
+      "label": "ElectricGuitar",
       "status": "new",
-      "properties": [{ "text": "charge: Percent", "visibility": "public" }],
-      "methods": [{ "text": "needsCharging(): bool", "visibility": "public" }]
+      "properties": [{ "text": "pickups: int", "visibility": "public" }],
+      "methods": [{ "text": "needsAmp(): bool", "visibility": "public" }]
     },
     {
-      "id": "lockable",
-      "label": "Lockable",
+      "id": "tunable",
+      "label": "Tunable",
       "stereotype": "interface",
       "methods": [
-        { "text": "lock(): void", "visibility": "public", "abstract": true },
-        { "text": "unlock(code: string): bool", "visibility": "public", "abstract": true }
+        { "text": "tune(): void", "visibility": "public", "abstract": true },
+        { "text": "inTune(pitch: Hertz): bool", "visibility": "public", "abstract": true }
       ]
     }
   ],
   "edges": [
-    { "from": "rider", "to": "hire", "kind": "association", "directed": true, "fromLabel": "1", "toLabel": "0..*", "label": "takes" },
-    { "from": "hire", "to": "bike", "kind": "association", "fromLabel": "0..*", "toLabel": "1" },
-    { "from": "hire", "to": "prices", "kind": "dependency", "label": "priced by" },
-    { "from": "scheme", "to": "dock", "kind": "composition", "fromLabel": "1", "toLabel": "1..*", "label": "runs" },
-    { "from": "dock", "to": "bike", "kind": "aggregation", "fromLabel": "0..1", "toLabel": "0..*", "label": "holds" },
-    { "from": "ebike", "to": "bike", "kind": "inherits", "status": "new" },
-    { "from": "bike", "to": "lockable", "kind": "implements" }
+    { "from": "pupil", "to": "lesson", "kind": "association", "directed": true, "fromLabel": "1", "toLabel": "0..*", "label": "takes" },
+    { "from": "lesson", "to": "instrument", "kind": "association", "fromLabel": "0..*", "toLabel": "1" },
+    { "from": "lesson", "to": "fees", "kind": "dependency", "label": "charged by" },
+    { "from": "school", "to": "room", "kind": "composition", "fromLabel": "1", "toLabel": "1..*", "label": "runs" },
+    { "from": "room", "to": "instrument", "kind": "aggregation", "fromLabel": "0..1", "toLabel": "0..*", "label": "holds" },
+    { "from": "guitar", "to": "instrument", "kind": "inherits", "status": "new" },
+    { "from": "instrument", "to": "tunable", "kind": "implements" }
   ]
 }

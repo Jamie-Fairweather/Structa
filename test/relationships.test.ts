@@ -697,7 +697,7 @@ function allotment(direction: "down" | "right") {
       { id: "order", label: "SeedOrder", area: "shop" },
     ],
     edges: [
-      { from: "member", to: "plot", kind: "association", fromLabel: "1", toLabel: "0..2", label: "rents" },
+      { from: "member", to: "plot", kind: "association", fromLabel: "1", toLabel: "0..2", label: "tends" },
       { from: "plot", to: "bed", kind: "composition", fromLabel: "1", toLabel: "1..*" },
       { from: "greenhouse", to: "plot", kind: "inherits", status: "new" },
       { from: "order", to: "member", kind: "association", fromLabel: "0..*", toLabel: "1", directed: true },

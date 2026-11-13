@@ -6,120 +6,120 @@
 <rect width="944" height="982" fill="#0d1117"/>
 <rect width="944" height="982" fill="url(#structa-grid-dark)"/>
 <g class="title">
-<text x="32" y="50.55" font-family="Structa Inter, Inter, sans-serif" font-size="18" font-weight="700" fill="#e6edf3">Repair café</text>
+<text x="32" y="50.55" font-family="Structa Inter, Inter, sans-serif" font-size="18" font-weight="700" fill="#e6edf3">Museum conservation lab</text>
 </g>
 <g class="description">
-<text x="32" y="73.73" font-family="Structa Inter, Inter, sans-serif" font-size="13" font-weight="400" fill="#8b949e">Visitors bring broken things; volunteers fix them and note any parts they fit.</text>
+<text x="32" y="73.73" font-family="Structa Inter, Inter, sans-serif" font-size="13" font-weight="400" fill="#8b949e">Donors give objects; conservators treat them and note any materials they use.</text>
 </g>
-<g class="card" data-id="parts-fitted" data-kind="table">
-<title>parts_fitted</title>
+<g class="card" data-id="materials-used" data-kind="table">
+<title>materials_used</title>
 <rect class="outline" x="92" y="102" width="360" height="160" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
 <line class="divider" x1="92.5" y1="146" x2="451.5" y2="146" stroke="#30363d" stroke-width="1"/>
-<text x="272" y="129.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">parts_fitted</text>
+<text x="272" y="129.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">materials_used</text>
 <g class="row" data-id="id" data-kind="column">
 <title>PK id: bigint</title>
 <g class="symbol">
 <text x="106" y="169.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e">PK</text>
 </g>
 <text x="128" y="169.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">id</text>
-<text x="209" y="169.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">bigint</text>
+<text x="231" y="169.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">bigint</text>
 </g>
-<g class="row" data-id="repair_id" data-kind="column">
-<title>FK repair_id: uuid</title>
+<g class="row" data-id="treatment_id" data-kind="column">
+<title>FK treatment_id: uuid</title>
 <g class="symbol">
 <text x="106" y="195.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e">FK</text>
 </g>
-<text x="128" y="195.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">repair_id</text>
-<text x="209" y="195.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">uuid</text>
+<text x="128" y="195.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">treatment_id</text>
+<text x="231" y="195.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">uuid</text>
 </g>
-<g class="row" data-id="part" data-kind="column">
-<title>part: text</title>
-<text x="128" y="221.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">part</text>
-<text x="209" y="221.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">text</text>
+<g class="row" data-id="material" data-kind="column">
+<title>material: text</title>
+<text x="128" y="221.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">material</text>
+<text x="231" y="221.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">text</text>
 </g>
 <g class="row" data-id="cost" data-kind="column">
 <title>cost: numeric(6,2)?</title>
 <text x="128" y="247.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">cost</text>
-<text x="209" y="247.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">numeric(6,2)?</text>
+<text x="231" y="247.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">numeric(6,2)?</text>
 </g>
 </g>
-<g class="card" data-id="repairs" data-kind="table">
-<title>repairs</title>
+<g class="card" data-id="treatments" data-kind="table">
+<title>treatments</title>
 <rect class="outline" x="104" y="334" width="360" height="186" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
 <line class="divider" x1="104.5" y1="378" x2="463.5" y2="378" stroke="#30363d" stroke-width="1"/>
-<text x="284" y="361.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">repairs</text>
+<text x="284" y="361.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">treatments</text>
 <g class="row" data-id="id" data-kind="column">
 <title>PK id: uuid</title>
 <g class="symbol">
 <text x="118" y="401.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e">PK</text>
 </g>
 <text x="140" y="401.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">id</text>
-<text x="236" y="401.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">uuid</text>
+<text x="257" y="401.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">uuid</text>
 </g>
-<g class="row" data-id="item_id" data-kind="column">
-<title>FK item_id: uuid</title>
+<g class="row" data-id="object_id" data-kind="column">
+<title>FK object_id: uuid</title>
 <g class="symbol">
 <text x="118" y="427.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e">FK</text>
 </g>
-<text x="140" y="427.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">item_id</text>
-<text x="236" y="427.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">uuid</text>
+<text x="140" y="427.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">object_id</text>
+<text x="257" y="427.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">uuid</text>
 </g>
-<g class="row" data-id="fixer_id" data-kind="column">
-<title>FK fixer_id: uuid?</title>
+<g class="row" data-id="conservator_id" data-kind="column">
+<title>FK conservator_id: uuid?</title>
 <g class="symbol">
 <text x="118" y="453.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e">FK</text>
 </g>
-<text x="140" y="453.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">fixer_id</text>
-<text x="236" y="453.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">uuid?</text>
+<text x="140" y="453.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">conservator_id</text>
+<text x="257" y="453.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">uuid?</text>
 </g>
 <g class="row" data-id="outcome" data-kind="column">
 <title>outcome: text</title>
 <text x="140" y="479.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">outcome</text>
-<text x="236" y="479.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">text</text>
+<text x="257" y="479.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">text</text>
 </g>
 <g class="row" data-id="finished_at" data-kind="column">
 <title>finished_at: timestamptz?</title>
 <text x="140" y="505.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">finished_at</text>
-<text x="236" y="505.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">timestamptz?</text>
+<text x="257" y="505.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">timestamptz?</text>
 </g>
 </g>
-<g class="card" data-id="items" data-kind="table">
-<title>items</title>
+<g class="card" data-id="objects" data-kind="table">
+<title>objects</title>
 <rect class="outline" x="104" y="584" width="360" height="160" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
 <line class="divider" x1="104.5" y1="628" x2="463.5" y2="628" stroke="#30363d" stroke-width="1"/>
-<text x="284" y="611.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">items</text>
+<text x="284" y="611.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">objects</text>
 <g class="row" data-id="id" data-kind="column">
 <title>PK id: uuid</title>
 <g class="symbol">
 <text x="118" y="651.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e">PK</text>
 </g>
 <text x="140" y="651.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">id</text>
-<text x="214" y="651.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">uuid</text>
+<text x="221" y="651.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">uuid</text>
 </g>
-<g class="row" data-id="owner_id" data-kind="column">
-<title>FK owner_id: uuid</title>
+<g class="row" data-id="donor_id" data-kind="column">
+<title>FK donor_id: uuid</title>
 <g class="symbol">
 <text x="118" y="677.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e">FK</text>
 </g>
-<text x="140" y="677.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">owner_id</text>
-<text x="214" y="677.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">uuid</text>
+<text x="140" y="677.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">donor_id</text>
+<text x="221" y="677.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">uuid</text>
 </g>
 <g class="row" data-id="kind" data-kind="column">
 <title>kind: text</title>
 <text x="140" y="703.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">kind</text>
-<text x="214" y="703.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">text</text>
+<text x="221" y="703.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">text</text>
 </g>
-<g class="row" data-id="fault" data-kind="column">
-<title>fault: text</title>
-<text x="140" y="729.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">fault</text>
-<text x="214" y="729.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">text</text>
+<g class="row" data-id="condition" data-kind="column">
+<title>condition: text</title>
+<text x="140" y="729.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">condition</text>
+<text x="221" y="729.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">text</text>
 </g>
 </g>
-<g class="card" data-id="volunteers" data-kind="table">
-<title>volunteers</title>
+<g class="card" data-id="conservators" data-kind="table">
+<title>conservators</title>
 <rect class="outline" x="552" y="597" width="360" height="134" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
 <line class="divider" x1="552.5" y1="641" x2="911.5" y2="641" stroke="#30363d" stroke-width="1"/>
-<text x="732" y="624.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">volunteers</text>
+<text x="732" y="624.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">conservators</text>
 <g class="row" data-id="id" data-kind="column">
 <title>PK id: uuid</title>
 <g class="symbol">
@@ -139,11 +139,11 @@
 <text x="648" y="716.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">text[]</text>
 </g>
 </g>
-<g class="card" data-id="visitors" data-kind="table">
-<title>visitors</title>
+<g class="card" data-id="donors" data-kind="table">
+<title>donors</title>
 <rect class="outline" x="32" y="816" width="360" height="134" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
 <line class="divider" x1="32.5" y1="860" x2="391.5" y2="860" stroke="#30363d" stroke-width="1"/>
-<text x="212" y="843.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">visitors</text>
+<text x="212" y="843.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">donors</text>
 <g class="row" data-id="id" data-kind="column">
 <title>PK id: uuid</title>
 <g class="symbol">
@@ -166,8 +166,8 @@
 <text x="122" y="935.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">text?</text>
 </g>
 </g>
-<g class="line" data-id="edges[0]" data-kind="relationship" data-from="parts-fitted" data-to="repairs">
-<title>parts_fitted (zero-or-many) – repairs (one)</title>
+<g class="line" data-id="edges[0]" data-kind="relationship" data-from="materials-used" data-to="treatments">
+<title>materials_used (zero-or-many) – treatments (one)</title>
 <path d="M452 191 L480 191 Q488 191 488 199 L488 292 Q488 298 494 298 L494 298 Q500 298 500 304 L500 389 Q500 397 492 397 L464 397" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
 <g class="end" data-end="from" data-cardinality="zero-or-many">
 <path d="M452 184 L464 191 L452 198" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
@@ -177,8 +177,8 @@
 <path d="M470 390 L470 404 M475 390 L475 404" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
 </g>
 </g>
-<g class="line" data-id="edges[1]" data-kind="relationship" data-from="repairs" data-to="items">
-<title>repairs (zero-or-many) – items (one)</title>
+<g class="line" data-id="edges[1]" data-kind="relationship" data-from="treatments" data-to="objects">
+<title>treatments (zero-or-many) – objects (one)</title>
 <path d="M104 423 L76 423 Q68 423 68 431 L68 639 Q68 647 76 647 L104 647" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
 <g class="end" data-end="from" data-cardinality="zero-or-many">
 <path d="M104 430 L92 423 L104 416" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
@@ -188,8 +188,8 @@
 <path d="M98 654 L98 640 M93 654 L93 640" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
 </g>
 </g>
-<g class="line" data-id="edges[2]" data-kind="relationship" data-from="repairs" data-to="volunteers">
-<title>repairs (zero-or-many) – volunteers (zero-or-one)</title>
+<g class="line" data-id="edges[2]" data-kind="relationship" data-from="treatments" data-to="conservators">
+<title>treatments (zero-or-many) – conservators (zero-or-one)</title>
 <path d="M464 449 L508 449 Q516 449 516 457 L516 652 Q516 660 524 660 L552 660" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
 <g class="end" data-end="from" data-cardinality="zero-or-many">
 <path d="M464 442 L476 449 L464 456" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
@@ -200,8 +200,8 @@
 <circle cx="537" cy="660" r="4" fill="#0d1117" stroke="#6e7681" stroke-width="1.5"/>
 </g>
 </g>
-<g class="line" data-id="edges[3]" data-kind="relationship" data-from="items" data-to="visitors">
-<title>items (zero-or-many) – visitors (one)</title>
+<g class="line" data-id="edges[3]" data-kind="relationship" data-from="objects" data-to="donors">
+<title>objects (zero-or-many) – donors (one)</title>
 <path d="M464 673 L492 673 Q500 673 500 681 L500 772 Q500 780 492 780 L436 780 Q428 780 428 788 L428 871 Q428 879 420 879 L392 879" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
 <g class="end" data-end="from" data-cardinality="zero-or-many">
 <path d="M464 666 L476 673 L464 680" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
