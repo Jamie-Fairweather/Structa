@@ -8,8 +8,8 @@ import type { Mark, OutlineShape } from "./outline";
 interface Geometry {
   /** How wide its text may wrap. */
   readonly wrapWidth: number;
-  /** Its outline's size for a block of text this big, at least `minWidth` wide. */
-  size(text: { readonly width: number; readonly height: number }, minWidth: number): { width: number; height: number };
+  /** Its outline's size for a block of text this big, at least `minWidth` wide and `minHeight` tall. */
+  size(text: { readonly width: number; readonly height: number }, minWidth: number, minHeight: number): { width: number; height: number };
   outline(width: number, height: number): OutlineShape;
   marks?(width: number, height: number): Mark[];
   /** Where its badge and tag sit on its top border. */
@@ -17,11 +17,14 @@ interface Geometry {
   readonly fill?: CardFill;
 }
 
-/** A flowchart shape or note: its text wrapped and centred in the outline its shape draws round it. */
-export function shapeBody(node: FlowNode, sizes: Sizes, minWidth: number): CardBody {
+/**
+ * A flowchart shape or note: its text wrapped and centred in the outline its
+ * shape draws round it, at least `minWidth` wide and `minHeight` tall.
+ */
+export function shapeBody(node: FlowNode, sizes: Sizes, minWidth: number, minHeight: number): CardBody {
   const geometry = GEOMETRY.get(node.shape)!(sizes);
   const text = textBlock(node, sizes, geometry.wrapWidth);
-  const { width, height } = geometry.size(text, minWidth);
+  const { width, height } = geometry.size(text, minWidth, Math.ceil(minHeight));
   const top = (height - text.height) / 2;
   return {
     kind: node.shape,
@@ -79,9 +82,9 @@ function box(s: BoxSizes, radius: number, extraX = 0): Geometry {
   const sideX = s.paddingX + extraX;
   return {
     wrapWidth: s.maxWidth - 2 * sideX,
-    size: (text, minWidth) => ({
+    size: (text, minWidth, minHeight) => ({
       width: fit(text.width + 2 * sideX, s.minWidth, s.maxWidth, minWidth),
-      height: Math.max(s.minHeight, text.height + 2 * s.paddingY),
+      height: Math.max(s.minHeight, minHeight, text.height + 2 * s.paddingY),
     }),
     outline: () => ({ kind: "rounded", radius }),
   };
@@ -113,11 +116,11 @@ function decision(sizes: Sizes): Geometry {
   const s = sizes.decision;
   return {
     wrapWidth: s.maxWidth / 2 - 2 * s.paddingX,
-    size: (text, minWidth) => {
+    size: (text, minWidth, minHeight) => {
       const w = text.width + 2 * s.paddingX;
       const h = text.height + 2 * s.paddingY;
       const width = fit(w + s.aspect * h, s.minWidth, s.maxWidth, minWidth);
-      return { width, height: Math.max(s.minHeight, Math.ceil((h * width) / (width - w))) };
+      return { width, height: Math.max(s.minHeight, minHeight, Math.ceil((h * width) / (width - w))) };
     },
     outline: (width, height) => ({
       kind: "polygon",

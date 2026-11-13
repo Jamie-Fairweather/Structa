@@ -1,7 +1,7 @@
 import { AREA_LABEL_FACE, STEREOTYPE_FACE, type ArchitectureKind, type ComponentKind, type FlowShape, type Status } from "../input";
 import { baseline, measure, wrap, type FaceId } from "../text";
 import type { Sizes, ThemeColors } from "../theme";
-import { move, placeOutline, type Mark, type Outline, type OutlineShape, type Point } from "./outline";
+import { distanceToBox, entry, move, placeOutline, type Mark, type Outline, type OutlineShape, type Point } from "./outline";
 
 /** A line of text, positioned relative to the top-left corner of whatever holds it. */
 export interface TextLine {
@@ -99,6 +99,9 @@ export type CardFill = keyof Pick<ThemeColors, "cardFill" | "noteFill">;
  * What a card builder makes: the card's outline size and its contents,
  * relative to the outline's top-left corner. It should be at least the
  * `minWidth` the frame asks for; a narrower one sits centred in a wider box.
+ * A builder whose text sits centred in its outline, as a flowchart shape's
+ * does, is at least the `minHeight` asked for too; others keep the height
+ * their contents need.
  */
 export interface CardBody {
   readonly kind: FlowShape | ArchitectureKind | "table";
@@ -170,6 +173,21 @@ export interface Landing {
   readonly right: number;
   readonly top: number;
   readonly bottom: number;
+  /**
+   * Whether any line meets the card's top. Layout spreads the lines on a
+   * card's bottom over the same stretch as those on its top, so only then
+   * does it keep them between `left` and `right`.
+   */
+  readonly onTop: boolean;
+}
+
+/**
+ * How many line ends a card must leave room for: on its top, and on either
+ * of its sides, the one that gets more.
+ */
+export interface LineEnds {
+  readonly top: number;
+  readonly sides: number;
 }
 
 /** What sits on a card's top border, and how many lines must find room beside it. */
@@ -177,8 +195,8 @@ interface CardHeader {
   readonly status?: Status;
   /** The name of the area the tag shows. */
   readonly tag?: string;
-  /** How many lines its top must leave room for. */
-  readonly lines: number;
+  /** How many line ends its top and sides must leave room for. */
+  readonly lines: LineEnds;
 }
 
 /** A node the frame can build a card from. */
@@ -204,19 +222,22 @@ const BADGE_FACE: FaceId = "inter-bold";
  * the area tag (top-left) overhang. Giving it to every card keeps the outlines
  * of cards side by side lined up.
  *
- * `lines` says how many lines each card's top must leave room for: a card
- * with a badge or a tag is wide enough to give them that room clear of both.
+ * `lines` says how many line ends each card's top and sides must leave
+ * room for. A card with a badge or a tag is wide enough to give those on its
+ * top that room clear of both, and, when it can be, tall enough to give
+ * those on its sides theirs.
  */
 export function frameCards<N extends Framed>(
   nodes: readonly N[],
   sizes: Sizes,
   tagOf: (node: N) => string | undefined,
-  lines: readonly number[],
-  build: (node: N, minWidth: number) => CardBody,
+  lines: readonly LineEnds[],
+  build: (node: N, minWidth: number, minHeight: number) => CardBody,
 ): Card[] {
   const headers = nodes.map((node, i): CardHeader => {
     const tag = tagOf(node);
-    return { ...(node.status === undefined ? {} : { status: node.status }), ...(tag === undefined ? {} : { tag }), lines: lines[i] ?? 0 };
+    const ends = lines[i] ?? { top: 0, sides: 0 };
+    return { ...(node.status === undefined ? {} : { status: node.status }), ...(tag === undefined ? {} : { tag }), lines: ends };
   });
   const top = headers.some((header) => header.status !== undefined || header.tag !== undefined) ? bandHeight(sizes) / 2 : 0;
   return nodes.map((node, i) => frameCard(node, headers[i]!, top, sizes, build));
@@ -233,6 +254,17 @@ function landingRoom(lines: number, sizes: Sizes): number {
 }
 
 /**
+ * How much of a card's side a number of lines needs: as on its top, but none
+ * for one alone, which meets the side's middle however little room there is.
+ */
+function sideRoom(lines: number, sizes: Sizes): number {
+  return lines < 2 ? 0 : landingRoom(lines, sizes);
+}
+
+/** The most times a card is built taller to make room on its sides: enough for a diamond, which grows less than it's asked to. */
+const MAX_TALLER = 12;
+
+/**
  * How wide a card must be to hold what sits on its top border, placed as
  * `place` says, with room for its lines beside them; 0 when nothing sits
  * there. Both ends keep at least the theme's inset; a body's own place only
@@ -247,7 +279,7 @@ function borderWidth(header: CardHeader, place: BorderPlace | undefined, sizes: 
   const { clearance } = sizes.landing;
   const tagWidth = tag === undefined ? 0 : measureTag(tag, sizes);
   const badgeWidth = status === undefined ? 0 : measureBadge(status, sizes);
-  const room = landingRoom(header.lines, sizes);
+  const room = landingRoom(header.lines.top, sizes);
   if (place?.align === "middle") return 2 * (room / 2 + clearance + Math.max(tagWidth, badgeWidth) + inset);
   const left = tag !== undefined && place?.align === "end" ? (place.tagInset ?? place.inset) : inset;
   const gap = status !== undefined && tag !== undefined ? sizes.tag.gap : 0;
@@ -259,21 +291,44 @@ function borderWidth(header: CardHeader, place: BorderPlace | undefined, sizes: 
   return Math.max(packed, beforeRoom + room + afterRoom);
 }
 
+/**
+ * One card. A card with a badge or a tag whose sides take lines is built
+ * taller, if it can be, until its sides have room for them clear of both,
+ * as its top does: or, for one line alone, until a line can meet a side at
+ * all. A diamond needs this most, as its badge and tag sit down its edges.
+ */
 function frameCard<N extends Framed>(
   node: N,
   header: CardHeader,
   top: number,
   sizes: Sizes,
-  build: (node: N, minWidth: number) => CardBody,
+  build: (node: N, minWidth: number, minHeight: number) => CardBody,
 ): Card {
+  const fitted = (minHeight: number) => {
+    const body = build(node, borderWidth(header, undefined, sizes), minHeight);
+    // The body's own place for the badge and tag may need more room: then it's built again, that wide.
+    const minWidth = borderWidth(header, body.border, sizes);
+    return body.width < minWidth ? build(node, minWidth, minHeight) : body;
+  };
+  let card = frameBody(node, header, top, fitted(0), sizes);
+  const { sides } = header.lines;
+  if (sides === 0 || (header.status === undefined && header.tag === undefined)) return card;
+  for (let k = 0; k < MAX_TALLER; k++) {
+    const short = sideRoom(sides, sizes) - (card.outline.height - 2 * sideDrop(card, sizes));
+    if (short <= 0) break;
+    const body = fitted(card.outline.height + Math.ceil(Math.min(short, card.outline.height)));
+    if (body.height <= card.outline.height) break;
+    card = frameBody(node, header, top, body, sizes);
+  }
+  return card;
+}
+
+/** A card round a built body, its outline `top` below the top of its box. */
+function frameBody<N extends Framed>(node: N, header: CardHeader, top: number, body: CardBody, sizes: Sizes): Card {
   const { id } = node;
   const { status } = header;
-  let body = build(node, borderWidth(header, undefined, sizes));
-  // The body's own place for the badge and tag may need more room: then it's built again, that wide.
-  const minWidth = borderWidth(header, body.border, sizes);
-  if (body.width < minWidth) body = build(node, minWidth);
   // A body narrower than its border needs sits centred in a wider box, so a badge never hangs off the card.
-  const width = Math.max(body.width, minWidth);
+  const width = Math.max(body.width, borderWidth(header, body.border, sizes));
   const at = { x: (width - body.width) / 2, y: top };
   const shift = <P extends Point>(p: P): P => ({ ...p, ...move(p, at) });
   const shiftText = (t: TextLine, struck: boolean): TextLine => {
@@ -286,6 +341,11 @@ function frameCard<N extends Framed>(
     };
   };
 
+  const outline = placeOutline(body.outline, { ...at, width: body.width, height: body.height });
+  const { overTop, ...items } = onBorder(header, node.area, width, top, body.border, sizes);
+  // Down its sides, as far below the outline's top as above its bottom, so that a line alone meets a side's middle.
+  const drop = Math.min(sideDrop({ outline, width, ...items }, sizes), body.height / 2);
+  const landing: Landing = { ...overTop, top: top + drop, bottom: top + body.height - drop, onTop: header.lines.top > 0 };
   return {
     id,
     kind: body.kind,
@@ -293,7 +353,7 @@ function frameCard<N extends Framed>(
     ...(status === undefined ? {} : { status }),
     width,
     height: top + body.height,
-    outline: placeOutline(body.outline, { ...at, width: body.width, height: body.height }),
+    outline,
     marks: (body.marks ?? []).map((mark) => mark.map((p) => move(p, at))),
     fill: body.fill ?? "cardFill",
     tooltip: body.tooltip,
@@ -308,14 +368,15 @@ function frameCard<N extends Framed>(
       ...(row.badge ? { badge: { ...shift(row.badge), word: shift(row.badge.word) } } : {}),
     })),
     ...(body.more ? { more: shift(body.more) } : {}),
-    ...onBorder(header, node.area, width, top + body.height, top, body.border, sizes),
+    ...items,
+    landing,
     ...(body.header ? { header: { top: body.header.top + top, bottom: body.header.bottom + top } } : {}),
   };
 }
 
 /**
  * The badge and the tag on a card's top border, whose top is at `top` in a
- * box `width` wide and `height` tall, and where lines may meet the card. The
+ * box `width` wide, and where across its top lines may meet the card. The
  * badge stays at least the theme's inset inside the box, and clear of the
  * tag. On a diamond they sit either side of its top corner, with room
  * between them for the lines that meet it there, each centred on the
@@ -324,25 +385,20 @@ function frameCard<N extends Framed>(
  * Lines meet the top at least the theme's clearance from the tag and the
  * badge, on a stretch centred on the card when there's room for them there,
  * as there is when the badge and the tag are short, and otherwise on all the
- * room between them. They meet the sides below the top border, and on a
- * diamond below the badge and the tag too, clear of them: a line in from the
- * side meets a diamond's slanted edge further in the higher it comes, and
- * above that it would run into them first. They meet a diamond's sides as
- * far above its bottom corner, so that one alone meets its side corner.
+ * room between them.
  */
 function onBorder(
   header: CardHeader,
   area: string | undefined,
   width: number,
-  height: number,
   top: number,
   place: BorderPlace | undefined,
   sizes: Sizes,
-): { badge?: Badge; tag?: Tag; landing: Landing } {
+): { badge?: Badge; tag?: Tag; overTop: { left: number; right: number } } {
   const { status, tag: label } = header;
-  if (status === undefined && label === undefined) return { landing: { left: 0, right: width, top, bottom: height } };
+  if (status === undefined && label === undefined) return { overTop: { left: 0, right: width } };
   const { clearance } = sizes.landing;
-  const room = landingRoom(header.lines, sizes);
+  const room = landingRoom(header.lines.top, sizes);
   const tagWidth = label === undefined ? 0 : measureTag(label, sizes);
   const badgeWidth = status === undefined ? 0 : measureBadge(status, sizes);
   const gap = label !== undefined && status !== undefined ? sizes.tag.gap : 0;
@@ -350,28 +406,77 @@ function onBorder(
   let badgeX: number;
   // Where the border runs under the badge and the tag: on a diamond, down its edges, where each starts.
   let border = top;
-  let landing: Landing;
+  let stretch: { left: number; right: number };
   if (place?.align === "middle") {
     const middle = width / 2;
     const out = room / 2 + clearance;
     tagX = middle - out - tagWidth;
     badgeX = middle + out;
     border = top + place.drop * out;
-    const below = border - top + bandHeight(sizes) / 2 + clearance;
-    landing = { left: middle - room / 2, right: middle + room / 2, top: top + below, bottom: height - below };
+    stretch = { left: middle - room / 2, right: middle + room / 2 };
   } else {
     const inset = place?.inset ?? sizes.badge.inset;
     tagX = place?.tagInset ?? inset;
     badgeX = Math.max(label === undefined ? sizes.badge.inset : tagX + tagWidth + gap, width - inset - badgeWidth);
     const from = label === undefined ? 0 : tagX + tagWidth + clearance;
     const to = status === undefined ? width : badgeX - clearance;
-    landing = { ...across(from, to, width, room), top, bottom: height };
+    stretch = across(from, to, width, room);
   }
   return {
     ...(status === undefined ? {} : { badge: badge(status, badgeX, border - sizes.badge.height / 2, sizes) }),
     ...(label === undefined || area === undefined ? {} : { tag: tag(area, label, tagX, border - sizes.tag.height / 2, sizes) }),
-    landing,
+    overTop: stretch,
   };
+}
+
+/**
+ * How far below the top of its outline, and as far above its bottom, lines
+ * may meet a card's sides: so that a level line in from either side of the
+ * card's box anywhere between, run on until it meets the outline, keeps the
+ * theme's clearance from the badge and the tag. Where a pill's ends, a box's
+ * rounded corners or a diamond's edges curve or slant in under them, a line
+ * would run on close to them, or into them; one coming in above them keeps
+ * clear, but not those just under it. 0 on a card with neither, and
+ * infinitely far when even a line to the middle of a side doesn't keep clear.
+ */
+function sideDrop({ outline, width, badge, tag }: Pick<Card, "outline" | "width" | "badge" | "tag">, sizes: Sizes): number {
+  const boxes = [badge, tag].filter((box) => box !== undefined);
+  if (boxes.length === 0) return 0;
+  const { clearance } = sizes.landing;
+  // Each side of the box, and a point further in from it.
+  const sides: readonly (readonly [number, number])[] = [
+    [0, 1],
+    [width, width - 1],
+  ];
+  const clear = (drop: number) => {
+    const y = outline.y + drop;
+    return sides.every(([x, inward]) => {
+      const met = entry({ outline }, { x, y }, { x: inward, y });
+      return met === undefined || boxes.every((box) => distanceToBox({ x, y }, met, box) >= clearance);
+    });
+  };
+  // A line every pixel down the outline: lines too close to the badge or the tag come many pixels together.
+  const { height } = outline;
+  const steps = Math.ceil(height);
+  const step = height / steps;
+  const fromEnd = (drop: number) => Math.min(drop, height - drop);
+  let worst: number | undefined;
+  for (let k = 0; k <= steps; k++) {
+    const drop = k * step;
+    if (!clear(drop) && (worst === undefined || fromEnd(drop) > fromEnd(worst))) worst = drop;
+  }
+  if (worst === undefined) return 0;
+  // The line furthest from the outline's ends that doesn't keep clear, and the next one toward the middle, which does.
+  const lower = worst > height / 2;
+  let [close, clearOf] = [worst, worst + (lower ? -step : step)];
+  if (lower ? clearOf < height / 2 : clearOf > height / 2) return Number.POSITIVE_INFINITY;
+  for (let k = 0; k < 20; k++) {
+    const middle = (close + clearOf) / 2;
+    if (clear(middle)) clearOf = middle;
+    else close = middle;
+  }
+  // To the hundredth of a pixel, so ELK gets plain numbers.
+  return Math.ceil(fromEnd(clearOf) * 100) / 100;
 }
 
 /**

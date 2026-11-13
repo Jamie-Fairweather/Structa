@@ -271,7 +271,7 @@ function pathEnds(path: Element): [Point, Point] {
  * draws: its route, through the corners it rounds off, and the outline of
  * each mark or crow's foot at its ends.
  */
-export function drawnPoints(el: Element): Point[] {
+function drawnPoints(el: Element): Point[] {
   const [route, ...ends] = Array.from(el.getElementsByTagName("path"));
   const runs = [parsePath(route!.getAttribute("d")!).flatMap((c) => c.points)];
   for (const path of ends) {

@@ -18,10 +18,17 @@ export interface LayoutCard {
    * top-left corner: across its top from `left` to `right`, and down its
    * left and right sides from `top` to `bottom`. ELK spreads the lines it
    * ends on each side over that stretch, and those on the bottom over the
-   * top's: it can't give them apart. A line between fixed ports goes where
-   * its ports are.
+   * top's: it can't give them apart, so the top's stretch is only given
+   * when lines meet it there, `onTop`. A line between fixed ports goes
+   * where its ports are.
    */
-  readonly landing: { readonly left: number; readonly right: number; readonly top: number; readonly bottom: number };
+  readonly landing: {
+    readonly left: number;
+    readonly right: number;
+    readonly top: number;
+    readonly bottom: number;
+    readonly onTop: boolean;
+  };
   readonly path: string;
   /**
    * A note: an aside, not a step in the flow. ELK places a note joined to one
@@ -181,14 +188,14 @@ const ELK_DIRECTION = new Map<Direction, string>([
  * right, so going down the top and bottom sides take theirs from its "top"
  * and "bottom", and the left and right sides from its "left" and "right".
  * The bottom gets the top's room too, so only a card with lines over its
- * `top` gets it at all. ELK only reads it per card, as an individual
+ * top gets it at all. ELK only reads it per card, as an individual
  * spacing; none when lines may meet every side anywhere.
  */
-function landingOptions(card: LayoutCard, direction: Direction, top: boolean): Record<string, string> {
+function landingOptions(card: LayoutCard, direction: Direction): Record<string, string> {
   const { width, height, landing } = card;
   // To the hundredth of a pixel, never below 0, so ELK reads plain numbers.
   const room = (value: number) => Math.max(0, Math.round(value * 100) / 100);
-  const across = top ? [landing.left, width - landing.right].map(room) : [0, 0];
+  const across = landing.onTop ? [landing.left, width - landing.right].map(room) : [0, 0];
   const down = [landing.top, height - landing.bottom].map(room);
   if ([...across, ...down].every((room) => room <= 0)) return {};
   const [before, after, left, right] = direction === "down" ? [...across, ...down] : [...down, ...across];
@@ -206,48 +213,6 @@ interface Sides {
   readonly source: Side;
   readonly target: Side;
   readonly reversed: boolean;
-}
-
-/**
- * A line as far as `endsAcross` needs it: `sides` when it meets its cards
- * only on their left and right sides, as lines with ports do, and as a
- * note's connector does going down.
- */
-export type CountedLine = Pick<LayoutLine, "source" | "target" | "targetFirst" | "joins"> & { readonly sides?: boolean };
-
-/**
- * For each of `cardCount` cards, how many line ends ELK may put on its top
- * side: none when no line meets its top, and otherwise as many as meet its
- * top or its bottom, whichever is more, as ELK spreads both over the same
- * stretch. Going down, a line meets its target's top and leaves its source's
- * bottom, or the other way round when its target comes first, and ELK runs
- * a line from a card to itself off the card's left side. Going right, lines
- * meet cards' left and right sides, and only a line from a card to itself
- * goes over its top, with both its ends there. Lines that join meet a card
- * at one point. A line ELK turns round to break a loop leaves its source's
- * top and meets its target's bottom; that card has a line coming in, so it
- * has room on its top, if less than it gets.
- */
-export function endsAcross(cardCount: number, lines: readonly CountedLine[], direction: Direction): number[] {
-  const top = Array.from({ length: cardCount }, () => new Set<string>());
-  const bottom = Array.from({ length: cardCount }, () => new Set<string>());
-  lines.forEach((line, i) => {
-    if (line.sides) return;
-    if (line.source === line.target) {
-      if (direction === "right") top[line.source]!.add(`${i} source`).add(`${i} target`);
-      return;
-    }
-    if (direction === "right") return;
-    // Ends that join count once: they share a key.
-    const key = (end: "source" | "target") => {
-      const joined = line.joins?.[end];
-      return joined === undefined ? `${i} ${end}` : `joined ${joined}`;
-    };
-    const [into, outOf] = line.targetFirst ? [bottom, top] : [top, bottom];
-    into[line.target]!.add(key("target"));
-    outOf[line.source]!.add(key("source"));
-  });
-  return top.map((ends, card) => (ends.size === 0 ? 0 : Math.max(ends.size, bottom[card]!.size)));
 }
 
 /** In pass 1, every line with ports has provisional ones, which ELK places as it would any line's ends. */
@@ -444,10 +409,6 @@ function buildGraph(
   const chains = graph.cards.map((card) => chain(card.area));
 
   graph.areas.forEach((area, i) => chain(area.parent).at(-1)!.children.push(boxes[i]!));
-  // A note's connector meets a card's side going down, and ELK puts it where it likes going right.
-  const notes = (line: LayoutLine) => graph.cards[line.source]!.note === true || graph.cards[line.target]!.note === true;
-  const counted = graph.lines.map((line) => ({ ...line, sides: line.ports !== undefined || notes(line) }));
-  const across = endsAcross(graph.cards.length, counted, direction);
   graph.cards.forEach((card, i) => {
     const own = elkPorts(ports.get(i) ?? []);
     const joined = (joints.get(i) ?? []).map((id) => ({ id, width: 0, height: 0 }));
@@ -455,7 +416,7 @@ function buildGraph(
     // Which nodes are notes, the ports a card has and where lines may meet it are part of the graph, not of the profile, so they go on each card.
     const layoutOptions = {
       ...(card.note ? { "elk.commentBox": "true" } : {}),
-      ...landingOptions(card, direction, across[i]! > 0),
+      ...landingOptions(card, direction),
       ...own.layoutOptions,
     };
     chains[i]!.at(-1)!.children.push({

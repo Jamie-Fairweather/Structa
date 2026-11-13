@@ -3,17 +3,21 @@ import { describe, expect, it } from "vitest";
 import { problems } from "./helpers/errors";
 import {
   allElements,
+  badgeBox,
   byClassIn,
   cardById,
   cards,
   connectorEnds,
   connectors,
+  distanceOutside,
   distanceToShape,
+  lineEnds,
   lines,
   nearestBadgeOrTag,
   outlineBox,
   overlaps,
   svgDoc,
+  tagBox,
   titleOf,
   type Box,
 } from "./helpers/svg";
@@ -55,7 +59,8 @@ function expectJoinedAndClear(doc: Document) {
     const [start, end] = connectorEnds(connector);
     expect(distanceToShape(start, cardById(doc, note)), `${note} start`).toBeLessThanOrEqual(1);
     expect(distanceToShape(end, cardById(doc, about)), `${note} end`).toBeLessThanOrEqual(1);
-    expect(nearestBadgeOrTag(doc, connector), note).toBeGreaterThan(4);
+    // Half the theme's 12px clearance, which a connector keeps from every badge and tag, or a little less.
+    expect(nearestBadgeOrTag(doc, connector), note).toBeGreaterThan(5);
   }
   const boxes = cards(doc).map((c) => outlineBox(c));
   for (const a of boxes) for (const b of boxes) if (a !== b) expect(overlaps(a, b)).toBe(false);
@@ -174,29 +179,62 @@ describe("notes", () => {
   const crowded = (["start", "end", "step", "decision", "io", "subprocess"] as const).flatMap((shape) =>
     (["down", "right"] as const).flatMap((direction) => [5, 6].map((count) => [count, shape, direction] as const)),
   );
-  it.each((["start", "step", "decision", "io", "subprocess"] as const).flatMap((shape) => (["down", "right"] as const).map((direction) => [shape, direction] as const)))(
-    "runs a note's connector clear of the badge and tag of the %s it's about and of its own, direction %s",
-    async (shape, direction) => {
-      // The note comes level with its shape, or above it, where the badge and the tag leave little of its top free.
-      const input = {
-        type: "flow",
-        direction,
-        areas: [{ id: "shed", label: "Potting shed" }],
-        nodes: [
-          { id: "fill", label: "Fill the trays", shape: "start" },
-          { id: "sow", label: "Sow", shape, area: "shed", status: "changed" },
-          { id: "label", label: "Label the rows", shape: "end" },
-          { id: "thin", label: "Sow thinly", shape: "note", about: "sow", area: "shed", status: "new" },
-        ],
-        edges: [
-          { from: "fill", to: "sow" },
-          { from: "sow", to: "label" },
-        ],
-      };
-      const doc = await svgDoc(input);
+  /**
+   * A note about a small shape with a badge and a tag, both in an area, and,
+   * when `looped`, a line from the shape back to itself. The note comes level
+   * with its shape, or above it, where the badge and the tag leave little of
+   * its top free, and the loop meets the same side.
+   */
+  function shed(shape: string, direction: "down" | "right", looped: boolean) {
+    return {
+      type: "flow",
+      direction,
+      areas: [{ id: "shed", label: "Potting shed" }],
+      nodes: [
+        { id: "fill", label: "Fill the trays", shape: "start" },
+        { id: "sow", label: "Sow", shape, area: "shed", status: "changed" },
+        { id: "label", label: "Label the rows", shape: "end" },
+        { id: "thin", label: "Sow thinly", shape: "note", about: "sow", area: "shed", status: "new" },
+      ],
+      edges: [
+        { from: "fill", to: "sow" },
+        { from: "sow", to: "label" },
+        ...(looped ? [{ from: "sow", to: "sow", label: "again" }] : []),
+      ],
+    };
+  }
+  const shedCases = (["start", "step", "decision", "io", "subprocess"] as const).flatMap((shape) =>
+    (["down", "right"] as const).flatMap((direction) => [false, true].map((looped) => [shape, direction, looped] as const)),
+  );
+
+  it.each(shedCases)(
+    "runs a note's connector clear of the badge and tag of the %s it's about and of its own, direction %s, with a loop %s",
+    async (shape, direction, looped) => {
+      const doc = await svgDoc(shed(shape, direction, looped));
 
       expect(connectors(doc)).toHaveLength(1);
       expectJoinedAndClear(doc);
+    },
+  );
+
+  it.each(shedCases)(
+    "makes room on the %s a note is about for the connector's end, the theme's clearance from its badge and tag and apart from its lines' ends, direction %s, with a loop %s",
+    async (shape, direction, looped) => {
+      const doc = await svgDoc(shed(shape, direction, looped));
+
+      const sow = cardById(doc, "sow");
+      const [start, end] = connectorEnds(connectors(doc)[0]!);
+      // The theme keeps line ends 12px from a badge or a tag; a little less for rounding.
+      for (const box of [badgeBox(sow)!, tagBox(sow)!]) expect(distanceOutside(end, box)).toBeGreaterThan(11);
+      // The ends of the shape's own lines, the loop's both of them: half the theme's 16px pitch from the connector's, but for rounding.
+      const ends = lines(doc).flatMap((line) => {
+        const [from, to] = lineEnds(line);
+        return [...(line.getAttribute("data-from") === "sow" ? [from] : []), ...(line.getAttribute("data-to") === "sow" ? [to] : [])];
+      });
+      expect(ends).toHaveLength(looped ? 4 : 2);
+      for (const p of ends) expect(Math.hypot(p.x - end.x, p.y - end.y)).toBeGreaterThan(7.9);
+      // Going right, the note sits over its shape, which leaves room on its top for the connector to come straight down.
+      if (direction === "right" && !looped) expect(Math.abs(start.x - end.x)).toBeLessThanOrEqual(1);
     },
   );
 

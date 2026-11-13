@@ -1,6 +1,6 @@
 import { StructaError, type Problem } from "./errors";
 import { fieldPath, PARENT_KINDS, parseDiagram } from "./input";
-import { endsAcross, layout, PROFILES } from "./layout";
+import { layout, PROFILES } from "./layout";
 import { paint } from "./painter";
 import { DEFAULT_SCALE, rasterise, SCALES, type Scale } from "./raster";
 import { buildAreaBoxes, buildCards, buildConnector, buildHeader, buildLegend, buildLine, linePorts, type EndMark, type Line } from "./shapes";
@@ -58,23 +58,21 @@ export async function render<F extends Format = "svg">(
       path: `edges[${i}]`,
     };
   });
-  // An ER line attaches at its tables' sides: only it can name columns.
-  const between = (i: number) => "fromCardinality" in diagram.edges[i]!;
-  // Each card leaves room on its top and bottom for the lines ELK ends there, clear of its badge and tag.
-  const across = endsAcross(nodes.length, unplaced.map((line, i) => ({ ...line, sides: between(i) })), diagram.direction);
-  const cards = buildCards(diagram, theme.sizes, across).map((card, i) => ({ ...card, path: `nodes[${i}]`, note: card.kind === "note" }));
-  const lines = unplaced.map((line, i) => {
-    const edge = diagram.edges[i]!;
-    const columns = "fromCardinality" in edge ? { from: edge.fromColumn, to: edge.toColumn } : {};
-    const ports = linePorts(cards[line.source]!, cards[line.target]!, columns, theme.sizes);
-    return { ...line, ...(ports ? { ports } : {}) };
-  });
   // Only flowcharts have notes, each joined by a connector to the shape it's about.
   const flowNodes = diagram.type === "flow" ? diagram.nodes : [];
   const connectors = flowNodes.flatMap((node, i) => {
     if (node.about === undefined) return [];
     const target = index.get(node.about)!;
     return [{ ...buildConnector(node, flowNodes[target]!), source: i, target, path: `nodes[${i}].about` }];
+  });
+  // Each card leaves room for the ends of the lines and connectors ELK puts on it, clear of its badge and tag.
+  const cards = buildCards(diagram, theme.sizes, [...connectors, ...unplaced]).map((card, i) => ({ ...card, path: `nodes[${i}]`, note: card.kind === "note" }));
+  const lines = unplaced.map((line, i) => {
+    const edge = diagram.edges[i]!;
+    // Only an ER line's ends can name columns.
+    const columns = "fromCardinality" in edge ? { from: edge.fromColumn, to: edge.toColumn } : {};
+    const ports = linePorts(cards[line.source]!, cards[line.target]!, columns, theme.sizes);
+    return { ...line, ...(ports ? { ports } : {}) };
   });
   // Area boxes only when asked for: otherwise the areas don't affect the layout at all.
   const areaIndex = new Map(diagram.areas.map((area, i) => [area.id, i]));
