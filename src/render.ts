@@ -44,7 +44,9 @@ export async function render<F extends Format = "svg">(
     const source = index.get(edge.from)!;
     const target = index.get(edge.to)!;
     const line = buildLine(edge, nodes[source]!.label, nodes[target]!.label, theme.sizes);
-    const ports = linePorts(cards[source]!, cards[target]!, theme.sizes);
+    // Only an ER line's ends can name columns.
+    const columns = "fromCardinality" in edge ? { from: edge.fromColumn, to: edge.toColumn } : {};
+    const ports = linePorts(cards[source]!, cards[target]!, columns, theme.sizes);
     return { ...line, source, target, path: `edges[${i}]`, ...(ports ? { ports } : {}) };
   });
   // Only flowcharts have notes, each joined by a connector to the shape it's about.

@@ -118,7 +118,7 @@ function swapTables() {
       { id: "members", label: "members", columns: [{ name: "id", type: "uuid", pk: true }, { name: "nickname", type: "text" }] },
       { id: "swaps", label: "swaps", columns: [{ name: "id", type: "uuid", pk: true }, { name: "giver_id", type: "uuid", fk: true }] },
     ],
-    edges: [{ id: "gives", from: "swaps", to: "members", fromCardinality: "zero-or-many", toCardinality: "one" }],
+    edges: [{ id: "gives", from: "swaps", to: "members", fromColumn: "giver_id", toColumn: "id", fromCardinality: "zero-or-many", toCardinality: "one" }],
   } as Node;
 }
 
@@ -292,6 +292,22 @@ describe("the JSON Schema", () => {
         expect([end, value, await outcome(input)]).toEqual([end, value, "ok"]);
       }
     }
+  });
+
+  it("gives a line's fromColumn and toColumn the rules of a column's name, and lets render() check they name one", async () => {
+    const validate = new Ajv2020({ strict: true }).compile(root);
+    const edges = items("er", "edges");
+    const column = items("er", "nodes").properties.columns.items.properties.name;
+    for (const end of ["fromColumn", "toColumn"]) {
+      expect(edges.properties[end]).toMatchObject({ $ref: column.$ref, pattern: column.pattern });
+      expect(edges.required).not.toContain(end);
+    }
+
+    // The schema can't say which names a table has: only render() knows "nickname" isn't one of swaps' columns.
+    const named = swapTables();
+    named.edges[0].fromColumn = "nickname";
+    expect(validate(named)).toBe(true);
+    expect(await outcome(named)).toEqual([expect.objectContaining({ path: "edges[0].fromColumn", message: 'no column named "nickname" in "swaps"' })]);
   });
 
   /** The class sections that hold rows, each in the fixture's first card that has it. */

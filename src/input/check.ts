@@ -174,8 +174,10 @@ export function check(def: ObjectDef, input: unknown): { value: unknown; problem
     return result;
   }
 
+  /** Text tidied, or nothing when it had a problem, so rules don't judge it again. */
   function walkText(def: TextDef, value: unknown, path: string): string | undefined {
     if (typeof value !== "string") return report(path, "must be a string", "write the text in double quotes");
+    const before = found.length;
     // Counted in code points, as JSON Schema's maxLength counts.
     const length = [...value].length;
     if (length > def.text.maxLength) {
@@ -191,7 +193,7 @@ export function check(def: ObjectDef, input: unknown): { value: unknown; problem
     // Runs of spaces collapse and the ends are trimmed, as SVG would show them anyway.
     const tidy = value.replace(/ {2,}/g, " ").replace(/^ | $/g, "");
     if (tidy === "") report(path, "must not be empty", "write the text to show");
-    return tidy;
+    return found.length === before ? tidy : undefined;
   }
 
   const value = walk(def, input, "$");

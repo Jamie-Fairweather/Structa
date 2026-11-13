@@ -46,9 +46,9 @@
     }
   ],
   "edges": [
-    { "from": "loans", "to": "members", "fromCardinality": "zero-or-many", "toCardinality": "one", "label": "borrowed by" },
-    { "from": "loans", "to": "tools", "fromCardinality": "zero-or-many", "toCardinality": "one" },
-    { "from": "members", "to": "members", "fromCardinality": "zero-or-many", "toCardinality": "zero-or-one", "label": "referred by" },
-    { "from": "damage-reports", "to": "loans", "fromCardinality": "zero-or-many", "toCardinality": "one", "enforced": false, "label": "about" }
+    { "from": "loans", "to": "members", "fromColumn": "member_id", "toColumn": "id", "fromCardinality": "zero-or-many", "toCardinality": "one", "label": "borrowed by" },
+    { "from": "loans", "to": "tools", "fromColumn": "tool_id", "toColumn": "id", "fromCardinality": "zero-or-many", "toCardinality": "one" },
+    { "from": "members", "to": "members", "fromColumn": "referred_by", "toColumn": "id", "fromCardinality": "zero-or-many", "toCardinality": "zero-or-one", "label": "referred by" },
+    { "from": "damage-reports", "to": "loans", "fromColumn": "loan_ref", "toColumn": "id", "fromCardinality": "zero-or-many", "toCardinality": "one", "enforced": false, "label": "about" }
   ]
 }

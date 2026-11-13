@@ -44,9 +44,28 @@ function apiary(direction: "right" | "down") {
       table("hedgerow-table", "hedgerows", ["hedgerow_serial"]),
     ],
     edges: [
-      { id: "hive-in-orchard", from: "hive-table", to: "orchard-table", fromCardinality: "zero-or-many", toCardinality: "zero-or-one", label: "kept in" },
+      // Ends that name columns get ports just as ends at a header do.
+      {
+        id: "hive-in-orchard",
+        from: "hive-table",
+        to: "orchard-table",
+        fromColumn: "orchard_ref",
+        toColumn: "orchard_serial",
+        fromCardinality: "zero-or-many",
+        toCardinality: "zero-or-one",
+        label: "kept in",
+      },
       { id: "hive-by-hedgerow", from: "hive-table", to: "hedgerow-table", fromCardinality: "zero-or-many", toCardinality: "one" },
-      { id: "orchard-graft", from: "orchard-table", to: "orchard-table", fromCardinality: "zero-or-many", toCardinality: "zero-or-one", label: "grafted from" },
+      {
+        id: "orchard-graft",
+        from: "orchard-table",
+        to: "orchard-table",
+        fromColumn: "grafted_from_ref",
+        toColumn: "orchard_serial",
+        fromCardinality: "zero-or-many",
+        toCardinality: "zero-or-one",
+        label: "grafted from",
+      },
       { id: "orchard-hedge", from: "orchard-table", to: "hedgerow-table", fromCardinality: "one", toCardinality: "one-or-many", enforced: false },
     ],
   };

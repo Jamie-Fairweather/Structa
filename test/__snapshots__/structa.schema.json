@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Structa diagram",
-  "description": "One diagram for Structa to draw. Text is plain text in Latin letters, digits and common symbols, with no control characters; runs of spaces collapse to one, and text can't be only spaces. Ids must be unique across nodes and edges, a row's id within its card, and an area's among the areas; \"from\", \"to\" and \"about\" must name a node that isn't a note (lines connect cards only, never areas), and a node's \"area\" and an area's \"parent\" must name an area.",
+  "description": "One diagram for Structa to draw. Text is plain text in Latin letters, digits and common symbols, with no control characters; runs of spaces collapse to one, and text can't be only spaces. Ids must be unique across nodes and edges, a row's id within its card, and an area's among the areas; \"from\", \"to\" and \"about\" must name a node that isn't a note (lines connect cards only, never areas), an ER line's \"fromColumn\" and \"toColumn\" must name a column of its from and to tables, and a node's \"area\" and an area's \"parent\" must name an area.",
   "type": "object",
   "properties": {
     "version": {
@@ -585,6 +585,18 @@
                   "description": "true draws the line thicker, to point out the main path",
                   "type": "boolean",
                   "default": false
+                },
+                "fromColumn": {
+                  "description": "the name of the column of the from table the line starts at, such as a foreign key; leave it out to attach the line at the table's header",
+                  "$ref": "#/$defs/columnName",
+                  "type": "string",
+                  "pattern": "^[\\u0020-\\u007E\\u00A0-\\u0131\\u0134-\\u017F\\u2010\\u2013-\\u2014\\u2018-\\u2022\\u2026\\u2030\\u2032-\\u2033\\u2039-\\u203A\\u20AC\\u2122\\u2190-\\u2195\\u21D0-\\u21D4\\u2212\\u221E\\u2248\\u2260\\u2264-\\u2265]*$"
+                },
+                "toColumn": {
+                  "description": "the name of the column of the to table the line ends at, such as the key it refers to; leave it out to attach the line at the table's header",
+                  "$ref": "#/$defs/columnName",
+                  "type": "string",
+                  "pattern": "^[\\u0020-\\u007E\\u00A0-\\u0131\\u0134-\\u017F\\u2010\\u2013-\\u2014\\u2018-\\u2022\\u2026\\u2030\\u2032-\\u2033\\u2039-\\u203A\\u20AC\\u2122\\u2190-\\u2195\\u21D0-\\u21D4\\u2212\\u221E\\u2248\\u2260\\u2264-\\u2265]*$"
                 },
                 "fromCardinality": {
                   "description": "how many rows of the from table go with one row of the to table, drawn as a crow's foot at the from end",

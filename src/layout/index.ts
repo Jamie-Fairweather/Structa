@@ -60,9 +60,9 @@ export interface LayoutLine {
  * from `top` to `bottom`, measured down from the top of the card's box. A lone
  * end sits halfway. Ends that share a span and a side each get a port of
  * their own, spread evenly either side of its middle, `gap` apart, or closer
- * when that many wouldn't fit. They're ordered by where their lines go, so
- * they don't cross as they leave, and a line to the same card has its two
- * ends side by side.
+ * when that many wouldn't fit: all on one point when the span has no height.
+ * They're ordered by where their lines go, so they don't cross as they leave,
+ * and a line to the same card has its two ends side by side.
  */
 export interface PortSpan {
   readonly top: number;

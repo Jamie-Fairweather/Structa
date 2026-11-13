@@ -178,6 +178,10 @@ export interface TableNode {
 
 /** A relationship between two tables, with a crow's foot at each end. */
 export interface ErEdge extends FlowEdge {
+  /** The name of a column of the from table, tidied, where the line starts; without one it starts at the table's header. */
+  readonly fromColumn?: string;
+  /** The name of a column of the to table, tidied, where the line ends; without one it ends at the table's header. */
+  readonly toColumn?: string;
   readonly fromCardinality: Cardinality;
   readonly toCardinality: Cardinality;
   /** False when the database doesn't enforce it with a foreign key. */
