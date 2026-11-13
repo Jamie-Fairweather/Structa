@@ -1,0 +1,55 @@
+{
+  "type": "er",
+  "title": "Add loan reminders",
+  "description": "Reminders replace the old notice log, and loans record when one was last sent.",
+  "nodes": [
+    {
+      "id": "reminders",
+      "label": "reminders",
+      "status": "new",
+      "columns": [
+        { "name": "id", "type": "uuid", "pk": true },
+        { "name": "loan_id", "type": "uuid", "fk": true },
+        { "name": "send_on", "type": "date" },
+        { "name": "channel", "type": "text" }
+      ]
+    },
+    {
+      "id": "loans",
+      "label": "loans",
+      "status": "changed",
+      "columns": [
+        { "name": "id", "type": "uuid", "pk": true, "status": "unchanged" },
+        { "name": "member_id", "type": "uuid", "fk": true },
+        { "name": "due_on", "type": "date", "status": "changed" },
+        { "name": "last_reminded_at", "type": "timestamptz", "nullable": true, "status": "new" },
+        { "name": "overdue_flag", "type": "boolean", "status": "removed" }
+      ],
+      "more": 2
+    },
+    {
+      "id": "members",
+      "label": "members",
+      "status": "unchanged",
+      "columns": [
+        { "name": "id", "type": "uuid", "pk": true },
+        { "name": "email", "type": "text", "unique": true }
+      ]
+    },
+    {
+      "id": "notice-log",
+      "label": "notice_log",
+      "status": "removed",
+      "columns": [
+        { "name": "id", "type": "bigint", "pk": true },
+        { "name": "member_id", "type": "uuid", "fk": true },
+        { "name": "sent_at", "type": "timestamptz" }
+      ]
+    }
+  ],
+  "edges": [
+    { "from": "reminders", "to": "loans", "fromCardinality": "zero-or-many", "toCardinality": "one", "status": "new", "emphasis": true },
+    { "from": "loans", "to": "members", "fromCardinality": "zero-or-many", "toCardinality": "one", "status": "unchanged", "label": "borrowed by" },
+    { "from": "notice-log", "to": "members", "fromCardinality": "zero-or-many", "toCardinality": "one", "status": "removed" }
+  ]
+}

@@ -1,4 +1,6 @@
+import type { Cardinality } from "../input";
 import type { Point } from "../layout";
+import type { Sizes } from "../theme";
 import { num } from "./svg";
 
 /**
@@ -53,6 +55,46 @@ function arrowCorners(points: readonly Point[], length: number, width: number): 
     left: { x: base.x - uy * half, y: base.y + ux * half },
     right: { x: base.x + uy * half, y: base.y - ux * half },
   };
+}
+
+/**
+ * A crow's-foot end on the route's start or end: path data for its strokes,
+ * and its circle when it has one. Its marks are measured out from the table
+ * along the route's straight run: nearest the table a foot for many or a bar
+ * for one, then a bar for one or a circle for zero. When another line ends
+ * `room` px away on the same side, the marks are drawn narrower across the
+ * line, to keep clear of that one's.
+ */
+export function crowsFoot(
+  points: readonly Point[],
+  end: "start" | "end",
+  cardinality: Cardinality,
+  sizes: Sizes["crowsFoot"],
+  room = Number.POSITIVE_INFINITY,
+): { d: string; circle?: { centre: Point; radius: number } } {
+  const widest = Math.max(sizes.footWidth, sizes.barLength, 2 * sizes.circle);
+  // Never so narrow that the marks vanish, however crowded the side.
+  const narrow = Math.max(0.25, Math.min(1, (room - sizes.apart) / widest));
+  const s = { ...sizes, footWidth: sizes.footWidth * narrow, barLength: sizes.barLength * narrow };
+  const pts = withoutRepeats(points);
+  const [tip, next] = end === "start" ? [pts[0]!, pts[1]] : [pts.at(-1)!, pts.at(-2)];
+  // Outwards from the table along the line, and across it.
+  const len = next ? distance(tip, next) : 0;
+  const u = next && len > 0 ? { x: (next.x - tip.x) / len, y: (next.y - tip.y) / len } : { x: 1, y: 0 };
+  const at = (along: number, across: number): Point => ({
+    x: tip.x + u.x * along - u.y * across,
+    y: tip.y + u.y * along + u.x * across,
+  });
+  const bar = (along: number) => `M${xy(at(along, -s.barLength / 2))} L${xy(at(along, s.barLength / 2))}`;
+
+  const many = cardinality.endsWith("many");
+  const inner = many
+    ? `M${xy(at(0, -s.footWidth / 2))} L${xy(at(s.footLength, 0))} L${xy(at(0, s.footWidth / 2))}`
+    : bar(s.bar);
+  const beyond = (many ? s.footLength : s.bar) + s.gap;
+  if (cardinality.startsWith("zero")) return { d: inner, circle: { centre: at(beyond + s.circle, 0), radius: s.circle * narrow } };
+  if (cardinality === "many") return { d: inner };
+  return { d: `${inner} ${bar(beyond)}` };
 }
 
 function withoutRepeats(points: readonly Point[]): Point[] {

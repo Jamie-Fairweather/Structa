@@ -11,6 +11,12 @@ export interface LayoutProfile {
   readonly name: string;
   readonly version: number;
   readonly options: LayoutOptions;
+  /**
+   * Added to `options` for a pass that keeps an earlier pass's arrangement: it
+   * starts from where that pass put the cards, and moves them only as far as
+   * the lines need.
+   */
+  readonly keepArrangement?: LayoutOptions;
 }
 
 /** What every profile shares. Each one sets its own spacing between cards. */
@@ -36,6 +42,27 @@ export const CLASS_PROFILE: LayoutProfile = {
     ...LAYERED,
     "elk.spacing.nodeNode": "48",
     "elk.layered.spacing.nodeNodeBetweenLayers": "64",
+  },
+};
+
+export const ER_PROFILE: LayoutProfile = {
+  name: "er",
+  version: 2,
+  options: {
+    ...LAYERED,
+    "elk.spacing.nodeNode": "48",
+    "elk.layered.spacing.nodeNodeBetweenLayers": "64",
+    // Every line leaves a table straight for at least this far: room for the crow's foot at its end before it turns.
+    "elk.spacing.edgeNode": "36",
+    "elk.layered.spacing.edgeNodeBetweenLayers": "36",
+    // A table's link to itself loops out a little further, as its two ends sit close together.
+    "elk.spacing.nodeSelfLoop": "40",
+  },
+  // Layers, the order within them and positions across the flow all come from the earlier pass.
+  keepArrangement: {
+    "elk.layered.layering.strategy": "INTERACTIVE",
+    "elk.layered.crossingMinimization.strategy": "INTERACTIVE",
+    "elk.layered.nodePlacement.strategy": "INTERACTIVE",
   },
 };
 
@@ -81,6 +108,7 @@ export const GROUPED: LayoutOptions = {
 /** Each diagram type's profile. */
 export const PROFILES: ReadonlyMap<Diagram["type"], LayoutProfile> = new Map([
   ["class", CLASS_PROFILE],
+  ["er", ER_PROFILE],
   ["flow", FLOW_PROFILE],
   ["architecture", ARCHITECTURE_PROFILE],
 ]);

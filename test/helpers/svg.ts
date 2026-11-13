@@ -168,11 +168,12 @@ export function connectorEnds(connector: Element): [Point, Point] {
 
 /**
  * Where a line starts and where it ends: the tip of its arrowhead, or the end
- * of its one path when it has none, like a class association.
+ * of its route when it has none, like a class association or an ER
+ * relationship, whose crow's feet are drawn after its route.
  */
 export function lineEnds(line: Element): [Point, Point] {
   const paths = Array.from(line.getElementsByTagName("path"));
-  if (paths.length === 1) return pathEnds(paths[0]!);
+  if (paths.every((path) => path.getAttribute("fill") === "none")) return pathEnds(paths[0]!);
   const { route, arrowTip } = lineGeometry(line);
   return [route[0]!.points[0]!, arrowTip];
 }
