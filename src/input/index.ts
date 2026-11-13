@@ -28,6 +28,7 @@ export {
   ROW_TEXT_FACE,
   STATUSES,
   STEP_LABEL_FACE,
+  STEREOTYPE_FACE,
   TITLE_FACE,
   type ClassSection,
   type FlowShape,

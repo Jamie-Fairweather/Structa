@@ -16,13 +16,13 @@ export interface TextLine {
   /** Part of a card's name, so struck through when the card is removed. */
   readonly title?: boolean;
   /** A level line through the text, in its colour. */
-  readonly strike?: Strike;
+  readonly strike?: LevelLine;
   /** A level line under the text, in its colour. */
-  readonly underline?: Strike;
+  readonly underline?: LevelLine;
 }
 
-/** A level line through or under a line of text. */
-export interface Strike {
+/** A level line from x1 to x2 at height y, such as one through or under a line of text. */
+export interface LevelLine {
   readonly x1: number;
   readonly x2: number;
   readonly y: number;
@@ -199,16 +199,16 @@ function badgeX(status: Status, width: number, place: BadgePlace | undefined, si
 }
 
 /** A line through the middle of the letters of `t`, as wide as the text is drawn. */
-export function strikeThrough(t: TextLine, sizes: Sizes): Strike {
+export function strikeThrough(t: TextLine, sizes: Sizes): LevelLine {
   return levelLine(t, t.y - t.size * sizes.strike.rise);
 }
 
 /** A line just under the baseline of `t`, as wide as the text is drawn. */
-export function underline(t: TextLine, sizes: Sizes): Strike {
+export function underline(t: TextLine, sizes: Sizes): LevelLine {
   return levelLine(t, t.y + t.size * sizes.underline.drop);
 }
 
-function levelLine(t: TextLine, y: number): Strike {
+function levelLine(t: TextLine, y: number): LevelLine {
   const width = measure(t.text, t.face, t.size);
   const x1 = t.anchor === "middle" ? t.x - width / 2 : t.x;
   return { x1, x2: x1 + width, y };

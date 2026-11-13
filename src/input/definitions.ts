@@ -210,6 +210,8 @@ export const NOTE_LABEL_FACE: FaceId = "inter-regular";
 export const CARD_DESCRIPTION_FACE: FaceId = "inter-regular";
 export const LINE_LABEL_FACE: FaceId = "inter-regular";
 export const CLASS_NAME_FACE: FaceId = "inter-semibold";
+/** A class's «stereotype» line. Its words are fixed, so no input is checked against it. */
+export const STEREOTYPE_FACE: FaceId = "inter-regular";
 /** An abstract class's name: real italics, as UML draws it. */
 export const ABSTRACT_CLASS_NAME_FACE: FaceId = "inter-semibold-italic";
 export const CLASS_DESCRIPTION_FACE: FaceId = "inter-regular";

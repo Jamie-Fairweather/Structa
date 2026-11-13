@@ -15,7 +15,7 @@ import { classBody } from "./class";
 import { shapeBody } from "./flow";
 import { frameCards, strikeThrough, type Card, type TextLine } from "./frame";
 
-export { type Badge, type Box, type Card, type Row, type Strike, type TextLine } from "./frame";
+export { type Badge, type Box, type Card, type LevelLine, type Row, type TextLine } from "./frame";
 export { buildLegend, type Legend, type LegendItem } from "./legend";
 export { entry, nearest, type Mark, type Outline, type Point } from "./outline";
 

@@ -6,6 +6,7 @@ import {
   ENUM_SECTIONS,
   MEMBER_SECTIONS,
   ROW_TEXT_FACE,
+  STEREOTYPE_FACE,
   type ClassNode,
   type ClassRow,
   type ClassSection,
@@ -27,9 +28,6 @@ const ROW_KINDS = new Map<ClassSection, Row["kind"]>([
   ["methods", "method"],
   ["values", "value"],
 ]);
-
-/** Stereotype words are fixed, so they need no checking against the font. */
-const STEREOTYPE_FACE: FaceId = "inter-regular";
 
 /**
  * A class card, one standard width: any stereotype as a muted «…» line, then

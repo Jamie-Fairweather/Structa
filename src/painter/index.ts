@@ -8,10 +8,10 @@ import {
   type Connector,
   type Header,
   type Legend,
+  type LevelLine,
   type Line,
   type LineLabel,
   type Row,
-  type Strike,
   type TextLine,
 } from "../shapes";
 import { FACES, faceStyle, fontDataUrl, type FaceId } from "../text";
@@ -313,7 +313,7 @@ function text(t: Omit<TextLine, "color">, x: number, y: number, fill: string, pe
     ...(t.anchor === "middle" ? ([["text-anchor", "middle"]] as const) : []),
   ];
   const { sizes } = pen.theme;
-  const level = (name: string, { x1, x2, y: lineY }: Strike, width: number) =>
+  const level = (name: string, { x1, x2, y: lineY }: LevelLine, width: number) =>
     el("line", [
       ["class", name],
       ["x1", x + x1],

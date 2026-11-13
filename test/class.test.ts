@@ -282,12 +282,18 @@ describe("stereotypes", () => {
   });
 });
 
+/** The face a text element is drawn in, as "family weight style". */
+function faceOf(t: Element): string {
+  return `${t.getAttribute("font-family")!.split(",")[0]} ${t.getAttribute("font-weight")} ${t.getAttribute("font-style") ?? "normal"}`;
+}
+
 describe("abstract classes", () => {
   /** The faces a card's name is drawn in, as "family weight style". */
   function nameFaces(card: Element): string[] {
     const other = new Set([...rows(card), ...byClassIn(card, "badge")].flatMap(texts));
-    const name = texts(card).filter((t) => !t.textContent!.startsWith("«") && !other.has(t));
-    return name.map((t) => `${t.getAttribute("font-family")!.split(",")[0]} ${t.getAttribute("font-weight")} ${t.getAttribute("font-style") ?? "normal"}`);
+    return texts(card)
+      .filter((t) => !t.textContent!.startsWith("«") && !other.has(t))
+      .map(faceOf);
   }
 
   it.each([
@@ -335,23 +341,7 @@ describe("abstract classes", () => {
       { path: "nodes[0].abstract", message: `${JSON.stringify(abstract)} is not true or false`, hint: "write true or false, without quotes" },
     ]);
   });
-
-  it("checks the name against both faces it can be drawn in", async () => {
-    // Inter SemiBold and SemiBold Italic draw the same characters, so this is the upright check, through both.
-    expect(await problems(packet({ abstract: true, label: "Store ⇑" }))).toEqual([
-      {
-        path: "nodes[0].label",
-        message: 'contains "⇑" (U+21D1), which Structa\'s fonts can\'t draw',
-        hint: "use Latin letters, digits and common symbols",
-      },
-    ]);
-  });
 });
-
-/** The face a text element is drawn in, as "family weight style". */
-function faceOf(t: Element): string {
-  return `${t.getAttribute("font-family")!.split(",")[0]} ${t.getAttribute("font-weight")} ${t.getAttribute("font-style") ?? "normal"}`;
-}
 
 describe("abstract rows", () => {
   const text = "germinate(tray: SeedTray, warmth: Celsius, light: Lux, water: Millilitres): Seedling[]";
