@@ -85,6 +85,40 @@ describe("SKILL.md in the skill folder", () => {
     expect(spans.filter((span) => !exists(span))).toEqual([]);
   });
 
+  it("says when to use each diagram type the schema has, one point each, in the schema's order", () => {
+    const types = choicesOf(JSON.parse(skill.run(["schema"]).stdout), "type");
+    const points = [...section(skillMd, "Choosing the type").matchAll(/^- `([^`]+)`: .*\bUse it for\b/gm)].map(([, type]) => type);
+
+    expect(types.length).toBeGreaterThan(0);
+    expect(points).toEqual(types);
+  });
+
+  it("says when to give each status the schema has, one point each, in the schema's order", () => {
+    const statuses = choicesOf(JSON.parse(skill.run(["schema"]).stdout), "status");
+    const points = [...section(skillMd, "Showing a change honestly").matchAll(/^- `([^`]+)`: /gm)].map(([, status]) => status);
+
+    expect(statuses.length).toBeGreaterThan(0);
+    expect(points).toEqual(statuses);
+  });
+
+  it("says it needs the Node that package.json does, and calls Bun and Deno untested wherever it names them", () => {
+    const { engines } = JSON.parse(readFileSync(fileURLToPath(new URL("../package.json", import.meta.url)), "utf8")) as { engines: { node: string } };
+    const sentences = skillMd.split(/(?<=\.)\s+/);
+
+    expect(engines.node).toBe(">=20");
+    expect(skillMd).toContain("Node 20 or newer");
+    const naming = sentences.filter((sentence) => /\b(Bun|Deno)\b/i.test(sentence));
+    expect(naming.length).toBeGreaterThan(0);
+    expect(naming.filter((sentence) => !/\buntested\b/.test(sentence))).toEqual([]);
+  });
+
+  it("states every limit the schema sets, and only those, in its table of limits", () => {
+    const schema = JSON.parse(skill.run(["schema"]).stdout) as unknown;
+
+    // Each as "<field> <limit>": a field can have several, as an area's, a card's and a line's label do.
+    expect(statedLimits(skillMd)).toEqual(schemaLimits(schema));
+  });
+
   it("has only sh code blocks, which hold commands, and json ones, which hold diagrams that render", () => {
     const languages = [...skillMd.matchAll(/^```(.*)$/gm)].map(([, language]) => language).filter((_, i) => i % 2 === 0);
 
@@ -116,6 +150,64 @@ function schemaWords(schema: unknown): { fields: Set<string>; values: Set<string
   };
   walk(schema);
   return { fields, values };
+}
+
+/** The choices of the first field named `field` in the JSON Schema `schema` that has them, outermost first. */
+function choicesOf(schema: unknown, field: string): string[] {
+  const queue = [schema];
+  for (let node = queue.shift(); node !== undefined; node = queue.shift()) {
+    if (typeof node !== "object" || node === null) continue;
+    const choices = (node as { properties?: Record<string, { enum?: string[] }> }).properties?.[field]?.enum;
+    if (choices !== undefined) return choices;
+    queue.push(...Object.values(node));
+  }
+  return [];
+}
+
+/**
+ * Every field in the JSON Schema `schema` that has a most items or a longest
+ * text, as "<field> <limit>", once each, sorted.
+ */
+function schemaLimits(schema: unknown): string[] {
+  const defs = (schema as { $defs: Record<string, object> }).$defs;
+  const limits = new Set<string>();
+  const walk = (node: unknown): void => {
+    if (Array.isArray(node)) return node.forEach(walk);
+    if (typeof node !== "object" || node === null) return;
+    const properties = (node as { properties?: Record<string, { $ref?: string }> }).properties ?? {};
+    for (const [field, def] of Object.entries(properties)) {
+      const resolved = { ...(def.$ref === undefined ? {} : defs[def.$ref.replace("#/$defs/", "")]), ...def } as { maxItems?: number; maxLength?: number };
+      const limit = resolved.maxItems ?? resolved.maxLength;
+      if (limit !== undefined) limits.add(`${field} ${limit}`);
+    }
+    Object.values(node).forEach(walk);
+  };
+  walk(schema);
+  return [...limits].sort();
+}
+
+/**
+ * The limits in the table under `markdown`'s "## Limits" heading, as
+ * "<field> <limit>", once each, sorted: each field named in a row's first
+ * cell, with the first number in its second.
+ */
+function statedLimits(markdown: string): string[] {
+  const rows = section(markdown, "Limits").split("\n").filter((line) => line.startsWith("|")).slice(2);
+  const limits = rows.flatMap((row) => {
+    const [what = "", most = ""] = row.split("|").slice(1, -1);
+    const limit = /\d+/.exec(most)?.[0];
+    return [...what.matchAll(/`([^`]+)`/g)].map(([, field]) => `${field} ${limit}`);
+  });
+  return [...new Set(limits)].sort();
+}
+
+/** The text under `markdown`'s "## <heading>", up to the next such heading. Empty when there's no such heading. */
+function section(markdown: string, heading: string): string {
+  const start = markdown.indexOf(`\n## ${heading}\n`);
+  if (start === -1) return "";
+  const body = markdown.slice(start + heading.length + 5);
+  const end = body.indexOf("\n## ");
+  return end === -1 ? body : body.slice(0, end);
 }
 
 /** The contents of the code blocks in `markdown` written in `language`, in order. */
