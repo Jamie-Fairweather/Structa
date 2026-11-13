@@ -3,7 +3,7 @@ import { parseDiagram } from "./input";
 import { layout, PROFILES } from "./layout";
 import { paint } from "./painter";
 import { DEFAULT_SCALE, rasterise, SCALES, type Scale } from "./raster";
-import { buildAreaBoxes, buildCards, buildConnector, buildHeader, buildLegend, buildLine } from "./shapes";
+import { buildAreaBoxes, buildCards, buildConnector, buildHeader, buildLegend, buildLine, linePorts } from "./shapes";
 import { getTheme, THEME_NAMES, type ThemeName } from "./theme";
 
 interface Outputs {
@@ -44,7 +44,8 @@ export async function render<F extends Format = "svg">(
     const source = index.get(edge.from)!;
     const target = index.get(edge.to)!;
     const line = buildLine(edge, nodes[source]!.label, nodes[target]!.label, theme.sizes);
-    return { ...line, source, target, path: `edges[${i}]` };
+    const ports = linePorts(cards[source]!, cards[target]!, theme.sizes);
+    return { ...line, source, target, path: `edges[${i}]`, ...(ports ? { ports } : {}) };
   });
   // Only flowcharts have notes, each joined by a connector to the shape it's about.
   const flowNodes = diagram.type === "flow" ? diagram.nodes : [];

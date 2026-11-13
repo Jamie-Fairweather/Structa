@@ -165,15 +165,27 @@ export const SIZES = {
   line: { width: 1.5, emphasisWidth: 3, cornerRadius: 8, arrowLength: 9, arrowWidth: 9 },
   /** Dashed lines, such as async ones: dashes `dash` px long, `gap` px apart. */
   dashed: { dash: 6, gap: 4 },
-  /** A note's connector: thinner than a line, in `dash` px dots `gap` px apart. */
-  connector: { width: 1, dash: 2, gap: 3 },
+  /** Dotted lines, a note's connector or a relationship the database doesn't enforce: dashes `dash` px long, `gap` px apart. */
+  dotted: { dash: 2, gap: 3 },
+  /** A note's connector: dotted, and thinner than a line. */
+  connector: { width: 1 },
+  /**
+   * A crow's-foot end, measured out along the line from the table. Nearest the
+   * table, the most there can be: a foot `footLength` long and `footWidth` wide
+   * at the table for many, or a bar `barLength` across, `bar` out, for one.
+   * Then, `gap` beyond it, the fewest: another bar for one, or a circle of
+   * radius `circle` for zero. An end's marks stay `apart` clear of the marks
+   * of another end beside it, drawn narrower when the two are close.
+   */
+  crowsFoot: { footLength: 12, footWidth: 14, bar: 6, barLength: 14, gap: 5, circle: 4, apart: 2 },
   /** A line's label: text in a pill bordered in the line's colour, wrapped to `maxWidth`. */
   lineLabel: { fontSize: 12, lineHeight: 16, paddingX: 8, paddingY: 2, maxWidth: 180, borderWidth: 1 },
   /**
-   * Class cards: one standard width, any stereotype line, the name and the
-   * description centred at the top, then each section of rows under a divider.
+   * Standard cards, class and table cards: one width, any stereotype line,
+   * the name and the description centred at the top, then each section of
+   * rows under a divider.
    */
-  classCard: {
+  standardCard: {
     width: 360,
     paddingX: 14,
     paddingY: 12,
@@ -186,6 +198,16 @@ export const SIZES = {
     descriptionGap: 2,
     sectionPaddingY: 6,
   },
+  /**
+   * Table cards are standard cards. Each column is a row: its key markers in
+   * a column of their own, `markerGap` before its name, then its type, lined
+   * up `typeGap` after the longest name. The names take at most `nameShare`
+   * of the row; longer ones wrap. They give up room, down to `minNameShare`,
+   * so that a type's longest word fits whole beside its row's badge. Line
+   * ends that share a side of a table's header, such as a link to itself, sit
+   * `portGap` apart, or closer when that many don't fit.
+   */
+  tableCard: { markerSize: 10, markerGap: 8, typeGap: 16, nameShare: 0.55, minNameShare: 0.3, portGap: 20 },
   /**
    * A card's rows, such as class members. A row with a status is tinted, inset
    * `tintInset` from the card's sides and `tintGap` apart from the next row's

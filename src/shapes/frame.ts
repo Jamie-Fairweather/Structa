@@ -1,4 +1,4 @@
-import { AREA_LABEL_FACE, type ArchitectureKind, type ComponentKind, type FlowShape, type Status } from "../input";
+import { AREA_LABEL_FACE, STEREOTYPE_FACE, type ArchitectureKind, type ComponentKind, type FlowShape, type Status } from "../input";
 import { baseline, measure, wrap, type FaceId } from "../text";
 import type { Sizes, ThemeColors } from "../theme";
 import { move, placeOutline, type Mark, type Outline, type OutlineShape, type Point } from "./outline";
@@ -55,7 +55,7 @@ export interface Tag extends Box {
  */
 export interface Row {
   readonly id: string;
-  readonly kind: "property" | "method" | "value";
+  readonly kind: "property" | "method" | "value" | "column";
   readonly status?: Status;
   readonly tooltip: string;
   /** The band the row's tint fills when it has a status. */
@@ -96,7 +96,7 @@ export type CardFill = keyof Pick<ThemeColors, "cardFill" | "noteFill">;
  * `minWidth` the frame asks for; a narrower one sits centred in a wider box.
  */
 export interface CardBody {
-  readonly kind: FlowShape | ArchitectureKind;
+  readonly kind: FlowShape | ArchitectureKind | "table";
   readonly width: number;
   readonly height: number;
   readonly outline: OutlineShape;
@@ -112,6 +112,18 @@ export interface CardBody {
   readonly rows?: readonly Row[];
   /** The muted "… N more" line after the rows, for rows left out on purpose. */
   readonly more?: TextLine;
+  /**
+   * The card's header, its name and description, from its top down to its
+   * first divider: where on its sides a line that names no row attaches.
+   * Only cards whose lines attach at fixed points, such as tables, have one.
+   */
+  readonly header?: Span;
+}
+
+/** A stretch of a card from `top` down to `bottom`. */
+export interface Span {
+  readonly top: number;
+  readonly bottom: number;
 }
 
 /** A card sized before layout. Its box (`width` × `height`) is exactly what ELK is given. */
@@ -136,6 +148,8 @@ export interface Card {
   readonly badge?: Badge;
   /** The tag naming the card's innermost area, when tags are shown. */
   readonly tag?: Tag;
+  /** As in CardBody, measured from the top of the card's box. */
+  readonly header?: Span;
 }
 
 /** What sits on a card's top border. */
@@ -248,6 +262,7 @@ function frameCard<N extends Framed>(
     })),
     ...(body.more ? { more: shift(body.more) } : {}),
     ...onBorder(header, node.area, width, top, body.border, sizes),
+    ...(body.header ? { header: { top: body.header.top + top, bottom: body.header.bottom + top } } : {}),
   };
 }
 
@@ -281,6 +296,80 @@ function onBorder(
     ...(status === undefined ? {} : { badge: badge(status, badgeX, top - sizes.badge.height / 2, sizes) }),
     ...(label === undefined || area === undefined ? {} : { tag: tag(area, label, tagX, top - sizes.tag.height / 2, sizes) }),
   };
+}
+
+/**
+ * The top of a standard card, such as a class or a table, `width` wide: any
+ * «stereotype» as a muted line, then its name centred, and any description
+ * muted under it, with padding above and below. It ends at `bottom`, where
+ * the card's first divider goes.
+ */
+export function cardHead(
+  label: string,
+  nameFace: FaceId,
+  description: string | undefined,
+  descriptionFace: FaceId,
+  width: number,
+  sizes: Sizes,
+  stereotype?: string,
+): { texts: TextLine[]; bottom: number } {
+  const c = sizes.standardCard;
+  const texts: TextLine[] = [];
+  let y: number = c.paddingY;
+  if (stereotype !== undefined) {
+    const line = centred(`«${stereotype}»`, STEREOTYPE_FACE, c.stereotypeSize, c.stereotypeLineHeight, y, width, sizes);
+    texts.push(...line.texts.map((t): TextLine => ({ ...t, color: "mutedText" })));
+    y = line.bottom;
+  }
+  const name = centred(label, nameFace, c.nameSize, c.nameLineHeight, y, width, sizes);
+  texts.push(...name.texts.map((t): TextLine => ({ ...t, color: "text", title: true })));
+  y = name.bottom;
+  if (description !== undefined) {
+    const top = y + c.descriptionGap;
+    const lines = centred(description, descriptionFace, c.descriptionSize, c.descriptionLineHeight, top, width, sizes);
+    texts.push(...lines.texts.map((t): TextLine => ({ ...t, color: "mutedText" })));
+    y = lines.bottom;
+  }
+  return { texts, bottom: y + c.paddingY };
+}
+
+/** `text` wrapped to a card `width` wide and centred on it, its lines from `top` down. */
+function centred(text: string, face: FaceId, size: number, lineHeight: number, top: number, width: number, sizes: Sizes) {
+  const lines = wrap(text, face, size, width - 2 * sizes.standardCard.paddingX);
+  const offset = baseline(face, size, lineHeight);
+  return {
+    texts: lines.map((line, i) => ({ text: line, x: width / 2, y: top + i * lineHeight + offset, face, size, anchor: "middle" as const })),
+    bottom: top + lines.length * lineHeight,
+  };
+}
+
+/**
+ * The muted "… N more" line, placed like a one-line row from `top` down, in
+ * line with the rows' text, in the face the rows are drawn in.
+ */
+export function moreLine(count: number, top: number, textX: number, face: FaceId, sizes: Sizes): TextLine {
+  const r = sizes.row;
+  const y = top + r.paddingY + baseline(face, r.fontSize, r.lineHeight);
+  return { text: `… ${count} more`, x: textX, y, face, size: r.fontSize, anchor: "start", color: "mutedText" };
+}
+
+/**
+ * The band a row's tint fills: the row from `top` down, `height` tall, inset
+ * from the sides of a card `width` wide. A tint never quite touches the next
+ * row's, so a run of rows with a status reads as separate rows.
+ */
+export function rowBand(top: number, height: number, width: number, sizes: Sizes): Box {
+  const r = sizes.row;
+  return { x: r.tintInset, y: top + r.tintGap / 2, width: width - 2 * r.tintInset, height: height - r.tintGap };
+}
+
+/**
+ * A row's badge, ending at `right`, for a row from `top`. It's centred on the
+ * row's first line, so it stays level with the row's start when the text wraps.
+ */
+export function rowBadge(status: Status, right: number, top: number, sizes: Sizes): Badge {
+  const r = sizes.row;
+  return badge(status, right - measureBadge(status, sizes), top + r.paddingY + (r.lineHeight - sizes.badge.height) / 2, sizes);
 }
 
 /** A line through the middle of the letters of `t`, as wide as the text is drawn. */

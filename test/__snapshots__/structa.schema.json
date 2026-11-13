@@ -12,6 +12,7 @@
       "description": "the kind of diagram",
       "enum": [
         "class",
+        "er",
         "flow",
         "architecture"
       ]
@@ -37,7 +38,7 @@
       "default": "light"
     },
     "direction": {
-      "description": "which way the diagram flows: top to bottom or left to right",
+      "description": "which way the diagram flows: top to bottom or left to right; by default right for ER diagrams, down for the others",
       "enum": [
         "down",
         "right"
@@ -419,6 +420,203 @@
                 "from",
                 "to",
                 "kind"
+              ],
+              "additionalProperties": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "er"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "direction": {
+            "default": "right"
+          },
+          "nodes": {
+            "type": "array",
+            "items": {
+              "description": "One table. Its columns' names are unique within it. Its columns' statuses must agree with its own: a column in a new or removed table can only have the table's status, and takes it when it has none; a column in an unchanged table can only be unchanged; and a table needs a status when any of its columns has one. A table has at most 100 columns.",
+              "type": "object",
+              "properties": {
+                "id": {
+                  "description": "a unique id made of letters, digits and - _ . :",
+                  "$ref": "#/$defs/id"
+                },
+                "label": {
+                  "description": "the table's name",
+                  "$ref": "#/$defs/label",
+                  "type": "string",
+                  "pattern": "^[\\u0020-\\u007E\\u00A0-\\u00AC\\u00AE-\\u0148\\u014A-\\u017F\\u2010-\\u2015\\u2018-\\u2022\\u2026\\u2030\\u2032-\\u2033\\u2039-\\u203A\\u20AC\\u2122\\u2190-\\u2195\\u21D0\\u21D2\\u21D4\\u2212\\u221E\\u2248\\u2260\\u2264-\\u2265]*$"
+                },
+                "description": {
+                  "description": "a short sentence drawn under the name",
+                  "$ref": "#/$defs/description",
+                  "type": "string",
+                  "pattern": "^[\\u0020-\\u007E\\u00A0-\\u00AC\\u00AE-\\u0148\\u014A-\\u017F\\u2010-\\u2015\\u2018-\\u2022\\u2026\\u2030\\u2032-\\u2033\\u2039-\\u203A\\u20AC\\u2122\\u2190-\\u2195\\u21D0\\u21D2\\u21D4\\u2212\\u221E\\u2248\\u2260\\u2264-\\u2265]*$"
+                },
+                "area": {
+                  "description": "the id of the area the table is in",
+                  "$ref": "#/$defs/id"
+                },
+                "status": {
+                  "description": "what the change does to this card; leave it out for no status",
+                  "enum": [
+                    "new",
+                    "changed",
+                    "removed",
+                    "unchanged"
+                  ]
+                },
+                "columns": {
+                  "description": "the table's columns, in order",
+                  "type": "array",
+                  "maxItems": 100,
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "description": "the column's name, unique within its table",
+                        "$ref": "#/$defs/columnName",
+                        "type": "string",
+                        "pattern": "^[\\u0020-\\u007E\\u00A0-\\u0131\\u0134-\\u017F\\u2010\\u2013-\\u2014\\u2018-\\u2022\\u2026\\u2030\\u2032-\\u2033\\u2039-\\u203A\\u20AC\\u2122\\u2190-\\u2195\\u21D0-\\u21D4\\u2212\\u221E\\u2248\\u2260\\u2264-\\u2265]*$"
+                      },
+                      "type": {
+                        "description": "the column's type, such as uuid or varchar(200)",
+                        "$ref": "#/$defs/columnType",
+                        "type": "string",
+                        "pattern": "^[\\u0020-\\u007E\\u00A0-\\u0131\\u0134-\\u017F\\u2010\\u2013-\\u2014\\u2018-\\u2022\\u2026\\u2030\\u2032-\\u2033\\u2039-\\u203A\\u20AC\\u2122\\u2190-\\u2195\\u21D0-\\u21D4\\u2212\\u221E\\u2248\\u2260\\u2264-\\u2265]*$"
+                      },
+                      "pk": {
+                        "description": "true marks the column as part of the primary key, drawn as PK",
+                        "type": "boolean",
+                        "default": false
+                      },
+                      "fk": {
+                        "description": "true marks the column as a foreign key, drawn as FK",
+                        "type": "boolean",
+                        "default": false
+                      },
+                      "unique": {
+                        "description": "true marks the column's values as unique, drawn as UQ",
+                        "type": "boolean",
+                        "default": false
+                      },
+                      "nullable": {
+                        "description": "true lets the column be null, drawn as ? after its type",
+                        "type": "boolean",
+                        "default": false
+                      },
+                      "status": {
+                        "description": "what the change does to this column; leave it out for no status",
+                        "enum": [
+                          "new",
+                          "changed",
+                          "removed",
+                          "unchanged"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "type"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "default": []
+                },
+                "more": {
+                  "description": "how many columns were left out on purpose, drawn as a muted \"… N more\" row",
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 9999
+                }
+              },
+              "required": [
+                "id",
+                "label"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "edges": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "description": "a unique id; without one the line is known as edges[N]",
+                  "$ref": "#/$defs/id"
+                },
+                "from": {
+                  "description": "the id of the node the line starts at",
+                  "$ref": "#/$defs/id"
+                },
+                "to": {
+                  "description": "the id of the node the line ends at",
+                  "$ref": "#/$defs/id"
+                },
+                "label": {
+                  "description": "a short label drawn in a pill on the line",
+                  "$ref": "#/$defs/lineLabel",
+                  "type": "string",
+                  "pattern": "^[\\u0020-\\u007E\\u00A0-\\u00AC\\u00AE-\\u0148\\u014A-\\u017F\\u2010-\\u2015\\u2018-\\u2022\\u2026\\u2030\\u2032-\\u2033\\u2039-\\u203A\\u20AC\\u2122\\u2190-\\u2195\\u21D0\\u21D2\\u21D4\\u2212\\u221E\\u2248\\u2260\\u2264-\\u2265]*$"
+                },
+                "status": {
+                  "description": "what the change does to this line, shown by its colour; leave it out for no status",
+                  "enum": [
+                    "new",
+                    "changed",
+                    "removed",
+                    "unchanged"
+                  ]
+                },
+                "emphasis": {
+                  "description": "true draws the line thicker, to point out the main path",
+                  "type": "boolean",
+                  "default": false
+                },
+                "fromCardinality": {
+                  "description": "how many rows of the from table go with one row of the to table, drawn as a crow's foot at the from end",
+                  "enum": [
+                    "one",
+                    "zero-or-one",
+                    "many",
+                    "one-or-many",
+                    "zero-or-many"
+                  ]
+                },
+                "toCardinality": {
+                  "description": "how many rows of the to table go with one row of the from table, drawn as a crow's foot at the to end",
+                  "enum": [
+                    "one",
+                    "zero-or-one",
+                    "many",
+                    "one-or-many",
+                    "zero-or-many"
+                  ]
+                },
+                "enforced": {
+                  "description": "false shows a relationship the database doesn't enforce with a foreign key, drawn dotted",
+                  "type": "boolean",
+                  "default": true
+                }
+              },
+              "required": [
+                "from",
+                "to",
+                "fromCardinality",
+                "toCardinality"
               ],
               "additionalProperties": false
             }
@@ -1017,6 +1215,20 @@
       "type": "string",
       "minLength": 1,
       "maxLength": 40,
+      "pattern": "[^ ]"
+    },
+    "columnName": {
+      "description": "the name of a table's column: plain text",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "pattern": "[^ ]"
+    },
+    "columnType": {
+      "description": "the type of a table's column, such as uuid or varchar(200): plain text",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
       "pattern": "[^ ]"
     }
   }

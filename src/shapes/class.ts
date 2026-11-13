@@ -6,7 +6,6 @@ import {
   ENUM_SECTIONS,
   MEMBER_SECTIONS,
   ROW_TEXT_FACE,
-  STEREOTYPE_FACE,
   type ClassNode,
   type ClassRow,
   type ClassSection,
@@ -14,7 +13,7 @@ import {
 } from "../input";
 import { baseline, measure, wrap, type FaceId } from "../text";
 import type { Sizes } from "../theme";
-import { badge, measureBadge, underline, type CardBody, type Row, type TextLine } from "./frame";
+import { cardHead, measureBadge, moreLine, rowBadge, rowBand, underline, type CardBody, type Row, type TextLine } from "./frame";
 
 const SYMBOLS = new Map<Visibility, string>([
   ["public", "+"],
@@ -41,26 +40,11 @@ const ROW_KINDS = new Map<ClassSection, Row["kind"]>([
  * the standard width make it wider, `minWidth`.
  */
 export function classBody(node: ClassNode, sizes: Sizes, minWidth: number): CardBody {
-  const c = sizes.classCard;
+  const c = sizes.standardCard;
   const width = Math.max(c.width, minWidth);
-  const texts: TextLine[] = [];
-  let y: number = c.paddingY;
-  if (node.stereotype !== undefined) {
-    const line = centred(`«${node.stereotype}»`, STEREOTYPE_FACE, c.stereotypeSize, c.stereotypeLineHeight, y, width, sizes);
-    texts.push(...line.texts.map((t): TextLine => ({ ...t, color: "mutedText" })));
-    y = line.bottom;
-  }
   const nameFace = node.abstract || node.stereotype === "abstract" ? ABSTRACT_CLASS_NAME_FACE : CLASS_NAME_FACE;
-  const name = centred(node.label, nameFace, c.nameSize, c.nameLineHeight, y, width, sizes);
-  texts.push(...name.texts.map((t): TextLine => ({ ...t, color: "text", title: true })));
-  y = name.bottom;
-  if (node.description !== undefined) {
-    const top = y + c.descriptionGap;
-    const description = centred(node.description, CLASS_DESCRIPTION_FACE, c.descriptionSize, c.descriptionLineHeight, top, width, sizes);
-    texts.push(...description.texts.map((t): TextLine => ({ ...t, color: "mutedText" })));
-    y = description.bottom;
-  }
-  y += c.paddingY;
+  const { texts, bottom } = cardHead(node.label, nameFace, node.description, CLASS_DESCRIPTION_FACE, width, sizes, node.stereotype);
+  let y = bottom;
 
   // An enum has only its values; any other class only its members.
   const drawn: readonly ClassSection[] = node.stereotype === "enum" ? ENUM_SECTIONS : MEMBER_SECTIONS;
@@ -85,7 +69,7 @@ export function classBody(node: ClassNode, sizes: Sizes, minWidth: number): Card
       y += height;
     }
     if (i === count - 1 && node.more !== undefined) {
-      more = moreLine(node.more, y, textX, sizes);
+      more = moreLine(node.more, y, textX, ROW_TEXT_FACE, sizes);
       y += 2 * sizes.row.paddingY + sizes.row.lineHeight;
     }
     y += c.sectionPaddingY;
@@ -95,23 +79,6 @@ export function classBody(node: ClassNode, sizes: Sizes, minWidth: number): Card
   const tooltip = node.description === undefined ? named : `${named}: ${node.description}`;
   const outline = { kind: "rounded", radius: sizes.card.radius } as const;
   return { kind: "class", width, height: y, outline, tooltip, texts, dividers, rows, ...(more ? { more } : {}) };
-}
-
-/** `text` wrapped to the card's width and centred on it, its lines from `top` down. */
-function centred(text: string, face: FaceId, size: number, lineHeight: number, top: number, width: number, sizes: Sizes) {
-  const lines = wrap(text, face, size, width - 2 * sizes.classCard.paddingX);
-  const offset = baseline(face, size, lineHeight);
-  return {
-    texts: lines.map((line, i) => ({ text: line, x: width / 2, y: top + i * lineHeight + offset, face, size, anchor: "middle" as const })),
-    bottom: top + lines.length * lineHeight,
-  };
-}
-
-/** The muted "… N more" line, placed like a one-line row from `top` down, in line with the rows' text. */
-function moreLine(count: number, top: number, textX: number, sizes: Sizes): TextLine {
-  const r = sizes.row;
-  const y = top + r.paddingY + baseline(ROW_TEXT_FACE, r.fontSize, r.lineHeight);
-  return { ...rowText(`… ${count} more`, textX, y, sizes), color: "mutedText" };
 }
 
 /**
@@ -129,7 +96,7 @@ function classRow(
   sizes: Sizes,
 ): { row: Row; height: number } {
   const r = sizes.row;
-  const left = sizes.classCard.paddingX;
+  const left = sizes.standardCard.paddingX;
   const { status } = member;
   const symbol = member.visibility === undefined ? undefined : SYMBOLS.get(member.visibility)!;
   const badgeWidth = status === undefined ? 0 : measureBadge(status, sizes);
@@ -141,16 +108,9 @@ function classRow(
   const row: Row = {
     id: member.id,
     kind,
-    ...(status === undefined
-      ? {}
-      : {
-          status,
-          // Centred on the first line, so it stays level with the row's start when the text wraps.
-          badge: badge(status, width - left - badgeWidth, top + r.paddingY + (r.lineHeight - sizes.badge.height) / 2, sizes),
-        }),
+    ...(status === undefined ? {} : { status, badge: rowBadge(status, width - left, top, sizes) }),
     tooltip: symbol === undefined ? member.text : `${symbol} ${member.text}`,
-    // A tint never quite touches the next row's, so a run of rows with a status reads as separate rows.
-    box: { x: r.tintInset, y: top + r.tintGap / 2, width: width - 2 * r.tintInset, height: height - r.tintGap },
+    box: rowBand(top, height, width, sizes),
     // The symbol sits in its own column, level with the first line, so a removed row's strike starts after it.
     ...(symbol === undefined
       ? {}

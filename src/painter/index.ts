@@ -1,4 +1,4 @@
-import type { Status } from "../input";
+import type { Cardinality, Status } from "../input";
 import type { PlacedArea, PlacedCard, Point, RoutedLine, Scene } from "../layout";
 import {
   entry,
@@ -21,7 +21,7 @@ import {
 import { FACES, faceStyle, fontDataUrl, type FaceId } from "../text";
 import type { Theme } from "../theme";
 import { iconPath } from "./icons";
-import { arrowhead, openArrowhead, roundedRoute } from "./route";
+import { arrowhead, crowsFoot, openArrowhead, roundedRoute } from "./route";
 import { el, escapeText, num, open, type Attrs } from "./svg";
 
 /** Everything drawn: the laid-out scene, the title above it and the legend below it. */
@@ -63,6 +63,8 @@ export function paint({ scene, header, legend }: Drawing, theme: Theme, options:
 
   const routed = (l: Line | Connector, points: readonly Point[]) => ontoCards(points, placed.get(l.from)!, placed.get(l.to)!);
   const lines = scene.lines.filter((l): l is RoutedLine<Line> => l.line.kind !== "connector");
+  const drawn = lines.map(({ line: l, points }) => ({ line: l, points: routed(l, points) }));
+  const rooms = endRooms(drawn);
   const content = [
     ...(header ? headerText(header, { x: pad, y: headerTop! }, pen) : []),
     // Under everything else in the scene, each parent before the areas inside it.
@@ -70,7 +72,7 @@ export function paint({ scene, header, legend }: Drawing, theme: Theme, options:
     ...scene.cards.flatMap((p) => card(p, origin, pen, ids.shadow)),
     // Under the lines: a note's connector is an aside, not part of the flow.
     ...scene.lines.flatMap(({ line: l, points }) => (l.kind === "connector" ? connector(l, routed(l, points), origin, pen) : [])),
-    ...lines.flatMap(({ line: l, points }) => line(l, routed(l, points), origin, pen)),
+    ...drawn.flatMap(({ line: l, points }, i) => line(l, points, origin, pen, rooms[i]!)),
     ...areaNames(scene.areas, origin, pen),
     ...lineLabels(lines, origin, pen),
     ...(legend ? legendItems(legend, { x: pad, y: legendTop! }, pen) : []),
@@ -109,6 +111,30 @@ function land(route: readonly Point[], end: number, step: 1 | -1, { card, x, y }
   // a corner of the outline. Then it ends at the nearest point of what's drawn.
   const met = entry(card, { x: q.x - x, y: q.y - y }, onCard) ?? nearest(card, onCard);
   return { x: met.x + x, y: met.y + y };
+}
+
+/** For one line, how far each of its ends is from the nearest other line end on the same side of the same card. */
+interface Rooms {
+  readonly from: number;
+  readonly to: number;
+}
+
+/**
+ * How much room each line's crow's feet have across the line: the distance
+ * from each end to the nearest other relationship end on the same side of the
+ * same table. Ends that share a side are spread apart, but on a crowded one
+ * they can be closer than a crow's foot is wide.
+ */
+function endRooms(lines: readonly { line: Line; points: readonly Point[] }[]): Rooms[] {
+  const ends = lines.flatMap(({ line: l, points }) =>
+    l.ends ? [{ card: l.from, at: points[0]! }, { card: l.to, at: points.at(-1)! }] : [],
+  );
+  const room = (card: string, at: Point | undefined) => {
+    if (!at) return Number.POSITIVE_INFINITY;
+    const others = ends.filter((e) => e.card === card && e.at !== at && Math.abs(e.at.x - at.x) < 1);
+    return Math.min(Number.POSITIVE_INFINITY, ...others.map((e) => Math.abs(e.at.y - at.y)));
+  };
+  return lines.map(({ line: l, points }) => ({ from: room(l.from, points[0]), to: room(l.to, points.at(-1)) }));
 }
 
 /** The tops of blocks of these heights, stacked `gap` apart from `top`, skipping absent ones, and where the last one ends. */
@@ -497,19 +523,21 @@ function connector(c: Connector, points: readonly Point[], at: Point, pen: Pen):
         ["fill", "none"],
         ["stroke", colors.connector],
         ["stroke-width", sizes.connector.width],
-        ["stroke-dasharray", `${num(sizes.connector.dash)} ${num(sizes.connector.gap)}`],
+        ["stroke-dasharray", `${num(sizes.dotted.dash)} ${num(sizes.dotted.gap)}`],
       ]),
     ]),
     "</g>",
   ];
 }
 
-function line(line: Line, points: readonly Point[], at: Point, pen: Pen): string[] {
+function line(line: Line, points: readonly Point[], at: Point, pen: Pen, rooms: Rooms): string[] {
   const { sizes } = pen.theme;
   const pts = points.map((p) => ({ x: p.x + at.x, y: p.y + at.y }));
   const { cornerRadius, arrowLength } = sizes.line;
   const colour = lineColour(line.status, pen.theme);
   const width = line.emphasis ? sizes.line.emphasisWidth : sizes.line.width;
+  // Dashed shows an async line, dotted a relationship the database doesn't enforce.
+  const dashes = line.pattern === "solid" ? undefined : sizes[line.pattern];
   return [
     open("g", [
       ["class", "line"],
@@ -529,9 +557,15 @@ function line(line: Line, points: readonly Point[], at: Point, pen: Pen): string
         ["stroke", colour],
         ["stroke-width", width],
         ["stroke-linejoin", "round"],
-        ...(line.pattern === "dashed" ? ([["stroke-dasharray", `${num(sizes.dashed.dash)} ${num(sizes.dashed.gap)}`]] as const) : []),
+        ...(dashes ? ([["stroke-dasharray", `${num(dashes.dash)} ${num(dashes.gap)}`]] as const) : []),
       ]),
       ...lineHead(line.arrow, pts, colour, width, pen.theme),
+      ...(line.ends
+        ? [
+            ...lineEnd(pts, "from", line.ends.from, rooms.from, colour, width, pen),
+            ...lineEnd(pts, "to", line.ends.to, rooms.to, colour, width, pen),
+          ]
+        : []),
     ]),
     "</g>",
   ];
@@ -557,6 +591,33 @@ function lineHead(arrow: Line["arrow"], points: readonly Point[], colour: string
     case "none":
       return [];
   }
+}
+
+/**
+ * A relationship's crow's-foot end, drawn solid whatever the line's pattern,
+ * and narrower when another line ends less than `room` px beside it. Its
+ * circle, for zero, is hollow: filled with the canvas colour, so the line
+ * doesn't show through it.
+ */
+function lineEnd(
+  points: readonly Point[],
+  end: "from" | "to",
+  cardinality: Cardinality,
+  room: number,
+  colour: string,
+  width: number,
+  pen: Pen,
+): string[] {
+  const { d, circle } = crowsFoot(points, end === "from" ? "start" : "end", cardinality, pen.theme.sizes.crowsFoot, room);
+  const stroke: Attrs = [["stroke", colour], ["stroke-width", width]];
+  return [
+    open("g", [["class", "end"], ["data-end", end], ["data-cardinality", cardinality]]),
+    el("path", [["d", d], ["fill", "none"], ...stroke, ["stroke-linejoin", "round"]]),
+    ...(circle
+      ? [el("circle", [["cx", circle.centre.x], ["cy", circle.centre.y], ["r", circle.radius], ["fill", pen.theme.colors.background], ...stroke])]
+      : []),
+    "</g>",
+  ];
 }
 
 /**

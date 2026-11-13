@@ -29,7 +29,7 @@ export function jsonSchema(): JsonSchema {
     ...objectSchema(SHARED),
     allOf: [...DEFINITIONS].map(([type, def]) => ({
       if: { properties: { type: { const: type } }, required: ["type"] },
-      then: { properties: { nodes: itemsSchema(def, "nodes"), edges: itemsSchema(def, "edges") } },
+      then: { properties: { ...ownDefaults(def), nodes: itemsSchema(def, "nodes"), edges: itemsSchema(def, "edges") } },
     })),
     $defs: {
       id: { description: "letters, digits and - _ . :", type: "string", pattern: ID_PATTERN },
@@ -42,6 +42,16 @@ export function jsonSchema(): JsonSchema {
       ),
     },
   };
+}
+
+/** The top-level defaults a type has of its own, such as ER's direction, that differ from the ones every type shares. */
+function ownDefaults(def: ObjectDef): JsonSchema {
+  const shared = new Map(SHARED.fields.map((field) => [field.name, field.default]));
+  return Object.fromEntries(
+    def.fields
+      .filter((field) => typeof field.default !== "object" && field.default !== shared.get(field.name))
+      .map((field) => [field.name, { default: field.default }]),
+  );
 }
 
 /** What one item of a type's `nodes` or `edges` list must be. */

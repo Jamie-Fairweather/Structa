@@ -73,27 +73,28 @@ describe("the top level", () => {
 
   it("requires a type", async () => {
     expect(await problems(pondWith((p) => delete p.type))).toEqual([
-      { path: "type", message: 'missing required field "type"', hint: 'add "type": the kind of diagram, "class", "flow" or "architecture"' },
+      { path: "type", message: 'missing required field "type"', hint: 'add "type": the kind of diagram, "class", "er", "flow" or "architecture"' },
     ]);
   });
 
   it.each([
-    ["er", '"er" is not supported yet'],
     ["sequence", '"sequence" is not supported yet'],
     [7, "7 is not a valid type"],
   ])("accepts only implemented types, not %j", async (type, message) => {
-    expect(await problems({ ...pond(), type })).toEqual([{ path: "type", message, hint: 'use "class", "flow" or "architecture"' }]);
+    expect(await problems({ ...pond(), type })).toEqual([{ path: "type", message, hint: 'use "class", "er", "flow" or "architecture"' }]);
   });
 
   it("doesn't guess at the fields of a type it doesn't support", async () => {
-    const tables = {
-      type: "er",
-      title: "Orders",
-      nodes: [{ id: "orders", label: "orders", columns: [] }],
-      edges: [{ fromColumn: "id" }],
+    const messages = {
+      type: "sequence",
+      title: "Checkout",
+      nodes: [{ id: "till", label: "Till", lifeline: true }],
+      edges: [{ message: "scan basket" }],
     };
 
-    expect(await problems(tables)).toEqual([{ path: "type", message: '"er" is not supported yet', hint: 'use "class", "flow" or "architecture"' }]);
+    expect(await problems(messages)).toEqual([
+      { path: "type", message: '"sequence" is not supported yet', hint: 'use "class", "er", "flow" or "architecture"' },
+    ]);
   });
 
   it("requires nodes", async () => {

@@ -110,12 +110,25 @@ function seedSwap() {
   } as Node;
 }
 
+/** A small valid ER diagram: seed swaps between members. */
+function swapTables() {
+  return {
+    type: "er",
+    nodes: [
+      { id: "members", label: "members", columns: [{ name: "id", type: "uuid", pk: true }, { name: "nickname", type: "text" }] },
+      { id: "swaps", label: "swaps", columns: [{ name: "id", type: "uuid", pk: true }, { name: "giver_id", type: "uuid", fk: true }] },
+    ],
+    edges: [{ id: "gives", from: "swaps", to: "members", fromCardinality: "zero-or-many", toCardinality: "one" }],
+  } as Node;
+}
+
 /** A part of the schema: its name, the type of diagram it's in, where it is in the schema and in the input, and its path. */
 type Part = readonly [name: string, type: string, part: () => Node, target: (input: Node) => Node, prefix: string];
 
 /** A small valid diagram of each type. */
 const FIXTURES = new Map<string, () => Node>([
   ["class", toolShed],
+  ["er", swapTables],
   ["flow", greenhouse],
   ["architecture", seedSwap],
 ]);
@@ -163,7 +176,7 @@ describe("the JSON Schema", () => {
 
   it("offers exactly the diagram types render() accepts, each with its own nodes and edges", async () => {
     const validate = new Ajv2020({ strict: true }).compile(root);
-    expect(root.properties.type.enum).toEqual(["class", "flow", "architecture"]);
+    expect(root.properties.type.enum).toEqual(["class", "er", "flow", "architecture"]);
 
     for (const [type, fixture] of FIXTURES) {
       expect([type, await outcome(fixture())]).toEqual([type, "ok"]);
@@ -177,7 +190,7 @@ describe("the JSON Schema", () => {
       }
     }
     expect(await outcome({ ...greenhouse(), type: "sideways" })).toEqual([
-      expect.objectContaining({ path: "type", hint: 'use "class", "flow" or "architecture"' }),
+      expect.objectContaining({ path: "type", hint: 'use "class", "er", "flow" or "architecture"' }),
     ]);
   });
 
@@ -208,6 +221,7 @@ describe("the JSON Schema", () => {
       "nodes[1].methods[0].",
     ],
     ["an architecture edge", "architecture", () => items("architecture", "edges"), (input: Node) => input.edges[1], "edges[1]."],
+    ...erParts(0),
   ])("lists exactly the fields render() allows on %s", async (_name, type, part, target, prefix) => {
     const input = FIXTURES.get(type)!();
     target(input).mulch = true;
@@ -229,6 +243,7 @@ describe("the JSON Schema", () => {
     ["an architecture component", "architecture", () => items("architecture", "nodes"), (input: Node) => input.nodes[2], "nodes[2]."],
     ["an architecture class", "architecture", () => items("architecture", "nodes"), (input: Node) => input.nodes[1], "nodes[1]."],
     ["an architecture edge", "architecture", () => items("architecture", "edges"), (input: Node) => input.edges[0], "edges[0]."],
+    ...erParts(1),
   ])("requires exactly the fields render() requires on %s", async (_name, type, part, target, prefix) => {
     for (const field of Object.keys(part().properties)) {
       const input = FIXTURES.get(type)!();
@@ -238,6 +253,44 @@ describe("the JSON Schema", () => {
 
       const missing = result === "ok" ? [] : result.filter((p) => p.message === `missing required field "${field}"`);
       expect(missing.map((p) => p.path)).toEqual(part().required.includes(field) ? [`${prefix}${field}`] : []);
+    }
+  });
+
+  /** An ER diagram's table, its line and the first column of the table at `n`, as parts of the schema. */
+  function erParts(n: number): Part[] {
+    return [
+      ["an ER table", "er", () => items("er", "nodes"), (input: Node) => input.nodes[n], `nodes[${n}].`],
+      ["an ER line", "er", () => items("er", "edges"), (input: Node) => input.edges[0], "edges[0]."],
+      ["an ER column", "er", () => items("er", "nodes").properties.columns.items, (input: Node) => input.nodes[n].columns[0], `nodes[${n}].columns[0].`],
+    ];
+  }
+
+  it("documents that ER diagrams run left to right unless asked otherwise, and the rest top to bottom", async () => {
+    const branch = (type: string) => (root.allOf as Node[]).find((b) => b.if.properties.type.const === type)!.then.properties;
+    expect(branch("er").direction).toEqual({ default: "right" });
+    expect(branch("class").direction).toBeUndefined();
+    expect(branch("flow").direction).toBeUndefined();
+    expect(branch("architecture").direction).toBeUndefined();
+    expect(root.properties.direction.description).toMatch(/right for ER diagrams, down for the others/);
+
+    expect((await render({ ...swapTables(), direction: "right" }, opts)).svg).toBe((await render(swapTables(), opts)).svg);
+    expect((await render({ ...swapTables(), direction: "down" }, opts)).svg).not.toBe((await render(swapTables(), opts)).svg);
+  });
+
+  it("documents that ER lines are enforced unless said otherwise, and offers the cardinalities render() accepts", async () => {
+    const edges = items("er", "edges");
+    expect(edges.properties.enforced).toMatchObject({ type: "boolean", default: true });
+    expect(edges.required).toEqual(expect.arrayContaining(["fromCardinality", "toCardinality"]));
+
+    const enforced = swapTables();
+    enforced.edges[0].enforced = true;
+    expect((await render(enforced, opts)).svg).toBe((await render(swapTables(), opts)).svg);
+    for (const end of ["fromCardinality", "toCardinality"]) {
+      for (const value of edges.properties[end].enum) {
+        const input = swapTables();
+        input.edges[0][end] = value;
+        expect([end, value, await outcome(input)]).toEqual([end, value, "ok"]);
+      }
     }
   });
 

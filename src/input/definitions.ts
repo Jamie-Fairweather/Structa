@@ -22,7 +22,9 @@ const LINE_LABEL: TextKind = { name: "lineLabel", maxLength: 60, description: "a
 const ROW_TEXT: TextKind = { name: "rowText", maxLength: 200, description: "one row of a card, such as a class member" };
 /** Short, as it's drawn on one line in a tag on a card's border. */
 const AREA_LABEL: TextKind = { name: "areaLabel", maxLength: 40, description: "an area's name, on its cards' tags or its box" };
-export const TEXT_KINDS: readonly TextKind[] = [TITLE, LABEL, DESCRIPTION, LINE_LABEL, ROW_TEXT, AREA_LABEL];
+const COLUMN_NAME: TextKind = { name: "columnName", maxLength: 100, description: "the name of a table's column" };
+const COLUMN_TYPE: TextKind = { name: "columnType", maxLength: 100, description: "the type of a table's column, such as uuid or varchar(200)" };
+export const TEXT_KINDS: readonly TextKind[] = [TITLE, LABEL, DESCRIPTION, LINE_LABEL, ROW_TEXT, AREA_LABEL, COLUMN_NAME, COLUMN_TYPE];
 
 /** What a change does to a card, row or line: the same words the badges show. */
 export const STATUSES = ["new", "changed", "removed", "unchanged"] as const;
@@ -158,7 +160,7 @@ function conditional(name: string, def: Def, description: string, ...onlyWhen: [
 }
 
 /** The diagram types implemented so far, in the spec's order. Each has an example, examples/<type>.json. */
-export const DIAGRAM_TYPES: readonly string[] = ["class", "flow", "architecture"];
+export const DIAGRAM_TYPES: readonly string[] = ["class", "er", "flow", "architecture"];
 
 const LIMITS = { nodes: 500, edges: 1000, areas: 100 } as const;
 const SPLIT_HINT = "split the diagram into smaller ones";
@@ -190,7 +192,7 @@ function diagram(node: Def, edge: Def, direction: "down" | "right", rules: reado
       optional(
         "direction",
         { kind: "choice", values: ["down", "right"], later: false },
-        "which way the diagram flows: top to bottom or left to right",
+        "which way the diagram flows: top to bottom or left to right; by default right for ER diagrams, down for the others",
         direction,
       ),
       optional(
@@ -352,6 +354,10 @@ const areaRule: Rule = (checked, given) => {
 export const COMPONENT_LABEL_FACE: FaceId = "inter-semibold";
 /** A component card's kind word, beside its icon. Its words are fixed, so no input is checked against it. */
 export const KIND_WORD_FACE: FaceId = "inter-regular";
+export const TABLE_NAME_FACE: FaceId = "inter-semibold";
+export const TABLE_DESCRIPTION_FACE: FaceId = "inter-regular";
+export const COLUMN_NAME_FACE: FaceId = "mono-regular";
+export const COLUMN_TYPE_FACE: FaceId = "mono-regular";
 
 /**
  * The flowchart shapes: start and end are pills, a step a rounded box, a
@@ -479,13 +485,16 @@ export type ClassSection = (typeof CLASS_SECTIONS)[number];
 const ENUM: Condition = { field: "stereotype", value: "enum", hint: 'add "stereotype": "enum", or list the rows in properties and methods' };
 const NOT_ENUM: Condition = { field: "stereotype", value: "enum", not: true, hint: "list an enum's rows in values" };
 
+/** How many rows a card leaves out on purpose. */
+const MORE: Def = { kind: "count", min: 1, max: 9999 };
+
 /** The most rows one card may have, all its sections together. */
 const ROWS_PER_CARD = 100;
 const ROWS_HINT = 'split the class, or leave dull members out and count them with "more"';
 
 /** A card's rows as checked: a section that had a problem may be missing, and a row that had one is `{}`. */
 type CheckedRows = { readonly status?: Status } & {
-  readonly [section in ClassSection]?: readonly { readonly status?: Status }[];
+  readonly [section: string]: readonly { readonly status?: Status }[] | undefined;
 };
 
 /** What to do about a row whose status differs from its card's. A changed card can hold rows of any status. */
@@ -496,15 +505,15 @@ const ROW_STATUS_HINTS = new Map<Status, string>([
 ]);
 
 /**
- * A card's rows can't contradict it: a new or removed card's rows can only
- * have its status, an unchanged card's rows can only be unchanged, and a card
- * whose rows have a status needs one of its own.
+ * A card's rows, in these lists of it, can't contradict it: a new or removed
+ * card's rows can only have its status, an unchanged card's rows can only be
+ * unchanged, and a card whose rows have a status needs one of its own.
  */
-const rowStatusRule: Rule = (checked, given, path) => {
+const rowStatusRule = (sections: readonly string[]): Rule => (checked, given, path) => {
   const card = checked as CheckedRows;
   // A card status that isn't valid was reported already; judging its rows against nothing would only add noise.
   if (given.status !== undefined && card.status === undefined) return [];
-  const rows = CLASS_SECTIONS.flatMap((section) =>
+  const rows = sections.flatMap((section) =>
     (card[section] ?? []).flatMap((row, i) => (row.status === undefined ? [] : [{ status: row.status, path: `${path}.${section}[${i}].status` }])),
   );
   if (card.status === undefined) {
@@ -597,7 +606,7 @@ function classCardFields(onlyClasses: boolean): Field[] {
       [NOT_ENUM],
     ),
     field("values", rows("values", "value", VALUE_TEXT), 'an enum\'s values, in order; leave it out for none. Only with "stereotype": "enum"', [ENUM]),
-    field("more", { kind: "count", min: 1, max: 9999 }, 'how many members or values were left out on purpose, drawn as a muted "… N more" row', []),
+    field("more", MORE, 'how many members or values were left out on purpose, drawn as a muted "… N more" row', []),
   ];
 }
 
@@ -605,7 +614,7 @@ const CLASS_NODE: ObjectDef = {
   kind: "object",
   noun: "node",
   description: `One class. An enum (stereotype "enum") lists values instead of properties and methods, and only an enum has values. ${CLASS_RULES}`,
-  rules: [rowStatusRule, rowLimitRule],
+  rules: [rowStatusRule(CLASS_SECTIONS), rowLimitRule],
   fields: [
     required("id", { kind: "id", of: "node" }, "a unique id made of letters, digits and - _ . :"),
     required("label", { kind: "text", text: LABEL, faces: [CLASS_NAME_FACE, ABSTRACT_CLASS_NAME_FACE] }, "the class name"),
@@ -643,7 +652,7 @@ const ARCHITECTURE_NODE: ObjectDef = {
   description:
     `One part of a system. Every kind but "class" is a component card with its kind's icon and word. ` +
     `A node of kind "class" is a class card instead, with a class's fields: an enum (stereotype "enum") lists values instead of properties and methods. ${CLASS_RULES}`,
-  rules: [rowStatusRule, rowLimitRule],
+  rules: [rowStatusRule(CLASS_SECTIONS), rowLimitRule],
   fields: [
     required("id", { kind: "id", of: "node" }, "a unique id made of letters, digits and - _ . :"),
     required(
@@ -679,9 +688,102 @@ const ARCHITECTURE_EDGE = edge({ kind: "ref", to: "node" }, "", [
   ),
 ]);
 
+/** The most columns one table may have. */
+const COLUMNS_PER_TABLE = 100;
+const COLUMNS_HINT = 'split the table, or leave dull columns out and count them with "more"';
+
+/** One column of a table: a row of its card. */
+const COLUMN: ObjectDef = {
+  kind: "object",
+  noun: "column",
+  fields: [
+    required(
+      "name",
+      { kind: "text", text: COLUMN_NAME, faces: [COLUMN_NAME_FACE] },
+      "the column's name, unique within its table",
+    ),
+    required("type", { kind: "text", text: COLUMN_TYPE, faces: [COLUMN_TYPE_FACE] }, "the column's type, such as uuid or varchar(200)"),
+    optional("pk", BOOLEAN, "true marks the column as part of the primary key, drawn as PK", false),
+    optional("fk", BOOLEAN, "true marks the column as a foreign key, drawn as FK", false),
+    optional("unique", BOOLEAN, "true marks the column's values as unique, drawn as UQ", false),
+    optional("nullable", BOOLEAN, "true lets the column be null, drawn as ? after its type", false),
+    optional("status", STATUS, "what the change does to this column; leave it out for no status"),
+  ],
+};
+
+/** A column is known by its name, so no two columns of a table share one, compared as tidied. */
+const uniqueColumnNames: Rule = (checked, _given, path) => {
+  const columns = (checked.columns ?? []) as readonly { readonly name?: string }[];
+  const first = new Map<string, number>();
+  return columns.flatMap((column, i) => {
+    // A name that had a problem, or was blank, was reported already.
+    if (!column.name) return [];
+    const used = first.get(column.name);
+    if (used === undefined) {
+      first.set(column.name, i);
+      return [];
+    }
+    return [
+      {
+        path: `${path}.columns[${i}].name`,
+        message: `the column name ${JSON.stringify(column.name)} is already used by ${path}.columns[${used}]`,
+        hint: "give every column in a table its own name",
+      },
+    ];
+  });
+};
+
+const TABLE_NODE: ObjectDef = {
+  kind: "object",
+  noun: "node",
+  description:
+    `One table. Its columns' names are unique within it. Its columns' statuses must agree with its own: a column in a new or removed table can only have the table's status, and takes it when it has none; ` +
+    `a column in an unchanged table can only be unchanged; and a table needs a status when any of its columns has one. ` +
+    `A table has at most ${COLUMNS_PER_TABLE} columns.`,
+  rules: [uniqueColumnNames, rowStatusRule(["columns"])],
+  fields: [
+    required("id", { kind: "id", of: "node" }, "a unique id made of letters, digits and - _ . :"),
+    required("label", { kind: "text", text: LABEL, faces: [TABLE_NAME_FACE] }, "the table's name"),
+    optional(
+      "description",
+      { kind: "text", text: DESCRIPTION, faces: [TABLE_DESCRIPTION_FACE] },
+      "a short sentence drawn under the name",
+    ),
+    areaField("the id of the area the table is in"),
+    optional("status", STATUS, "what the change does to this card; leave it out for no status"),
+    optional(
+      "columns",
+      { kind: "list", noun: "columns", items: COLUMN, maxItems: COLUMNS_PER_TABLE, limitHint: COLUMNS_HINT },
+      "the table's columns, in order",
+      [],
+    ),
+    optional("more", MORE, 'how many columns were left out on purpose, drawn as a muted "… N more" row'),
+  ],
+};
+
+/** How many rows at one end of a relationship go with one row at the other, drawn as that end's crow's foot. */
+export const CARDINALITIES = ["one", "zero-or-one", "many", "one-or-many", "zero-or-many"] as const;
+const CARDINALITY: Def = { kind: "choice", values: CARDINALITIES, later: false };
+
+/** A relationship between two tables. It has no kind: every ER line is a relationship. */
+const ER_EDGE = edge({ kind: "ref", to: "node" }, "", [
+  required(
+    "fromCardinality",
+    CARDINALITY,
+    "how many rows of the from table go with one row of the to table, drawn as a crow's foot at the from end",
+  ),
+  required(
+    "toCardinality",
+    CARDINALITY,
+    "how many rows of the to table go with one row of the from table, drawn as a crow's foot at the to end",
+  ),
+  optional("enforced", BOOLEAN, "false shows a relationship the database doesn't enforce with a foreign key, drawn dotted", true),
+]);
+
 /** Each implemented type's definition, in DIAGRAM_TYPES order. */
 export const DEFINITIONS: ReadonlyMap<string, ObjectDef> = new Map([
   ["class", diagram(CLASS_NODE, CLASS_EDGE, "down", [areaRule])],
+  ["er", diagram(TABLE_NODE, ER_EDGE, "right", [areaRule])],
   ["flow", diagram(FLOW_NODE, FLOW_EDGE, "down", [areaRule, noteAreaRule])],
   ["architecture", diagram(ARCHITECTURE_NODE, ARCHITECTURE_EDGE, "down", [areaRule])],
 ]);

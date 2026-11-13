@@ -135,6 +135,31 @@ describe("render() when the layout engine misbehaves", () => {
     });
   });
 
+  it.each<[string, (graph: ElkNode) => void]>([
+    ["start", (g) => void (g.edges![0]!.sections![0]!.startPoint.y += 5)],
+    ["end", (g) => void (g.edges![0]!.sections![0]!.endPoint.x -= 5)],
+  ])("fails with LAYOUT_FAILED when ELK moves the %s of a line off its fixed port", async (_end, damage) => {
+    const swap = {
+      type: "er",
+      nodes: [
+        { id: "seeds", label: "seeds" },
+        { id: "swaps", label: "swaps" },
+      ],
+      edges: [{ from: "swaps", to: "seeds", fromCardinality: "zero-or-many", toCardinality: "one" }],
+    };
+    await expect(render(swap)).resolves.toHaveProperty("svg");
+    engine.damage = damage;
+
+    const error = await render(swap).then(
+      () => undefined,
+      (e: unknown) => e,
+    );
+
+    expect(error).toBeInstanceOf(StructaError);
+    expect((error as StructaError).code).toBe("LAYOUT_FAILED");
+    expect((error as StructaError).problems).toEqual([{ path: "edges[0]", message: "the layout engine moved this line's ends off its ports", hint }]);
+  });
+
   it("fails with LAYOUT_FAILED when ELK throws", async () => {
     engine.failure = new Error("out of cheese");
 
