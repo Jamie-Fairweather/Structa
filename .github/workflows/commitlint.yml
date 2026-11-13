@@ -32,7 +32,9 @@ jobs:
         if: github.event_name == 'pull_request'
         env:
           TITLE: ${{ github.event.pull_request.title }}
-        run: printf '%s\n' "$TITLE" | bunx commitlint --verbose
+          NUMBER: ${{ github.event.pull_request.number }}
+        # Check the title as the squash commit will read, with " (#<number>)" appended.
+        run: printf '%s (#%s)\n' "$TITLE" "$NUMBER" | bunx commitlint --verbose
 
       - name: Check commits pushed to main
         if: github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000'

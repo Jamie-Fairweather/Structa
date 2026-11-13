@@ -867,28 +867,28 @@ describe("area boxes", () => {
   });
 
   /**
-   * Three vans unloading at a cold store, every line into its one card, at
-   * the top-left of its box: inside a depot's box too, at its top-left, when `nested`.
+   * Three growers stocking a glasshouse, every line into its one card, at
+   * the top-left of its box: inside a garden centre's box too, at its top-left, when `nested`.
    */
-  function unloading(direction: "down" | "right", nested: boolean) {
+  function stocking(direction: "down" | "right", nested: boolean) {
     return {
       type: "architecture",
       direction,
       groupAreas: true,
       areas: [
-        ...(nested ? [{ id: "depot", label: "Riverside depot" }] : []),
-        { id: "store", label: "Cold store", ...(nested ? { parent: "depot" } : {}) },
+        ...(nested ? [{ id: "centre", label: "Riverside garden centre" }] : []),
+        { id: "glasshouse", label: "Glasshouse", ...(nested ? { parent: "centre" } : {}) },
       ],
       nodes: [
-        { id: "farm", label: "Farm van", kind: "external" },
-        { id: "bakery", label: "Bakery van", kind: "external" },
+        { id: "seeds", label: "Seed grower", kind: "external" },
+        { id: "bulbs", label: "Bulb grower", kind: "external" },
         { id: "returns", label: "Returns desk", kind: "ui" },
-        { id: "shelf", label: "Dairy shelf", kind: "database", area: "store" },
+        { id: "bench", label: "Seedling bench", kind: "database", area: "glasshouse" },
       ],
       edges: [
-        { from: "farm", to: "shelf", label: "milk" },
-        { from: "bakery", to: "shelf" },
-        { from: "returns", to: "shelf" },
+        { from: "seeds", to: "bench", label: "trays" },
+        { from: "bulbs", to: "bench" },
+        { from: "returns", to: "bench" },
       ],
     };
   }
@@ -901,7 +901,7 @@ describe("area boxes", () => {
     [true, "down"],
     [true, "right"],
   ] as const)("keeps the lines into a card at the top-left of an area box clear of the area's name (nested %s), direction %s", async (nested, direction) => {
-    const doc = await svgDoc(unloading(direction, nested));
+    const doc = await svgDoc(stocking(direction, nested));
 
     expect(areaBoxes(doc)).toHaveLength(nested ? 2 : 1);
     for (const { id, backing } of areaBoxes(doc)) {
