@@ -400,6 +400,8 @@ describe("the JSON Schema", () => {
     ["emphasis", "flow", () => edge, (input, value) => (input.edges[0].emphasis = value)],
     ["groupAreas", "flow", () => root, (input, value) => (input.groupAreas = value)],
     ["class abstract", "class", () => items("class", "nodes"), (input, value) => (input.nodes[0].abstract = value)],
+    // The fixture's line is an association, the only kind that can be directed.
+    ["class edge directed", "class", () => items("class", "edges"), (input, value) => (input.edges[0].directed = value)],
     ["architecture class abstract", "architecture", () => items("architecture", "nodes"), (input, value) => (input.nodes[1].abstract = value)],
     ...ROW_SECTIONS.flatMap(([section, n]) => {
       const { part, row } = classRow(section, n);
@@ -559,7 +561,7 @@ describe("the JSON Schema", () => {
   });
 
   it("sets the length limits for titles, labels, descriptions, line labels and row text in one place, and rules out blank text", () => {
-    for (const kind of ["title", "label", "description", "lineLabel", "rowText", "areaLabel"]) {
+    for (const kind of ["title", "label", "description", "lineLabel", "endLabel", "rowText", "areaLabel"]) {
       expect(root.$defs[kind]).toMatchObject({ type: "string", minLength: 1, maxLength: expect.any(Number), pattern: "[^ ]" });
     }
   });

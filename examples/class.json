@@ -33,10 +33,17 @@
         { "text": "harvestYear: int", "visibility": "protected" }
       ],
       "methods": [{ "text": "split(into: int): SeedPacket[]", "visibility": "package" }]
+    },
+    {
+      "id": "heirloom",
+      "label": "HeirloomPacket",
+      "description": "Saved by members from their own plants, year after year.",
+      "properties": [{ "text": "savedSince: int", "visibility": "public" }]
     }
   ],
   "edges": [
-    { "from": "member", "to": "loan", "kind": "association", "label": "borrows" },
-    { "from": "loan", "to": "packet", "kind": "association" }
+    { "from": "member", "to": "loan", "kind": "association", "label": "borrows", "fromLabel": "1", "toLabel": "0..*" },
+    { "from": "loan", "to": "packet", "kind": "association", "directed": true, "fromLabel": "0..*", "toLabel": "1" },
+    { "from": "heirloom", "to": "packet", "kind": "inherits" }
   ]
 }

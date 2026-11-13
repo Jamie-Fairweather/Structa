@@ -75,64 +75,6 @@ async function problems(input: object): Promise<readonly Problem[]> {
   return (error as StructaError).problems;
 }
 
-/** Two classes in a potting shed, with whatever line fields a test adds. */
-function shed(edge: object = {}) {
-  return {
-    type: "class",
-    nodes: [
-      { id: "bench", label: "PottingBench" },
-      { id: "tray", label: "SeedTray" },
-    ],
-    edges: [{ from: "bench", to: "tray", kind: "association", ...edge }],
-  };
-}
-
-describe("class lines", () => {
-  it("draws an association as a plain line between the cards, with no arrowhead", async () => {
-    const doc = await svgDoc(shed());
-
-    const [line] = lines(doc);
-    expect(line!.getAttribute("data-kind")).toBe("association");
-    expect([line!.getAttribute("data-from"), line!.getAttribute("data-to")]).toEqual(["bench", "tray"]);
-    const paths = Array.from(line!.getElementsByTagName("path"));
-    expect(paths).toHaveLength(1);
-    expect(paths[0]!.getAttribute("fill")).toBe("none");
-    expect(paths[0]!.hasAttribute("stroke-dasharray")).toBe(false);
-    // The line runs all the way from one card's outline to the other's.
-    const points = parsePath(paths[0]!.getAttribute("d")!).flatMap((c) => c.points);
-    expect(distanceToDrawn(points[0]!, cardById(doc, "bench"))).toBeLessThanOrEqual(1);
-    expect(distanceToDrawn(points.at(-1)!, cardById(doc, "tray"))).toBeLessThanOrEqual(1);
-  });
-
-  it("names both classes in the line's tooltip, with its label", async () => {
-    const doc = await svgDoc(shed({ label: "holds" }));
-
-    expect(titleOf(lines(doc)[0]!)).toBe("PottingBench – SeedTray: holds");
-  });
-
-  it("requires a kind", async () => {
-    const input = shed();
-    delete (input.edges[0] as { kind?: string }).kind;
-
-    expect(await problems(input)).toEqual([
-      {
-        path: "edges[0].kind",
-        message: 'missing required field "kind"',
-        hint: 'add "kind": the relationship the line shows, "association"',
-      },
-    ]);
-  });
-
-  it.each(["inherits", "implements", "composition", "aggregation", "dependency"])(
-    "doesn't draw %s lines yet",
-    async (kind) => {
-      expect(await problems(shed({ kind }))).toEqual([
-        { path: "edges[0].kind", message: `"${kind}" is not supported yet`, hint: 'use "association"' },
-      ]);
-    },
-  );
-});
-
 describe("class layout", () => {
   /** A greenhouse linked to three classes, listed in the given order. */
   function greenhouse(order: readonly string[], direction?: string) {

@@ -247,7 +247,7 @@ function allowedHere(def: ObjectDef, condition: Condition, actual: unknown): boo
 
 /** Says which objects can have `name`, such as `only a node with "shape": "note" can have "about"`. */
 function conditionMessage(def: ObjectDef, name: string, { field, value, not }: Condition): string {
-  const having = `a ${def.noun} with "${field}": "${value}"`;
+  const having = `${/^[aeiou]/.test(def.noun) ? "an" : "a"} ${def.noun} with "${field}": "${value}"`;
   return not ? `${having} can't have "${name}"` : `only ${having} can have "${name}"`;
 }
 

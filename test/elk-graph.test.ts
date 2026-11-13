@@ -148,3 +148,62 @@ describe("the graph ER layout hands ELK", () => {
     }
   });
 });
+
+describe("the graph class layout hands ELK", () => {
+  /** Hedgehog houses: two kinds share a parent's triangle, and a feeding station holds both with counts at each end. */
+  const garden = {
+    type: "class",
+    nodes: [
+      { id: "house-base", label: "HedgehogHouse", description: "A dry box under the hedge" },
+      { id: "log-house", label: "LogPileHouse", properties: [{ text: "logCount: int" }] },
+      { id: "box-house", label: "WoodenBoxHouse" },
+      { id: "feeder", label: "FeedingStation" },
+    ],
+    edges: [
+      { id: "logs-are-houses", from: "log-house", to: "house-base", kind: "inherits", fromLabel: "many" },
+      { id: "boxes-are-houses", from: "box-house", to: "house-base", kind: "inherits" },
+      { id: "feeder-near-logs", from: "feeder", to: "log-house", kind: "aggregation", fromLabel: "1", toLabel: "0..2", label: "serves" },
+      { id: "feeder-near-boxes", from: "feeder", to: "box-house", kind: "aggregation", fromLabel: "1", toLabel: "0..2" },
+    ],
+  };
+
+  it("never shows ELK a user's ids, names or text, only generated ids, on its lines, their labels and the ports they share", async () => {
+    await render(garden, { embedFonts: false });
+
+    const [call] = engine.calls;
+    const sent = JSON.stringify(call);
+    const words = [
+      ...garden.nodes.flatMap((node) => [node.id, node.label, ...(node.description ? [node.description] : [])]),
+      ...garden.edges.flatMap((edge) => [edge.id, ...(edge.label ? [edge.label] : [])]),
+      "logCount",
+      "0..2",
+      "many",
+    ];
+    expect(words.filter((word) => sent.includes(word))).toEqual([]);
+    const edges = (call!.graph.edges ?? []) as ElkExtendedEdge[];
+    expect(edges.map((edge) => edge.id)).toEqual(["e0", "e1", "e2", "e3"]);
+    // Labels: l for the middle, s and t for the counts at each end, each with its id as its text. The count both diamonds share is given once.
+    const labels = edges.flatMap((edge) => edge.labels ?? []);
+    expect(labels.map((label) => [label.id, label.text])).toEqual([
+      ["s0", "s0"],
+      ["l2", "l2"],
+      ["s2", "s2"],
+      ["t2", "t2"],
+      ["t3", "t3"],
+    ]);
+    // The two lines into the parent share a port on it, and so do the two from the feeding station.
+    const ports = portsOf(call!.graph).map(({ node, port }) => [node.id, port.id]);
+    expect(ports).toEqual([
+      ["n0", "j0_0"],
+      ["n3", "j3_0"],
+    ]);
+    const keys = [
+      ...Object.keys(call!.options),
+      ...(call!.graph.children ?? []).flatMap((node) => Object.keys(node.layoutOptions ?? {})),
+      ...edges.flatMap((edge) => [...Object.keys(edge.layoutOptions ?? {}), ...(edge.labels ?? []).flatMap((label) => Object.keys(label.layoutOptions ?? {}))]),
+    ];
+    expect(keys).toContain("elk.layered.priority.direction");
+    expect(keys).toContain("elk.edgeLabels.placement");
+    expect(keys.filter((key) => !key.startsWith("elk.") || key.startsWith("elk.org."))).toEqual([]);
+  });
+});

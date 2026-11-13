@@ -2,12 +2,14 @@ import type { Cardinality, Status } from "../input";
 import type { PlacedArea, PlacedCard, Point, RoutedLine, Scene } from "../layout";
 import {
   entry,
+  markSize,
   nearest,
   type AreaBox,
   type AreaItem,
   type Badge,
   type Card,
   type Connector,
+  type EndMark,
   type Header,
   type Legend,
   type LevelLine,
@@ -19,9 +21,9 @@ import {
   type TextLine,
 } from "../shapes";
 import { FACES, faceStyle, fontDataUrl, type FaceId } from "../text";
-import type { Theme } from "../theme";
+import type { Sizes, Theme } from "../theme";
 import { iconPath } from "./icons";
-import { arrowhead, crowsFoot, openArrowhead, roundedRoute } from "./route";
+import { arrowhead, crowsFoot, diamond, lastRun, openArrowhead, roundedRoute, routeLength } from "./route";
 import { el, escapeText, num, open, type Attrs } from "./svg";
 
 /** Everything drawn: the laid-out scene, the title above it and the legend below it. */
@@ -72,7 +74,7 @@ export function paint({ scene, header, legend }: Drawing, theme: Theme, options:
     ...scene.cards.flatMap((p) => card(p, origin, pen, ids.shadow)),
     // Under the lines: a note's connector is an aside, not part of the flow.
     ...scene.lines.flatMap(({ line: l, points }) => (l.kind === "connector" ? connector(l, routed(l, points), origin, pen) : [])),
-    ...drawn.flatMap(({ line: l, points }, i) => line(l, points, origin, pen, rooms[i]!)),
+    ...drawn.flatMap(({ points }, i) => line(lines[i]!, points, origin, pen, rooms[i]!)),
     ...areaNames(scene.areas, origin, pen),
     ...lineLabels(lines, origin, pen),
     ...(legend ? legendItems(legend, { x: pad, y: legendTop! }, pen) : []),
@@ -520,7 +522,7 @@ function connector(c: Connector, points: readonly Point[], at: Point, pen: Pen):
     el("title", [], escapeText(c.tooltip)),
     ...fadedIf(c.faded, pen.theme, [
       el("path", [
-        ["d", roundedRoute(pts, sizes.line.cornerRadius, 0)],
+        ["d", roundedRoute(pts, sizes.line.cornerRadius, 0, 0)],
         ["fill", "none"],
         ["stroke", colors.connector],
         ["stroke-width", sizes.connector.width],
@@ -531,14 +533,39 @@ function connector(c: Connector, points: readonly Point[], at: Point, pen: Pen):
   ];
 }
 
-function line(line: Line, points: readonly Point[], at: Point, pen: Pen, rooms: Rooms): string[] {
+/**
+ * A line along `points`, offset by `at`: its route, the mark at each end
+ * that has one, or its crow's feet, narrower where `rooms` says another end
+ * is close, and the counts beside its ends where ELK put them. Its middle
+ * label is drawn later, over all the lines.
+ */
+function line({ line, sourceLabel, targetLabel }: RoutedLine<Line>, points: readonly Point[], at: Point, pen: Pen, rooms: Rooms): string[] {
   const { sizes } = pen.theme;
   const pts = points.map((p) => ({ x: p.x + at.x, y: p.y + at.y }));
-  const { cornerRadius, arrowLength } = sizes.line;
+  const endText = (end: "from" | "to", label: LineLabel | undefined, where: Point | undefined) =>
+    label && where
+      ? [
+          open("g", [["class", "end-label"], ["data-end", end]]),
+          ...label.texts.flatMap((t) => text(t, where.x + at.x, where.y + at.y, pen.theme.colors[t.color], pen)),
+          "</g>",
+        ]
+      : [];
   const colour = lineColour(line.status, pen.theme);
   const width = line.emphasis ? sizes.line.emphasisWidth : sizes.line.width;
-  // Dashed shows an async line, dotted a relationship the database doesn't enforce.
+  // Each mark points along the route into its card: the one at `from` along the route run backwards.
+  const backwards = [...pts].reverse();
+  const from = line.marks.from && fitted(line.marks.from, backwards, sizes);
+  const to = line.marks.to && fitted(line.marks.to, pts, sizes);
+  // Dashed shows an async, implements or dependency line, dotted a relationship the database doesn't enforce.
   const dashes = line.pattern === "solid" ? undefined : sizes[line.pattern];
+  // A dashed line into a triangle is dashed from the triangle back, with a whole dash at it, so lines
+  // that join under one triangle dash alike along the stretch they share.
+  const offset = (() => {
+    if (!dashes || to?.mark !== "hollow-triangle") return undefined;
+    const length = routeLength(pts, sizes.line.cornerRadius, routeGap(from), routeGap(to));
+    const period = dashes.dash + dashes.gap;
+    return (((dashes.dash - length) % period) + period) % period;
+  })();
   return [
     open("g", [
       ["class", "line"],
@@ -551,46 +578,84 @@ function line(line: Line, points: readonly Point[], at: Point, pen: Pen, rooms: 
     el("title", [], escapeText(line.tooltip)),
     ...fadedIf(line.status === "removed", pen.theme, [
       el("path", [
-        // A line with a filled arrowhead stops short of its end, where the arrowhead's tip is;
-        // an open arrowhead has nothing inside it, so the line runs on to its tip.
-        ["d", roundedRoute(pts, cornerRadius, line.arrow === "filled" ? arrowLength : 0)],
+        // The route stops where the mark at each end needs it to.
+        ["d", roundedRoute(pts, sizes.line.cornerRadius, routeGap(from), routeGap(to))],
         ["fill", "none"],
         ["stroke", colour],
         ["stroke-width", width],
         ["stroke-linejoin", "round"],
         ...(dashes ? ([["stroke-dasharray", `${num(dashes.dash)} ${num(dashes.gap)}`]] as const) : []),
+        ...(offset === undefined ? [] : ([["stroke-dashoffset", offset]] as const)),
       ]),
-      ...lineHead(line.arrow, pts, colour, width, pen.theme),
+      ...(from ? [endMark(from, backwards, colour, width, pen.theme)] : []),
+      ...(to ? [endMark(to, pts, colour, width, pen.theme)] : []),
       ...(line.ends
         ? [
             ...lineEnd(pts, "from", line.ends.from, rooms.from, colour, width, pen),
             ...lineEnd(pts, "to", line.ends.to, rooms.to, colour, width, pen),
           ]
         : []),
+      ...endText("from", line.fromLabel, sourceLabel),
+      ...endText("to", line.toLabel, targetLabel),
     ]),
     "</g>",
   ];
 }
 
-/** What's drawn where a line meets its `to` card: a filled arrowhead, or an open one in the line's width, solid whatever its pattern. */
-function lineHead(arrow: Line["arrow"], points: readonly Point[], colour: string, width: number, theme: Theme): string[] {
-  const { arrowLength, arrowWidth } = theme.sizes.line;
-  switch (arrow) {
-    case "filled":
-      return [el("path", [["d", arrowhead(points, arrowLength, arrowWidth)], ["fill", colour]])];
-    case "open":
-      return [
-        el("path", [
-          ["d", openArrowhead(points, arrowLength, arrowWidth)],
-          ["fill", "none"],
-          ["stroke", colour],
-          ["stroke-width", width],
-          ["stroke-linecap", "round"],
-          ["stroke-linejoin", "round"],
-        ]),
-      ];
-    case "none":
-      return [];
+/** A mark at a line's end, `length` along the line and `width` across it. */
+interface FittedMark {
+  readonly mark: EndMark;
+  readonly length: number;
+  readonly width: number;
+}
+
+/**
+ * The mark at the end of `points`, at its theme size, or smaller in
+ * proportion where the line's last straight run is shorter: a mark never
+ * runs past the line's bend, as on a tight loop from a card to itself.
+ */
+function fitted(mark: EndMark, points: readonly Point[], sizes: Sizes): FittedMark {
+  const { length, width } = markSize(mark, sizes);
+  const scale = Math.min(1, lastRun(points) / length);
+  return { mark, length: length * scale, width: width * scale };
+}
+
+/**
+ * How far short of its end a line's route stops for the mark there: at the
+ * base of a triangle or the far corner of a diamond, so it never runs
+ * through a hollow one, and right up to the tip of an open arrow.
+ */
+function routeGap(mark: FittedMark | undefined): number {
+  return mark === undefined || mark.mark === "open-arrow" ? 0 : mark.length;
+}
+
+/**
+ * The mark at the last point of `points`, pointing along their last run,
+ * solid whatever the line's pattern. A filled arrowhead is filled with the
+ * line's colour; the others are outlined in it, as thick as the line, and a
+ * hollow one is filled opaque.
+ */
+function endMark({ mark, length, width: across }: FittedMark, points: readonly Point[], colour: string, width: number, theme: Theme): string {
+  const outlined: Attrs = [["stroke", colour], ["stroke-width", width], ["stroke-linejoin", "round"]];
+  switch (mark) {
+    case "arrow":
+      return el("path", [["d", arrowhead(points, length, across)], ["fill", colour]]);
+    case "open-arrow":
+      return el("path", [
+        ["d", openArrowhead(points, length, across)],
+        ["fill", "none"],
+        ["stroke", colour],
+        ["stroke-width", width],
+        ["stroke-linecap", "round"],
+        ["stroke-linejoin", "round"],
+      ]);
+    case "hollow-triangle":
+      return el("path", [["d", arrowhead(points, length, across)], ["fill", theme.colors.lineEndFill], ...outlined]);
+    case "filled-diamond":
+    case "hollow-diamond": {
+      const fill = mark === "filled-diamond" ? colour : theme.colors.lineEndFill;
+      return el("path", [["d", diamond(points, length, across)], ["fill", fill], ...outlined]);
+    }
   }
 }
 

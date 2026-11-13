@@ -135,6 +135,67 @@ describe("render() when the layout engine misbehaves", () => {
     });
   });
 
+  describe("with counts at a class line's ends", () => {
+    /** A compost bin holds worms, with a count at each end. */
+    const bin = (kind: string, edges: object[] = []) => ({
+      type: "class",
+      nodes: [
+        { id: "bin", label: "CompostBin" },
+        { id: "worm", label: "Worm" },
+        { id: "lid", label: "Lid" },
+      ],
+      edges: [{ from: "bin", to: "worm", kind, fromLabel: "1", toLabel: "0..*" }, ...edges],
+    });
+    /** Line `i`'s label with this generated id, as ELK returned it. */
+    const label = (g: ElkNode, i: number, id: string) => g.edges![i]!.labels!.find((l) => l.id === id)!;
+
+    it.each(["aggregation", "inherits"])("draws normally when nothing is damaged: %s", async (kind) => {
+      await expect(render(bin(kind))).resolves.toHaveProperty("svg");
+    });
+
+    // An inherits line goes to ELK the other way round, its counts swapped end for end: each still names its own field.
+    it.each<[string, string, (graph: ElkNode) => void, string, string]>([
+      ["aggregation", "drops the fromLabel's label", (g) => void (g.edges![0]!.labels = [label(g, 0, "t0")]), "edges[0].fromLabel", "the layout engine dropped this label"],
+      ["inherits", "drops the toLabel's label", (g) => void (g.edges![0]!.labels = [label(g, 0, "s0")]), "edges[0].toLabel", "the layout engine dropped this label"],
+      ["aggregation", "resizes the toLabel's label", (g) => void (label(g, 0, "t0").width! += 3), "edges[0].toLabel", "the layout engine changed this label's size"],
+      ["inherits", "resizes the fromLabel's label", (g) => void (label(g, 0, "s0").height! += 3), "edges[0].fromLabel", "the layout engine changed this label's size"],
+      ["aggregation", "loses the fromLabel's position", (g) => delete label(g, 0, "s0").x, "edges[0].fromLabel", "the layout engine gave this label no position"],
+      ["inherits", "loses the toLabel's position", (g) => void (label(g, 0, "t0").y = Number.NaN), "edges[0].toLabel", "the layout engine gave this label no position"],
+      [
+        "aggregation",
+        "returns a label nobody asked for",
+        (g) => void g.edges![0]!.labels!.push({ ...label(g, 0, "s0"), id: "x0" }),
+        "edges[0]",
+        'the layout engine returned an unexpected label "x0"',
+      ],
+    ])("fails with LAYOUT_FAILED when ELK, on a %s line, %s", async (kind, _name, damage, path, message) => {
+      engine.damage = damage;
+
+      const error = await render(bin(kind)).then(
+        () => undefined,
+        (e: unknown) => e,
+      );
+
+      expect((error as StructaError).code).toBe("LAYOUT_FAILED");
+      expect((error as StructaError).problems).toEqual([{ path, message, hint }]);
+    });
+
+    it("fails with LAYOUT_FAILED when ELK returns a count at a shared end that only the first line there gave it", async () => {
+      // Both lines from the bin share its diamond and its count, so ELK is given that count once, by the first.
+      const input = bin("aggregation", [{ from: "bin", to: "lid", kind: "aggregation", fromLabel: "1" }]);
+      await expect(render(input)).resolves.toHaveProperty("svg");
+      engine.damage = (g) => void (g.edges![1]!.labels = [{ ...label(g, 0, "s0"), id: "s1" }]);
+
+      const error = await render(input).then(
+        () => undefined,
+        (e: unknown) => e,
+      );
+
+      expect((error as StructaError).code).toBe("LAYOUT_FAILED");
+      expect((error as StructaError).problems).toEqual([{ path: "edges[1]", message: 'the layout engine returned an unexpected label "s1"', hint }]);
+    });
+  });
+
   it.each<[string, (graph: ElkNode) => void]>([
     ["start", (g) => void (g.edges![0]!.sections![0]!.startPoint.y += 5)],
     ["end", (g) => void (g.edges![0]!.sections![0]!.endPoint.x -= 5)],

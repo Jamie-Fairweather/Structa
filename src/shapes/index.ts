@@ -1,6 +1,7 @@
 // Text faces come from the input definitions, which check each field's text against them.
 import {
   DESCRIPTION_FACE,
+  END_LABEL_FACE,
   LINE_LABEL_FACE,
   TITLE_FACE,
   type ArchitectureEdge,
@@ -26,6 +27,13 @@ export { type Badge, type Box, type Card, type Icon, type LevelLine, type Row, t
 export { buildLegend, type AreaItem, type Legend, type LegendItem, type StatusItem } from "./legend";
 export { entry, nearest, type Mark, type Outline, type Point } from "./outline";
 
+/**
+ * What's drawn where a line meets a card: a filled arrowhead, as on a
+ * flowchart; an open arrow, just two strokes; UML's hollow triangle, at a
+ * parent; or a diamond, filled or hollow, at an owner.
+ */
+export type EndMark = "arrow" | "open-arrow" | "hollow-triangle" | "filled-diamond" | "hollow-diamond";
+
 export interface Line {
   readonly id: string;
   /** A flowchart's line, the relationship a class line shows, how one part of a system talks to another, or a relationship between tables. */
@@ -33,26 +41,36 @@ export interface Line {
   readonly from: string;
   readonly to: string;
   /**
-   * What the line's stroke looks like, which shows its kind: dashed for an
-   * async line, dotted for a relationship the database doesn't enforce.
+   * What the line's stroke looks like, which shows its kind: dashed for
+   * implements, dependency and async lines, dotted for a relationship the
+   * database doesn't enforce.
    */
   readonly pattern: "solid" | "dashed" | "dotted";
-  /** What's drawn where the line meets `to`: a filled arrowhead, an open one of two strokes, or nothing. */
-  readonly arrow: "filled" | "open" | "none";
+  /** What's drawn where the line meets each of its cards, if anything, but crow's feet. */
+  readonly marks: { readonly from?: EndMark; readonly to?: EndMark };
   /** A relationship's crow's-foot ends: how many rows at each end go with one at the other. */
   readonly ends?: { readonly from: Cardinality; readonly to: Cardinality };
   readonly status?: Status;
   readonly emphasis: boolean;
   /** Sized here; ELK places it. */
   readonly label?: LineLabel;
+  /** A class line's counts, beside the line where it leaves `from` and where it reaches `to`. Sized here; ELK places them. */
+  readonly fromLabel?: EndLabel;
+  readonly toLabel?: EndLabel;
   readonly tooltip: string;
 }
 
-/** A line's label: a pill of wrapped text. Its texts are relative to the pill's top-left corner. */
+/** A line's label: a pill of wrapped text, or a count beside an end. Its texts are relative to its box's top-left corner. */
 export interface LineLabel {
   readonly width: number;
   readonly height: number;
   readonly texts: readonly TextLine[];
+}
+
+/** A count beside a line's end. */
+export interface EndLabel extends LineLabel {
+  /** How far along the line from the card it must start, to be past the mark at its end: 0 at an end with none. */
+  readonly clear: number;
 }
 
 /** The diagram's title and description, relative to the header's top-left corner. */
@@ -156,53 +174,105 @@ export function buildConnector(note: FlowNode, about: FlowNode): Connector {
 
 type LineKind = "flow" | ClassEdge["kind"] | "relationship" | ArchitectureEdge["kind"];
 
+/** How a kind of line is drawn, and what its tooltip says between the two cards it joins. */
+interface Look extends Pick<Line, "pattern" | "marks"> {
+  readonly says: string;
+}
+
 /**
  * How each kind of line is drawn: its pattern means its kind, as its colour
- * means its status. A relationship's ends are crow's feet, not arrowheads.
+ * means its status. A flowchart's line and a call have a filled arrow at
+ * `to`, and an async line an open one. Class lines are drawn as UML draws
+ * them: inherits and implements point a hollow triangle at the parent,
+ * `to`; composition and aggregation put a diamond at the owner, `from`; a
+ * dependency points an open arrow at what it needs, and so does a directed
+ * association. A class line's tooltip says what it means in words; an
+ * association just joins its two cards. A relationship between tables has
+ * crow's feet for ends instead of marks.
  */
-const LINE_LOOKS = new Map<LineKind, Pick<Line, "pattern" | "arrow">>([
-  ["flow", { pattern: "solid", arrow: "filled" }],
-  ["association", { pattern: "solid", arrow: "none" }],
-  ["relationship", { pattern: "solid", arrow: "none" }],
-  ["call", { pattern: "solid", arrow: "filled" }],
-  ["async", { pattern: "dashed", arrow: "open" }],
+const DIRECTED: Look = { pattern: "solid", marks: { to: "open-arrow" }, says: "→" };
+const LOOKS = new Map<LineKind, Look>([
+  ["flow", { pattern: "solid", marks: { to: "arrow" }, says: "→" }],
+  ["inherits", { pattern: "solid", marks: { to: "hollow-triangle" }, says: "inherits from" }],
+  ["implements", { pattern: "dashed", marks: { to: "hollow-triangle" }, says: "implements" }],
+  ["composition", { pattern: "solid", marks: { from: "filled-diamond" }, says: "owns" }],
+  ["aggregation", { pattern: "solid", marks: { from: "hollow-diamond" }, says: "has" }],
+  ["association", { pattern: "solid", marks: {}, says: "–" }],
+  ["dependency", { pattern: "dashed", marks: { to: "open-arrow" }, says: "depends on" }],
+  ["relationship", { pattern: "solid", marks: {}, says: "–" }],
+  ["call", { pattern: "solid", marks: { to: "arrow" }, says: "→" }],
+  ["async", { pattern: "dashed", marks: { to: "open-arrow" }, says: "→" }],
 ]);
 
 /**
- * A line between two cards. A flowchart's line and a call have a filled
- * arrow at `to`, and an async line an open one; an association is a plain
- * line, so its tooltip names the two ends without one. An async line's
- * tooltip says so, since a dash is easy to miss. A relationship between
- * tables has a crow's foot at each end, and its tooltip names each end's
- * cardinality; it's dotted when it isn't enforced.
+ * A line between two cards, its tooltip naming them, with any counts and
+ * its label. An async line's tooltip says so, since a dash is easy to miss.
+ * A relationship between tables has a crow's foot at each end, and its
+ * tooltip names each end's cardinality; it's dotted when it isn't enforced.
  */
-export function buildLine(
-  edge: FlowEdge | ClassEdge | ErEdge | ArchitectureEdge,
-  fromLabel: string,
-  toLabel: string,
-  sizes: Sizes,
-): Line {
+export function buildLine(edge: FlowEdge | ClassEdge | ErEdge | ArchitectureEdge, fromName: string, toName: string, sizes: Sizes): Line {
   const relationship = "fromCardinality" in edge ? edge : undefined;
   const kind: LineKind = "kind" in edge ? edge.kind : relationship ? "relationship" : "flow";
-  const looks = LINE_LOOKS.get(kind)!;
-  const pattern = relationship?.enforced === false ? "dotted" : looks.pattern;
-  const { arrow } = looks;
+  const { says, ...look } = "directed" in edge && edge.directed === true ? DIRECTED : LOOKS.get(kind)!;
+  const pattern = relationship?.enforced === false ? "dotted" : look.pattern;
+  const counts: Pick<ClassEdge, "fromLabel" | "toLabel"> = "fromLabel" in edge || "toLabel" in edge ? edge : {};
+  // Each end's card, with the count beside that end when there is one.
+  const named = (name: string, count: string | undefined) => (count === undefined ? name : `${name} (${count})`);
   const ends = relationship
-    ? `${fromLabel} (${relationship.fromCardinality}) – ${toLabel} (${relationship.toCardinality})${relationship.enforced ? "" : ", not enforced"}`
-    : `${fromLabel} ${arrow === "none" ? "–" : "→"} ${toLabel}${kind === "async" ? " (async)" : ""}`;
+    ? `${fromName} (${relationship.fromCardinality}) – ${toName} (${relationship.toCardinality})${relationship.enforced ? "" : ", not enforced"}`
+    : `${named(fromName, counts.fromLabel)} ${says} ${named(toName, counts.toLabel)}${kind === "async" ? " (async)" : ""}`;
+  const removed = edge.status === "removed";
   return {
     id: edge.id,
     kind,
     from: edge.from,
     to: edge.to,
     pattern,
-    arrow,
+    marks: look.marks,
     ...(relationship ? { ends: { from: relationship.fromCardinality, to: relationship.toCardinality } } : {}),
     ...(edge.status === undefined ? {} : { status: edge.status }),
     emphasis: edge.emphasis,
-    ...(edge.label === undefined ? {} : { label: lineLabel(edge.label, edge.status === "removed", sizes) }),
+    ...(edge.label === undefined ? {} : { label: lineLabel(edge.label, removed, sizes) }),
+    ...(counts.fromLabel === undefined ? {} : { fromLabel: endLabel(counts.fromLabel, removed, look.marks.from, sizes) }),
+    ...(counts.toLabel === undefined ? {} : { toLabel: endLabel(counts.toLabel, removed, look.marks.to, sizes) }),
     tooltip: edge.label === undefined ? ends : `${ends}: ${edge.label}`,
   };
+}
+
+/** A count beside one end of a line: one line of text centred in its padded box, struck through when the line is removed. */
+function endLabel(count: string, removed: boolean, mark: EndMark | undefined, sizes: Sizes): EndLabel {
+  const e = sizes.endLabel;
+  const width = Math.ceil(measure(count, END_LABEL_FACE, e.fontSize) + 2 * e.paddingX);
+  const line: TextLine = {
+    text: count,
+    x: width / 2,
+    y: e.paddingY + baseline(END_LABEL_FACE, e.fontSize, e.lineHeight),
+    face: END_LABEL_FACE,
+    size: e.fontSize,
+    anchor: "middle",
+    color: "text",
+  };
+  return {
+    width,
+    height: e.lineHeight + 2 * e.paddingY,
+    texts: [removed ? { ...line, strike: strikeThrough(line, sizes) } : line],
+    clear: mark === undefined ? 0 : markSize(mark, sizes).length + e.markGap,
+  };
+}
+
+/** How big a mark at a line's end is: `length` along the line and `width` across it, before it's fitted to a short run. */
+export function markSize(mark: EndMark, sizes: Sizes): { readonly length: number; readonly width: number } {
+  switch (mark) {
+    // An open arrow is the same size as a filled one: just its outline.
+    case "arrow":
+    case "open-arrow":
+      return { length: sizes.line.arrowLength, width: sizes.line.arrowWidth };
+    case "hollow-triangle":
+      return sizes.lineEnd.triangle;
+    case "filled-diamond":
+    case "hollow-diamond":
+      return sizes.lineEnd.diamond;
+  }
 }
 
 /** The columns a line's ends name, by name: an end that names none attaches at its table's header. */

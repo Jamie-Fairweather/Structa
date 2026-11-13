@@ -4,57 +4,112 @@ import type { Sizes } from "../theme";
 import { num } from "./svg";
 
 /**
- * Path data for an orthogonal route with rounded corners, ending `endGap`
- * short of the last point so an arrowhead can sit there.
+ * Path data for an orthogonal route with rounded corners, starting `startGap`
+ * after the first point and ending `endGap` short of the last, so a mark can
+ * sit at either end.
  */
-export function roundedRoute(points: readonly Point[], radius: number, endGap: number): string {
+export function roundedRoute(points: readonly Point[], radius: number, startGap: number, endGap: number): string {
+  const route = rounded(points, radius, startGap, endGap);
+  if (!route) return "";
+  let d = `M${xy(route.start)}`;
+  for (const { before, corner, after } of route.corners) d += ` L${xy(before)} Q${xy(corner)} ${xy(after)}`;
+  return `${d} L${xy(route.end)}`;
+}
+
+/** How long the path `roundedRoute` draws is, its rounded corners included. */
+export function routeLength(points: readonly Point[], radius: number, startGap: number, endGap: number): number {
+  const route = rounded(points, radius, startGap, endGap);
+  if (!route) return 0;
+  let length = 0;
+  let at = route.start;
+  for (const { before, corner, after } of route.corners) {
+    length += distance(at, before) + curveLength(before, corner, after);
+    at = after;
+  }
+  return length + distance(at, route.end);
+}
+
+/** A corner rounded off by a curve from `before` to `after`, pulled towards the `corner` itself. */
+interface Corner {
+  readonly before: Point;
+  readonly corner: Point;
+  readonly after: Point;
+}
+
+/**
+ * The route `roundedRoute` draws: where it starts and ends, after the gaps,
+ * and each corner it rounds off. A middle segment shares its length between
+ * the corners at both ends; the first and last segments have a corner at one
+ * end only.
+ */
+function rounded(points: readonly Point[], radius: number, startGap: number, endGap: number): { start: Point; corners: Corner[]; end: Point } | undefined {
   const pts = withoutRepeats(points);
-  if (pts.length < 2) return "";
+  if (pts.length < 2) return undefined;
+  pts[0] = towards(pts[0]!, pts[1]!, Math.min(startGap, distance(pts[0]!, pts[1]!)));
   const last = pts[pts.length - 1]!;
   const beforeLast = pts[pts.length - 2]!;
   const gap = Math.min(endGap, distance(beforeLast, last));
   pts[pts.length - 1] = towards(last, beforeLast, gap);
   const route = withoutRepeats(pts);
 
-  // A middle segment shares its length between the corners at both ends; the
-  // first and last segments have a corner at one end only.
   const room = (i: number) => distance(route[i]!, route[i + 1]!) / (i === 0 || i === route.length - 2 ? 1 : 2);
-  let d = `M${xy(route[0]!)}`;
+  const corners: Corner[] = [];
   for (let i = 1; i < route.length - 1; i++) {
     const [prev, corner, next] = [route[i - 1]!, route[i]!, route[i + 1]!];
     const r = Math.min(radius, room(i - 1), room(i));
-    d += ` L${xy(towards(corner, prev, r))} Q${xy(corner)} ${xy(towards(corner, next, r))}`;
+    corners.push({ before: towards(corner, prev, r), corner, after: towards(corner, next, r) });
   }
-  return `${d} L${xy(route[route.length - 1]!)}`;
+  return { start: route[0]!, corners, end: route[route.length - 1]! };
 }
 
-/** A filled triangle with its tip on the route's last point, pointing along the last segment. */
+/** The length of the quadratic curve from `a` to `c` pulled towards `b`, summed over short steps. */
+function curveLength(a: Point, b: Point, c: Point): number {
+  const at = (t: number): Point => ({
+    x: (1 - t) ** 2 * a.x + 2 * (1 - t) * t * b.x + t ** 2 * c.x,
+    y: (1 - t) ** 2 * a.y + 2 * (1 - t) * t * b.y + t ** 2 * c.y,
+  });
+  const steps = 32;
+  let length = 0;
+  for (let s = 1; s <= steps; s++) length += distance(at((s - 1) / steps), at(s / steps));
+  return length;
+}
+
+/** A triangle with its tip on the route's last point, pointing along the last segment, drawn tip first. */
 export function arrowhead(points: readonly Point[], length: number, width: number): string {
-  const { tip, left, right } = arrowCorners(points, length, width);
-  return `M${xy(tip)} L${xy(left)} L${xy(right)} Z`;
+  const { tip, at } = alongEnd(points);
+  return `M${xy(tip)} L${xy(at(length, width / 2))} L${xy(at(length, -width / 2))} Z`;
 }
 
 /** An open arrowhead: two strokes meeting at its tip on the route's last point, pointing along the last segment. */
 export function openArrowhead(points: readonly Point[], length: number, width: number): string {
-  const { tip, left, right } = arrowCorners(points, length, width);
-  return `M${xy(left)} L${xy(tip)} L${xy(right)}`;
+  const { tip, at } = alongEnd(points);
+  return `M${xy(at(length, width / 2))} L${xy(tip)} L${xy(at(length, -width / 2))}`;
 }
 
-/** The tip and the two back corners of an arrowhead on the route's last point. */
-function arrowCorners(points: readonly Point[], length: number, width: number): { tip: Point; left: Point; right: Point } {
+/** A diamond lying along the route's last segment, its tip on the last point, drawn tip first. */
+export function diamond(points: readonly Point[], length: number, width: number): string {
+  const { tip, at } = alongEnd(points);
+  return `M${xy(tip)} L${xy(at(length / 2, width / 2))} L${xy(at(length, 0))} L${xy(at(length / 2, -width / 2))} Z`;
+}
+
+/** How long the route's last straight run is. */
+export function lastRun(points: readonly Point[]): number {
+  const pts = withoutRepeats(points);
+  return pts.length < 2 ? 0 : distance(pts[pts.length - 2]!, pts[pts.length - 1]!);
+}
+
+/**
+ * The route's last point, and a way to find the point `back` px behind it
+ * along the last segment and `side` px to one side of it.
+ */
+function alongEnd(points: readonly Point[]): { tip: Point; at: (back: number, side: number) => Point } {
   const pts = withoutRepeats(points);
   const tip = pts[pts.length - 1]!;
   const from = pts[pts.length - 2] ?? { x: tip.x, y: tip.y - 1 };
   const len = distance(from, tip);
   const ux = (tip.x - from.x) / len;
   const uy = (tip.y - from.y) / len;
-  const base = { x: tip.x - ux * length, y: tip.y - uy * length };
-  const half = width / 2;
-  return {
-    tip,
-    left: { x: base.x - uy * half, y: base.y + ux * half },
-    right: { x: base.x + uy * half, y: base.y - ux * half },
-  };
+  return { tip, at: (back, side) => ({ x: tip.x - ux * back - uy * side, y: tip.y - uy * back + ux * side }) };
 }
 
 /**

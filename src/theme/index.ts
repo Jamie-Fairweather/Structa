@@ -41,6 +41,8 @@ export interface ThemeColors {
   readonly icon: string;
   /** Lines with no status, and unchanged lines. */
   readonly line: string;
+  /** Inside a hollow triangle or diamond at a line's end: opaque, like a card, so nothing shows through it. */
+  readonly lineEndFill: string;
   /** A note's dotted line to the shape it's about. */
   readonly connector: string;
   /** How strongly removed cards, rows and lines are drawn. */
@@ -78,6 +80,7 @@ const COLORS: { readonly [name in ThemeName]: ThemeColors } = {
     mutedText: "#59636e",
     icon: "#59636e",
     line: "#8c959f",
+    lineEndFill: "#ffffff",
     connector: "#8c959f",
     fadedOpacity: 0.55,
     rowTintOpacity: 0.45,
@@ -109,6 +112,7 @@ const COLORS: { readonly [name in ThemeName]: ThemeColors } = {
     mutedText: "#8b949e",
     icon: "#8b949e",
     line: "#6e7681",
+    lineEndFill: "#161b22",
     connector: "#6e7681",
     fadedOpacity: 0.5,
     rowTintOpacity: 0.12,
@@ -162,9 +166,19 @@ export const SIZES = {
   strike: { width: 1.25, rise: 0.3 },
   /** A line under underlined text, such as a static class member, `drop` font sizes below the baseline. */
   underline: { width: 1, drop: 0.15 },
+  /** Lines, and their arrowheads, filled or open, `arrowLength` along the line and `arrowWidth` across it. */
   line: { width: 1.5, emphasisWidth: 3, cornerRadius: 8, arrowLength: 9, arrowWidth: 9 },
-  /** Dashed lines, such as async ones: dashes `dash` px long, `gap` px apart. */
+  /** Dashed lines, such as async, implements and dependency ones: dashes `dash` px long, `gap` px apart. */
   dashed: { dash: 6, gap: 4 },
+  /**
+   * The marks class lines end in besides arrowheads, each `length` along the
+   * line and `width` across it, outlined as thick as the line: UML's hollow
+   * triangle at a parent, and a diamond at an owner.
+   */
+  lineEnd: {
+    triangle: { length: 14, width: 14 },
+    diamond: { length: 18, width: 10 },
+  },
   /** Dotted lines, a note's connector or a relationship the database doesn't enforce: dashes `dash` px long, `gap` px apart. */
   dotted: { dash: 2, gap: 3 },
   /** A note's connector: dotted, and thinner than a line. */
@@ -180,6 +194,14 @@ export const SIZES = {
   crowsFoot: { footLength: 12, footWidth: 14, bar: 6, barLength: 14, gap: 5, circle: 4, apart: 2 },
   /** A line's label: text in a pill bordered in the line's colour, wrapped to `maxWidth`. */
   lineLabel: { fontSize: 12, lineHeight: 16, paddingX: 8, paddingY: 2, maxWidth: 180, borderWidth: 1 },
+  /**
+   * A count beside a class line's end: plain text in the text colour, on one
+   * line, `paddingX` and `paddingY` inside its box, which ELK puts just off
+   * the line and the card. It stays small across the line, so it fits between
+   * lines side by side; at an end with a mark, it starts past the mark,
+   * `markGap` beyond it.
+   */
+  endLabel: { fontSize: 11, lineHeight: 14, paddingX: 2, paddingY: 1, markGap: 3 },
   /**
    * Standard cards, class and table cards: one width, any stereotype line,
    * the name and the description centred at the top, then each section of

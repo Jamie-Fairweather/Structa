@@ -1,9 +1,9 @@
 import { StructaError, type Problem } from "./errors";
-import { parseDiagram } from "./input";
+import { PARENT_KINDS, parseDiagram } from "./input";
 import { layout, PROFILES } from "./layout";
 import { paint } from "./painter";
 import { DEFAULT_SCALE, rasterise, SCALES, type Scale } from "./raster";
-import { buildAreaBoxes, buildCards, buildConnector, buildHeader, buildLegend, buildLine, linePorts } from "./shapes";
+import { buildAreaBoxes, buildCards, buildConnector, buildHeader, buildLegend, buildLine, linePorts, type EndMark, type Line } from "./shapes";
 import { getTheme, THEME_NAMES, type ThemeName } from "./theme";
 
 interface Outputs {
@@ -44,10 +44,24 @@ export async function render<F extends Format = "svg">(
     const source = index.get(edge.from)!;
     const target = index.get(edge.to)!;
     const line = buildLine(edge, nodes[source]!.label, nodes[target]!.label, theme.sizes);
+    // A parent class is laid out before the classes that inherit from or implement it.
+    const targetFirst = "kind" in edge && PARENT_KINDS.has(edge.kind);
+    const ends = { ...(line.fromLabel ? { sourceLabel: line.fromLabel } : {}), ...(line.toLabel ? { targetLabel: line.toLabel } : {}) };
     // Only an ER line's ends can name columns.
     const columns = "fromCardinality" in edge ? { from: edge.fromColumn, to: edge.toColumn } : {};
     const ports = linePorts(cards[source]!, cards[target]!, columns, theme.sizes);
-    return { ...line, source, target, path: `edges[${i}]`, ...(ports ? { ports } : {}) };
+    const counts: { fromLabel?: string; toLabel?: string } = "fromLabel" in edge || "toLabel" in edge ? edge : {};
+    const joins = { ...shared(line, "from", counts.fromLabel, "source"), ...shared(line, "to", counts.toLabel, "target") };
+    return {
+      ...line,
+      source,
+      target,
+      ...ends,
+      targetFirst,
+      ...(Object.keys(joins).length > 0 ? { joins } : {}),
+      path: `edges[${i}]`,
+      ...(ports ? { ports } : {}),
+    };
   });
   // Only flowcharts have notes, each joined by a connector to the shape it's about.
   const flowNodes = diagram.type === "flow" ? diagram.nodes : [];
@@ -81,6 +95,24 @@ export async function render<F extends Format = "svg">(
     result.png = await rasterise(plain, scale);
   }
   return result as RenderResult<F>;
+}
+
+/**
+ * The marks lines share where they meet one card, as UML draws them: the
+ * lines into one parent join under one triangle, and the lines from one
+ * owner at one diamond.
+ */
+const SHARED_MARKS: ReadonlySet<EndMark> = new Set<EndMark>(["hollow-triangle", "filled-diamond", "hollow-diamond"]);
+
+/**
+ * The key layout joins a line's end by, at `end` (`as` in layout's terms),
+ * when it has a mark lines share there: lines join only where they're drawn
+ * alike, the same kind, status and weight, with the same count or none.
+ */
+function shared(line: Line, end: "from" | "to", count: string | undefined, as: "source" | "target"): Partial<Record<"source" | "target", string>> {
+  const mark = line.marks[end];
+  if (mark === undefined || !SHARED_MARKS.has(mark)) return {};
+  return { [as]: JSON.stringify([line.kind, line.status ?? null, line.emphasis, count ?? null]) };
 }
 
 interface CheckedOptions {
