@@ -201,12 +201,12 @@
 </g>
 <g class="line" data-id="edges[5]" data-kind="implements" data-from="light" data-to="sensor" data-status="new">
 <title>LightMeter implements Sensor</title>
-<path d="M968 326 L968 286 Q968 278 960 278 L340 278 Q332 278 332 270 L332 252" fill="none" stroke="#1f883d" stroke-width="1.5" stroke-linejoin="round" stroke-dasharray="6 4" stroke-dashoffset="2.03"/>
+<path d="M988 326 L988 286 Q988 278 980 278 L340 278 Q332 278 332 270 L332 252" fill="none" stroke="#1f883d" stroke-width="1.5" stroke-linejoin="round" stroke-dasharray="6 4" stroke-dashoffset="2.03"/>
 <path d="M332 238 L339 252 L325 252 Z" fill="#ffffff" stroke="#1f883d" stroke-width="1.5" stroke-linejoin="round"/>
 </g>
 <g class="line" data-id="edges[6]" data-kind="implements" data-from="light" data-to="calibratable" data-status="new">
 <title>LightMeter implements Calibratable</title>
-<path d="M1088 326 L1088 270 Q1088 262 1080 262 L808 262 Q800 262 800 254 L800 252" fill="none" stroke="#1f883d" stroke-width="1.5" stroke-linejoin="round" stroke-dasharray="6 4" stroke-dashoffset="0.03"/>
+<path d="M1068 326 L1068 270 Q1068 262 1060 262 L808 262 Q800 262 800 254 L800 252" fill="none" stroke="#1f883d" stroke-width="1.5" stroke-linejoin="round" stroke-dasharray="6 4" stroke-dashoffset="0.03"/>
 <path d="M800 238 L807 252 L793 252 Z" fill="#ffffff" stroke="#1f883d" stroke-width="1.5" stroke-linejoin="round"/>
 </g>
 <g class="line" data-id="edges[7]" data-kind="implements" data-from="vent" data-to="sensor">

@@ -1,7 +1,21 @@
 import { readdirSync, readFileSync } from "node:fs";
 import type { Document } from "@xmldom/xmldom";
 import { describe, expect, it } from "vitest";
-import { cardById, connectorEnds, connectors, depthInShape, distanceToDrawn, lineEnds, lineGeometry, lines, svgDoc } from "./helpers/svg";
+import {
+  badgeBox,
+  cardById,
+  connectorEnds,
+  connectors,
+  depthInShape,
+  distanceToShape,
+  lineEnds,
+  lineGeometry,
+  lineParts,
+  lines,
+  nearestBadgeOrTag,
+  svgDoc,
+  tagBox,
+} from "./helpers/svg";
 
 const examplesDir = new URL("../examples/", import.meta.url);
 const examples = readdirSync(examplesDir)
@@ -55,19 +69,82 @@ function ends(doc: Document, input: ReturnType<typeof returns>) {
   });
 }
 
+/**
+ * Five lines into one small card whose wide badge and long tag leave little of
+ * its top border free, from cards that come before it, and one line out. The
+ * card is a flowchart shape, or an architecture diagram's component or class.
+ */
+function stack(direction: "down" | "right", shape: string) {
+  const type = ["component", "class"].includes(shape) ? "architecture" : "flow";
+  const as = (kind: string): Record<string, string> =>
+    type === "flow" ? { shape: kind === "component" ? "step" : kind } : { kind: kind === "component" ? "service" : kind };
+  const trees = ["oak", "ash", "elm", "birch", "larch"];
+  return {
+    type,
+    direction,
+    areas: [{ id: "yard", label: "Timber yard and saw mill" }],
+    nodes: [
+      ...trees.map((id) => ({ id, label: `Fell the ${id}`, ...as("component") })),
+      { id: "stack", label: "Stack", area: "yard", status: "unchanged", ...as(shape) },
+      { id: "dry", label: "Dry the planks", ...as("component") },
+    ],
+    edges: [...trees.map((id) => ({ from: id, to: "stack" })), { from: "stack", to: "dry" }],
+  };
+}
+
+/** Points at least this far apart don't touch: lines and their marks clear of badges and tags, and arrowheads side by side. */
+const CLEAR = 4;
+
 describe("line ends", () => {
   it.each([
     ["down", false],
     ["right", false],
     ["down", true],
     ["right", true],
-  ] as const)("meet the visible outline of every shape within 1px, direction %s, statuses %s", async (direction, statuses) => {
+  ] as const)("meet the visible outline of every shape within 1px, clear of badges, direction %s, statuses %s", async (direction, statuses) => {
     const input = returns(direction, statuses);
     const doc = await svgDoc(input);
 
     for (const { what, start, arrowTip, edge } of ends(doc, input)) {
-      expect(distanceToDrawn(start, cardById(doc, edge.from)), `${what} start`).toBeLessThanOrEqual(1);
-      expect(distanceToDrawn(arrowTip, cardById(doc, edge.to)), `${what} end`).toBeLessThanOrEqual(1);
+      expect(distanceToShape(start, cardById(doc, edge.from)), `${what} start`).toBeLessThanOrEqual(1);
+      expect(distanceToShape(arrowTip, cardById(doc, edge.to)), `${what} end`).toBeLessThanOrEqual(1);
+    }
+    for (const [i, line] of lines(doc).entries()) expect(nearestBadgeOrTag(doc, line), `edges[${i}]`).toBeGreaterThan(CLEAR);
+  });
+
+  const shapes = ["step", "io", "subprocess", "start", "end", "decision", "component", "class"];
+  it.each(shapes.flatMap((shape) => (["down", "right"] as const).map((direction) => [shape, direction] as const)))(
+    "end on a %s's outline when its wide badge and long tag crowd its top border, clear of them, direction %s",
+    async (shape, direction) => {
+      const doc = await svgDoc(stack(direction, shape));
+      const card = cardById(doc, "stack");
+      expect(badgeBox(card)!.width + tagBox(card)!.width).toBeGreaterThan(200);
+
+      expect(lines(doc).filter((line) => line.getAttribute("data-to") === "stack")).toHaveLength(5);
+      for (const line of lines(doc)) {
+        const [from, to] = [line.getAttribute("data-from")!, line.getAttribute("data-to")!];
+        const [start, end] = lineEnds(line);
+        expect(distanceToShape(start, cardById(doc, from)), `${from} -> ${to} start`).toBeLessThanOrEqual(1);
+        expect(distanceToShape(end, cardById(doc, to)), `${from} -> ${to} end`).toBeLessThanOrEqual(1);
+        expect(nearestBadgeOrTag(doc, line), `${from} -> ${to}`).toBeGreaterThan(CLEAR);
+      }
+    },
+  );
+
+  it.each(shapes)("leaves room on a %s's top border for every line that comes down onto it, arrowheads side by side", async (shape) => {
+    const doc = await svgDoc(stack("down", shape));
+
+    const into = lines(doc).filter((line) => line.getAttribute("data-to") === "stack");
+    const tips = into.map((line) => lineParts(line).end!.tip);
+    const widest = Math.max(
+      ...into.map((line) => {
+        const [, left, right] = lineParts(line).end!.corners;
+        return Math.hypot(left!.x - right!.x, left!.y - right!.y);
+      }),
+    );
+    expect(tips).toHaveLength(5);
+    for (const [i, a] of tips.entries()) {
+      for (const b of tips.slice(i + 1)) expect(Math.hypot(a.x - b.x, a.y - b.y)).toBeGreaterThan(widest + CLEAR);
     }
   });
 
@@ -89,24 +166,28 @@ describe("line ends", () => {
     },
   );
 
-  it.each(examples)("meet the visible outline of every shape in examples/%s, notes' connectors too", async (file) => {
-    const doc = await svgDoc(JSON.parse(readFileSync(new URL(file, examplesDir), "utf8")));
+  it.each(examples.flatMap((file) => (["down", "right"] as const).map((direction) => [file, direction] as const)))(
+    "meet the visible outline of every shape in examples/%s, clear of badges and tags, direction %s, notes' connectors too",
+    async (file, direction) => {
+      const doc = await svgDoc({ ...JSON.parse(readFileSync(new URL(file, examplesDir), "utf8")), direction });
 
-    const found = [
-      ...lines(doc).map((line) => {
-        const [start, end] = lineEnds(line);
-        return { el: line, start, end };
-      }),
-      ...connectors(doc).map((connector) => {
-        const [start, end] = connectorEnds(connector);
-        return { el: connector, start, end };
-      }),
-    ];
-    expect(found.length).toBeGreaterThan(0);
-    for (const { el, start, end } of found) {
-      const [from, to] = [el.getAttribute("data-from")!, el.getAttribute("data-to")!];
-      expect(distanceToDrawn(start, cardById(doc, from)), `${from} -> ${to} start`).toBeLessThanOrEqual(1);
-      expect(distanceToDrawn(end, cardById(doc, to)), `${from} -> ${to} end`).toBeLessThanOrEqual(1);
-    }
-  });
+      const found = [
+        ...lines(doc).map((line) => {
+          const [start, end] = lineEnds(line);
+          return { el: line, start, end };
+        }),
+        ...connectors(doc).map((connector) => {
+          const [start, end] = connectorEnds(connector);
+          return { el: connector, start, end };
+        }),
+      ];
+      expect(found.length).toBeGreaterThan(0);
+      for (const { el, start, end } of found) {
+        const [from, to] = [el.getAttribute("data-from")!, el.getAttribute("data-to")!];
+        expect(distanceToShape(start, cardById(doc, from)), `${from} -> ${to} start`).toBeLessThanOrEqual(1);
+        expect(distanceToShape(end, cardById(doc, to)), `${from} -> ${to} end`).toBeLessThanOrEqual(1);
+        expect(nearestBadgeOrTag(doc, el), `${from} -> ${to}`).toBeGreaterThan(CLEAR);
+      }
+    },
+  );
 });

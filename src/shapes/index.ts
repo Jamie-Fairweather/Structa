@@ -23,7 +23,7 @@ import { frameCards, strikeThrough, type Card, type Span, type TextLine } from "
 import { tableBody } from "./table";
 
 export { buildAreaBoxes, type AreaBox } from "./area";
-export { type Badge, type Box, type Card, type Icon, type LevelLine, type Row, type Tag, type TextLine } from "./frame";
+export { type Badge, type Box, type Card, type Icon, type Landing, type LevelLine, type Row, type Tag, type TextLine } from "./frame";
 export { buildLegend, type AreaItem, type Legend, type LegendItem, type StatusItem } from "./legend";
 export { entry, nearest, type Mark, type Outline, type Point } from "./outline";
 
@@ -133,21 +133,22 @@ function block(
 /**
  * Sizes every card of the diagram through the shared card frame. A card in
  * an area shows the area's name in a tag, unless the area boxes are drawn:
- * then the boxes name the areas.
+ * then the boxes name the areas. `lines` says how many lines each card's top
+ * must leave room for, in the order of the diagram's nodes.
  */
-export function buildCards(diagram: Diagram, sizes: Sizes): Card[] {
+export function buildCards(diagram: Diagram, sizes: Sizes, lines: readonly number[]): Card[] {
   const names = new Map(diagram.areas.map((area) => [area.id, area.label]));
   const tagOf = (node: { readonly area?: string }) =>
     diagram.groupAreas || node.area === undefined ? undefined : names.get(node.area);
-  if (diagram.type === "class") return frameCards(diagram.nodes, sizes, tagOf, (node, minWidth) => classBody(node, sizes, minWidth));
-  if (diagram.type === "er") return frameCards(diagram.nodes, sizes, tagOf, (node, minWidth) => tableBody(node, sizes, minWidth));
+  if (diagram.type === "class") return frameCards(diagram.nodes, sizes, tagOf, lines, (node, minWidth) => classBody(node, sizes, minWidth));
+  if (diagram.type === "er") return frameCards(diagram.nodes, sizes, tagOf, lines, (node, minWidth) => tableBody(node, sizes, minWidth));
   if (diagram.type === "architecture") {
     // A class in an architecture diagram is the same class card a class diagram draws.
-    return frameCards(diagram.nodes, sizes, tagOf, (node, minWidth) =>
+    return frameCards(diagram.nodes, sizes, tagOf, lines, (node, minWidth) =>
       node.kind === "class" ? classBody(node, sizes, minWidth) : componentBody(node, sizes, minWidth),
     );
   }
-  return frameCards(diagram.nodes, sizes, tagOf, (node, minWidth) => shapeBody(node, sizes, minWidth));
+  return frameCards(diagram.nodes, sizes, tagOf, lines, (node, minWidth) => shapeBody(node, sizes, minWidth));
 }
 
 /** A note's dotted line to the shape it's about: no arrow, no label and no status of its own. */

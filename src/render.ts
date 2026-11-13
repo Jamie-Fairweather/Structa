@@ -1,6 +1,6 @@
 import { StructaError, type Problem } from "./errors";
 import { fieldPath, PARENT_KINDS, parseDiagram } from "./input";
-import { layout, PROFILES } from "./layout";
+import { endsAcross, layout, PROFILES } from "./layout";
 import { paint } from "./painter";
 import { DEFAULT_SCALE, rasterise, SCALES, type Scale } from "./raster";
 import { buildAreaBoxes, buildCards, buildConnector, buildHeader, buildLegend, buildLine, linePorts, type EndMark, type Line } from "./shapes";
@@ -37,19 +37,15 @@ export async function render<F extends Format = "svg">(
   const { diagram } = parsed;
 
   const theme = getTheme(themeName ?? diagram.theme);
-  const cards = buildCards(diagram, theme.sizes).map((card, i) => ({ ...card, path: `nodes[${i}]`, note: card.kind === "note" }));
   const nodes: readonly { readonly id: string; readonly label: string }[] = diagram.nodes;
   const index = new Map(nodes.map((node, i) => [node.id, i]));
-  const lines = diagram.edges.map((edge, i) => {
+  const unplaced = diagram.edges.map((edge, i) => {
     const source = index.get(edge.from)!;
     const target = index.get(edge.to)!;
     const line = buildLine(edge, nodes[source]!.label, nodes[target]!.label, theme.sizes);
     // A parent class is laid out before the classes that inherit from or implement it.
     const targetFirst = "kind" in edge && PARENT_KINDS.has(edge.kind);
     const ends = { ...(line.fromLabel ? { sourceLabel: line.fromLabel } : {}), ...(line.toLabel ? { targetLabel: line.toLabel } : {}) };
-    // Only an ER line's ends can name columns.
-    const columns = "fromCardinality" in edge ? { from: edge.fromColumn, to: edge.toColumn } : {};
-    const ports = linePorts(cards[source]!, cards[target]!, columns, theme.sizes);
     const counts: { fromLabel?: string; toLabel?: string } = "fromLabel" in edge || "toLabel" in edge ? edge : {};
     const joins = { ...shared(line, "from", counts.fromLabel, "source"), ...shared(line, "to", counts.toLabel, "target") };
     return {
@@ -60,8 +56,18 @@ export async function render<F extends Format = "svg">(
       targetFirst,
       ...(Object.keys(joins).length > 0 ? { joins } : {}),
       path: `edges[${i}]`,
-      ...(ports ? { ports } : {}),
     };
+  });
+  // An ER line attaches at its tables' sides: only it can name columns.
+  const between = (i: number) => "fromCardinality" in diagram.edges[i]!;
+  // Each card leaves room on its top and bottom for the lines ELK ends there, clear of its badge and tag.
+  const across = endsAcross(nodes.length, unplaced.map((line, i) => ({ ...line, sides: between(i) })), diagram.direction);
+  const cards = buildCards(diagram, theme.sizes, across).map((card, i) => ({ ...card, path: `nodes[${i}]`, note: card.kind === "note" }));
+  const lines = unplaced.map((line, i) => {
+    const edge = diagram.edges[i]!;
+    const columns = "fromCardinality" in edge ? { from: edge.fromColumn, to: edge.toColumn } : {};
+    const ports = linePorts(cards[line.source]!, cards[line.target]!, columns, theme.sizes);
+    return { ...line, ...(ports ? { ports } : {}) };
   });
   // Only flowcharts have notes, each joined by a connector to the shape it's about.
   const flowNodes = diagram.type === "flow" ? diagram.nodes : [];

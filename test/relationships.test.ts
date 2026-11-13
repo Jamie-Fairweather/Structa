@@ -13,7 +13,7 @@ import {
   cards,
   depthInShape,
   distanceOutside,
-  distanceToDrawn,
+  distanceToShape,
   drawnTextBoxes,
   lineEnds,
   lineParts,
@@ -57,8 +57,8 @@ describe("class lines", () => {
     expect(routeElement.getAttribute("fill")).toBe("none");
     expect([dashed, start, end]).toEqual([false, undefined, undefined]);
     // The line runs all the way from one card's outline to the other's.
-    expect(distanceToDrawn(route[0]!, cardById(doc, "bench"))).toBeLessThanOrEqual(1);
-    expect(distanceToDrawn(route.at(-1)!, cardById(doc, "tray"))).toBeLessThanOrEqual(1);
+    expect(distanceToShape(route[0]!, cardById(doc, "bench"))).toBeLessThanOrEqual(1);
+    expect(distanceToShape(route.at(-1)!, cardById(doc, "tray"))).toBeLessThanOrEqual(1);
   });
 
   it("names both classes in the line's tooltip, with its label", async () => {
@@ -211,8 +211,8 @@ describe("parents before children", () => {
     expect(hierarchy).toHaveLength(5);
     for (const line of hierarchy) {
       const { route, end } = lineParts(line);
-      expect(distanceToDrawn(end!.tip, cardById(doc, line.getAttribute("data-to")!))).toBeLessThanOrEqual(1);
-      expect(distanceToDrawn(route[0]!, cardById(doc, line.getAttribute("data-from")!))).toBeLessThanOrEqual(1);
+      expect(distanceToShape(end!.tip, cardById(doc, line.getAttribute("data-to")!))).toBeLessThanOrEqual(1);
+      expect(distanceToShape(route[0]!, cardById(doc, line.getAttribute("data-from")!))).toBeLessThanOrEqual(1);
       // The triangle's tip is past its base the way the parents lie.
       const base = route.at(-1)!;
       if (direction === "down") expect(end!.tip.y).toBeLessThan(base.y);
@@ -306,8 +306,8 @@ describe("lines into one parent, or from one owner", () => {
     expect(marksOf(doc, "implements")).toHaveLength(1);
     for (const line of hierarchy) {
       const { route, end } = lineParts(line);
-      expect(distanceToDrawn(end!.tip, cardById(doc, "waters"))).toBeLessThanOrEqual(1);
-      expect(distanceToDrawn(route[0]!, cardById(doc, line.getAttribute("data-from")!))).toBeLessThanOrEqual(1);
+      expect(distanceToShape(end!.tip, cardById(doc, "waters"))).toBeLessThanOrEqual(1);
+      expect(distanceToShape(route[0]!, cardById(doc, line.getAttribute("data-from")!))).toBeLessThanOrEqual(1);
     }
   });
 
@@ -525,7 +525,7 @@ describe("end labels", () => {
     expect([...labels.keys()]).toEqual(["from", "to"]);
     const [start, end] = lineEnds(line!);
     const { route, start: startMark, end: endMark } = lineParts(line!);
-    expect([distanceToDrawn(start, bed), distanceToDrawn(end, bed)].every((d) => d <= 1)).toBe(true);
+    expect([distanceToShape(start, bed), distanceToShape(end, bed)].every((d) => d <= 1)).toBe(true);
     for (const [name, own, other, mark] of [["from", start, end, startMark], ["to", end, start, endMark]] as const) {
       const { box } = labels.get(name)!;
       expect(distanceOutside(own, box), `${name} near its end`).toBeLessThanOrEqual(reach(mark));
@@ -805,7 +805,7 @@ describe("class line ends", () => {
 
     const { route, end } = lineParts(lines(doc)[0]!);
     const tray = cardById(doc, "tray");
-    expect(distanceToDrawn(end!.tip, tray)).toBeLessThanOrEqual(1);
+    expect(distanceToShape(end!.tip, tray)).toBeLessThanOrEqual(1);
     for (const corner of end!.corners) if (corner !== end!.tip) expect(depthInShape(corner, tray)).toBeLessThan(0);
     // A triangle is hollow, so the line stops at its base; an open arrow is just strokes, so the line runs to its tip.
     const [, left, right] = end!.corners;
@@ -819,7 +819,7 @@ describe("class line ends", () => {
     const line = lines(doc)[0]!;
     const { route, dashed, start, end } = lineParts(line);
     expect([dashed, start, end?.shape, end?.fill]).toEqual([false, undefined, "open-arrow", "none"]);
-    expect(distanceToDrawn(end!.tip, cardById(doc, "tray"))).toBeLessThanOrEqual(1);
+    expect(distanceToShape(end!.tip, cardById(doc, "tray"))).toBeLessThanOrEqual(1);
     expect(Math.hypot(route.at(-1)!.x - end!.tip.x, route.at(-1)!.y - end!.tip.y)).toBeLessThanOrEqual(1);
     expect(titleOf(line)).toBe("PottingBench → SeedTray: holds");
   });
@@ -852,7 +852,7 @@ describe("class line ends", () => {
       const bed = cardById(doc, "bed");
       const sizes = lines(doc).map((line) => {
         const { route, start } = lineParts(line);
-        expect(distanceToDrawn(start!.tip, bed)).toBeLessThanOrEqual(1);
+        expect(distanceToShape(start!.tip, bed)).toBeLessThanOrEqual(1);
         // The line starts at the diamond's far corner: had the diamond run past the bend, the line would start at the bend instead.
         const far = start!.corners[2]!;
         expect(Math.hypot(route[0]!.x - far.x, route[0]!.y - far.y)).toBeLessThanOrEqual(1);
@@ -868,7 +868,7 @@ describe("class line ends", () => {
 
     const { route, start } = lineParts(lines(doc)[0]!);
     const bench = cardById(doc, "bench");
-    expect(distanceToDrawn(start!.tip, bench)).toBeLessThanOrEqual(1);
+    expect(distanceToShape(start!.tip, bench)).toBeLessThanOrEqual(1);
     for (const corner of start!.corners.slice(1)) expect(depthInShape(corner, bench)).toBeLessThan(0);
     // The line starts at the diamond's far corner, so it doesn't run through a hollow one.
     const far = start!.corners[2]!;

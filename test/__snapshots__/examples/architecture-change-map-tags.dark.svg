@@ -1,10 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="832" height="1932" viewBox="0 0 832 1932">
+<svg xmlns="http://www.w3.org/2000/svg" width="848" height="1932" viewBox="0 0 848 1932">
 <defs>
 <pattern id="structa-grid-dark" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="9" cy="9" r="1" fill="#6e7681" fill-opacity="0.4"/></pattern>
 <filter id="structa-shadow-dark" x="-20%" y="-30%" width="140%" height="170%"><feDropShadow dx="0" dy="1" stdDeviation="3" flood-color="#010409" flood-opacity="0.5"/></filter>
 </defs>
-<rect width="832" height="1932" fill="#0d1117"/>
-<rect width="832" height="1932" fill="url(#structa-grid-dark)"/>
+<rect width="848" height="1932" fill="#0d1117"/>
+<rect width="848" height="1932" fill="url(#structa-grid-dark)"/>
 <g class="title">
 <text x="32" y="50.55" font-family="Structa Inter, Inter, sans-serif" font-size="18" font-weight="700" fill="#e6edf3">Town museum: taking an object off display</text>
 </g>
@@ -15,154 +15,154 @@
 </g>
 <g class="card" data-id="console" data-kind="ui" data-status="changed" data-area="portal">
 <title>Curator admin (ui): Adds a Take off display button</title>
-<rect class="outline" x="73.83" y="186" width="206" height="80" rx="10" fill="#161b22" stroke="#d29922" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
-<path class="icon" d="M165.37 201.19 L174.12 201.19 Q175.44 201.19 175.44 202.5 L175.44 209.5 Q175.44 210.81 174.12 210.81 L165.37 210.81 Q164.06 210.81 164.06 209.5 L164.06 202.5 Q164.06 201.19 165.37 201.19 Z M164.06 203.81 L175.44 203.81" fill="none" stroke="#8b949e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
-<text x="181.75" y="210" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#8b949e">ui</text>
-<text x="176.83" y="231.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Curator admin</text>
-<text x="176.83" y="250.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#8b949e" text-anchor="middle">Adds a Take off display button</text>
+<rect class="outline" x="129.5" y="186" width="206" height="80" rx="10" fill="#161b22" stroke="#d29922" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
+<path class="icon" d="M221.04 201.19 L229.79 201.19 Q231.1 201.19 231.1 202.5 L231.1 209.5 Q231.1 210.81 229.79 210.81 L221.04 210.81 Q219.73 210.81 219.73 209.5 L219.73 202.5 Q219.73 201.19 221.04 201.19 Z M219.73 203.81 L231.1 203.81" fill="none" stroke="#8b949e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="237.42" y="210" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#8b949e">ui</text>
+<text x="232.5" y="231.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Curator admin</text>
+<text x="232.5" y="250.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#8b949e" text-anchor="middle">Adds a Take off display button</text>
 <g class="badge">
-<rect x="204.83" y="178" width="63" height="16" rx="8" fill="#161b22"/>
-<rect x="204.83" y="178" width="63" height="16" rx="8" fill="#d29922" fill-opacity="0.25" stroke="#d29922" stroke-width="1"/>
-<text x="236.33" y="189.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#e3b341" text-anchor="middle">CHANGED</text>
+<rect x="260.5" y="178" width="63" height="16" rx="8" fill="#161b22"/>
+<rect x="260.5" y="178" width="63" height="16" rx="8" fill="#d29922" fill-opacity="0.25" stroke="#d29922" stroke-width="1"/>
+<text x="292" y="189.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#e3b341" text-anchor="middle">CHANGED</text>
 </g>
 <g class="tag" data-area="portal">
-<rect x="85.83" y="178" width="74" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
-<text x="122.83" y="189.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Admin portal</text>
+<rect x="141.5" y="178" width="74" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
+<text x="178.5" y="189.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Admin portal</text>
 </g>
 </g>
 <g class="card" data-id="dialog" data-kind="class" data-status="new" data-area="portal">
 <title>TakeOffDisplayDialog</title>
-<rect class="outline" x="327.83" y="146" width="360" height="120" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
-<line class="divider" x1="328.58" y1="190" x2="687.08" y2="190" stroke="#30363d" stroke-width="1"/>
-<line class="divider" x1="328.58" y1="202" x2="687.08" y2="202" stroke="#30363d" stroke-width="1"/>
-<text x="507.83" y="173.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">TakeOffDisplayDialog</text>
+<rect class="outline" x="383.5" y="146" width="360" height="120" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
+<line class="divider" x1="384.25" y1="190" x2="742.75" y2="190" stroke="#30363d" stroke-width="1"/>
+<line class="divider" x1="384.25" y1="202" x2="742.75" y2="202" stroke="#30363d" stroke-width="1"/>
+<text x="563.5" y="173.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">TakeOffDisplayDialog</text>
 <g class="row" data-id="methods[0]" data-kind="method" data-status="new">
 <title>+ open(object: ObjectId): void</title>
-<rect x="333.83" y="209" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
+<rect x="389.5" y="209" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
 <g class="symbol">
-<text x="341.83" y="225.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
+<text x="397.5" y="225.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
 </g>
-<text x="356.23" y="225.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">open(object: ObjectId): void</text>
+<text x="411.9" y="225.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">open(object: ObjectId): void</text>
 <g class="badge">
-<rect x="636.83" y="213" width="37" height="16" rx="8" fill="#161b22"/>
-<rect x="636.83" y="213" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
-<text x="655.33" y="224.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
+<rect x="692.5" y="213" width="37" height="16" rx="8" fill="#161b22"/>
+<rect x="692.5" y="213" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
+<text x="711" y="224.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
 </g>
 </g>
 <g class="row" data-id="methods[1]" data-kind="method" data-status="new">
 <title>+ confirm(reason: string): void</title>
-<rect x="333.83" y="235" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
+<rect x="389.5" y="235" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
 <g class="symbol">
-<text x="341.83" y="251.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
+<text x="397.5" y="251.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
 </g>
-<text x="356.23" y="251.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">confirm(reason: string): void</text>
+<text x="411.9" y="251.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">confirm(reason: string): void</text>
 <g class="badge">
-<rect x="636.83" y="239" width="37" height="16" rx="8" fill="#161b22"/>
-<rect x="636.83" y="239" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
-<text x="655.33" y="250.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
+<rect x="692.5" y="239" width="37" height="16" rx="8" fill="#161b22"/>
+<rect x="692.5" y="239" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
+<text x="711" y="250.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
 </g>
 </g>
 <g class="badge">
-<rect x="638.83" y="138" width="37" height="16" rx="8" fill="#161b22"/>
-<rect x="638.83" y="138" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
-<text x="657.33" y="149.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
+<rect x="694.5" y="138" width="37" height="16" rx="8" fill="#161b22"/>
+<rect x="694.5" y="138" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
+<text x="713" y="149.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
 </g>
 <g class="tag" data-area="portal">
-<rect x="339.83" y="138" width="74" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
-<text x="376.83" y="149.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Admin portal</text>
+<rect x="395.5" y="138" width="74" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
+<text x="432.5" y="149.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Admin portal</text>
 </g>
 </g>
 <g class="card" data-id="gateway" data-kind="api" data-status="unchanged" data-area="api">
 <title>Museum API (api)</title>
-<rect class="outline" x="414.5" y="422" width="140" height="62" rx="10" fill="#161b22" stroke="#6e7681" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
-<path class="icon" d="M472.46 436.75 Q470.71 436.75 470.71 438.5 L470.71 440.69 Q470.71 442 469.4 442 Q470.71 442 470.71 443.31 L470.71 445.5 Q470.71 447.25 472.46 447.25 M475.96 436.75 Q477.71 436.75 477.71 438.5 L477.71 440.69 Q477.71 442 479.02 442 Q477.71 442 477.71 443.31 L477.71 445.5 Q477.71 447.25 475.96 447.25" fill="none" stroke="#8b949e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
-<text x="486.21" y="446" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#8b949e">api</text>
-<text x="484.5" y="467.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Museum API</text>
+<rect class="outline" x="478.17" y="422" width="203" height="62" rx="10" fill="#161b22" stroke="#6e7681" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
+<path class="icon" d="M567.63 436.75 Q565.88 436.75 565.88 438.5 L565.88 440.69 Q565.88 442 564.57 442 Q565.88 442 565.88 443.31 L565.88 445.5 Q565.88 447.25 567.63 447.25 M571.13 436.75 Q572.88 436.75 572.88 438.5 L572.88 440.69 Q572.88 442 574.19 442 Q572.88 442 572.88 443.31 L572.88 445.5 Q572.88 447.25 571.13 447.25" fill="none" stroke="#8b949e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="581.38" y="446" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#8b949e">api</text>
+<text x="579.67" y="467.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Museum API</text>
 <g class="badge">
-<rect x="464.5" y="414" width="78" height="16" rx="8" fill="#161b22"/>
-<rect x="464.5" y="414" width="78" height="16" rx="8" fill="#6e7681" fill-opacity="0.25" stroke="#6e7681" stroke-width="1"/>
-<text x="503.5" y="425.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e" text-anchor="middle">UNCHANGED</text>
+<rect x="591.17" y="414" width="78" height="16" rx="8" fill="#161b22"/>
+<rect x="591.17" y="414" width="78" height="16" rx="8" fill="#6e7681" fill-opacity="0.25" stroke="#6e7681" stroke-width="1"/>
+<text x="630.17" y="425.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e" text-anchor="middle">UNCHANGED</text>
 </g>
 <g class="tag" data-area="api">
-<rect x="426.5" y="414" width="29" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
-<text x="441" y="425.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">API</text>
+<rect x="490.17" y="414" width="29" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
+<text x="504.67" y="425.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">API</text>
 </g>
 </g>
 <g class="card" data-id="controller" data-kind="class" data-status="changed" data-area="api">
 <title>DisplaysController</title>
-<rect class="outline" x="304.5" y="556" width="360" height="252" rx="10" fill="#161b22" stroke="#d29922" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
-<line class="divider" x1="305.25" y1="600" x2="663.75" y2="600" stroke="#30363d" stroke-width="1"/>
-<line class="divider" x1="305.25" y1="612" x2="663.75" y2="612" stroke="#30363d" stroke-width="1"/>
-<text x="484.5" y="583.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">DisplaysController</text>
+<rect class="outline" x="375.17" y="556" width="360" height="252" rx="10" fill="#161b22" stroke="#d29922" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
+<line class="divider" x1="375.92" y1="600" x2="734.42" y2="600" stroke="#30363d" stroke-width="1"/>
+<line class="divider" x1="375.92" y1="612" x2="734.42" y2="612" stroke="#30363d" stroke-width="1"/>
+<text x="555.17" y="583.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">DisplaysController</text>
 <g class="more">
-<text x="332.9" y="793.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">… 2 more</text>
+<text x="403.57" y="793.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">… 2 more</text>
 </g>
 <g class="row" data-id="methods[0]" data-kind="method" data-status="unchanged">
 <title>+ list(gallery: GalleryId): Display[]</title>
-<rect x="310.5" y="619" width="348" height="42" rx="4" fill="#6e7681" fill-opacity="0.12"/>
+<rect x="381.17" y="619" width="348" height="42" rx="4" fill="#6e7681" fill-opacity="0.12"/>
 <g class="symbol">
-<text x="318.5" y="635.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
+<text x="389.17" y="635.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
 </g>
-<text x="332.9" y="635.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">list(gallery: GalleryId):</text>
-<text x="332.9" y="653.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">Display[]</text>
+<text x="403.57" y="635.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">list(gallery: GalleryId):</text>
+<text x="403.57" y="653.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">Display[]</text>
 <g class="badge">
-<rect x="572.5" y="623" width="78" height="16" rx="8" fill="#161b22"/>
-<rect x="572.5" y="623" width="78" height="16" rx="8" fill="#6e7681" fill-opacity="0.25" stroke="#6e7681" stroke-width="1"/>
-<text x="611.5" y="634.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e" text-anchor="middle">UNCHANGED</text>
+<rect x="643.17" y="623" width="78" height="16" rx="8" fill="#161b22"/>
+<rect x="643.17" y="623" width="78" height="16" rx="8" fill="#6e7681" fill-opacity="0.25" stroke="#6e7681" stroke-width="1"/>
+<text x="682.17" y="634.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e" text-anchor="middle">UNCHANGED</text>
 </g>
 </g>
 <g class="row" data-id="methods[1]" data-kind="method" data-status="new">
 <title>+ takeOff(id: ObjectId, reason: string): Removal</title>
-<rect x="310.5" y="663" width="348" height="42" rx="4" fill="#3fb950" fill-opacity="0.12"/>
+<rect x="381.17" y="663" width="348" height="42" rx="4" fill="#3fb950" fill-opacity="0.12"/>
 <g class="symbol">
-<text x="318.5" y="679.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
+<text x="389.17" y="679.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
 </g>
-<text x="332.9" y="679.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">takeOff(id: ObjectId, reason: string)</text>
-<text x="332.9" y="697.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">: Removal</text>
+<text x="403.57" y="679.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">takeOff(id: ObjectId, reason: string)</text>
+<text x="403.57" y="697.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">: Removal</text>
 <g class="badge">
-<rect x="613.5" y="667" width="37" height="16" rx="8" fill="#161b22"/>
-<rect x="613.5" y="667" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
-<text x="632" y="678.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
+<rect x="684.17" y="667" width="37" height="16" rx="8" fill="#161b22"/>
+<rect x="684.17" y="667" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
+<text x="702.67" y="678.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
 </g>
 </g>
 <g class="row" data-id="methods[2]" data-kind="method" data-status="changed">
 <title>+ move(id: ObjectId, to: CaseId): Display</title>
-<rect x="310.5" y="707" width="348" height="42" rx="4" fill="#d29922" fill-opacity="0.12"/>
+<rect x="381.17" y="707" width="348" height="42" rx="4" fill="#d29922" fill-opacity="0.12"/>
 <g class="symbol">
-<text x="318.5" y="723.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
+<text x="389.17" y="723.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
 </g>
-<text x="332.9" y="723.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">move(id: ObjectId, to: CaseId):</text>
-<text x="332.9" y="741.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">Display</text>
+<text x="403.57" y="723.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">move(id: ObjectId, to: CaseId):</text>
+<text x="403.57" y="741.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">Display</text>
 <g class="badge">
-<rect x="587.5" y="711" width="63" height="16" rx="8" fill="#161b22"/>
-<rect x="587.5" y="711" width="63" height="16" rx="8" fill="#d29922" fill-opacity="0.25" stroke="#d29922" stroke-width="1"/>
-<text x="619" y="722.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#e3b341" text-anchor="middle">CHANGED</text>
+<rect x="658.17" y="711" width="63" height="16" rx="8" fill="#161b22"/>
+<rect x="658.17" y="711" width="63" height="16" rx="8" fill="#d29922" fill-opacity="0.25" stroke="#d29922" stroke-width="1"/>
+<text x="689.67" y="722.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#e3b341" text-anchor="middle">CHANGED</text>
 </g>
 </g>
 <g class="row" data-id="methods[3]" data-kind="method" data-status="removed">
 <title>+ exportGuide(day: Date): Csv</title>
 <g class="faded" opacity="0.5">
-<rect x="310.5" y="751" width="348" height="24" rx="4" fill="#f85149" fill-opacity="0.12"/>
+<rect x="381.17" y="751" width="348" height="24" rx="4" fill="#f85149" fill-opacity="0.12"/>
 <g class="symbol">
-<text x="318.5" y="767.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
+<text x="389.17" y="767.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
 </g>
-<text x="332.9" y="767.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">exportGuide(day: Date): Csv</text>
-<line class="strike" x1="332.9" y1="763.72" x2="527.3" y2="763.72" stroke="#e6edf3" stroke-width="1.25"/>
-</g>
-<g class="badge">
-<rect x="587.5" y="755" width="63" height="16" rx="8" fill="#161b22"/>
-<rect x="587.5" y="755" width="63" height="16" rx="8" fill="#f85149" fill-opacity="0.25" stroke="#f85149" stroke-width="1"/>
-<text x="619" y="766.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#ff7b72" text-anchor="middle">REMOVED</text>
-</g>
+<text x="403.57" y="767.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">exportGuide(day: Date): Csv</text>
+<line class="strike" x1="403.57" y1="763.72" x2="597.97" y2="763.72" stroke="#e6edf3" stroke-width="1.25"/>
 </g>
 <g class="badge">
-<rect x="589.5" y="548" width="63" height="16" rx="8" fill="#161b22"/>
-<rect x="589.5" y="548" width="63" height="16" rx="8" fill="#d29922" fill-opacity="0.25" stroke="#d29922" stroke-width="1"/>
-<text x="621" y="559.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#e3b341" text-anchor="middle">CHANGED</text>
+<rect x="658.17" y="755" width="63" height="16" rx="8" fill="#161b22"/>
+<rect x="658.17" y="755" width="63" height="16" rx="8" fill="#f85149" fill-opacity="0.25" stroke="#f85149" stroke-width="1"/>
+<text x="689.67" y="766.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#ff7b72" text-anchor="middle">REMOVED</text>
+</g>
+</g>
+<g class="badge">
+<rect x="660.17" y="548" width="63" height="16" rx="8" fill="#161b22"/>
+<rect x="660.17" y="548" width="63" height="16" rx="8" fill="#d29922" fill-opacity="0.25" stroke="#d29922" stroke-width="1"/>
+<text x="691.67" y="559.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#e3b341" text-anchor="middle">CHANGED</text>
 </g>
 <g class="tag" data-area="api">
-<rect x="316.5" y="548" width="29" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
-<text x="331" y="559.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">API</text>
+<rect x="387.17" y="548" width="29" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
+<text x="401.67" y="559.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">API</text>
 </g>
 </g>
 <g class="card" data-id="collection" data-kind="service" data-area="services">
@@ -179,88 +179,88 @@
 </g>
 <g class="card" data-id="removals" data-kind="class" data-status="new" data-area="services">
 <title>RemovalService</title>
-<rect class="outline" x="364.5" y="964" width="360" height="182" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
-<line class="divider" x1="365.25" y1="1008" x2="723.75" y2="1008" stroke="#30363d" stroke-width="1"/>
-<line class="divider" x1="365.25" y1="1046" x2="723.75" y2="1046" stroke="#30363d" stroke-width="1"/>
-<text x="544.5" y="991.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">RemovalService</text>
+<rect class="outline" x="406.5" y="964" width="360" height="182" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
+<line class="divider" x1="407.25" y1="1008" x2="765.75" y2="1008" stroke="#30363d" stroke-width="1"/>
+<line class="divider" x1="407.25" y1="1046" x2="765.75" y2="1046" stroke="#30363d" stroke-width="1"/>
+<text x="586.5" y="991.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">RemovalService</text>
 <g class="row" data-id="properties[0]" data-kind="property" data-status="new">
 <title>- displays: DisplayStore</title>
-<rect x="370.5" y="1015" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
+<rect x="412.5" y="1015" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
 <g class="symbol">
-<text x="378.5" y="1031.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">-</text>
+<text x="420.5" y="1031.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">-</text>
 </g>
-<text x="392.9" y="1031.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">displays: DisplayStore</text>
+<text x="434.9" y="1031.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">displays: DisplayStore</text>
 <g class="badge">
-<rect x="673.5" y="1019" width="37" height="16" rx="8" fill="#161b22"/>
-<rect x="673.5" y="1019" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
-<text x="692" y="1030.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
+<rect x="715.5" y="1019" width="37" height="16" rx="8" fill="#161b22"/>
+<rect x="715.5" y="1019" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
+<text x="734" y="1030.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
 </g>
 </g>
 <g class="row" data-id="methods[0]" data-kind="method" data-status="new">
 <title>+ takeOff(object: MuseumObject, reason: string): Removal</title>
-<rect x="370.5" y="1053" width="348" height="42" rx="4" fill="#3fb950" fill-opacity="0.12"/>
+<rect x="412.5" y="1053" width="348" height="42" rx="4" fill="#3fb950" fill-opacity="0.12"/>
 <g class="symbol">
-<text x="378.5" y="1069.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
+<text x="420.5" y="1069.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
 </g>
-<text x="392.9" y="1069.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">takeOff(object: MuseumObject, reason:</text>
-<text x="392.9" y="1087.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">string): Removal</text>
+<text x="434.9" y="1069.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">takeOff(object: MuseumObject, reason:</text>
+<text x="434.9" y="1087.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">string): Removal</text>
 <g class="badge">
-<rect x="673.5" y="1057" width="37" height="16" rx="8" fill="#161b22"/>
-<rect x="673.5" y="1057" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
-<text x="692" y="1068.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
+<rect x="715.5" y="1057" width="37" height="16" rx="8" fill="#161b22"/>
+<rect x="715.5" y="1057" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
+<text x="734" y="1068.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
 </g>
 </g>
 <g class="row" data-id="methods[1]" data-kind="method" data-status="new">
 <title>- entriesFor(object: MuseumObject): GuideEntry[]</title>
-<rect x="370.5" y="1097" width="348" height="42" rx="4" fill="#3fb950" fill-opacity="0.12"/>
+<rect x="412.5" y="1097" width="348" height="42" rx="4" fill="#3fb950" fill-opacity="0.12"/>
 <g class="symbol">
-<text x="378.5" y="1113.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">-</text>
+<text x="420.5" y="1113.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">-</text>
 </g>
-<text x="392.9" y="1113.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">entriesFor(object: MuseumObject):</text>
-<text x="392.9" y="1131.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">GuideEntry[]</text>
+<text x="434.9" y="1113.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">entriesFor(object: MuseumObject):</text>
+<text x="434.9" y="1131.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">GuideEntry[]</text>
 <g class="badge">
-<rect x="673.5" y="1101" width="37" height="16" rx="8" fill="#161b22"/>
-<rect x="673.5" y="1101" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
-<text x="692" y="1112.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
+<rect x="715.5" y="1101" width="37" height="16" rx="8" fill="#161b22"/>
+<rect x="715.5" y="1101" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
+<text x="734" y="1112.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
 </g>
 </g>
 <g class="badge">
-<rect x="675.5" y="956" width="37" height="16" rx="8" fill="#161b22"/>
-<rect x="675.5" y="956" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
-<text x="694" y="967.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
+<rect x="717.5" y="956" width="37" height="16" rx="8" fill="#161b22"/>
+<rect x="717.5" y="956" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
+<text x="736" y="967.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
 </g>
 <g class="tag" data-area="services">
-<rect x="376.5" y="956" width="55" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
-<text x="404" y="967.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Services</text>
+<rect x="418.5" y="956" width="55" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
+<text x="446" y="967.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Services</text>
 </g>
 </g>
 <g class="card" data-id="events" data-kind="queue" data-status="new" data-area="services">
 <title>Display events (queue)</title>
-<rect class="outline" x="380.67" y="1302" width="140" height="62" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
-<path class="icon" d="M427.51 1318.5 L436.26 1318.5 Q437.57 1318.5 437.57 1319.81 L437.57 1324.19 Q437.57 1325.5 436.26 1325.5 L427.51 1325.5 Q426.19 1325.5 426.19 1324.19 L426.19 1319.81 Q426.19 1318.5 427.51 1318.5 Z M429.98 1318.5 L429.98 1325.5 M433.78 1318.5 L433.78 1325.5" fill="none" stroke="#8b949e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
-<text x="443.88" y="1326" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#8b949e">queue</text>
-<text x="450.67" y="1347.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Display events</text>
+<rect class="outline" x="382.17" y="1302" width="188" height="62" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
+<path class="icon" d="M453.01 1318.5 L461.76 1318.5 Q463.07 1318.5 463.07 1319.81 L463.07 1324.19 Q463.07 1325.5 461.76 1325.5 L453.01 1325.5 Q451.69 1325.5 451.69 1324.19 L451.69 1319.81 Q451.69 1318.5 453.01 1318.5 Z M455.48 1318.5 L455.48 1325.5 M459.28 1318.5 L459.28 1325.5" fill="none" stroke="#8b949e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="469.38" y="1326" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#8b949e">queue</text>
+<text x="476.17" y="1347.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Display events</text>
 <g class="badge">
-<rect x="471.67" y="1294" width="37" height="16" rx="8" fill="#161b22"/>
-<rect x="471.67" y="1294" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
-<text x="490.17" y="1305.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
+<rect x="521.17" y="1294" width="37" height="16" rx="8" fill="#161b22"/>
+<rect x="521.17" y="1294" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
+<text x="539.67" y="1305.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
 </g>
 <g class="tag" data-area="services">
-<rect x="392.67" y="1294" width="55" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
-<text x="420.17" y="1305.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Services</text>
+<rect x="394.17" y="1294" width="55" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
+<text x="421.67" y="1305.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Services</text>
 </g>
 </g>
 <g class="card" data-id="map" data-kind="service" data-status="new" data-area="services">
 <title>Floor map (service): Drops the object's pin</title>
-<rect class="outline" x="162.5" y="1520" width="157" height="80" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
-<path class="icon" d="M219.55 1534.31 L224.45 1537.16 L224.45 1542.84 L219.55 1545.69 L214.65 1542.84 L214.65 1537.16 Z M217.36 1540 A2.19 2.19 0 1 1 221.74 1540 A2.19 2.19 0 1 1 217.36 1540" fill="none" stroke="#8b949e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
-<text x="231.55" y="1544" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#8b949e">service</text>
-<text x="241" y="1565.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Floor map</text>
-<text x="241" y="1584.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#8b949e" text-anchor="middle">Drops the object's pin</text>
+<rect class="outline" x="162.5" y="1520" width="172" height="80" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
+<path class="icon" d="M227.05 1534.31 L231.95 1537.16 L231.95 1542.84 L227.05 1545.69 L222.15 1542.84 L222.15 1537.16 Z M224.86 1540 A2.19 2.19 0 1 1 229.24 1540 A2.19 2.19 0 1 1 224.86 1540" fill="none" stroke="#8b949e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="239.05" y="1544" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#8b949e">service</text>
+<text x="248.5" y="1565.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Floor map</text>
+<text x="248.5" y="1584.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#8b949e" text-anchor="middle">Drops the object's pin</text>
 <g class="badge">
-<rect x="270.5" y="1512" width="37" height="16" rx="8" fill="#161b22"/>
-<rect x="270.5" y="1512" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
-<text x="289" y="1523.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
+<rect x="285.5" y="1512" width="37" height="16" rx="8" fill="#161b22"/>
+<rect x="285.5" y="1512" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
+<text x="304" y="1523.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
 </g>
 <g class="tag" data-area="services">
 <rect x="174.5" y="1512" width="55" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
@@ -269,129 +269,129 @@
 </g>
 <g class="card" data-id="entries" data-kind="service" data-status="changed" data-area="guide">
 <title>Guide entries (service): Hides the object's entry at once</title>
-<rect class="outline" x="367.5" y="1520" width="213" height="80" rx="10" fill="#161b22" stroke="#d29922" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
-<path class="icon" d="M452.55 1534.31 L457.45 1537.16 L457.45 1542.84 L452.55 1545.69 L447.65 1542.84 L447.65 1537.16 Z M450.36 1540 A2.19 2.19 0 1 1 454.74 1540 A2.19 2.19 0 1 1 450.36 1540" fill="none" stroke="#8b949e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
-<text x="464.55" y="1544" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#8b949e">service</text>
-<text x="474" y="1565.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Guide entries</text>
-<text x="474" y="1584.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#8b949e" text-anchor="middle">Hides the object's entry at once</text>
+<rect class="outline" x="382.5" y="1520" width="214" height="80" rx="10" fill="#161b22" stroke="#d29922" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
+<path class="icon" d="M468.05 1534.31 L472.95 1537.16 L472.95 1542.84 L468.05 1545.69 L463.15 1542.84 L463.15 1537.16 Z M465.86 1540 A2.19 2.19 0 1 1 470.24 1540 A2.19 2.19 0 1 1 465.86 1540" fill="none" stroke="#8b949e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="480.05" y="1544" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#8b949e">service</text>
+<text x="489.5" y="1565.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Guide entries</text>
+<text x="489.5" y="1584.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#8b949e" text-anchor="middle">Hides the object's entry at once</text>
 <g class="badge">
-<rect x="505.5" y="1512" width="63" height="16" rx="8" fill="#161b22"/>
-<rect x="505.5" y="1512" width="63" height="16" rx="8" fill="#d29922" fill-opacity="0.25" stroke="#d29922" stroke-width="1"/>
-<text x="537" y="1523.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#e3b341" text-anchor="middle">CHANGED</text>
+<rect x="521.5" y="1512" width="63" height="16" rx="8" fill="#161b22"/>
+<rect x="521.5" y="1512" width="63" height="16" rx="8" fill="#d29922" fill-opacity="0.25" stroke="#d29922" stroke-width="1"/>
+<text x="553" y="1523.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#e3b341" text-anchor="middle">CHANGED</text>
 </g>
 <g class="tag" data-area="guide">
-<rect x="379.5" y="1512" width="71" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
-<text x="415" y="1523.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Audio guide</text>
+<rect x="394.5" y="1512" width="71" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
+<text x="430" y="1523.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Audio guide</text>
 </g>
 </g>
 <g class="card" data-id="export" data-kind="job" data-status="removed" data-area="guide">
 <title>Nightly guide export (job)</title>
 <g class="faded" opacity="0.5">
-<rect class="outline" x="629.5" y="1538" width="170" height="62" rx="10" fill="#161b22" stroke="#f85149" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
-<path class="icon" d="M698.53 1558 A5.47 5.47 0 1 1 709.47 1558 A5.47 5.47 0 1 1 698.53 1558 M704 1554.94 L704 1558 L706.41 1559.53" fill="none" stroke="#8b949e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
-<text x="716" y="1562" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#8b949e">job</text>
-<text x="714.5" y="1583.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Nightly guide export</text>
-<line class="strike" x1="645.73" y1="1578.89" x2="783.27" y2="1578.89" stroke="#e6edf3" stroke-width="1.25"/>
+<rect class="outline" x="645.5" y="1538" width="170" height="62" rx="10" fill="#161b22" stroke="#f85149" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
+<path class="icon" d="M714.53 1558 A5.47 5.47 0 1 1 725.47 1558 A5.47 5.47 0 1 1 714.53 1558 M720 1554.94 L720 1558 L722.41 1559.53" fill="none" stroke="#8b949e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="732" y="1562" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#8b949e">job</text>
+<text x="730.5" y="1583.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Nightly guide export</text>
+<line class="strike" x1="661.73" y1="1578.89" x2="799.27" y2="1578.89" stroke="#e6edf3" stroke-width="1.25"/>
 </g>
 <g class="badge">
-<rect x="724.5" y="1530" width="63" height="16" rx="8" fill="#161b22"/>
-<rect x="724.5" y="1530" width="63" height="16" rx="8" fill="#f85149" fill-opacity="0.25" stroke="#f85149" stroke-width="1"/>
-<text x="756" y="1541.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#ff7b72" text-anchor="middle">REMOVED</text>
+<rect x="740.5" y="1530" width="63" height="16" rx="8" fill="#161b22"/>
+<rect x="740.5" y="1530" width="63" height="16" rx="8" fill="#f85149" fill-opacity="0.25" stroke="#f85149" stroke-width="1"/>
+<text x="772" y="1541.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#ff7b72" text-anchor="middle">REMOVED</text>
 </g>
 <g class="tag" data-area="guide">
-<rect x="641.5" y="1530" width="71" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
-<text x="677" y="1541.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Audio guide</text>
+<rect x="657.5" y="1530" width="71" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
+<text x="693" y="1541.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Audio guide</text>
 </g>
 </g>
 <g class="card" data-id="db" data-kind="database" data-status="changed" data-area="data">
 <title>Museum database (database): Adds a removals table</title>
-<rect class="outline" x="509.1" y="1756" width="159" height="80" rx="10" fill="#161b22" stroke="#d29922" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
-<path class="icon" d="M557.38 1772.5 A4.81 1.75 0 1 1 567 1772.5 A4.81 1.75 0 1 1 557.38 1772.5 M557.38 1772.5 L557.38 1779.5 A4.81 1.75 0 0 0 567 1779.5 L567 1772.5 M557.38 1776 A4.81 1.75 0 0 0 567 1776" fill="none" stroke="#8b949e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
-<text x="574.19" y="1780" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#8b949e">database</text>
-<text x="588.6" y="1801.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Museum database</text>
-<text x="588.6" y="1820.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#8b949e" text-anchor="middle">Adds a removals table</text>
+<rect class="outline" x="490.3" y="1756" width="249" height="80" rx="10" fill="#161b22" stroke="#d29922" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
+<path class="icon" d="M583.58 1772.5 A4.81 1.75 0 1 1 593.2 1772.5 A4.81 1.75 0 1 1 583.58 1772.5 M583.58 1772.5 L583.58 1779.5 A4.81 1.75 0 0 0 593.2 1779.5 L593.2 1772.5 M583.58 1776 A4.81 1.75 0 0 0 593.2 1776" fill="none" stroke="#8b949e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="600.39" y="1780" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#8b949e">database</text>
+<text x="614.8" y="1801.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Museum database</text>
+<text x="614.8" y="1820.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#8b949e" text-anchor="middle">Adds a removals table</text>
 <g class="badge">
-<rect x="593.1" y="1748" width="63" height="16" rx="8" fill="#161b22"/>
-<rect x="593.1" y="1748" width="63" height="16" rx="8" fill="#d29922" fill-opacity="0.25" stroke="#d29922" stroke-width="1"/>
-<text x="624.6" y="1759.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#e3b341" text-anchor="middle">CHANGED</text>
+<rect x="664.3" y="1748" width="63" height="16" rx="8" fill="#161b22"/>
+<rect x="664.3" y="1748" width="63" height="16" rx="8" fill="#d29922" fill-opacity="0.25" stroke="#d29922" stroke-width="1"/>
+<text x="695.8" y="1759.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#e3b341" text-anchor="middle">CHANGED</text>
 </g>
 <g class="tag" data-area="data">
-<rect x="521.1" y="1748" width="58" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
-<text x="550.1" y="1759.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Database</text>
+<rect x="502.3" y="1748" width="58" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
+<text x="531.3" y="1759.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Database</text>
 </g>
 </g>
 <g class="line" data-id="edges[0]" data-kind="call" data-from="console" data-to="gateway">
 <title>Curator admin → Museum API: GET /displays</title>
-<path d="M176.83 266 L176.83 366 Q176.83 374 184.83 374 L453.17 374 Q461.17 374 461.17 382 L461.17 413" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
-<path d="M461.17 422 L456.67 413 L465.67 413 Z" fill="#6e7681"/>
+<path d="M232.5 266 L232.5 366 Q232.5 374 240.5 374 L538.83 374 Q546.83 374 546.83 382 L546.83 413" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M546.83 422 L542.33 413 L551.33 413 Z" fill="#6e7681"/>
 </g>
 <g class="line" data-id="edges[1]" data-kind="call" data-from="dialog" data-to="gateway" data-status="new">
 <title>TakeOffDisplayDialog → Museum API: DELETE /displays/{id}</title>
-<path d="M507.83 266 L507.83 405" fill="none" stroke="#3fb950" stroke-width="3" stroke-linejoin="round"/>
-<path d="M507.83 414 L503.33 405 L512.33 405 Z" fill="#3fb950"/>
+<path d="M563.5 266 L563.5 413" fill="none" stroke="#3fb950" stroke-width="3" stroke-linejoin="round"/>
+<path d="M563.5 422 L559 413 L568 413 Z" fill="#3fb950"/>
 </g>
 <g class="line" data-id="edges[2]" data-kind="call" data-from="gateway" data-to="controller">
 <title>Museum API → DisplaysController</title>
-<path d="M484.5 484 L484.5 547" fill="none" stroke="#6e7681" stroke-width="3" stroke-linejoin="round"/>
-<path d="M484.5 556 L480 547 L489 547 Z" fill="#6e7681"/>
+<path d="M555.17 484 L555.17 547" fill="none" stroke="#6e7681" stroke-width="3" stroke-linejoin="round"/>
+<path d="M555.17 556 L550.67 547 L559.67 547 Z" fill="#6e7681"/>
 </g>
 <g class="line" data-id="edges[3]" data-kind="call" data-from="controller" data-to="collection" data-status="changed">
 <title>DisplaysController → Collection service: move object</title>
-<path d="M424.5 808 L424.5 824 Q424.5 832 416.5 832 L145.5 832 Q137.5 832 137.5 840 L137.5 1006" fill="none" stroke="#d29922" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M523.83 808 L523.83 824 Q523.83 832 515.83 832 L145.5 832 Q137.5 832 137.5 840 L137.5 1006" fill="none" stroke="#d29922" stroke-width="1.5" stroke-linejoin="round"/>
 <path d="M137.5 1015 L133 1006 L142 1006 Z" fill="#d29922"/>
 </g>
 <g class="line" data-id="edges[4]" data-kind="call" data-from="controller" data-to="removals" data-status="new">
 <title>DisplaysController → RemovalService: take off</title>
-<path d="M544.5 808 L544.5 955" fill="none" stroke="#3fb950" stroke-width="3" stroke-linejoin="round"/>
-<path d="M544.5 964 L540 955 L549 955 Z" fill="#3fb950"/>
+<path d="M586.5 808 L586.5 955" fill="none" stroke="#3fb950" stroke-width="3" stroke-linejoin="round"/>
+<path d="M586.5 964 L582 955 L591 955 Z" fill="#3fb950"/>
 </g>
 <g class="line" data-id="edges[5]" data-kind="call" data-from="removals" data-to="db" data-status="new">
 <title>RemovalService → Museum database: save removal</title>
-<path d="M604.5 1146 L604.5 1739" fill="none" stroke="#3fb950" stroke-width="3" stroke-linejoin="round"/>
-<path d="M604.5 1748 L600 1739 L609 1739 Z" fill="#3fb950"/>
+<path d="M620.5 1146 L620.5 1747" fill="none" stroke="#3fb950" stroke-width="3" stroke-linejoin="round"/>
+<path d="M620.5 1756 L616 1747 L625 1747 Z" fill="#3fb950"/>
 </g>
 <g class="line" data-id="edges[6]" data-kind="async" data-from="removals" data-to="events" data-status="new">
 <title>RemovalService → Display events (async): object removed</title>
-<path d="M484.5 1146 L484.5 1162 Q484.5 1170 476.5 1170 L458.67 1170 Q450.67 1170 450.67 1178 L450.67 1302" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-linejoin="round" stroke-dasharray="6 4"/>
-<path d="M446.17 1293 L450.67 1302 L455.17 1293" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M552.5 1146 L552.5 1162 Q552.5 1170 544.5 1170 L493.17 1170 Q485.17 1170 485.17 1178 L485.17 1302" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-linejoin="round" stroke-dasharray="6 4"/>
+<path d="M480.67 1293 L485.17 1302 L489.67 1293" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <g class="line" data-id="edges[7]" data-kind="async" data-from="events" data-to="entries" data-status="new">
 <title>Display events → Guide entries (async): hide its entry</title>
-<path d="M474 1364 L474 1520" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-linejoin="round" stroke-dasharray="6 4"/>
-<path d="M469.5 1511 L474 1520 L478.5 1511" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M493.5 1364 L493.5 1520" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-linejoin="round" stroke-dasharray="6 4"/>
+<path d="M489 1511 L493.5 1520 L498 1511" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <g class="line" data-id="edges[8]" data-kind="async" data-from="events" data-to="map" data-status="new">
 <title>Display events → Floor map (async): drop its pin</title>
-<path d="M427.33 1364 L427.33 1380 Q427.33 1388 419.33 1388 L249 1388 Q241 1388 241 1396 L241 1520" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-linejoin="round" stroke-dasharray="6 4"/>
-<path d="M236.5 1511 L241 1520 L245.5 1511" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M476.83 1364 L476.83 1380 Q476.83 1388 468.83 1388 L265.5 1388 Q257.5 1388 257.5 1396 L257.5 1520" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-linejoin="round" stroke-dasharray="6 4"/>
+<path d="M253 1511 L257.5 1520 L262 1511" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <g class="line" data-id="edges[9]" data-kind="call" data-from="collection" data-to="db" data-status="unchanged">
 <title>Collection service → Museum database: read objects</title>
-<path d="M137.5 1095 L137.5 1716 Q137.5 1724 145.5 1724 L532.9 1724 Q540.9 1724 540.9 1732 L540.9 1739" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
-<path d="M540.9 1748 L536.4 1739 L545.4 1739 Z" fill="#6e7681"/>
+<path d="M137.5 1095 L137.5 1716 Q137.5 1724 145.5 1724 L579.7 1724 Q587.7 1724 587.7 1732 L587.7 1747" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M587.7 1756 L583.2 1747 L592.2 1747 Z" fill="#6e7681"/>
 </g>
 <g class="line" data-id="edges[10]" data-kind="call" data-from="entries" data-to="db" data-status="changed">
 <title>Guide entries → Museum database: mark hidden</title>
-<path d="M474 1600 L474 1700 Q474 1708 482 1708 L564.7 1708 Q572.7 1708 572.7 1716 L572.7 1739" fill="none" stroke="#d29922" stroke-width="1.5" stroke-linejoin="round"/>
-<path d="M572.7 1748 L568.2 1739 L577.2 1739 Z" fill="#d29922"/>
+<path d="M493.5 1600 L493.5 1700 Q493.5 1708 501.5 1708 L596.1 1708 Q604.1 1708 604.1 1716 L604.1 1747" fill="none" stroke="#d29922" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M604.1 1756 L599.6 1747 L608.6 1747 Z" fill="#d29922"/>
 </g>
 <g class="line" data-id="edges[11]" data-kind="call" data-from="export" data-to="db" data-status="removed">
 <title>Nightly guide export → Museum database: read displays</title>
 <g class="faded" opacity="0.5">
-<path d="M714.5 1600 L714.5 1700 Q714.5 1708 706.5 1708 L644.3 1708 Q636.3 1708 636.3 1716 L636.3 1739" fill="none" stroke="#f85149" stroke-width="1.5" stroke-linejoin="round"/>
-<path d="M636.3 1748 L631.8 1739 L640.8 1739 Z" fill="#f85149"/>
+<path d="M730.5 1600 L730.5 1700 Q730.5 1708 722.5 1708 L644.9 1708 Q636.9 1708 636.9 1716 L636.9 1747" fill="none" stroke="#f85149" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M636.9 1756 L632.4 1747 L641.4 1747 Z" fill="#f85149"/>
 </g>
 </g>
 <g class="line-labels">
 <g class="line-label" data-line="edges[0]">
 <title>Curator admin → Museum API: GET /displays</title>
-<rect x="129.33" y="330" width="95" height="20" rx="10" fill="#161b22" stroke="#6e7681" stroke-width="1"/>
-<text x="176.83" y="344.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">GET /displays</text>
+<rect x="185" y="330" width="95" height="20" rx="10" fill="#161b22" stroke="#6e7681" stroke-width="1"/>
+<text x="232.5" y="344.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">GET /displays</text>
 </g>
 <g class="line-label" data-line="edges[1]">
 <title>TakeOffDisplayDialog → Museum API: DELETE /displays/{id}</title>
-<rect x="437.83" y="330" width="140" height="20" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
-<text x="507.83" y="344.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">DELETE /displays/{id}</text>
+<rect x="493.5" y="330" width="140" height="20" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
+<text x="563.5" y="344.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">DELETE /displays/{id}</text>
 </g>
 <g class="line-label" data-line="edges[3]">
 <title>DisplaysController → Collection service: move object</title>
@@ -400,28 +400,28 @@
 </g>
 <g class="line-label" data-line="edges[4]">
 <title>DisplaysController → RemovalService: take off</title>
-<rect x="514.5" y="872" width="60" height="20" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
-<text x="544.5" y="886.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">take off</text>
+<rect x="556.5" y="872" width="60" height="20" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
+<text x="586.5" y="886.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">take off</text>
 </g>
 <g class="line-label" data-line="edges[5]">
 <title>RemovalService → Museum database: save removal</title>
-<rect x="558.5" y="1428" width="92" height="20" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
-<text x="604.5" y="1442.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">save removal</text>
+<rect x="574.5" y="1428" width="92" height="20" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
+<text x="620.5" y="1442.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">save removal</text>
 </g>
 <g class="line-label" data-line="edges[6]">
 <title>RemovalService → Display events (async): object removed</title>
-<rect x="398.17" y="1210" width="105" height="20" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
-<text x="450.67" y="1224.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">object removed</text>
+<rect x="432.67" y="1210" width="105" height="20" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
+<text x="485.17" y="1224.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">object removed</text>
 </g>
 <g class="line-label" data-line="edges[7]">
 <title>Display events → Guide entries (async): hide its entry</title>
-<rect x="429" y="1428" width="90" height="20" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
-<text x="474" y="1442.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">hide its entry</text>
+<rect x="448.5" y="1428" width="90" height="20" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
+<text x="493.5" y="1442.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">hide its entry</text>
 </g>
 <g class="line-label" data-line="edges[8]">
 <title>Display events → Floor map (async): drop its pin</title>
-<rect x="201" y="1428" width="80" height="20" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
-<text x="241" y="1442.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">drop its pin</text>
+<rect x="217.5" y="1428" width="80" height="20" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
+<text x="257.5" y="1442.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">drop its pin</text>
 </g>
 <g class="line-label" data-line="edges[9]">
 <title>Collection service → Museum database: read objects</title>
@@ -430,16 +430,16 @@
 </g>
 <g class="line-label" data-line="edges[10]">
 <title>Guide entries → Museum database: mark hidden</title>
-<rect x="430.5" y="1664" width="87" height="20" rx="10" fill="#161b22" stroke="#d29922" stroke-width="1"/>
-<text x="474" y="1678.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">mark hidden</text>
+<rect x="450" y="1664" width="87" height="20" rx="10" fill="#161b22" stroke="#d29922" stroke-width="1"/>
+<text x="493.5" y="1678.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">mark hidden</text>
 </g>
 <g class="line-label" data-line="edges[11]">
 <title>Nightly guide export → Museum database: read displays</title>
-<rect x="668.5" y="1664" width="92" height="20" rx="10" fill="#0d1117"/>
+<rect x="684.5" y="1664" width="92" height="20" rx="10" fill="#0d1117"/>
 <g class="faded" opacity="0.5">
-<rect x="668.5" y="1664" width="92" height="20" rx="10" fill="#161b22" stroke="#f85149" stroke-width="1"/>
-<text x="714.5" y="1678.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">read displays</text>
-<line class="strike" x1="676.68" y1="1674.77" x2="752.32" y2="1674.77" stroke="#e6edf3" stroke-width="1.25"/>
+<rect x="684.5" y="1664" width="92" height="20" rx="10" fill="#161b22" stroke="#f85149" stroke-width="1"/>
+<text x="730.5" y="1678.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">read displays</text>
+<line class="strike" x1="692.68" y1="1674.77" x2="768.32" y2="1674.77" stroke="#e6edf3" stroke-width="1.25"/>
 </g>
 </g>
 </g>

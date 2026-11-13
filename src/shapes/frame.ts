@@ -84,8 +84,13 @@ export type BorderPlace =
    * toward the left-hand end, `tagInset` px in from it (`inset` when not given).
    */
   | { readonly align: "end"; readonly inset: number; readonly tagInset?: number }
-  /** Centred together, the tag then the badge, as on the top corner of a diamond. */
-  | { readonly align: "middle" };
+  /**
+   * Either side of the middle, the tag to its left and the badge to its
+   * right, as either side of a diamond's top corner: lines meet the corner
+   * between them. The border falls away `drop` px for every px out from the
+   * middle, and each sits centred on it where it starts.
+   */
+  | { readonly align: "middle"; readonly drop: number };
 
 /** The colour a card's outline is filled with. */
 export type CardFill = keyof Pick<ThemeColors, "cardFill" | "noteFill">;
@@ -150,13 +155,30 @@ export interface Card {
   readonly tag?: Tag;
   /** As in CardBody, measured from the top of the card's box. */
   readonly header?: Span;
+  /** Where on its box lines may meet the card, clear of its badge and tag. */
+  readonly landing: Landing;
 }
 
-/** What sits on a card's top border. */
+/**
+ * Where on a card's box lines may meet it, clear of the badge and the tag on
+ * its top border: across its top from `left` to `right`, and down its left
+ * and right sides from `top` to `bottom`, all measured from the box's
+ * top-left corner. Nothing sits on its bottom.
+ */
+export interface Landing {
+  readonly left: number;
+  readonly right: number;
+  readonly top: number;
+  readonly bottom: number;
+}
+
+/** What sits on a card's top border, and how many lines must find room beside it. */
 interface CardHeader {
   readonly status?: Status;
   /** The name of the area the tag shows. */
   readonly tag?: string;
+  /** How many lines its top must leave room for. */
+  readonly lines: number;
 }
 
 /** A node the frame can build a card from. */
@@ -181,35 +203,60 @@ const BADGE_FACE: FaceId = "inter-bold";
  * grows upwards by half a badge: the band the status badge (top-right) and
  * the area tag (top-left) overhang. Giving it to every card keeps the outlines
  * of cards side by side lined up.
+ *
+ * `lines` says how many lines each card's top must leave room for: a card
+ * with a badge or a tag is wide enough to give them that room clear of both.
  */
 export function frameCards<N extends Framed>(
   nodes: readonly N[],
   sizes: Sizes,
   tagOf: (node: N) => string | undefined,
+  lines: readonly number[],
   build: (node: N, minWidth: number) => CardBody,
 ): Card[] {
-  const headers = nodes.map((node): CardHeader => {
+  const headers = nodes.map((node, i): CardHeader => {
     const tag = tagOf(node);
-    return { ...(node.status === undefined ? {} : { status: node.status }), ...(tag === undefined ? {} : { tag }) };
+    return { ...(node.status === undefined ? {} : { status: node.status }), ...(tag === undefined ? {} : { tag }), lines: lines[i] ?? 0 };
   });
-  const band = Math.max(sizes.badge.height, sizes.tag.height);
-  const top = headers.some((header) => borderWidth(header, undefined, sizes) > 0) ? band / 2 : 0;
+  const top = headers.some((header) => header.status !== undefined || header.tag !== undefined) ? bandHeight(sizes) / 2 : 0;
   return nodes.map((node, i) => frameCard(node, headers[i]!, top, sizes, build));
+}
+
+/** How tall the badge and the tag are together: the band they take up across a card's top border. */
+function bandHeight(sizes: Sizes): number {
+  return Math.max(sizes.badge.height, sizes.tag.height);
+}
+
+/** How much of a card's top a number of lines needs, `pitch` apart and as far from what's either side of them; none for none. */
+function landingRoom(lines: number, sizes: Sizes): number {
+  return lines === 0 ? 0 : (lines + 1) * sizes.landing.pitch;
 }
 
 /**
  * How wide a card must be to hold what sits on its top border, placed as
- * `place` says; 0 when nothing does. Both ends keep at least the theme's
- * inset; a body's own place only moves where its tag starts.
+ * `place` says, with room for its lines beside them; 0 when nothing sits
+ * there. Both ends keep at least the theme's inset; a body's own place only
+ * moves where its tag starts. On a diamond's top corner, the tag and the
+ * badge sit either side of the lines' room, so the wider of them sets both
+ * halves.
  */
 function borderWidth(header: CardHeader, place: BorderPlace | undefined, sizes: Sizes): number {
   const { status, tag } = header;
   if (status === undefined && tag === undefined) return 0;
   const inset = sizes.badge.inset;
-  const widths = (status === undefined ? 0 : measureBadge(status, sizes)) + (tag === undefined ? 0 : measureTag(tag, sizes));
-  const gap = status !== undefined && tag !== undefined ? sizes.tag.gap : 0;
+  const { clearance } = sizes.landing;
+  const tagWidth = tag === undefined ? 0 : measureTag(tag, sizes);
+  const badgeWidth = status === undefined ? 0 : measureBadge(status, sizes);
+  const room = landingRoom(header.lines, sizes);
+  if (place?.align === "middle") return 2 * (room / 2 + clearance + Math.max(tagWidth, badgeWidth) + inset);
   const left = tag !== undefined && place?.align === "end" ? (place.tagInset ?? place.inset) : inset;
-  return left + widths + gap + inset;
+  const gap = status !== undefined && tag !== undefined ? sizes.tag.gap : 0;
+  const packed = left + tagWidth + gap + badgeWidth + inset;
+  if (room === 0) return packed;
+  // The lines' room between the tag and the badge, or the end of the card where either is missing.
+  const beforeRoom = tag === undefined ? 0 : left + tagWidth + clearance;
+  const afterRoom = status === undefined ? 0 : clearance + badgeWidth + inset;
+  return Math.max(packed, beforeRoom + room + afterRoom);
 }
 
 function frameCard<N extends Framed>(
@@ -261,41 +308,82 @@ function frameCard<N extends Framed>(
       ...(row.badge ? { badge: { ...shift(row.badge), word: shift(row.badge.word) } } : {}),
     })),
     ...(body.more ? { more: shift(body.more) } : {}),
-    ...onBorder(header, node.area, width, top, body.border, sizes),
+    ...onBorder(header, node.area, width, top + body.height, top, body.border, sizes),
     ...(body.header ? { header: { top: body.header.top + top, bottom: body.header.bottom + top } } : {}),
   };
 }
 
 /**
- * The badge and the tag on a card's top border, centred on it at `top`, in a
- * box `width` wide. The badge stays at least the theme's inset inside the
- * box, and clear of the tag.
+ * The badge and the tag on a card's top border, whose top is at `top` in a
+ * box `width` wide and `height` tall, and where lines may meet the card. The
+ * badge stays at least the theme's inset inside the box, and clear of the
+ * tag. On a diamond they sit either side of its top corner, with room
+ * between them for the lines that meet it there, each centred on the
+ * slanted edge where it starts.
+ *
+ * Lines meet the top at least the theme's clearance from the tag and the
+ * badge, on a stretch centred on the card when there's room for them there,
+ * as there is when the badge and the tag are short, and otherwise on all the
+ * room between them. They meet the sides below the top border, and on a
+ * diamond below the badge and the tag too, clear of them: a line in from the
+ * side meets a diamond's slanted edge further in the higher it comes, and
+ * above that it would run into them first. They meet a diamond's sides as
+ * far above its bottom corner, so that one alone meets its side corner.
  */
 function onBorder(
-  { status, tag: label }: CardHeader,
+  header: CardHeader,
   area: string | undefined,
   width: number,
+  height: number,
   top: number,
   place: BorderPlace | undefined,
   sizes: Sizes,
-): { badge?: Badge; tag?: Tag } {
+): { badge?: Badge; tag?: Tag; landing: Landing } {
+  const { status, tag: label } = header;
+  if (status === undefined && label === undefined) return { landing: { left: 0, right: width, top, bottom: height } };
+  const { clearance } = sizes.landing;
+  const room = landingRoom(header.lines, sizes);
   const tagWidth = label === undefined ? 0 : measureTag(label, sizes);
   const badgeWidth = status === undefined ? 0 : measureBadge(status, sizes);
   const gap = label !== undefined && status !== undefined ? sizes.tag.gap : 0;
   let tagX: number;
   let badgeX: number;
+  // Where the border runs under the badge and the tag: on a diamond, down its edges, where each starts.
+  let border = top;
+  let landing: Landing;
   if (place?.align === "middle") {
-    tagX = (width - (tagWidth + gap + badgeWidth)) / 2;
-    badgeX = tagX + tagWidth + gap;
+    const middle = width / 2;
+    const out = room / 2 + clearance;
+    tagX = middle - out - tagWidth;
+    badgeX = middle + out;
+    border = top + place.drop * out;
+    const below = border - top + bandHeight(sizes) / 2 + clearance;
+    landing = { left: middle - room / 2, right: middle + room / 2, top: top + below, bottom: height - below };
   } else {
     const inset = place?.inset ?? sizes.badge.inset;
     tagX = place?.tagInset ?? inset;
     badgeX = Math.max(label === undefined ? sizes.badge.inset : tagX + tagWidth + gap, width - inset - badgeWidth);
+    const from = label === undefined ? 0 : tagX + tagWidth + clearance;
+    const to = status === undefined ? width : badgeX - clearance;
+    landing = { ...across(from, to, width, room), top, bottom: height };
   }
   return {
-    ...(status === undefined ? {} : { badge: badge(status, badgeX, top - sizes.badge.height / 2, sizes) }),
-    ...(label === undefined || area === undefined ? {} : { tag: tag(area, label, tagX, top - sizes.tag.height / 2, sizes) }),
+    ...(status === undefined ? {} : { badge: badge(status, badgeX, border - sizes.badge.height / 2, sizes) }),
+    ...(label === undefined || area === undefined ? {} : { tag: tag(area, label, tagX, border - sizes.tag.height / 2, sizes) }),
+    landing,
   };
+}
+
+/**
+ * The stretch across a card `width` wide where its lines meet it, within the
+ * free stretch from `from` to `to`: centred on the card when `room` fits
+ * there, otherwise all of it. Where nothing is free, a point midway.
+ */
+function across(from: number, to: number, width: number, room: number): { left: number; right: number } {
+  const half = Math.min(width / 2 - from, to - width / 2);
+  if (half >= 0 && 2 * half >= room) return { left: width / 2 - half, right: width / 2 + half };
+  if (to >= from) return { left: from, right: to };
+  return { left: (from + to) / 2, right: (from + to) / 2 };
 }
 
 /**

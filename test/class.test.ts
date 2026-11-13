@@ -9,7 +9,7 @@ import {
   byClassIn,
   cardById,
   cards,
-  distanceToDrawn,
+  distanceToShape,
   lines,
   outlineBox,
   overlaps,
@@ -108,8 +108,8 @@ describe("class layout", () => {
     // A plain line has no arrowhead: both its ends meet what's drawn of a card, its outline or the badge on it.
     lines(doc).forEach((line, i) => {
       const points = parsePath(line.getElementsByTagName("path")[0]!.getAttribute("d")!).flatMap((c) => c.points);
-      expect(distanceToDrawn(points[0]!, cardById(doc, example.edges[i]!.from)), `edges[${i}] start`).toBeLessThanOrEqual(1);
-      expect(distanceToDrawn(points.at(-1)!, cardById(doc, example.edges[i]!.to)), `edges[${i}] end`).toBeLessThanOrEqual(1);
+      expect(distanceToShape(points[0]!, cardById(doc, example.edges[i]!.from)), `edges[${i}] start`).toBeLessThanOrEqual(1);
+      expect(distanceToShape(points.at(-1)!, cardById(doc, example.edges[i]!.to)), `edges[${i}] end`).toBeLessThanOrEqual(1);
     });
   });
 

@@ -15,11 +15,12 @@ import {
   connectors,
   depthInShape,
   depthInTag,
-  distanceToDrawn,
+  distanceToShape,
   drawnTextBoxes,
   lineEnds,
   lineGeometry,
   lines,
+  nearestBadgeOrTag,
   outlineBox,
   overlaps,
   parseSvg,
@@ -484,22 +485,25 @@ describe("area tags", () => {
     },
   );
 
-  it("centres a decision's tag and badge together on its top corner, or its tag alone", async () => {
-    const doc = await svgDoc(everyShape());
-    const card = cardById(doc, "risen");
-    const tag = tagBox(card)!;
-    const badge = badgeBox(card)!;
-    const outline = outlineBox(card);
-    expect(tag.y + tag.height / 2).toBeCloseTo(outline.y, 5);
-    expect(tag.x + tag.width).toBeLessThan(badge.x);
-    expect((tag.x + badge.x + badge.width) / 2).toBeCloseTo(outline.x + outline.width / 2, 5);
-
+  it("puts a decision's tag and badge either side of its top corner, on its slanted edges, or its tag alone", async () => {
     const plain = everyShape();
     delete (plain.nodes[3] as Obj).status;
-    const alone = cardById(await svgDoc(plain), "risen");
-    const only = tagBox(alone)!;
-    expect(only.x + only.width / 2).toBeCloseTo(outlineBox(alone).x + outlineBox(alone).width / 2, 5);
-    expect(depthInShape({ x: only.x + only.width / 2, y: only.y + only.height }, alone)).toBeGreaterThan(0);
+    for (const input of [everyShape(), plain]) {
+      const card = cardById(await svgDoc(input), "risen");
+      const tag = tagBox(card)!;
+      const outline = outlineBox(card);
+      const corner = outline.x + outline.width / 2;
+      // The upper-left edge runs through the middle of the tag's right-hand end, left of the corner.
+      expect(distanceToShape({ x: tag.x + tag.width, y: tag.y + tag.height / 2 }, card)).toBeLessThanOrEqual(0.5);
+      expect(tag.x + tag.width).toBeLessThan(corner - 8);
+      expect(tag.x).toBeGreaterThanOrEqual(outline.x);
+      const badge = badgeBox(card);
+      if (!badge) continue;
+      // And the upper-right edge through the middle of the badge's left-hand end, as far right of it.
+      expect(distanceToShape({ x: badge.x, y: badge.y + badge.height / 2 }, card)).toBeLessThanOrEqual(0.5);
+      expect(badge.x - corner).toBeCloseTo(corner - (tag.x + tag.width), 5);
+      expect(badge.x + badge.width).toBeLessThanOrEqual(outline.x + outline.width);
+    }
   });
 
   it("puts a class card's tag on its top-left border too, keeping the standard width", async () => {
@@ -569,20 +573,21 @@ describe("area tags", () => {
     }
   });
 
-  it.each(["down", "right"] as const)("ends every line on what's drawn of a card, tags included, direction %s", async (direction) => {
+  it.each(["down", "right"] as const)("ends every line on a card's outline, clear of its tag, direction %s", async (direction) => {
     const input = everyShape({ direction });
     const doc = await svgDoc(input);
 
     for (const [i, line] of lines(doc).entries()) {
       const [start, end] = lineEnds(line);
       const edge = input.edges[i]!;
-      expect(distanceToDrawn(start, cardById(doc, edge.from)), `edges[${i}] start`).toBeLessThanOrEqual(1);
-      expect(distanceToDrawn(end, cardById(doc, edge.to)), `edges[${i}] end`).toBeLessThanOrEqual(1);
+      expect(distanceToShape(start, cardById(doc, edge.from)), `edges[${i}] start`).toBeLessThanOrEqual(1);
+      expect(distanceToShape(end, cardById(doc, edge.to)), `edges[${i}] end`).toBeLessThanOrEqual(1);
+      expect(nearestBadgeOrTag(doc, line), `edges[${i}]`).toBeGreaterThan(4);
     }
   });
 
-  it("stops a line that comes down onto a tag on top of it, never across it", async () => {
-    // Lines from three cards into one narrow card with a wide tag: some must land where the tag is.
+  it("brings lines down onto a narrow card's outline beside its long tag, never onto it or across it", async () => {
+    // Lines from three cards into one narrow card with a long tag: there's room for them only once it's wider.
     const input = {
       type: "flow",
       areas: [{ id: "oven", label: "Oven and proving cupboard" }],
@@ -600,16 +605,18 @@ describe("area tags", () => {
     };
     const doc = await svgDoc(input);
     const target = cardById(doc, "prove");
+    const tag = tagBox(target)!;
 
-    let onTag = 0;
     for (const line of lines(doc)) {
       const { route, arrowTip } = lineGeometry(line);
       const deepest = Math.max(...alongRuns([...route.flatMap((c) => c.points), arrowTip]).map((p) => depthInTag(p, target)));
-      expect(deepest).toBeLessThanOrEqual(1);
-      expect(distanceToDrawn(arrowTip, target)).toBeLessThanOrEqual(1);
-      if (Math.abs(depthInTag(arrowTip, target)) <= 1) onTag++;
+      expect(deepest).toBeLessThan(0);
+      expect(nearestBadgeOrTag(doc, line)).toBeGreaterThan(4);
+      expect(distanceToShape(arrowTip, target)).toBeLessThanOrEqual(1);
+      // Down onto its top border, to the right of the tag.
+      expect(arrowTip.y).toBeCloseTo(outlineBox(target).y, 0);
+      expect(arrowTip.x).toBeGreaterThan(tag.x + tag.width);
     }
-    expect(onTag).toBeGreaterThan(0);
   });
 
   it("lines up the outlines of cards side by side, with or without a tag", async () => {
@@ -850,12 +857,12 @@ describe("area boxes", () => {
     for (const [i, line] of lines(doc).entries()) {
       const [start, end] = lineEnds(line);
       const edge = input.edges[i]!;
-      expect(distanceToDrawn(start, cardById(doc, edge.from)), `edges[${i}] start`).toBeLessThanOrEqual(1);
-      expect(distanceToDrawn(end, cardById(doc, edge.to)), `edges[${i}] end`).toBeLessThanOrEqual(1);
+      expect(distanceToShape(start, cardById(doc, edge.from)), `edges[${i}] start`).toBeLessThanOrEqual(1);
+      expect(distanceToShape(end, cardById(doc, edge.to)), `edges[${i}] end`).toBeLessThanOrEqual(1);
     }
     const [start, end] = connectorEnds(connectors(doc)[0]!);
-    expect(distanceToDrawn(start, cardById(doc, "tip"))).toBeLessThanOrEqual(1);
-    expect(distanceToDrawn(end, cardById(doc, "healthy"))).toBeLessThanOrEqual(1);
+    expect(distanceToShape(start, cardById(doc, "tip"))).toBeLessThanOrEqual(1);
+    expect(distanceToShape(end, cardById(doc, "healthy"))).toBeLessThanOrEqual(1);
   });
 
   it("puts a note about a shape in that shape's box, and a note in an area in its box", async () => {

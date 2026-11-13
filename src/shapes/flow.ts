@@ -128,8 +128,8 @@ function decision(sizes: Sizes): Geometry {
         { x: 0, y: height / 2 },
       ],
     }),
-    // On the top corner: anywhere else they would float off the slanted edges.
-    border: () => ({ align: "middle" }),
+    // Either side of the top corner, on the slanted edges: further out they would float off them.
+    border: (width, height) => ({ align: "middle", drop: height / width }),
   };
 }
 
