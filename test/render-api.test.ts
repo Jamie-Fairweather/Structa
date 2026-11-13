@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { render, StructaError } from "../src/index";
+import { render } from "../src/index";
+import { rejection } from "./helpers/errors";
 
 const tidyShed = {
   type: "flow",
@@ -9,15 +10,6 @@ const tidyShed = {
   ],
   edges: [{ from: "sort", to: "hang" }],
 };
-
-async function rejection(promise: Promise<unknown>): Promise<StructaError> {
-  const error = await promise.then(
-    () => undefined,
-    (e: unknown) => e,
-  );
-  expect(error).toBeInstanceOf(StructaError);
-  return error as StructaError;
-}
 
 describe("render()", () => {
   it("accepts a JSON string or an already-parsed object, with the same result", async () => {
@@ -82,6 +74,48 @@ describe("render()", () => {
 
     expect(error.code).toBe("INVALID_OPTIONS");
     expect(error.problems).toEqual([{ path: "options", message: "must be an object", hint: 'write them as {"theme": "dark"}, for example' }]);
+  });
+
+  it.each([
+    [{ format: ["png"] }, "options.format"],
+    [{ Theme: "dark" }, "options.Theme"],
+    [{ embedfonts: false }, "options.embedfonts"],
+    [{ size: 3 }, "options.size"],
+  ])("rejects the unknown option in %j with INVALID_OPTIONS, rather than drawing an SVG", async (options, path) => {
+    const error = await rejection(render(tidyShed, options as never));
+
+    const name = path.slice("options.".length);
+    expect(error.code).toBe("INVALID_OPTIONS");
+    expect(error.problems).toEqual([
+      { path, message: `unknown option "${name}"`, hint: "allowed options: formats, theme, embedFonts, scale" },
+    ]);
+    expect(error.message).toBe(`${path}: unknown option "${name}" (allowed options: formats, theme, embedFonts, scale)`);
+  });
+
+  it("reports unknown options first, in code-unit order, then the problems with known ones", async () => {
+    const error = await rejection(render(tidyShed, { theme: "sepia", zoom: 2, Zoom: 3, format: "png", formats: [] } as never));
+
+    expect(error.code).toBe("INVALID_OPTIONS");
+    expect(error.problems.map((problem) => [problem.path, problem.message])).toEqual([
+      ["options.Zoom", 'unknown option "Zoom"'],
+      ["options.format", 'unknown option "format"'],
+      ["options.zoom", 'unknown option "zoom"'],
+      ["options.formats", "must list at least one format"],
+      ["options.theme", '"sepia" is not a valid theme'],
+    ]);
+  });
+
+  it("names an unknown option that isn't a plain word in brackets, as the input's paths do", async () => {
+    const error = await rejection(render(tidyShed, { "embed-fonts": false } as never));
+
+    expect(error.problems.map((problem) => problem.path)).toEqual(['options["embed-fonts"]']);
+  });
+
+  it("lets every option be left out by giving it as undefined, and ignores an unknown one given so", async () => {
+    const plain = await render(tidyShed);
+    const options = { formats: undefined, theme: undefined, embedFonts: undefined, scale: undefined, format: undefined };
+
+    expect(await render(tidyShed, options as never)).toEqual(plain);
   });
 
   it("reports every problem with the options at once", async () => {

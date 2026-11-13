@@ -1,6 +1,7 @@
 import type { Document, Element } from "@xmldom/xmldom";
 import { describe, expect, it } from "vitest";
-import { render, StructaError, type Problem } from "../src/index";
+import { render } from "../src/index";
+import { problems } from "./helpers/errors";
 import { decodePng, pixel } from "./helpers/png";
 import {
   allElements,
@@ -24,16 +25,6 @@ import {
 } from "./helpers/svg";
 
 const KINDS = '"service", "api", "ui", "job", "queue", "database", "cache", "external", "library", "actor" or "class"';
-
-async function problems(input: object): Promise<readonly Problem[]> {
-  const error = await render(input).then(
-    () => undefined,
-    (e: unknown) => e,
-  );
-  expect(error).toBeInstanceOf(StructaError);
-  expect((error as StructaError).code).toBe("INVALID_INPUT");
-  return (error as StructaError).problems;
-}
 
 /** A bike-hire scheme: a docking app calling a service, with whatever extra node fields a test gives the service. */
 function bikeHire(fields: object = {}) {

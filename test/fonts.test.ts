@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readTtf } from "../scripts/lib/ttf";
-import { render, StructaError } from "../src/index";
+import { render } from "../src/index";
+import { rejection } from "./helpers/errors";
 import { badlyFormattedNumbers, fontFaceRules, parseSvg, passiveSvgViolations, textFaces } from "./helpers/svg";
 
 // The one dedicated embedding test. Every other test renders with embedFonts: false.
@@ -130,25 +131,18 @@ describe("fonts embedded in SVGs", () => {
   });
 
   it.each([["yes"], ["false"], [0], [1], [null], [{}]])("rejects embedFonts: %j with INVALID_OPTIONS", async (value) => {
-    const error = await render(rakeLeaves, { embedFonts: value as never }).then(
-      () => undefined,
-      (e: unknown) => e,
-    );
+    const error = await rejection(render(rakeLeaves, { embedFonts: value as never }));
 
-    expect(error).toBeInstanceOf(StructaError);
-    expect((error as StructaError).code).toBe("INVALID_OPTIONS");
-    expect((error as StructaError).problems).toEqual([
+    expect(error.code).toBe("INVALID_OPTIONS");
+    expect(error.problems).toEqual([
       { path: "options.embedFonts", message: "must be true or false", hint: "leave it out to embed the fonts" },
     ]);
   });
 
   it("reports a bad embedFonts together with bad formats", async () => {
-    const error = await render(rakeLeaves, { formats: ["gif"] as never, embedFonts: "no" as never }).then(
-      () => undefined,
-      (e: unknown) => e,
-    );
+    const error = await rejection(render(rakeLeaves, { formats: ["gif"] as never, embedFonts: "no" as never }));
 
-    expect((error as StructaError).code).toBe("INVALID_OPTIONS");
-    expect((error as StructaError).problems.map((p) => p.path)).toEqual(["options.formats[0]", "options.embedFonts"]);
+    expect(error.code).toBe("INVALID_OPTIONS");
+    expect(error.problems.map((p) => p.path)).toEqual(["options.formats[0]", "options.embedFonts"]);
   });
 });

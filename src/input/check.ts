@@ -256,7 +256,7 @@ function isObject(value: unknown): value is Json {
 }
 
 /** `nodes[0].label`, or `nodes[0]["odd name"]` for a name that isn't a plain word. Top-level fields have no `$.`. */
-function fieldPath(parent: string, name: string): string {
+export function fieldPath(parent: string, name: string): string {
   if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name)) return `${parent === "$" ? "" : parent}[${JSON.stringify(name)}]`;
   return parent === "$" ? name : `${parent}.${name}`;
 }

@@ -48,6 +48,7 @@ export {
   type FlowShape,
   type Status,
 } from "./definitions";
+export { fieldPath } from "./check";
 export { jsonSchema } from "./schema";
 
 /** A named grouping of cards. */

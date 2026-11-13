@@ -1,7 +1,8 @@
 import { readdirSync, readFileSync } from "node:fs";
 import type { Document, Element } from "@xmldom/xmldom";
 import { describe, expect, it } from "vitest";
-import { render, StructaError, type Problem } from "../src/index";
+import { render } from "../src/index";
+import { problems } from "./helpers/errors";
 import { colourDifference, decodePng, pixel } from "./helpers/png";
 import {
   allElements,
@@ -33,16 +34,6 @@ type Json = { [key: string]: any };
 
 /** JetBrains Mono draws every character 0.6 em wide. */
 const MONO_ADVANCE = 0.6;
-
-async function problems(input: object): Promise<readonly Problem[]> {
-  const error = await render(input).then(
-    () => undefined,
-    (e: unknown) => e,
-  );
-  expect(error).toBeInstanceOf(StructaError);
-  expect((error as StructaError).code).toBe("INVALID_INPUT");
-  return (error as StructaError).problems;
-}
 
 /** A plot belongs to one allotment site: the plots table points at the sites table. */
 function allotments(fields: object = {}, edge: object = {}) {

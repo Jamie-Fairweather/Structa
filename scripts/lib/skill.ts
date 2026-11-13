@@ -15,7 +15,7 @@ import { dirname, join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { brotliCompressSync, constants as zlib } from "node:zlib";
 import { build, type Plugin } from "esbuild";
-import { zipSync, type Zippable } from "fflate";
+import { Zip, ZipDeflate } from "fflate";
 import { FACES } from "../../src/text/faces";
 import { LAYOUT_TABLES } from "./subset";
 import { readTtf, type TtfFont } from "./ttf";
@@ -163,14 +163,27 @@ const ZIP_END = { signature: 0x06054b50, length: 22 };
 /**
  * The release zip of the skill folder `dir`: every file in it, inside a
  * structa folder, with RELEASE_LICENSE in the zip's comment. The same files
- * always give the same bytes: they go in code-unit order of their paths, all
- * with one fixed time.
+ * always give the same bytes: they go in one by one, in code-unit order of
+ * their paths, all with one fixed time.
  */
-export function zipSkill(dir: string): Uint8Array {
-  // Every path starts with the folder name, so none is an array index and the keys keep this order.
-  const files: Zippable = {};
-  for (const path of filesIn(dir).sort()) files[`${ZIP_FOLDER}/${path}`] = readFileSync(join(dir, path));
-  const zip = Buffer.from(zipSync(files, { level: 9, mtime: ZIP_TIME }));
+function zipSkill(dir: string): Uint8Array {
+  const chunks: Uint8Array[] = [];
+  let ended = false;
+  const archive = new Zip((error, chunk, final) => {
+    if (error) throw error;
+    chunks.push(chunk);
+    ended = final;
+  });
+  for (const path of filesIn(dir).sort()) {
+    const file = new ZipDeflate(`${ZIP_FOLDER}/${path}`, { level: 9 });
+    file.mtime = ZIP_TIME;
+    archive.add(file);
+    file.push(readFileSync(join(dir, path)), true);
+  }
+  archive.end();
+  // Every entry is deflated as it's pushed, so the zip is whole once it ends.
+  if (!ended) throw new Error("the zip didn't end once every file was in it");
+  const zip = Buffer.concat(chunks);
   const end = zip.length - ZIP_END.length;
   if (zip.readUInt32LE(end) !== ZIP_END.signature || zip.readUInt16LE(end + 20) !== 0) {
     throw new Error("the zip doesn't end with an end-of-central-directory record and no comment");

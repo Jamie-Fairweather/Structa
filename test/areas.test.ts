@@ -1,7 +1,8 @@
 import { readdirSync, readFileSync } from "node:fs";
 import type { Document, Element } from "@xmldom/xmldom";
 import { describe, expect, it } from "vitest";
-import { render, StructaError, type Problem } from "../src/index";
+import { render } from "../src/index";
+import { problems } from "./helpers/errors";
 import {
   allElements,
   alongRuns,
@@ -64,16 +65,6 @@ function bakeryWith(change: (input: Diagram) => void): Diagram {
   const input = bakery();
   change(input);
   return input;
-}
-
-async function problems(input: object): Promise<readonly Problem[]> {
-  const error = await render(input, opts).then(
-    () => undefined,
-    (e: unknown) => e,
-  );
-  expect(error).toBeInstanceOf(StructaError);
-  expect((error as StructaError).code).toBe("INVALID_INPUT");
-  return (error as StructaError).problems;
 }
 
 const opts = { embedFonts: false } as const;

@@ -1,9 +1,15 @@
-import type { Element } from "@xmldom/xmldom";
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+import type { Document, Element } from "@xmldom/xmldom";
 import { describe, expect, it } from "vitest";
 import { readTtf } from "../scripts/lib/ttf";
-import { render, StructaError } from "../src/index";
-import { colourDifference, decodePng, inkEdges, pixel, pngSize, svgSize, type Region } from "./helpers/png";
-import { byClassIn, cards, fontFaceRules, outlineBox, parseSvg } from "./helpers/svg";
+import { render } from "../src/index";
+import { rejection } from "./helpers/errors";
+import { changedRegion, colourDifference, decodePng, difference, inkArea, inkEdges, pixel, pngSize, svgSize, type Picture, type Region } from "./helpers/png";
+import { byClassIn, cards, drawnTextBoxes, fontFaceRules, outlineBox, parseSvg, svgDoc, textFaces, type FaceName } from "./helpers/svg";
+
+const examplesDir = fileURLToPath(new URL("../examples/", import.meta.url));
 
 const pottingOn = {
   type: "flow",
@@ -72,90 +78,145 @@ describe("PNG output", () => {
 
 describe("text in PNGs", () => {
   const SCALE = 4;
+  /** A no-break space: drawn in place of some text, it draws nothing there and moves nothing else. */
+  const NOTHING = "\u00a0";
   const oneStep = (label: string) => ({ type: "flow", nodes: [{ id: "step", label, shape: "step" }] });
   const oneRow = (text: string) => ({ type: "class", nodes: [{ id: "card", label: "Sample", methods: [{ text }] }] });
+  const abstractRow = (text: string) => ({ type: "class", nodes: [{ id: "card", label: "Sample", methods: [{ text, abstract: true }] }] });
+  const abstractClass = (label: string) => ({ type: "class", nodes: [{ id: "card", label, abstract: true }] });
+  /** Four steps in a row under a title or a description, wider than any sample here twice over: the text can't widen the picture. */
+  const headed = (field: "title" | "description") => (text: string) => ({
+    type: "flow",
+    direction: "right",
+    [field]: text,
+    nodes: ["Sow", "Water", "Thin", "Pick"].map((label, i) => ({ id: `step${i}`, label, shape: "step" })),
+    edges: [0, 1, 2].map((i) => ({ from: `step${i}`, to: `step${i + 1}` })),
+  });
 
-  /**
-   * How wide `text` is drawn in the PNG of `diagram`, in SVG px, from the
-   * left edge of its ink to the right; and how wide the font the SVG embeds
-   * for its face says the text is, from its advance widths. `region` is where
-   * the text is the only thing drawn, on the plain card fill, in SVG px.
-   */
-  async function drawn(diagram: object, text: string, region: (card: Element) => Region): Promise<{ ink: number; advances: number }> {
-    const { svg, png } = await render(diagram, { formats: ["svg", "png"], scale: SCALE });
-    const doc = parseSvg(svg);
-    // Drawn on one line: the text is a single <text> element.
+  /** One drawing of some text: the face it's drawn in, and how wide it is drawn and how wide its font says it is, in SVG px. */
+  interface Drawn {
+    /** As "family weight style", from the SVG. */
+    readonly face: FaceName;
+    /** From the left edge of its ink in the PNG to the right. */
+    readonly ink: number;
+    /** The sum of its advance widths in the font the SVG embeds for its face. */
+    readonly advances: number;
+  }
+  type Draw = (text: string) => Promise<Drawn>;
+
+  /** The one <text> that draws `text` on one line, its face, and the sum of its advance widths in that face's embedded font, in SVG px. */
+  function advancesOf(doc: Document, text: string): { element: Element; face: FaceName; advances: number } {
     const found = Array.from(doc.getElementsByTagName("text")).filter((t) => t.textContent === text);
     expect(found).toHaveLength(1);
-    const t = found[0]!;
-    const face = [t.getAttribute("font-family")!.split(",")[0], t.getAttribute("font-weight"), t.getAttribute("font-style") || "normal"].join(" ");
+    const element = found[0]!;
+    const face = [element.getAttribute("font-family")!.split(",")[0], element.getAttribute("font-weight"), element.getAttribute("font-style") || "normal"].join(" ");
     const rule = fontFaceRules(doc).find((r) => r.face === face);
     const font = readTtf(Buffer.from(/base64,([^"]+)"/.exec(rule!.src)![1]!, "base64"));
-    const size = Number(t.getAttribute("font-size"));
+    const size = Number(element.getAttribute("font-size"));
     const advances = [...text].reduce((sum, ch) => sum + font.advance(ch.codePointAt(0)!)!, 0) * (size / font.unitsPerEm);
-
-    // The region in whole PNG pixels, rounded inwards.
-    const box = region(cards(doc)[0]!);
-    const [x, y] = [Math.ceil(box.x * SCALE), Math.ceil(box.y * SCALE)];
-    const scaled = { x, y, width: Math.floor((box.x + box.width) * SCALE) - x, height: Math.floor((box.y + box.height) * SCALE) - y };
-    const { left, right } = inkEdges(decodePng(png), scaled);
-    return { ink: (right - left) / SCALE, advances };
+    return { element, face, advances };
   }
+
+  /** Draws text in `diagram`, measuring it in `region`, where the text is the only thing drawn, on the plain card fill, in SVG px. */
+  const inRegion =
+    (diagram: (text: string) => object, region: (card: Element) => Region): Draw =>
+    async (text) => {
+      const { svg, png } = await render(diagram(text), { formats: ["svg", "png"], scale: SCALE });
+      const doc = parseSvg(svg);
+      const { face, advances } = advancesOf(doc, text);
+      // The region in whole PNG pixels, rounded inwards.
+      const box = region(cards(doc)[0]!);
+      const [x, y] = [Math.ceil(box.x * SCALE), Math.ceil(box.y * SCALE)];
+      const scaled = { x, y, width: Math.floor((box.x + box.width) * SCALE) - x, height: Math.floor((box.y + box.height) * SCALE) - y };
+      const { left, right } = inkEdges(decodePng(png), scaled);
+      return { face, ink: (right - left) / SCALE, advances };
+    };
+
+  /**
+   * `text` drawn in `diagram`, over whatever lies behind it, like the page's
+   * grid dots: the diagram's PNG, and as a background the PNG of the same
+   * diagram with NOTHING in place of the text. The two differ only where the
+   * text is drawn.
+   */
+  const blanks = new Map<(text: string) => object, Promise<Picture>>();
+  async function drawnAlone(diagram: (text: string) => object, text: string) {
+    const draw = (t: string) => render(diagram(t), { formats: ["svg", "png"], scale: SCALE });
+    if (!blanks.has(diagram)) blanks.set(diagram, draw(NOTHING).then(({ png }) => decodePng(png)));
+    const [drawn, background] = await Promise.all([draw(text), blanks.get(diagram)!]);
+    const doc = parseSvg(drawn.svg);
+    const { element, face, advances } = advancesOf(doc, text);
+    const picture = decodePng(drawn.png);
+
+    // Nothing else moved: every pixel that changed is in the text's box, give or take a letter's overhang.
+    const box = drawnTextBoxes(doc).get(element)!;
+    const changed = changedRegion(picture, background)!;
+    const slack = 2;
+    expect([
+      changed.x >= (box.x - slack) * SCALE,
+      changed.y >= (box.y - slack) * SCALE,
+      changed.x + changed.width <= (box.x + box.width + slack) * SCALE,
+      changed.y + changed.height <= (box.y + box.height + slack) * SCALE,
+    ]).toEqual([true, true, true, true]);
+    return { element, face, advances, picture, background };
+  }
+
+  /** Draws text alone in `diagram`, measuring it across the whole picture. */
+  const alone =
+    (diagram: (text: string) => object): Draw =>
+    async (text) => {
+      const { face, advances, picture, background } = await drawnAlone(diagram, text);
+      const ink = difference(picture, background);
+      const { left, right } = inkEdges(ink, { x: 0, y: 0, width: ink.width, height: ink.height });
+      return { face, ink: (right - left) / SCALE, advances };
+    };
 
   /** Inside a card, clear of its border by `inset`, from `top` down. */
   function inside(card: Element, inset: number, top = outlineBox(card).y + inset): Region {
     const box = outlineBox(card);
     return { x: box.x + inset, y: top, width: box.width - 2 * inset, height: box.y + box.height - inset - top };
   }
-
-  /** Drawn twice over, the ink is wider by exactly one drawing of the sample: its advance widths. */
-  async function expectAsWideAsTables(draw: (text: string) => Promise<{ ink: number; advances: number }>, sample: string) {
-    const once = await draw(sample);
-    const twice = await draw(sample + sample);
-
-    expect(twice.advances).toBeCloseTo(2 * once.advances, 6);
-    expect(Math.abs(twice.ink - once.ink - once.advances)).toBeLessThan(0.5);
-  }
+  /** Below a class card's last divider, only its row is drawn. */
+  const belowRows = (card: Element) => inside(card, 4, Number(byClassIn(card, "divider").at(-1)!.getAttribute("y1")) + 2);
 
   // Kerning pairs (AV, To, Wa, ff), digits, accents and symbols: drawn with no kerning, each takes exactly its advance.
-  // Each sample fits on one line twice over.
-  it.each(["AVATAR Wave", "To do today", "Waffle office", "Mix 0-9 at 18°", "Café über Ærø", "→ ≠ … ≤ ≥ ×", "{x: 1, y: [2]}"])(
-    "draws %j in Inter SemiBold, as step labels are, as wide as the width tables within 0.5px",
-    async (sample) => {
-      // Only the label is drawn inside the step, clear of its border.
-      await expectAsWideAsTables((label) => drawn(oneStep(label), label, (card) => inside(card, 4)), sample);
-    },
-  );
-
-  // Code ligature pairs (-> != <= >= === www), digits, accents and symbols: drawn with no ligatures, each character
-  // takes exactly its advance. Each sample fits on one row twice over.
-  it.each(["{x: 1, y: [2]}", "-> != <= >= === www", "→ ≠ … ≤ ≥ ×", "Mix 0-9 at 18°", "Café über Ærø", "fn(a): T[]"])(
-    "draws %j in JetBrains Mono Regular, as class rows are, as wide as the width tables within 0.5px",
-    async (sample) => {
-      // Below the card's last divider, only the row is drawn.
-      const row = (card: Element) => inside(card, 4, Number(byClassIn(card, "divider").at(-1)!.getAttribute("y1")) + 2);
-      await expectAsWideAsTables((text) => drawn(oneRow(text), text, row), sample);
-    },
-  );
-
+  const INTER = ["AVATAR Wave", "To do today", "Waffle office", "Mix 0-9 at 18°", "Café über Ærø", "→ ≠ … ≤ ≥ ×", "{x: 1, y: [2]}"];
   // Slanted letters overhang their advances at both ends, by the same amount once and twice over, so the check holds.
-  it.each(["AVATAR Wave", "Waffle office", "Café über Ærø", "→ ≠ … ≤ ≥ ×"])(
-    "draws %j in Inter SemiBold Italic, as abstract class names are, as wide as the width tables within 0.5px",
-    async (sample) => {
-      const abstractClass = (label: string) => ({ type: "class", nodes: [{ id: "card", label, abstract: true }] });
-      // A class with no rows draws only its name.
-      await expectAsWideAsTables((label) => drawn(abstractClass(label), label, (card) => inside(card, 4)), sample);
-    },
-  );
+  const INTER_ITALIC = ["AVATAR Wave", "Waffle office", "Café über Ærø", "→ ≠ … ≤ ≥ ×"];
+  // Code ligature pairs (-> != <= >= === www), digits, accents and symbols: drawn with no ligatures, each character takes exactly its advance.
+  const MONO = ["{x: 1, y: [2]}", "-> != <= >= === www", "→ ≠ … ≤ ≥ ×", "Mix 0-9 at 18°", "Café über Ærø", "fn(a): T[]"];
+  const MONO_ITALIC = ["{x: 1, y: [2]}", "-> != <= >= === www", "Café über Ærø", "fn(a): T[]"];
 
-  it.each(["{x: 1, y: [2]}", "-> != <= >= === www", "Café über Ærø", "fn(a): T[]"])(
-    "draws %j in JetBrains Mono Italic, as abstract class rows are, as wide as the width tables within 0.5px",
-    async (sample) => {
-      const abstractRow = (text: string) => ({ type: "class", nodes: [{ id: "card", label: "Sample", methods: [{ text, abstract: true }] }] });
-      const row = (card: Element) => inside(card, 4, Number(byClassIn(card, "divider").at(-1)!.getAttribute("y1")) + 2);
-      await expectAsWideAsTables((text) => drawn(abstractRow(text), text, row), sample);
-    },
-  );
+  // Every face render() draws text in: the six the spec names, each with text drawn in it and samples that fit on one line twice over.
+  const FACES: readonly (readonly [name: string, face: FaceName, as: string, draw: Draw, samples: readonly string[]])[] = [
+    ["Inter Regular", "Structa Inter 400 normal", "a diagram's description", alone(headed("description")), INTER],
+    ["Inter SemiBold", "Structa Inter 600 normal", "a step's label", inRegion(oneStep, (card) => inside(card, 4)), INTER],
+    ["Inter Bold", "Structa Inter 700 normal", "a diagram's title", alone(headed("title")), INTER],
+    // A class with no rows draws only its name.
+    ["Inter SemiBold Italic", "Structa Inter 600 italic", "an abstract class's name", inRegion(abstractClass, (card) => inside(card, 4)), INTER_ITALIC],
+    ["JetBrains Mono Regular", "Structa JetBrains Mono 400 normal", "a class's row", inRegion(oneRow, belowRows), MONO],
+    ["JetBrains Mono Italic", "Structa JetBrains Mono 400 italic", "an abstract row", inRegion(abstractRow, belowRows), MONO_ITALIC],
+  ];
+
+  it("draws text in exactly these faces: every face the examples use between them", async () => {
+    const used = new Set<FaceName>();
+    for (const file of readdirSync(examplesDir).filter((name) => name.endsWith(".json"))) {
+      for (const face of textFaces(await svgDoc(JSON.parse(readFileSync(join(examplesDir, file), "utf8"))))) used.add(face);
+    }
+
+    expect([...used].sort()).toEqual(FACES.map(([, face]) => face).sort());
+  });
+
+  describe.each(FACES)("in %s (%s), as %s is drawn", (_name, face, _as, draw, samples) => {
+    // Drawn twice over, the ink is wider by exactly one drawing of the sample: its advance widths.
+    it.each(samples)("draws %j as wide as the width tables within 0.5px", async (sample) => {
+      const once = await draw(sample);
+      const twice = await draw(sample + sample);
+
+      expect([once.face, twice.face]).toEqual([face, face]);
+      expect(twice.advances).toBeCloseTo(2 * once.advances, 6);
+      expect(Math.abs(twice.ink - once.ink - once.advances)).toBeLessThan(0.5);
+    });
+  });
 
   // JetBrains Mono's italic is as wide as its upright face, so only the picture shows the rasteriser found the italic.
   it.each([
@@ -170,9 +231,26 @@ describe("text in PNGs", () => {
     expect(Buffer.from(slanted.rgba).equals(Buffer.from(plain.rgba))).toBe(false);
   });
 
-  // Still open on #11. Fill it in with the ticket that first draws the faces (titles, descriptions and line labels in #8).
-  it.todo("draws Inter Regular and Bold as wide as the width tables (#8)");
-  it.todo("draws the same word at weights 400, 600 and 700 as three different images (once #8's titles, descriptions or line labels draw 400 and 700)");
+  // A heavier face draws thicker strokes, so the same word covers more of the square of its font size, whatever that size is.
+  it("draws the same word at weights 400, 600 and 700 as three different images, each heavier than the last", async () => {
+    const weights: [FaceName, (text: string) => object][] = [
+      ["Structa Inter 400 normal", headed("description")],
+      ["Structa Inter 600 normal", oneStep],
+      ["Structa Inter 700 normal", headed("title")],
+    ];
+    const heaviness: number[] = [];
+    for (const [face, diagram] of weights) {
+      const drawn = await drawnAlone(diagram, "Seedling");
+      const size = Number(drawn.element.getAttribute("font-size")) * SCALE;
+
+      expect(drawn.face).toBe(face);
+      heaviness.push(inkArea(drawn.picture, drawn.background, drawn.element.getAttribute("fill")!) / size ** 2);
+    }
+
+    const [regular, semibold, bold] = heaviness;
+    expect(semibold).toBeGreaterThan(regular! * 1.05);
+    expect(bold).toBeGreaterThan(semibold! * 1.05);
+  });
 });
 
 /** A line of `length` short steps, left to right. */
@@ -198,15 +276,6 @@ function seedTrays(columns: number, rows: number, firstColumn = "Tray #") {
     }
   }
   return { type: "flow", nodes, edges };
-}
-
-async function rejection(promise: Promise<unknown>): Promise<StructaError> {
-  const error = await promise.then(
-    () => undefined,
-    (e: unknown) => e,
-  );
-  expect(error).toBeInstanceOf(StructaError);
-  return error as StructaError;
 }
 
 /** The size of a diagram's SVG, which is its PNG's size at scale 1. */

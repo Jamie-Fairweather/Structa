@@ -1,5 +1,5 @@
 import { StructaError, type Problem } from "./errors";
-import { PARENT_KINDS, parseDiagram } from "./input";
+import { fieldPath, PARENT_KINDS, parseDiagram } from "./input";
 import { layout, PROFILES } from "./layout";
 import { paint } from "./painter";
 import { DEFAULT_SCALE, rasterise, SCALES, type Scale } from "./raster";
@@ -122,14 +122,29 @@ interface CheckedOptions {
   scale: Scale;
 }
 
-/** The options, checked. Every problem with them is reported at once, as INVALID_OPTIONS. */
+/** Every option render() takes, in the order their problems are reported. */
+const OPTION_NAMES: readonly (keyof RenderOptions)[] = ["formats", "theme", "embedFonts", "scale"];
+
+/**
+ * The options, checked. Every problem with them is reported at once, as
+ * INVALID_OPTIONS: unknown options first, sorted by name as the input's
+ * unknown fields are, so a typo never quietly falls back to a default.
+ */
 function readOptions(options: unknown): CheckedOptions {
   if (typeof options !== "object" || options === null || Array.isArray(options)) {
     const hint = 'write them as {"theme": "dark"}, for example';
     throw new StructaError("INVALID_OPTIONS", [{ path: "options", message: "must be an object", hint }]);
   }
-  const asked = options as { formats?: unknown; theme?: unknown; embedFonts?: unknown; scale?: unknown };
+  const asked = options as { readonly [name: string]: unknown };
   const problems: Problem[] = [];
+  // Sorted by code units: plain-object key order isn't something to rely on. An option given as undefined is left out.
+  const unknown = Object.keys(asked)
+    .filter((name) => !OPTION_NAMES.includes(name as keyof RenderOptions) && asked[name] !== undefined)
+    .sort();
+  for (const name of unknown) {
+    const hint = `allowed options: ${OPTION_NAMES.join(", ")}`;
+    problems.push({ path: fieldPath("options", name), message: `unknown option ${JSON.stringify(name)}`, hint });
+  }
   const formats = readFormats(asked.formats, problems);
   const theme = readTheme(asked.theme, problems);
   const embedFonts = readEmbedFonts(asked.embedFonts, problems);
