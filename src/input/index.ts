@@ -1,19 +1,26 @@
 import type { Problem } from "../errors";
-import type { ThemeName } from "../theme";
-import { check } from "./check";
+import { check, type Result } from "./check";
 import {
+  ARCHITECTURE_DIAGRAM,
+  CLASS_DIAGRAM,
   CLASS_SECTIONS,
-  diagramDefinition,
-  type ARCHITECTURE_EDGE_KINDS,
+  ER_DIAGRAM,
+  FLOW_DIAGRAM,
+  sharedDefinition,
+  unknownTypeDefinition,
   type CARDINALITIES,
-  type CLASS_EDGE_KINDS,
+  type Checked,
+  type ClassCardField,
+  type ClassSection,
   type ComponentKind,
-  type FlowShape,
+  type Flat,
+  type ObjectDef,
   type Status,
   type STEREOTYPES,
   type VISIBILITIES,
 } from "./definitions";
 import { parseJson } from "./json";
+import { jsonSchema as schemaOf } from "./schema";
 
 export {
   ABSTRACT_CLASS_NAME_FACE,
@@ -27,7 +34,6 @@ export {
   COLUMN_TYPE_FACE,
   COMPONENT_LABEL_FACE,
   DESCRIPTION_FACE,
-  DIAGRAM_TYPES,
   END_LABEL_FACE,
   ENUM_SECTIONS,
   KIND_WORD_FACE,
@@ -45,235 +51,182 @@ export {
   type ArchitectureKind,
   type ClassSection,
   type ComponentKind,
+  type Direction,
   type FlowShape,
   type Status,
 } from "./definitions";
-export { fieldPath } from "./check";
-export { jsonSchema } from "./schema";
+export { fieldPath, type Result } from "./check";
 
-/** A named grouping of cards. */
-export interface Area {
-  readonly id: string;
-  /** Tidied, like every text field. */
-  readonly label: string;
-  /** The id of the area it's inside. Areas nest at most 4 levels deep, never in a loop. */
-  readonly parent?: string;
-}
+/*
+ * Every type below is derived from the shared input definitions, through
+ * Checked: what input that passes a definition is once checked. Reading a
+ * diagram then only adds what checking doesn't: an id for each edge and row
+ * that has none, a row's status taken from its card, and empty lists.
+ */
 
-export interface FlowNode {
-  readonly id: string;
-  /** Tidied: runs of spaces collapsed and the ends trimmed. */
-  readonly label: string;
-  /** Tidied, like every text field. */
-  readonly description?: string;
-  /** The id of the innermost area the card is in. With groupAreas, a note about a shape is in that shape's area. */
-  readonly area?: string;
-  readonly status?: Status;
-  readonly shape: FlowShape;
-  /** A note's subject: the id of a node that isn't a note. Only notes have one. */
-  readonly about?: string;
-}
+/** A diagram type's definition, as checked. */
+type CheckedDiagram<T extends { readonly definition: ObjectDef }> = Checked<T["definition"]>;
+type NodeOf<T extends { readonly definition: ObjectDef }> = CheckedDiagram<T> extends { readonly nodes: readonly (infer N)[] } ? N : never;
+type EdgeOf<T extends { readonly definition: ObjectDef }> = CheckedDiagram<T> extends { readonly edges: readonly (infer E)[] } ? WithId<E> : never;
 
-export interface FlowEdge {
-  /** The explicit id, or `edges[N]` when the edge has none. */
-  readonly id: string;
-  readonly from: string;
-  readonly to: string;
-  /** Tidied, like every text field. */
-  readonly label?: string;
-  readonly status?: Status;
-  readonly emphasis: boolean;
-}
+/** With its id: an edge without one is known as `edges[N]`, and a row as its section and position, like `methods[2]`. */
+type WithId<T> = T & { readonly id: string };
 
-export interface ClassEdge extends FlowEdge {
-  readonly kind: (typeof CLASS_EDGE_KINDS)[number];
-  /** Tidied, like every text field: a count beside the line where it leaves `from`. */
-  readonly fromLabel?: string;
-  /** A count beside the line where it reaches `to`. */
-  readonly toLabel?: string;
-  /** Associations only: an arrow at `to`. Left out means false. */
-  readonly directed?: boolean;
-}
+/** A named grouping of cards. Areas nest at most 4 levels deep, never in a loop. */
+export type Area = CheckedDiagram<typeof CLASS_DIAGRAM>["areas"][number];
 
-export type Visibility = (typeof VISIBILITIES)[number];
+export type FlowNode = NodeOf<typeof FLOW_DIAGRAM>;
+export type FlowEdge = EdgeOf<typeof FLOW_DIAGRAM>;
 
-export type Stereotype = (typeof STEREOTYPES)[number];
+type CheckedClassNode = NodeOf<typeof CLASS_DIAGRAM>;
 
-/** One member of a class, or one value of an enum. */
-export interface ClassRow {
-  /** The explicit id, or its section and position, like `methods[2]`. Unique within its card. */
-  readonly id: string;
-  readonly text: string;
-  readonly visibility?: Visibility;
-  /** Drawn underlined. */
-  readonly static: boolean;
-  /** Drawn in italics. */
-  readonly abstract: boolean;
-  /** Its own status, or, when it has none, its card's when the card is new or removed. */
-  readonly status?: Status;
-}
+/** One member of a class, or one value of an enum. Its status is its own, or, when it has none, its card's when the card is new or removed. */
+export type ClassRow = WithId<NonNullable<CheckedClassNode["properties"]>[number]>;
 
-export interface ClassNode {
-  readonly id: string;
-  /** The class name, tidied. */
-  readonly label: string;
-  readonly description?: string;
-  /** The id of the innermost area the card is in. */
-  readonly area?: string;
-  readonly status?: Status;
-  readonly stereotype?: Stereotype;
-  /** Set by the flag only; a class whose stereotype is "abstract" is abstract too. */
-  readonly abstract: boolean;
-  /** A class's members. An enum has none. */
-  readonly properties: readonly ClassRow[];
-  readonly methods: readonly ClassRow[];
-  /** An enum's values. Only an enum has any. */
-  readonly values: readonly ClassRow[];
-  /** How many members or values were left out on purpose. */
-  readonly more?: number;
-}
+/** A class: every list of rows there, empty when left out, and its abstract flag, false when left out. */
+export type ClassNode = Flat<
+  Omit<CheckedClassNode, ClassSection | "abstract"> & { readonly abstract: boolean } & { readonly [section in ClassSection]: readonly ClassRow[] }
+>;
+export type ClassEdge = EdgeOf<typeof CLASS_DIAGRAM>;
+
+type CheckedArchitectureNode = NodeOf<typeof ARCHITECTURE_DIAGRAM>;
 
 /** A component of an architecture diagram: any kind but a class, which has a class card. */
-export interface ComponentNode {
-  readonly id: string;
-  /** Tidied, like every text field. */
-  readonly label: string;
-  readonly description?: string;
-  /** The id of the innermost area the card is in. */
-  readonly area?: string;
-  readonly status?: Status;
-  readonly kind: ComponentKind;
-}
+export type ComponentNode = Flat<Omit<CheckedArchitectureNode, ClassCardField | "kind"> & { readonly kind: ComponentKind }>;
 
 /** A class in an architecture diagram, drawn as a class card. */
-export interface ArchitectureClassNode extends ClassNode {
-  readonly kind: "class";
-}
+export type ArchitectureClassNode = Flat<ClassNode & { readonly kind: "class" }>;
 
 export type ArchitectureNode = ComponentNode | ArchitectureClassNode;
+export type ArchitectureEdge = EdgeOf<typeof ARCHITECTURE_DIAGRAM>;
 
-export interface ArchitectureEdge extends FlowEdge {
-  /** "call" when the input leaves it out. */
-  readonly kind: (typeof ARCHITECTURE_EDGE_KINDS)[number];
-}
+export type TableNode = NodeOf<typeof ER_DIAGRAM>;
+/** One column of a table. Its name is unique within the table, and is what the row is known by. */
+export type TableColumn = TableNode["columns"][number];
+export type ErEdge = EdgeOf<typeof ER_DIAGRAM>;
 
+export type Visibility = (typeof VISIBILITIES)[number];
+export type Stereotype = (typeof STEREOTYPES)[number];
 /** How many rows at one end of a relationship go with one row at the other. */
 export type Cardinality = (typeof CARDINALITIES)[number];
 
-/** One column of a table. Its name is unique within the table, and is what the row is known by. */
-export interface TableColumn {
-  /** Tidied, like every text field. */
-  readonly name: string;
-  readonly type: string;
-  readonly pk: boolean;
-  readonly fk: boolean;
-  readonly unique: boolean;
-  readonly nullable: boolean;
-  readonly status?: Status;
-}
+/** The top level every diagram type shares, as checked. */
+type Shared = Checked<ReturnType<typeof sharedDefinition>>;
 
-export interface TableNode {
-  readonly id: string;
-  /** The table's name, tidied. */
-  readonly label: string;
-  readonly description?: string;
-  /** The id of the innermost area the card is in. */
-  readonly area?: string;
-  readonly status?: Status;
-  readonly columns: readonly TableColumn[];
-  /** How many columns were left out on purpose. */
-  readonly more?: number;
-}
-
-/** A relationship between two tables, with a crow's foot at each end. */
-export interface ErEdge extends FlowEdge {
-  /** The name of a column of the from table, tidied, where the line starts; without one it starts at the table's header. */
-  readonly fromColumn?: string;
-  /** The name of a column of the to table, tidied, where the line ends; without one it ends at the table's header. */
-  readonly toColumn?: string;
-  readonly fromCardinality: Cardinality;
-  readonly toCardinality: Cardinality;
-  /** False when the database doesn't enforce it with a foreign key. */
-  readonly enforced: boolean;
-}
-
-/** Which way the diagram flows. */
-export type Direction = "down" | "right";
-
-/** What every diagram type shares at the top level. */
-interface DiagramBase<T extends string, N, E> {
+/**
+ * A diagram of the type named `T`, normalised: its top level as checked,
+ * without the version, and its nodes and edges read.
+ */
+export interface DiagramModel<T extends string, N, E> extends Omit<Shared, "version" | "type" | "nodes" | "edges"> {
   readonly type: T;
-  readonly title?: string;
-  readonly description?: string;
-  readonly theme: ThemeName;
-  readonly direction: Direction;
-  /** Draw a box round each area's cards, rather than a tag on each card. */
-  readonly groupAreas: boolean;
-  /** Whether to draw the legend of the statuses and areas used. */
-  readonly legend: boolean;
-  /** In the order given. Every one holds a card, directly or through the areas inside it. */
-  readonly areas: readonly Area[];
   readonly nodes: readonly N[];
   readonly edges: readonly E[];
 }
 
-export type FlowDiagram = DiagramBase<"flow", FlowNode, FlowEdge>;
-export type ClassDiagram = DiagramBase<"class", ClassNode, ClassEdge>;
-export type ErDiagram = DiagramBase<"er", TableNode, ErEdge>;
-export type ArchitectureDiagram = DiagramBase<"architecture", ArchitectureNode, ArchitectureEdge>;
+/** What every node has, whatever its diagram's type. */
+export interface DiagramNode {
+  readonly id: string;
+  readonly label: string;
+  /** The id of the innermost area its card is in. */
+  readonly area?: string;
+  readonly status?: Status;
+}
+
+/** What every edge has, whatever its diagram's type. */
+export type DiagramEdge = FlowEdge;
+
+export type FlowDiagram = DiagramModel<"flow", FlowNode, FlowEdge>;
+export type ClassDiagram = DiagramModel<"class", ClassNode, ClassEdge>;
+export type ErDiagram = DiagramModel<"er", TableNode, ErEdge>;
+export type ArchitectureDiagram = DiagramModel<"architecture", ArchitectureNode, ArchitectureEdge>;
 export type Diagram = FlowDiagram | ClassDiagram | ErDiagram | ArchitectureDiagram;
 
-export type ParseResult =
-  | { readonly ok: true; readonly diagram: Diagram }
-  | { readonly ok: false; readonly problems: readonly Problem[] };
+/** One diagram type, as far as its input goes: its name, its definition, and how a value is checked against it and read. */
+export interface InputType<T extends string, M> {
+  readonly type: T;
+  readonly definition: ObjectDef;
+  /** Checks a value against the definition and, when it passes, reads it. */
+  readonly parse: (value: unknown) => Result<M>;
+}
+
+/** A diagram type's input, reading what passes its definition with `read`. */
+function inputType<T extends string, D extends ObjectDef, M>(
+  { type, definition }: { readonly type: T; readonly definition: D },
+  read: (checked: Checked<D>) => M,
+): InputType<T, M> {
+  return {
+    type,
+    definition,
+    parse: (value) => {
+      const checked = check(definition, value);
+      return checked.ok ? { ok: true, value: read(checked.value) } : checked;
+    },
+  };
+}
+
+export const CLASS_INPUT = inputType(CLASS_DIAGRAM, (diagram) => model(diagram, diagram.nodes.map(classNode)));
+export const ER_INPUT = inputType(ER_DIAGRAM, (diagram) => model(diagram, diagram.nodes.map(tableNode)));
+export const FLOW_INPUT = inputType(FLOW_DIAGRAM, (diagram) => model(diagram, diagram.groupAreas ? notesInAreas(diagram.nodes) : diagram.nodes));
+export const ARCHITECTURE_INPUT = inputType(ARCHITECTURE_DIAGRAM, (diagram) => model(diagram, diagram.nodes.map(architectureNode)));
+
+const TYPES = [CLASS_INPUT, ER_INPUT, FLOW_INPUT, ARCHITECTURE_INPUT];
+
+/** The diagram types implemented so far, in the spec's order. Each has an example, examples/<type>.json. */
+export const DIAGRAM_TYPES: readonly Diagram["type"][] = TYPES.map((type) => type.type);
+
+/** The JSON Schema for every diagram type. */
+export function jsonSchema() {
+  return schemaOf(TYPES);
+}
 
 /**
  * Parses a JSON string or an already-parsed value into a diagram, or lists
  * every problem found. The checks come from the shared input definitions.
  */
-export function parseDiagram(input: unknown): ParseResult {
+export function parseDiagram(input: unknown): Result<Diagram> {
+  const selected = selectType(input, TYPES);
+  return selected.ok ? selected.type.parse(selected.value) : selected;
+}
+
+/**
+ * Reads JSON text, or takes an already-parsed value, and picks the one of
+ * `types` its `type` names. When it names none of them, it's checked against
+ * the fields every type shares instead, to report every problem with them.
+ */
+export function selectType<I extends { readonly type: string }>(
+  input: unknown,
+  types: readonly I[],
+): { readonly ok: true; readonly value: unknown; readonly type: I } | { readonly ok: false; readonly problems: readonly Problem[] } {
   let value = input;
   if (typeof input === "string") {
     const parsed = parseJson(input);
     if (!parsed.ok) return { ok: false, problems: [parsed.problem] };
     value = parsed.value;
   }
+  const name = typeof value === "object" && value !== null && "type" in value ? value.type : undefined;
+  const type = types.find((t) => t.type === name);
+  if (type !== undefined) return { ok: true, value, type };
+  // Its type is missing, or none of these, so checking it always finds that problem.
+  const checked = check(unknownTypeDefinition(types.map((t) => t.type)), value);
+  return { ok: false, problems: checked.ok ? [] : checked.problems };
+}
 
-  const type = typeof value === "object" && value !== null ? (value as { type?: unknown }).type : undefined;
-  const checked = check(diagramDefinition(type), value);
-  if (checked.problems.length > 0) return { ok: false, problems: checked.problems };
+/** A diagram's top level, as checked, whatever its type: with its type's name and its edges. */
+type CheckedTop<T extends string, E> = Omit<Shared, "type" | "nodes" | "edges"> & { readonly type: T; readonly edges: readonly E[] };
 
-  // Without problems, the checked value has exactly the shape the definitions describe, less the ids made here.
-  const diagram = checked.value as Omit<Diagram, "nodes" | "edges"> & {
-    nodes: readonly (FlowNode | WithoutIds<ClassNode> | TableNode | ComponentNode | WithoutIds<ArchitectureClassNode>)[];
-    edges: readonly (Omit<FlowEdge, "id"> & { id?: string })[];
-  };
-  const nodes =
-    diagram.type === "class"
-      ? (diagram.nodes as WithoutIds<ClassNode>[]).map(classNode)
-      : diagram.type === "er"
-        ? (diagram.nodes as TableNode[]).map(tableNode)
-        : diagram.type === "architecture"
-          ? (diagram.nodes as (ComponentNode | WithoutIds<ArchitectureClassNode>)[]).map((node) =>
-              node.kind === "class" ? { ...classNode(node), kind: "class" as const } : node,
-            )
-          : diagram.groupAreas
-            ? notesInAreas(diagram.nodes as FlowNode[])
-            : (diagram.nodes as FlowNode[]);
+/** The diagram as checked, with its `nodes` read, and each edge given its id. */
+function model<T extends string, N, E extends { readonly id?: string }>(checked: CheckedTop<T, E>, nodes: readonly N[]): DiagramModel<T, N, WithId<E>> {
   return {
-    ok: true,
-    diagram: {
-      type: diagram.type,
-      ...(diagram.title === undefined ? {} : { title: diagram.title }),
-      ...(diagram.description === undefined ? {} : { description: diagram.description }),
-      theme: diagram.theme,
-      direction: diagram.direction,
-      groupAreas: diagram.groupAreas,
-      legend: diagram.legend,
-      areas: diagram.areas,
-      nodes,
-      edges: diagram.edges.map((edge, i) => ({ ...edge, id: edge.id ?? `edges[${i}]` })),
-    } as Diagram,
+    type: checked.type,
+    ...(checked.title === undefined ? {} : { title: checked.title }),
+    ...(checked.description === undefined ? {} : { description: checked.description }),
+    theme: checked.theme,
+    direction: checked.direction,
+    groupAreas: checked.groupAreas,
+    legend: checked.legend,
+    areas: checked.areas,
+    nodes,
+    edges: checked.edges.map((edge, i) => ({ ...edge, id: edge.id ?? `edges[${i}]` })),
   };
 }
 
@@ -291,26 +244,23 @@ function notesInAreas(nodes: readonly FlowNode[]): FlowNode[] {
 }
 
 /**
- * A class node as checked: a list left out isn't there, and rows may have no
- * id yet. The abstract flag may be missing too: in an architecture diagram,
- * where only a class may have it, it has no default.
- */
-type WithoutIds<N extends ClassNode> = Omit<N, (typeof CLASS_SECTIONS)[number] | "abstract"> & {
-  readonly abstract?: boolean;
-} & {
-  readonly [section in (typeof CLASS_SECTIONS)[number]]?: readonly (Omit<ClassRow, "id"> & { id?: string })[];
-};
-
-/**
  * Gives the card every list, empty when left out, its abstract flag, false
  * when left out, and every row its id (its own, or its section and position)
  * and its status: a row without one in a new or removed card takes the card's.
+ * The flag may be left out of a class in an architecture diagram, where only
+ * a class may have it, so it has no default there.
  */
-function classNode(node: WithoutIds<ClassNode>): ClassNode {
+function classNode(node: CheckedClassNode): ClassNode {
   const [properties, methods, values] = CLASS_SECTIONS.map((section) =>
     (node[section] ?? []).map((row, i): ClassRow => ({ ...withStatus(row, node.status), id: row.id ?? `${section}[${i}]` })),
   );
   return { ...node, abstract: node.abstract ?? false, properties: properties!, methods: methods!, values: values! };
+}
+
+/** A class card for a class, or the node as it is for a component. */
+function architectureNode(node: CheckedArchitectureNode): ArchitectureNode {
+  const { kind } = node;
+  return kind === "class" ? { ...classNode(node), kind } : { ...node, kind };
 }
 
 /** Gives every column its status: a column without one in a new or removed table takes the table's. */

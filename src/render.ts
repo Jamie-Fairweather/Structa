@@ -34,7 +34,7 @@ export async function render<F extends Format = "svg">(
   const { formats, theme: themeName, embedFonts, scale } = readOptions(options);
   const parsed = parseDiagram(input);
   if (!parsed.ok) throw new StructaError("INVALID_INPUT", parsed.problems);
-  const { diagram } = parsed;
+  const diagram = parsed.value;
 
   const theme = getTheme(themeName ?? diagram.theme);
   const nodes: readonly { readonly id: string; readonly label: string }[] = diagram.nodes;

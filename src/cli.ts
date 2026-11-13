@@ -269,8 +269,9 @@ function parseArgs(args: readonly string[]): Command | string {
     if (drawFlags) return "example takes no other arguments";
     if (type === undefined) return `example needs a diagram type (${types})`;
     if (more.length > 0) return `give one diagram type, not two (${JSON.stringify(type)} and ${JSON.stringify(more[0])})`;
-    if (!DIAGRAM_TYPES.includes(type)) return `unknown diagram type ${JSON.stringify(type)} (${types})`;
-    return { kind: "example", type };
+    const known = DIAGRAM_TYPES.find((name) => name === type);
+    if (known === undefined) return `unknown diagram type ${JSON.stringify(type)} (${types})`;
+    return { kind: "example", type: known };
   }
   if (input === undefined) return "give the diagram's JSON file, or - to read it from standard input";
   if (rest.length > 0) return `give one input, not two (${JSON.stringify(input)} and ${JSON.stringify(rest[0])})`;

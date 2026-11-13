@@ -3,6 +3,7 @@ import { undrawable } from "../text";
 import { describeChar } from "./chars";
 import {
   ID_PATTERN,
+  type Checked,
   type Condition,
   type Def,
   type Field,
@@ -31,17 +32,19 @@ const DRAW_HINT = "use Latin letters, digits and common symbols";
 /** Characters a field can't draw are named one by one up to this many; the rest are counted. */
 const NAMED_CHARS = 5;
 
+/** A value, or every problem that stopped it being made. */
+export type Result<V> = { readonly ok: true; readonly value: V } | { readonly ok: false; readonly problems: readonly Problem[] };
+
 /**
- * Checks `input` against a definition. Returns the normalised value (defaults
- * filled in, text tidied) and every problem found. The value is only complete
- * when there are no problems.
+ * Checks `input` against a definition. Returns the value as checked (defaults
+ * filled in, text tidied), or every problem found.
  *
  * Problems come in a fixed order: list items in order, and in each object its
  * unknown fields first (sorted by name), then its own fields in the order the
  * definition lists them, then what its rules find. A dangling reference sorts
  * to where the reference is.
  */
-export function check(def: ObjectDef, input: unknown): { value: unknown; problems: Problem[] } {
+export function check<D extends ObjectDef>(def: D, input: unknown): Result<Checked<D>> {
   // Each problem gets a sequence number when its place in the input is visited,
   // so problems found later (like dangling references) still sort into place.
   const found: { seq: number; problem: Problem }[] = [];
@@ -210,7 +213,9 @@ export function check(def: ObjectDef, input: unknown): { value: unknown; problem
     }
   }
   found.sort((a, b) => a.seq - b.seq);
-  return { value, problems: found.map((f) => f.problem) };
+  if (found.length > 0) return { ok: false, problems: found.map((f) => f.problem) };
+  // With no problems, every object was built field by field from its definition, its defaults filled in: just what Checked describes.
+  return { ok: true, value: value as Checked<D> };
 }
 
 /** The field holding a node's id, when objects of this definition are nodes. */

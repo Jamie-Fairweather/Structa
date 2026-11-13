@@ -1,8 +1,7 @@
 import { drawableRanges, type FaceId } from "../text";
 import {
-  DEFINITIONS,
   ID_PATTERN,
-  SHARED,
+  sharedDefinition,
   TEXT_KINDS,
   type Condition,
   type Def,
@@ -15,21 +14,23 @@ import {
 type JsonSchema = { [key: string]: unknown };
 
 /**
- * The JSON Schema (draft 2020-12) for the input, generated from the same
- * definitions as the validator. The top level holds the fields every type
- * shares; each type's nodes and edges come in a branch chosen by `type`. The
- * validator also checks what a schema can't say: references and unique ids.
+ * The JSON Schema (draft 2020-12) for diagrams of these types, in this
+ * order, generated from the same definitions as the validator. The top level
+ * holds the fields every type shares; each type's nodes and edges come in a
+ * branch chosen by `type`. The validator also checks what a schema can't
+ * say: references and unique ids.
  */
-export function jsonSchema(): JsonSchema {
+export function jsonSchema(types: readonly { readonly type: string; readonly definition: ObjectDef }[]): JsonSchema {
+  const shared = sharedDefinition(types.map(({ type }) => type));
   return {
     $schema: "https://json-schema.org/draft/2020-12/schema",
     title: "Structa diagram",
     description:
       'One diagram for Structa to draw. Text is plain text in Latin letters, digits and common symbols, with no control characters; runs of spaces collapse to one, and text can\'t be only spaces. Ids must be unique across nodes and edges, a row\'s id within its card, and an area\'s among the areas; "from", "to" and "about" must name a node that isn\'t a note (lines connect cards only, never areas), an ER line\'s "fromColumn" and "toColumn" must name a column of its from and to tables, and a node\'s "area" and an area\'s "parent" must name an area.',
-    ...objectSchema(SHARED),
-    allOf: [...DEFINITIONS].map(([type, def]) => ({
+    ...objectSchema(shared),
+    allOf: types.map(({ type, definition }) => ({
       if: { properties: { type: { const: type } }, required: ["type"] },
-      then: { properties: { ...ownDefaults(def), nodes: itemsSchema(def, "nodes"), edges: itemsSchema(def, "edges") } },
+      then: { properties: { ...ownDefaults(definition, shared), nodes: itemsSchema(definition, "nodes"), edges: itemsSchema(definition, "edges") } },
     })),
     $defs: {
       id: { description: "letters, digits and - _ . :", type: "string", pattern: ID_PATTERN },
@@ -44,12 +45,12 @@ export function jsonSchema(): JsonSchema {
   };
 }
 
-/** The top-level defaults a type has of its own, such as ER's direction, that differ from the ones every type shares. */
-function ownDefaults(def: ObjectDef): JsonSchema {
-  const shared = new Map(SHARED.fields.map((field) => [field.name, field.default]));
+/** The top-level defaults a type has of its own, such as ER's direction, that differ from the `shared` ones every type has. */
+function ownDefaults(def: ObjectDef, shared: ObjectDef): JsonSchema {
+  const defaults = new Map(shared.fields.map((field) => [field.name, field.default]));
   return Object.fromEntries(
     def.fields
-      .filter((field) => typeof field.default !== "object" && field.default !== shared.get(field.name))
+      .filter((field) => typeof field.default !== "object" && field.default !== defaults.get(field.name))
       .map((field) => [field.name, { default: field.default }]),
   );
 }
