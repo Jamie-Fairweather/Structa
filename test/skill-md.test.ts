@@ -55,6 +55,36 @@ describe("SKILL.md in the skill folder", () => {
     // Each run starts node afresh, and every PNG starts the rasteriser afresh.
   }, 60_000);
 
+  it("names only fields and values the schema has, words of --help, files in the skill folder and commands it shows", () => {
+    const schema = JSON.parse(skill.run(["schema"]).stdout) as unknown;
+    const { fields, values } = schemaWords(schema);
+    const helpWords = new Set(skill.run(["--help"]).stdout.split(/[\s,;|()[\]]+/));
+    const commands = shownCommands(skillMd);
+    /** True when `span` is a JSON object's fields, such as "groupAreas": true, each a field with a value it can have. */
+    const isFragment = (span: string) => {
+      let fragment: unknown;
+      try {
+        fragment = JSON.parse(`{${span}}`);
+      } catch {
+        return false;
+      }
+      return Object.entries(fragment as object).every(
+        ([field, value]) => fields.has(field) && (typeof value !== "string" || values.has(value)) && typeof value !== "object",
+      );
+    };
+    const exists = (span: string) =>
+      (span.startsWith("node ") && commands.includes(span)) ||
+      fields.has(span) ||
+      values.has(span) ||
+      span.split(" ").every((word) => helpWords.has(word)) ||
+      isFragment(span) ||
+      existsSync(join(skill.dir, span));
+
+    const spans = codeSpans(skillMd);
+    expect(spans.length).toBeGreaterThan(0);
+    expect(spans.filter((span) => !exists(span))).toEqual([]);
+  });
+
   it("has only sh code blocks, which hold commands, and json ones, which hold diagrams that render", () => {
     const languages = [...skillMd.matchAll(/^```(.*)$/gm)].map(([, language]) => language).filter((_, i) => i % 2 === 0);
 
@@ -65,6 +95,28 @@ describe("SKILL.md in the skill folder", () => {
     }
   });
 });
+
+/** Every inline code span in `markdown`'s text, outside its frontmatter and code blocks, in order. */
+function codeSpans(markdown: string): string[] {
+  const text = markdown.replace(/^---\n[\s\S]*?\n---\n/, "").replace(/^```.*\n[\s\S]*?^```$/gm, "");
+  return [...text.matchAll(/`([^`]+)`/g)].map(([, span]) => span!);
+}
+
+/** The names of the fields anywhere in the JSON Schema `schema`, and every value its choices allow. */
+function schemaWords(schema: unknown): { fields: Set<string>; values: Set<string> } {
+  const fields = new Set<string>();
+  const values = new Set<string>();
+  const walk = (node: unknown): void => {
+    if (Array.isArray(node)) return node.forEach(walk);
+    if (typeof node !== "object" || node === null) return;
+    const { properties, enum: choices, const: only } = node as { properties?: object; enum?: unknown[]; const?: unknown };
+    for (const field of Object.keys(properties ?? {})) fields.add(field);
+    for (const value of [...(choices ?? []), only]) if (typeof value === "string") values.add(value);
+    Object.values(node).forEach(walk);
+  };
+  walk(schema);
+  return { fields, values };
+}
 
 /** The contents of the code blocks in `markdown` written in `language`, in order. */
 function codeBlocks(markdown: string, language: string): string[] {
