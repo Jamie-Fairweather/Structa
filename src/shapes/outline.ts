@@ -1,9 +1,4 @@
-import type { Box } from "./frame";
-
-export interface Point {
-  readonly x: number;
-  readonly y: number;
-}
+import type { Box, Point } from "../geometry";
 
 /**
  * A card's drawn outline: a rounded box, or a closed run of straight edges.
@@ -29,7 +24,7 @@ export function placeOutline(shape: OutlineShape, box: Box): Outline {
   return shape.kind === "rounded" ? { ...box, ...shape } : { ...box, kind: "polygon", points: shape.points.map((p) => move(p, box)) };
 }
 
-export function move(p: Point, by: { readonly x: number; readonly y: number }): Point {
+export function move(p: Point, by: Point): Point {
   return { x: p.x + by.x, y: p.y + by.y };
 }
 

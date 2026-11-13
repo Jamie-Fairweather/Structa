@@ -1,5 +1,5 @@
 import type { Cardinality } from "../input";
-import type { Point } from "../layout";
+import type { Point } from "../geometry";
 import type { Sizes } from "../theme";
 import { num } from "./svg";
 

@@ -1,5 +1,6 @@
 import type { ElkExtendedEdge, ElkNode, ElkPoint } from "elkjs/lib/elk-api";
 import { StructaError, type Problem } from "../errors";
+import type { Box, Point, Size } from "../geometry";
 import type { Direction } from "../input";
 import { createElk } from "./elk";
 import { GROUPED, type LayoutProfile } from "./profiles";
@@ -54,7 +55,7 @@ export interface LayoutArea {
   /** The room inside its edges: at the top, room for its name. */
   readonly padding: { readonly top: number; readonly side: number; readonly bottom: number };
   /** The box round its name, from the box's top-left corner. */
-  readonly nameBox: Rect;
+  readonly nameBox: Box;
   /**
    * How far lines keep from `nameBox`, so that neither they nor the marks at
    * their ends touch it. When a line would come closer, everything in the
@@ -62,11 +63,6 @@ export interface LayoutArea {
    */
   readonly nameClearance: number;
   readonly path: string;
-}
-
-interface Size {
-  readonly width: number;
-  readonly height: number;
 }
 
 /**
@@ -126,15 +122,9 @@ export interface PortSpan {
   readonly gap: number;
 }
 
-export interface Point {
-  readonly x: number;
-  readonly y: number;
-}
-
-export interface PlacedCard<C> {
+/** A card, with the top-left corner of its box. */
+export interface PlacedCard<C> extends Point {
   readonly card: C;
-  readonly x: number;
-  readonly y: number;
 }
 
 export interface RoutedLine<L> {
@@ -159,12 +149,9 @@ const LABELS = [
 
 type LabelName = (typeof LABELS)[number][0];
 
-export interface PlacedArea<A> {
+/** An area, with the box ELK sized round its cards and the areas inside it. */
+export interface PlacedArea<A> extends Box {
   readonly area: A;
-  readonly x: number;
-  readonly y: number;
-  readonly width: number;
-  readonly height: number;
 }
 
 /** Positioned areas and cards and routed lines, with the content's top-left corner at (0, 0). */
@@ -296,7 +283,7 @@ function nearNames(scene: Scene<unknown, unknown, LayoutArea>): number[] {
 }
 
 /** The room round an area's name that lines keep out of, from the box's top-left corner: its name's box and the clearance all round. */
-function nameRoom({ nameBox, nameClearance }: LayoutArea): Rect {
+function nameRoom({ nameBox, nameClearance }: LayoutArea): Box {
   return {
     x: nameBox.x - nameClearance,
     y: nameBox.y - nameClearance,
@@ -911,26 +898,18 @@ function labelLoops<C extends LayoutCard, L extends LayoutLine, A extends Layout
   return placed;
 }
 
-/** A box: a card's, a label's, an area's or a straight run's. */
-interface Rect {
-  readonly x: number;
-  readonly y: number;
-  readonly width: number;
-  readonly height: number;
-}
-
 /** Whether two boxes share any area or touch, a segment's flat box included. */
-function overlaps(a: Rect, b: Rect): boolean {
+function overlaps(a: Box, b: Box): boolean {
   return a.x <= b.x + b.width && b.x <= a.x + a.width && a.y <= b.y + b.height && b.y <= a.y + a.height;
 }
 
 /** Whether box `a` lies wholly within box `b`. */
-function inside(a: Rect, b: Rect): boolean {
+function inside(a: Box, b: Box): boolean {
   return a.x >= b.x && a.y >= b.y && a.x + a.width <= b.x + b.width && a.y + a.height <= b.y + b.height;
 }
 
 /** The box a straight run fills: flat for a level or upright run. */
-function segmentBox(a: Point, b: Point): Rect {
+function segmentBox(a: Point, b: Point): Box {
   return { x: Math.min(a.x, b.x), y: Math.min(a.y, b.y), width: Math.abs(b.x - a.x), height: Math.abs(b.y - a.y) };
 }
 
@@ -999,7 +978,7 @@ function elkSize(size: Size | EndLabelSize, direction: Direction): Size {
  * Where an end label goes in the box ELK put just off the card at `end`, the
  * line's end: `clear` along from the side of the box nearer the card.
  */
-function pastClearance(box: Point & Size, clear: number, end: Point, direction: Direction): Point {
+function pastClearance(box: Box, clear: number, end: Point, direction: Direction): Point {
   if (direction === "down") return { x: box.x, y: end.y <= box.y + box.height / 2 ? box.y + clear : box.y };
   return { x: end.x <= box.x + box.width / 2 ? box.x + clear : box.x, y: box.y };
 }

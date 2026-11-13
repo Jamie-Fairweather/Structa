@@ -23,9 +23,9 @@ import { frameCards, strikeThrough, type Card, type LineEnds, type Span, type Te
 import { tableBody } from "./table";
 
 export { buildAreaBoxes, type AreaBox } from "./area";
-export { type Badge, type Box, type Card, type Icon, type Landing, type LevelLine, type Row, type Tag, type TextLine } from "./frame";
+export { type Badge, type Card, type Icon, type Landing, type LevelLine, type Row, type Tag, type TextLine } from "./frame";
 export { buildLegend, type AreaItem, type Legend, type LegendItem, type StatusItem } from "./legend";
-export { distanceToBox, entry, nearest, type Mark, type Outline, type Point } from "./outline";
+export { distanceToBox, entry, nearest, type Mark, type Outline } from "./outline";
 
 /**
  * What's drawn where a line meets a card: a filled arrowhead, as on a

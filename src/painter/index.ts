@@ -1,5 +1,6 @@
+import type { Point } from "../geometry";
 import type { Cardinality, Status } from "../input";
-import type { PlacedArea, PlacedCard, Point, RoutedLine, Scene } from "../layout";
+import type { PlacedArea, PlacedCard, RoutedLine, Scene } from "../layout";
 import {
   distanceToBox,
   entry,

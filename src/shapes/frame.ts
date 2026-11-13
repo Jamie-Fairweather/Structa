@@ -1,7 +1,8 @@
+import type { Box, Point } from "../geometry";
 import { AREA_LABEL_FACE, STEREOTYPE_FACE, type ArchitectureKind, type ComponentKind, type FlowShape, type Status } from "../input";
 import { baseline, measure, wrap, type FaceId } from "../text";
 import type { Sizes, ThemeColors } from "../theme";
-import { distanceToBox, entry, move, placeOutline, type Mark, type Outline, type OutlineShape, type Point } from "./outline";
+import { distanceToBox, entry, move, placeOutline, type Mark, type Outline, type OutlineShape } from "./outline";
 
 /** A line of text, positioned relative to the top-left corner of whatever holds it. */
 export interface TextLine {
@@ -26,13 +27,6 @@ export interface LevelLine {
   readonly x1: number;
   readonly x2: number;
   readonly y: number;
-}
-
-export interface Box {
-  readonly x: number;
-  readonly y: number;
-  readonly width: number;
-  readonly height: number;
 }
 
 /** The status word in a small pill. Its colours come from the status. */
