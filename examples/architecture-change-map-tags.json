@@ -1,73 +1,73 @@
 {
   "type": "architecture",
-  "title": "Harbour ferries: cancelling a sailing",
-  "description": "Staff can now cancel a sailing from the admin portal. Everyone booked on it is refunded and sent a text at once, so the nightly refund export is retired. Each card is tagged with the part of the system it lives in.",
+  "title": "Town museum: taking an object off display",
+  "description": "Curators can now take an object off display from the admin portal. Its audio guide stops and floor map pin go at once, so the nightly guide export is retired. Each card is tagged with the part of the system it lives in.",
   "areas": [
     { "id": "portal", "label": "Admin portal" },
     { "id": "api", "label": "API" },
     { "id": "services", "label": "Services" },
-    { "id": "refunds", "label": "Refunds", "parent": "services" },
+    { "id": "guide", "label": "Audio guide", "parent": "services" },
     { "id": "data", "label": "Database" }
   ],
   "nodes": [
-    { "id": "console", "label": "Harbour admin", "kind": "ui", "area": "portal", "status": "changed", "description": "Adds a Cancel sailing button" },
+    { "id": "console", "label": "Curator admin", "kind": "ui", "area": "portal", "status": "changed", "description": "Adds a Take off display button" },
     {
       "id": "dialog",
-      "label": "CancelSailingDialog",
+      "label": "TakeOffDisplayDialog",
       "kind": "class",
       "area": "portal",
       "status": "new",
       "methods": [
-        { "text": "open(sailing: SailingId): void", "visibility": "public" },
+        { "text": "open(object: ObjectId): void", "visibility": "public" },
         { "text": "confirm(reason: string): void", "visibility": "public" }
       ]
     },
-    { "id": "gateway", "label": "Ferry API", "kind": "api", "area": "api", "status": "unchanged" },
+    { "id": "gateway", "label": "Museum API", "kind": "api", "area": "api", "status": "unchanged" },
     {
       "id": "controller",
-      "label": "SailingsController",
+      "label": "DisplaysController",
       "kind": "class",
       "area": "api",
       "status": "changed",
       "methods": [
-        { "text": "list(day: Date): Sailing[]", "visibility": "public", "status": "unchanged" },
-        { "text": "cancel(id: SailingId, reason: string): Cancellation", "visibility": "public", "status": "new" },
-        { "text": "move(id: SailingId, departs: Time): Sailing", "visibility": "public", "status": "changed" },
-        { "text": "exportRefunds(day: Date): Csv", "visibility": "public", "status": "removed" }
+        { "text": "list(gallery: GalleryId): Display[]", "visibility": "public", "status": "unchanged" },
+        { "text": "takeOff(id: ObjectId, reason: string): Removal", "visibility": "public", "status": "new" },
+        { "text": "move(id: ObjectId, to: CaseId): Display", "visibility": "public", "status": "changed" },
+        { "text": "exportGuide(day: Date): Csv", "visibility": "public", "status": "removed" }
       ],
       "more": 2
     },
-    { "id": "timetable", "label": "Timetable service", "kind": "service", "area": "services", "description": "Sailings for the next 90 days" },
+    { "id": "collection", "label": "Collection service", "kind": "service", "area": "services", "description": "Every object the museum holds" },
     {
-      "id": "cancellations",
-      "label": "CancellationService",
+      "id": "removals",
+      "label": "RemovalService",
       "kind": "class",
       "area": "services",
       "status": "new",
-      "properties": [{ "text": "sailings: SailingStore", "visibility": "private" }],
+      "properties": [{ "text": "displays: DisplayStore", "visibility": "private" }],
       "methods": [
-        { "text": "cancel(sailing: Sailing, reason: string): Cancellation", "visibility": "public" },
-        { "text": "bookedOn(sailing: Sailing): Booking[]", "visibility": "private" }
+        { "text": "takeOff(object: MuseumObject, reason: string): Removal", "visibility": "public" },
+        { "text": "stopsFor(object: MuseumObject): GuideStop[]", "visibility": "private" }
       ]
     },
-    { "id": "events", "label": "Sailing events", "kind": "queue", "area": "services", "status": "new" },
-    { "id": "alerts", "label": "Passenger alerts", "kind": "service", "area": "services", "status": "new", "description": "Texts everyone booked on it" },
-    { "id": "payback", "label": "Refund service", "kind": "service", "area": "refunds", "status": "changed", "description": "Refunds a whole sailing at once" },
-    { "id": "export", "label": "Nightly refund export", "kind": "job", "area": "refunds", "status": "removed" },
-    { "id": "db", "label": "Ferry database", "kind": "database", "area": "data", "status": "changed", "description": "Adds a cancellations table" }
+    { "id": "events", "label": "Display events", "kind": "queue", "area": "services", "status": "new" },
+    { "id": "map", "label": "Floor map", "kind": "service", "area": "services", "status": "new", "description": "Drops the object's pin" },
+    { "id": "stops", "label": "Guide stops", "kind": "service", "area": "guide", "status": "changed", "description": "Skips every stop for the object at once" },
+    { "id": "export", "label": "Nightly guide export", "kind": "job", "area": "guide", "status": "removed" },
+    { "id": "db", "label": "Museum database", "kind": "database", "area": "data", "status": "changed", "description": "Adds a removals table" }
   ],
   "edges": [
-    { "from": "console", "to": "gateway", "label": "GET /sailings" },
-    { "from": "dialog", "to": "gateway", "label": "POST /sailings/{id}/cancel", "status": "new", "emphasis": true },
+    { "from": "console", "to": "gateway", "label": "GET /displays" },
+    { "from": "dialog", "to": "gateway", "label": "DELETE /displays/{id}", "status": "new", "emphasis": true },
     { "from": "gateway", "to": "controller", "emphasis": true },
-    { "from": "controller", "to": "timetable", "label": "move sailing", "status": "changed" },
-    { "from": "controller", "to": "cancellations", "label": "cancel", "status": "new", "emphasis": true },
-    { "from": "cancellations", "to": "db", "label": "save cancellation", "status": "new", "emphasis": true },
-    { "from": "cancellations", "to": "events", "kind": "async", "label": "sailing cancelled", "status": "new" },
-    { "from": "events", "to": "payback", "kind": "async", "label": "refund tickets", "status": "new" },
-    { "from": "events", "to": "alerts", "kind": "async", "label": "text passengers", "status": "new" },
-    { "from": "timetable", "to": "db", "label": "read sailings", "status": "unchanged" },
-    { "from": "payback", "to": "db", "label": "mark refunded", "status": "changed" },
-    { "from": "export", "to": "db", "label": "read refunds", "status": "removed" }
+    { "from": "controller", "to": "collection", "label": "move object", "status": "changed" },
+    { "from": "controller", "to": "removals", "label": "take off", "status": "new", "emphasis": true },
+    { "from": "removals", "to": "db", "label": "save removal", "status": "new", "emphasis": true },
+    { "from": "removals", "to": "events", "kind": "async", "label": "object removed", "status": "new" },
+    { "from": "events", "to": "stops", "kind": "async", "label": "skip its stops", "status": "new" },
+    { "from": "events", "to": "map", "kind": "async", "label": "drop its pin", "status": "new" },
+    { "from": "collection", "to": "db", "label": "read objects", "status": "unchanged" },
+    { "from": "stops", "to": "db", "label": "mark skipped", "status": "changed" },
+    { "from": "export", "to": "db", "label": "read displays", "status": "removed" }
   ]
 }

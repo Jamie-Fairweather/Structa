@@ -1,506 +1,509 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="867" height="1854" viewBox="0 0 867 1854">
+<svg xmlns="http://www.w3.org/2000/svg" width="871" height="1908" viewBox="0 0 871 1908">
 <defs>
 <pattern id="structa-grid-dark" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="9" cy="9" r="1" fill="#6e7681" fill-opacity="0.4"/></pattern>
 <filter id="structa-shadow-dark" x="-20%" y="-30%" width="140%" height="170%"><feDropShadow dx="0" dy="1" stdDeviation="3" flood-color="#010409" flood-opacity="0.5"/></filter>
 </defs>
-<rect width="867" height="1854" fill="#0d1117"/>
-<rect width="867" height="1854" fill="url(#structa-grid-dark)"/>
+<rect width="871" height="1908" fill="#0d1117"/>
+<rect width="871" height="1908" fill="url(#structa-grid-dark)"/>
 <g class="title">
-<text x="32" y="50.55" font-family="Structa Inter, Inter, sans-serif" font-size="18" font-weight="700" fill="#e6edf3">Harbour ferries: cancelling a sailing</text>
+<text x="32" y="50.55" font-family="Structa Inter, Inter, sans-serif" font-size="18" font-weight="700" fill="#e6edf3">Town museum: taking an object off display</text>
 </g>
 <g class="description">
-<text x="32" y="73.73" font-family="Structa Inter, Inter, sans-serif" font-size="13" font-weight="400" fill="#8b949e">Staff can now cancel a sailing from the admin portal. Everyone booked on it is refunded and sent a text</text>
-<text x="32" y="91.73" font-family="Structa Inter, Inter, sans-serif" font-size="13" font-weight="400" fill="#8b949e">at once, so the nightly refund export is retired. Each card is tagged with the part of the system it lives in.</text>
+<text x="32" y="73.73" font-family="Structa Inter, Inter, sans-serif" font-size="13" font-weight="400" fill="#8b949e">Curators can now take an object off display from the admin portal. Its audio guide stops and floor map</text>
+<text x="32" y="91.73" font-family="Structa Inter, Inter, sans-serif" font-size="13" font-weight="400" fill="#8b949e">pin go at once, so the nightly guide export is retired. Each card is tagged with the part of the system it</text>
+<text x="32" y="109.73" font-family="Structa Inter, Inter, sans-serif" font-size="13" font-weight="400" fill="#8b949e">lives in.</text>
 </g>
 <g class="card" data-id="console" data-kind="ui" data-status="changed" data-area="portal">
-<title>Harbour admin (ui): Adds a Cancel sailing button</title>
-<rect class="outline" x="114.33" y="168" width="194" height="80" rx="10" fill="#161b22" stroke="#d29922" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
-<path class="icon" d="M199.87 183.19 L208.62 183.19 Q209.94 183.19 209.94 184.5 L209.94 191.5 Q209.94 192.81 208.62 192.81 L199.87 192.81 Q198.56 192.81 198.56 191.5 L198.56 184.5 Q198.56 183.19 199.87 183.19 Z M198.56 185.81 L209.94 185.81" fill="none" stroke="#8b949e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
-<text x="216.25" y="192" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#8b949e">ui</text>
-<text x="211.33" y="213.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Harbour admin</text>
-<text x="211.33" y="232.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#8b949e" text-anchor="middle">Adds a Cancel sailing button</text>
+<title>Curator admin (ui): Adds a Take off display button</title>
+<rect class="outline" x="112.83" y="186" width="206" height="80" rx="10" fill="#161b22" stroke="#d29922" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
+<path class="icon" d="M204.37 201.19 L213.12 201.19 Q214.44 201.19 214.44 202.5 L214.44 209.5 Q214.44 210.81 213.12 210.81 L204.37 210.81 Q203.06 210.81 203.06 209.5 L203.06 202.5 Q203.06 201.19 204.37 201.19 Z M203.06 203.81 L214.44 203.81" fill="none" stroke="#8b949e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="220.75" y="210" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#8b949e">ui</text>
+<text x="215.83" y="231.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Curator admin</text>
+<text x="215.83" y="250.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#8b949e" text-anchor="middle">Adds a Take off display button</text>
 <g class="badge">
-<rect x="233.33" y="160" width="63" height="16" rx="8" fill="#161b22"/>
-<rect x="233.33" y="160" width="63" height="16" rx="8" fill="#d29922" fill-opacity="0.25" stroke="#d29922" stroke-width="1"/>
-<text x="264.83" y="171.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#e3b341" text-anchor="middle">CHANGED</text>
+<rect x="243.83" y="178" width="63" height="16" rx="8" fill="#161b22"/>
+<rect x="243.83" y="178" width="63" height="16" rx="8" fill="#d29922" fill-opacity="0.25" stroke="#d29922" stroke-width="1"/>
+<text x="275.33" y="189.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#e3b341" text-anchor="middle">CHANGED</text>
 </g>
 <g class="tag" data-area="portal">
-<rect x="126.33" y="160" width="74" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
-<text x="163.33" y="171.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Admin portal</text>
+<rect x="124.83" y="178" width="74" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
+<text x="161.83" y="189.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Admin portal</text>
 </g>
 </g>
 <g class="card" data-id="dialog" data-kind="class" data-status="new" data-area="portal">
-<title>CancelSailingDialog</title>
-<rect class="outline" x="356.33" y="128" width="360" height="120" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
-<line class="divider" x1="357.08" y1="172" x2="715.58" y2="172" stroke="#30363d" stroke-width="1"/>
-<line class="divider" x1="357.08" y1="184" x2="715.58" y2="184" stroke="#30363d" stroke-width="1"/>
-<text x="536.33" y="155.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">CancelSailingDialog</text>
+<title>TakeOffDisplayDialog</title>
+<rect class="outline" x="366.83" y="146" width="360" height="120" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
+<line class="divider" x1="367.58" y1="190" x2="726.08" y2="190" stroke="#30363d" stroke-width="1"/>
+<line class="divider" x1="367.58" y1="202" x2="726.08" y2="202" stroke="#30363d" stroke-width="1"/>
+<text x="546.83" y="173.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">TakeOffDisplayDialog</text>
 <g class="row" data-id="methods[0]" data-kind="method" data-status="new">
-<title>+ open(sailing: SailingId): void</title>
-<rect x="362.33" y="191" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
+<title>+ open(object: ObjectId): void</title>
+<rect x="372.83" y="209" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
 <g class="symbol">
-<text x="370.33" y="207.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
+<text x="380.83" y="225.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
 </g>
-<text x="384.73" y="207.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">open(sailing: SailingId): void</text>
+<text x="395.23" y="225.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">open(object: ObjectId): void</text>
 <g class="badge">
-<rect x="665.33" y="195" width="37" height="16" rx="8" fill="#161b22"/>
-<rect x="665.33" y="195" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
-<text x="683.83" y="206.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
+<rect x="675.83" y="213" width="37" height="16" rx="8" fill="#161b22"/>
+<rect x="675.83" y="213" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
+<text x="694.33" y="224.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
 </g>
 </g>
 <g class="row" data-id="methods[1]" data-kind="method" data-status="new">
 <title>+ confirm(reason: string): void</title>
-<rect x="362.33" y="217" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
+<rect x="372.83" y="235" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
 <g class="symbol">
-<text x="370.33" y="233.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
+<text x="380.83" y="251.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
 </g>
-<text x="384.73" y="233.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">confirm(reason: string): void</text>
+<text x="395.23" y="251.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">confirm(reason: string): void</text>
 <g class="badge">
-<rect x="665.33" y="221" width="37" height="16" rx="8" fill="#161b22"/>
-<rect x="665.33" y="221" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
-<text x="683.83" y="232.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
+<rect x="675.83" y="239" width="37" height="16" rx="8" fill="#161b22"/>
+<rect x="675.83" y="239" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
+<text x="694.33" y="250.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
 </g>
 </g>
 <g class="badge">
-<rect x="667.33" y="120" width="37" height="16" rx="8" fill="#161b22"/>
-<rect x="667.33" y="120" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
-<text x="685.83" y="131.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
+<rect x="677.83" y="138" width="37" height="16" rx="8" fill="#161b22"/>
+<rect x="677.83" y="138" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
+<text x="696.33" y="149.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
 </g>
 <g class="tag" data-area="portal">
-<rect x="368.33" y="120" width="74" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
-<text x="405.33" y="131.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Admin portal</text>
+<rect x="378.83" y="138" width="74" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
+<text x="415.83" y="149.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Admin portal</text>
 </g>
 </g>
 <g class="card" data-id="gateway" data-kind="api" data-status="unchanged" data-area="api">
-<title>Ferry API (api)</title>
-<rect class="outline" x="443" y="404" width="140" height="62" rx="10" fill="#161b22" stroke="#6e7681" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
-<path class="icon" d="M500.96 418.75 Q499.21 418.75 499.21 420.5 L499.21 422.69 Q499.21 424 497.9 424 Q499.21 424 499.21 425.31 L499.21 427.5 Q499.21 429.25 500.96 429.25 M504.46 418.75 Q506.21 418.75 506.21 420.5 L506.21 422.69 Q506.21 424 507.52 424 Q506.21 424 506.21 425.31 L506.21 427.5 Q506.21 429.25 504.46 429.25" fill="none" stroke="#8b949e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
-<text x="514.71" y="428" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#8b949e">api</text>
-<text x="513" y="449.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Ferry API</text>
+<title>Museum API (api)</title>
+<rect class="outline" x="453.5" y="422" width="140" height="62" rx="10" fill="#161b22" stroke="#6e7681" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
+<path class="icon" d="M511.46 436.75 Q509.71 436.75 509.71 438.5 L509.71 440.69 Q509.71 442 508.4 442 Q509.71 442 509.71 443.31 L509.71 445.5 Q509.71 447.25 511.46 447.25 M514.96 436.75 Q516.71 436.75 516.71 438.5 L516.71 440.69 Q516.71 442 518.02 442 Q516.71 442 516.71 443.31 L516.71 445.5 Q516.71 447.25 514.96 447.25" fill="none" stroke="#8b949e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="525.21" y="446" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#8b949e">api</text>
+<text x="523.5" y="467.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Museum API</text>
 <g class="badge">
-<rect x="493" y="396" width="78" height="16" rx="8" fill="#161b22"/>
-<rect x="493" y="396" width="78" height="16" rx="8" fill="#6e7681" fill-opacity="0.25" stroke="#6e7681" stroke-width="1"/>
-<text x="532" y="407.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e" text-anchor="middle">UNCHANGED</text>
+<rect x="503.5" y="414" width="78" height="16" rx="8" fill="#161b22"/>
+<rect x="503.5" y="414" width="78" height="16" rx="8" fill="#6e7681" fill-opacity="0.25" stroke="#6e7681" stroke-width="1"/>
+<text x="542.5" y="425.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e" text-anchor="middle">UNCHANGED</text>
 </g>
 <g class="tag" data-area="api">
-<rect x="455" y="396" width="29" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
-<text x="469.5" y="407.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">API</text>
+<rect x="465.5" y="414" width="29" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
+<text x="480" y="425.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">API</text>
 </g>
 </g>
 <g class="card" data-id="controller" data-kind="class" data-status="changed" data-area="api">
-<title>SailingsController</title>
-<rect class="outline" x="333" y="538" width="360" height="234" rx="10" fill="#161b22" stroke="#d29922" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
-<line class="divider" x1="333.75" y1="582" x2="692.25" y2="582" stroke="#30363d" stroke-width="1"/>
-<line class="divider" x1="333.75" y1="594" x2="692.25" y2="594" stroke="#30363d" stroke-width="1"/>
-<text x="513" y="565.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">SailingsController</text>
+<title>DisplaysController</title>
+<rect class="outline" x="343.5" y="556" width="360" height="252" rx="10" fill="#161b22" stroke="#d29922" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
+<line class="divider" x1="344.25" y1="600" x2="702.75" y2="600" stroke="#30363d" stroke-width="1"/>
+<line class="divider" x1="344.25" y1="612" x2="702.75" y2="612" stroke="#30363d" stroke-width="1"/>
+<text x="523.5" y="583.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">DisplaysController</text>
 <g class="more">
-<text x="361.4" y="757.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">… 2 more</text>
+<text x="371.9" y="793.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#8b949e">… 2 more</text>
 </g>
 <g class="row" data-id="methods[0]" data-kind="method" data-status="unchanged">
-<title>+ list(day: Date): Sailing[]</title>
-<rect x="339" y="601" width="348" height="24" rx="4" fill="#6e7681" fill-opacity="0.12"/>
+<title>+ list(gallery: GalleryId): Display[]</title>
+<rect x="349.5" y="619" width="348" height="42" rx="4" fill="#6e7681" fill-opacity="0.12"/>
 <g class="symbol">
-<text x="347" y="617.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
+<text x="357.5" y="635.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
 </g>
-<text x="361.4" y="617.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">list(day: Date): Sailing[]</text>
+<text x="371.9" y="635.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">list(gallery: GalleryId):</text>
+<text x="371.9" y="653.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">Display[]</text>
 <g class="badge">
-<rect x="601" y="605" width="78" height="16" rx="8" fill="#161b22"/>
-<rect x="601" y="605" width="78" height="16" rx="8" fill="#6e7681" fill-opacity="0.25" stroke="#6e7681" stroke-width="1"/>
-<text x="640" y="616.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e" text-anchor="middle">UNCHANGED</text>
+<rect x="611.5" y="623" width="78" height="16" rx="8" fill="#161b22"/>
+<rect x="611.5" y="623" width="78" height="16" rx="8" fill="#6e7681" fill-opacity="0.25" stroke="#6e7681" stroke-width="1"/>
+<text x="650.5" y="634.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e" text-anchor="middle">UNCHANGED</text>
 </g>
 </g>
 <g class="row" data-id="methods[1]" data-kind="method" data-status="new">
-<title>+ cancel(id: SailingId, reason: string): Cancellation</title>
-<rect x="339" y="627" width="348" height="42" rx="4" fill="#3fb950" fill-opacity="0.12"/>
+<title>+ takeOff(id: ObjectId, reason: string): Removal</title>
+<rect x="349.5" y="663" width="348" height="42" rx="4" fill="#3fb950" fill-opacity="0.12"/>
 <g class="symbol">
-<text x="347" y="643.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
+<text x="357.5" y="679.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
 </g>
-<text x="361.4" y="643.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">cancel(id: SailingId, reason: string)</text>
-<text x="361.4" y="661.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">: Cancellation</text>
+<text x="371.9" y="679.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">takeOff(id: ObjectId, reason: string)</text>
+<text x="371.9" y="697.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">: Removal</text>
 <g class="badge">
-<rect x="642" y="631" width="37" height="16" rx="8" fill="#161b22"/>
-<rect x="642" y="631" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
-<text x="660.5" y="642.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
+<rect x="652.5" y="667" width="37" height="16" rx="8" fill="#161b22"/>
+<rect x="652.5" y="667" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
+<text x="671" y="678.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
 </g>
 </g>
 <g class="row" data-id="methods[2]" data-kind="method" data-status="changed">
-<title>+ move(id: SailingId, departs: Time): Sailing</title>
-<rect x="339" y="671" width="348" height="42" rx="4" fill="#d29922" fill-opacity="0.12"/>
+<title>+ move(id: ObjectId, to: CaseId): Display</title>
+<rect x="349.5" y="707" width="348" height="42" rx="4" fill="#d29922" fill-opacity="0.12"/>
 <g class="symbol">
-<text x="347" y="687.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
+<text x="357.5" y="723.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
 </g>
-<text x="361.4" y="687.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">move(id: SailingId, departs: Time)</text>
-<text x="361.4" y="705.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">: Sailing</text>
+<text x="371.9" y="723.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">move(id: ObjectId, to: CaseId):</text>
+<text x="371.9" y="741.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">Display</text>
 <g class="badge">
-<rect x="616" y="675" width="63" height="16" rx="8" fill="#161b22"/>
-<rect x="616" y="675" width="63" height="16" rx="8" fill="#d29922" fill-opacity="0.25" stroke="#d29922" stroke-width="1"/>
-<text x="647.5" y="686.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#e3b341" text-anchor="middle">CHANGED</text>
+<rect x="626.5" y="711" width="63" height="16" rx="8" fill="#161b22"/>
+<rect x="626.5" y="711" width="63" height="16" rx="8" fill="#d29922" fill-opacity="0.25" stroke="#d29922" stroke-width="1"/>
+<text x="658" y="722.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#e3b341" text-anchor="middle">CHANGED</text>
 </g>
 </g>
 <g class="row" data-id="methods[3]" data-kind="method" data-status="removed">
-<title>+ exportRefunds(day: Date): Csv</title>
+<title>+ exportGuide(day: Date): Csv</title>
 <g class="faded" opacity="0.5">
-<rect x="339" y="715" width="348" height="24" rx="4" fill="#f85149" fill-opacity="0.12"/>
+<rect x="349.5" y="751" width="348" height="24" rx="4" fill="#f85149" fill-opacity="0.12"/>
 <g class="symbol">
-<text x="347" y="731.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
+<text x="357.5" y="767.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
 </g>
-<text x="361.4" y="731.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">exportRefunds(day: Date): Csv</text>
-<line class="strike" x1="361.4" y1="727.72" x2="570.2" y2="727.72" stroke="#e6edf3" stroke-width="1.25"/>
-</g>
-<g class="badge">
-<rect x="616" y="719" width="63" height="16" rx="8" fill="#161b22"/>
-<rect x="616" y="719" width="63" height="16" rx="8" fill="#f85149" fill-opacity="0.25" stroke="#f85149" stroke-width="1"/>
-<text x="647.5" y="730.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#ff7b72" text-anchor="middle">REMOVED</text>
-</g>
+<text x="371.9" y="767.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">exportGuide(day: Date): Csv</text>
+<line class="strike" x1="371.9" y1="763.72" x2="566.3" y2="763.72" stroke="#e6edf3" stroke-width="1.25"/>
 </g>
 <g class="badge">
-<rect x="618" y="530" width="63" height="16" rx="8" fill="#161b22"/>
-<rect x="618" y="530" width="63" height="16" rx="8" fill="#d29922" fill-opacity="0.25" stroke="#d29922" stroke-width="1"/>
-<text x="649.5" y="541.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#e3b341" text-anchor="middle">CHANGED</text>
+<rect x="626.5" y="755" width="63" height="16" rx="8" fill="#161b22"/>
+<rect x="626.5" y="755" width="63" height="16" rx="8" fill="#f85149" fill-opacity="0.25" stroke="#f85149" stroke-width="1"/>
+<text x="658" y="766.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#ff7b72" text-anchor="middle">REMOVED</text>
+</g>
+</g>
+<g class="badge">
+<rect x="628.5" y="548" width="63" height="16" rx="8" fill="#161b22"/>
+<rect x="628.5" y="548" width="63" height="16" rx="8" fill="#d29922" fill-opacity="0.25" stroke="#d29922" stroke-width="1"/>
+<text x="660" y="559.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#e3b341" text-anchor="middle">CHANGED</text>
 </g>
 <g class="tag" data-area="api">
-<rect x="345" y="530" width="29" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
-<text x="359.5" y="541.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">API</text>
+<rect x="355.5" y="548" width="29" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
+<text x="370" y="559.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">API</text>
 </g>
 </g>
-<g class="card" data-id="timetable" data-kind="service" data-area="services">
-<title>Timetable service (service): Sailings for the next 90 days</title>
-<rect class="outline" x="32" y="970" width="194" height="80" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
-<path class="icon" d="M107.55 984.31 L112.45 987.16 L112.45 992.84 L107.55 995.69 L102.65 992.84 L102.65 987.16 Z M105.36 990 A2.19 2.19 0 1 1 109.74 990 A2.19 2.19 0 1 1 105.36 990" fill="none" stroke="#8b949e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
-<text x="119.55" y="994" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#8b949e">service</text>
-<text x="129" y="1015.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Timetable service</text>
-<text x="129" y="1034.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#8b949e" text-anchor="middle">Sailings for the next 90 days</text>
+<g class="card" data-id="collection" data-kind="service" data-area="services">
+<title>Collection service (service): Every object the museum holds</title>
+<rect class="outline" x="32" y="1015" width="211" height="80" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1" filter="url(#structa-shadow-dark)"/>
+<path class="icon" d="M116.05 1029.31 L120.95 1032.16 L120.95 1037.84 L116.05 1040.69 L111.15 1037.84 L111.15 1032.16 Z M113.86 1035 A2.19 2.19 0 1 1 118.24 1035 A2.19 2.19 0 1 1 113.86 1035" fill="none" stroke="#8b949e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="128.05" y="1039" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#8b949e">service</text>
+<text x="137.5" y="1060.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Collection service</text>
+<text x="137.5" y="1079.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#8b949e" text-anchor="middle">Every object the museum holds</text>
 <g class="tag" data-area="services">
-<rect x="44" y="962" width="55" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
-<text x="71.5" y="973.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Services</text>
+<rect x="44" y="1007" width="55" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
+<text x="71.5" y="1018.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Services</text>
 </g>
 </g>
-<g class="card" data-id="cancellations" data-kind="class" data-status="new" data-area="services">
-<title>CancellationService</title>
-<rect class="outline" x="393" y="928" width="360" height="164" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
-<line class="divider" x1="393.75" y1="972" x2="752.25" y2="972" stroke="#30363d" stroke-width="1"/>
-<line class="divider" x1="393.75" y1="1010" x2="752.25" y2="1010" stroke="#30363d" stroke-width="1"/>
-<text x="573" y="955.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">CancellationService</text>
+<g class="card" data-id="removals" data-kind="class" data-status="new" data-area="services">
+<title>RemovalService</title>
+<rect class="outline" x="403.5" y="964" width="360" height="182" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
+<line class="divider" x1="404.25" y1="1008" x2="762.75" y2="1008" stroke="#30363d" stroke-width="1"/>
+<line class="divider" x1="404.25" y1="1046" x2="762.75" y2="1046" stroke="#30363d" stroke-width="1"/>
+<text x="583.5" y="991.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#e6edf3" text-anchor="middle">RemovalService</text>
 <g class="row" data-id="properties[0]" data-kind="property" data-status="new">
-<title>- sailings: SailingStore</title>
-<rect x="399" y="979" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
+<title>- displays: DisplayStore</title>
+<rect x="409.5" y="1015" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
 <g class="symbol">
-<text x="407" y="995.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">-</text>
+<text x="417.5" y="1031.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">-</text>
 </g>
-<text x="421.4" y="995.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">sailings: SailingStore</text>
+<text x="431.9" y="1031.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">displays: DisplayStore</text>
 <g class="badge">
-<rect x="702" y="983" width="37" height="16" rx="8" fill="#161b22"/>
-<rect x="702" y="983" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
-<text x="720.5" y="994.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
+<rect x="712.5" y="1019" width="37" height="16" rx="8" fill="#161b22"/>
+<rect x="712.5" y="1019" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
+<text x="731" y="1030.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
 </g>
 </g>
 <g class="row" data-id="methods[0]" data-kind="method" data-status="new">
-<title>+ cancel(sailing: Sailing, reason: string): Cancellation</title>
-<rect x="399" y="1017" width="348" height="42" rx="4" fill="#3fb950" fill-opacity="0.12"/>
+<title>+ takeOff(object: MuseumObject, reason: string): Removal</title>
+<rect x="409.5" y="1053" width="348" height="42" rx="4" fill="#3fb950" fill-opacity="0.12"/>
 <g class="symbol">
-<text x="407" y="1033.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
+<text x="417.5" y="1069.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">+</text>
 </g>
-<text x="421.4" y="1033.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">cancel(sailing: Sailing, reason:</text>
-<text x="421.4" y="1051.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">string): Cancellation</text>
+<text x="431.9" y="1069.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">takeOff(object: MuseumObject, reason:</text>
+<text x="431.9" y="1087.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">string): Removal</text>
 <g class="badge">
-<rect x="702" y="1021" width="37" height="16" rx="8" fill="#161b22"/>
-<rect x="702" y="1021" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
-<text x="720.5" y="1032.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
+<rect x="712.5" y="1057" width="37" height="16" rx="8" fill="#161b22"/>
+<rect x="712.5" y="1057" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
+<text x="731" y="1068.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
 </g>
 </g>
 <g class="row" data-id="methods[1]" data-kind="method" data-status="new">
-<title>- bookedOn(sailing: Sailing): Booking[]</title>
-<rect x="399" y="1061" width="348" height="24" rx="4" fill="#3fb950" fill-opacity="0.12"/>
+<title>- stopsFor(object: MuseumObject): GuideStop[]</title>
+<rect x="409.5" y="1097" width="348" height="42" rx="4" fill="#3fb950" fill-opacity="0.12"/>
 <g class="symbol">
-<text x="407" y="1077.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">-</text>
+<text x="417.5" y="1113.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">-</text>
 </g>
-<text x="421.4" y="1077.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">bookedOn(sailing: Sailing): Booking[]</text>
+<text x="431.9" y="1113.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">stopsFor(object: MuseumObject):</text>
+<text x="431.9" y="1131.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#e6edf3">GuideStop[]</text>
 <g class="badge">
-<rect x="702" y="1065" width="37" height="16" rx="8" fill="#161b22"/>
-<rect x="702" y="1065" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
-<text x="720.5" y="1076.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
+<rect x="712.5" y="1101" width="37" height="16" rx="8" fill="#161b22"/>
+<rect x="712.5" y="1101" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
+<text x="731" y="1112.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
 </g>
 </g>
 <g class="badge">
-<rect x="704" y="920" width="37" height="16" rx="8" fill="#161b22"/>
-<rect x="704" y="920" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
-<text x="722.5" y="931.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
+<rect x="714.5" y="956" width="37" height="16" rx="8" fill="#161b22"/>
+<rect x="714.5" y="956" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
+<text x="733" y="967.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
 </g>
 <g class="tag" data-area="services">
-<rect x="405" y="920" width="55" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
-<text x="432.5" y="931.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Services</text>
+<rect x="415.5" y="956" width="55" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
+<text x="443" y="967.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Services</text>
 </g>
 </g>
 <g class="card" data-id="events" data-kind="queue" data-status="new" data-area="services">
-<title>Sailing events (queue)</title>
-<rect class="outline" x="409.67" y="1248" width="140" height="62" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
-<path class="icon" d="M456.51 1264.5 L465.26 1264.5 Q466.57 1264.5 466.57 1265.81 L466.57 1270.19 Q466.57 1271.5 465.26 1271.5 L456.51 1271.5 Q455.19 1271.5 455.19 1270.19 L455.19 1265.81 Q455.19 1264.5 456.51 1264.5 Z M458.98 1264.5 L458.98 1271.5 M462.78 1264.5 L462.78 1271.5" fill="none" stroke="#8b949e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
-<text x="472.88" y="1272" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#8b949e">queue</text>
-<text x="479.67" y="1293.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Sailing events</text>
+<title>Display events (queue)</title>
+<rect class="outline" x="400.17" y="1302" width="140" height="62" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
+<path class="icon" d="M447.01 1318.5 L455.76 1318.5 Q457.07 1318.5 457.07 1319.81 L457.07 1324.19 Q457.07 1325.5 455.76 1325.5 L447.01 1325.5 Q445.69 1325.5 445.69 1324.19 L445.69 1319.81 Q445.69 1318.5 447.01 1318.5 Z M449.48 1318.5 L449.48 1325.5 M453.28 1318.5 L453.28 1325.5" fill="none" stroke="#8b949e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="463.38" y="1326" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#8b949e">queue</text>
+<text x="470.17" y="1347.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Display events</text>
 <g class="badge">
-<rect x="500.67" y="1240" width="37" height="16" rx="8" fill="#161b22"/>
-<rect x="500.67" y="1240" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
-<text x="519.17" y="1251.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
+<rect x="491.17" y="1294" width="37" height="16" rx="8" fill="#161b22"/>
+<rect x="491.17" y="1294" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
+<text x="509.67" y="1305.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
 </g>
 <g class="tag" data-area="services">
-<rect x="421.67" y="1240" width="55" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
-<text x="449.17" y="1251.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Services</text>
+<rect x="412.17" y="1294" width="55" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
+<text x="439.67" y="1305.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Services</text>
 </g>
 </g>
-<g class="card" data-id="alerts" data-kind="service" data-status="new" data-area="services">
-<title>Passenger alerts (service): Texts everyone booked on it</title>
-<rect class="outline" x="154" y="1466" width="195" height="80" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
-<path class="icon" d="M230.05 1480.31 L234.95 1483.16 L234.95 1488.84 L230.05 1491.69 L225.15 1488.84 L225.15 1483.16 Z M227.86 1486 A2.19 2.19 0 1 1 232.24 1486 A2.19 2.19 0 1 1 227.86 1486" fill="none" stroke="#8b949e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
-<text x="242.05" y="1490" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#8b949e">service</text>
-<text x="251.5" y="1511.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Passenger alerts</text>
-<text x="251.5" y="1530.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#8b949e" text-anchor="middle">Texts everyone booked on it</text>
+<g class="card" data-id="map" data-kind="service" data-status="new" data-area="services">
+<title>Floor map (service): Drops the object's pin</title>
+<rect class="outline" x="162.5" y="1520" width="157" height="80" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
+<path class="icon" d="M219.55 1534.31 L224.45 1537.16 L224.45 1542.84 L219.55 1545.69 L214.65 1542.84 L214.65 1537.16 Z M217.36 1540 A2.19 2.19 0 1 1 221.74 1540 A2.19 2.19 0 1 1 217.36 1540" fill="none" stroke="#8b949e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="231.55" y="1544" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#8b949e">service</text>
+<text x="241" y="1565.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Floor map</text>
+<text x="241" y="1584.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#8b949e" text-anchor="middle">Drops the object's pin</text>
 <g class="badge">
-<rect x="300" y="1458" width="37" height="16" rx="8" fill="#161b22"/>
-<rect x="300" y="1458" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
-<text x="318.5" y="1469.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
+<rect x="270.5" y="1512" width="37" height="16" rx="8" fill="#161b22"/>
+<rect x="270.5" y="1512" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
+<text x="289" y="1523.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
 </g>
 <g class="tag" data-area="services">
-<rect x="166" y="1458" width="55" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
-<text x="193.5" y="1469.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Services</text>
+<rect x="174.5" y="1512" width="55" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
+<text x="202" y="1523.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Services</text>
 </g>
 </g>
-<g class="card" data-id="payback" data-kind="service" data-status="changed" data-area="refunds">
-<title>Refund service (service): Refunds a whole sailing at once</title>
-<rect class="outline" x="397" y="1466" width="212" height="80" rx="10" fill="#161b22" stroke="#d29922" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
-<path class="icon" d="M481.55 1480.31 L486.45 1483.16 L486.45 1488.84 L481.55 1491.69 L476.65 1488.84 L476.65 1483.16 Z M479.36 1486 A2.19 2.19 0 1 1 483.74 1486 A2.19 2.19 0 1 1 479.36 1486" fill="none" stroke="#8b949e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
-<text x="493.55" y="1490" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#8b949e">service</text>
-<text x="503" y="1511.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Refund service</text>
-<text x="503" y="1530.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#8b949e" text-anchor="middle">Refunds a whole sailing at once</text>
+<g class="card" data-id="stops" data-kind="service" data-status="changed" data-area="guide">
+<title>Guide stops (service): Skips every stop for the object at once</title>
+<rect class="outline" x="367.5" y="1520" width="252" height="80" rx="10" fill="#161b22" stroke="#d29922" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
+<path class="icon" d="M472.05 1534.31 L476.95 1537.16 L476.95 1542.84 L472.05 1545.69 L467.15 1542.84 L467.15 1537.16 Z M469.86 1540 A2.19 2.19 0 1 1 474.24 1540 A2.19 2.19 0 1 1 469.86 1540" fill="none" stroke="#8b949e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="484.05" y="1544" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#8b949e">service</text>
+<text x="493.5" y="1565.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Guide stops</text>
+<text x="493.5" y="1584.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#8b949e" text-anchor="middle">Skips every stop for the object at once</text>
 <g class="badge">
-<rect x="534" y="1458" width="63" height="16" rx="8" fill="#161b22"/>
-<rect x="534" y="1458" width="63" height="16" rx="8" fill="#d29922" fill-opacity="0.25" stroke="#d29922" stroke-width="1"/>
-<text x="565.5" y="1469.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#e3b341" text-anchor="middle">CHANGED</text>
+<rect x="544.5" y="1512" width="63" height="16" rx="8" fill="#161b22"/>
+<rect x="544.5" y="1512" width="63" height="16" rx="8" fill="#d29922" fill-opacity="0.25" stroke="#d29922" stroke-width="1"/>
+<text x="576" y="1523.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#e3b341" text-anchor="middle">CHANGED</text>
 </g>
-<g class="tag" data-area="refunds">
-<rect x="409" y="1458" width="53" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
-<text x="435.5" y="1469.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Refunds</text>
+<g class="tag" data-area="guide">
+<rect x="379.5" y="1512" width="71" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
+<text x="415" y="1523.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Audio guide</text>
 </g>
 </g>
-<g class="card" data-id="export" data-kind="job" data-status="removed" data-area="refunds">
-<title>Nightly refund export (job)</title>
+<g class="card" data-id="export" data-kind="job" data-status="removed" data-area="guide">
+<title>Nightly guide export (job)</title>
 <g class="faded" opacity="0.5">
-<rect class="outline" x="658" y="1484" width="177" height="62" rx="10" fill="#161b22" stroke="#f85149" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
-<path class="icon" d="M730.53 1504 A5.47 5.47 0 1 1 741.47 1504 A5.47 5.47 0 1 1 730.53 1504 M736 1500.94 L736 1504 L738.41 1505.53" fill="none" stroke="#8b949e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
-<text x="748" y="1508" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#8b949e">job</text>
-<text x="746.5" y="1529.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Nightly refund export</text>
-<line class="strike" x1="674.16" y1="1524.89" x2="818.84" y2="1524.89" stroke="#e6edf3" stroke-width="1.25"/>
+<rect class="outline" x="668.5" y="1538" width="170" height="62" rx="10" fill="#161b22" stroke="#f85149" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
+<path class="icon" d="M737.53 1558 A5.47 5.47 0 1 1 748.47 1558 A5.47 5.47 0 1 1 737.53 1558 M743 1554.94 L743 1558 L745.41 1559.53" fill="none" stroke="#8b949e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="755" y="1562" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#8b949e">job</text>
+<text x="753.5" y="1583.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Nightly guide export</text>
+<line class="strike" x1="684.73" y1="1578.89" x2="822.27" y2="1578.89" stroke="#e6edf3" stroke-width="1.25"/>
 </g>
 <g class="badge">
-<rect x="760" y="1476" width="63" height="16" rx="8" fill="#161b22"/>
-<rect x="760" y="1476" width="63" height="16" rx="8" fill="#f85149" fill-opacity="0.25" stroke="#f85149" stroke-width="1"/>
-<text x="791.5" y="1487.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#ff7b72" text-anchor="middle">REMOVED</text>
+<rect x="763.5" y="1530" width="63" height="16" rx="8" fill="#161b22"/>
+<rect x="763.5" y="1530" width="63" height="16" rx="8" fill="#f85149" fill-opacity="0.25" stroke="#f85149" stroke-width="1"/>
+<text x="795" y="1541.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#ff7b72" text-anchor="middle">REMOVED</text>
 </g>
-<g class="tag" data-area="refunds">
-<rect x="670" y="1476" width="53" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
-<text x="696.5" y="1487.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Refunds</text>
+<g class="tag" data-area="guide">
+<rect x="680.5" y="1530" width="71" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
+<text x="716" y="1541.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Audio guide</text>
 </g>
 </g>
 <g class="card" data-id="db" data-kind="database" data-status="changed" data-area="data">
-<title>Ferry database (database): Adds a cancellations table</title>
-<rect class="outline" x="524.4" y="1702" width="181" height="80" rx="10" fill="#161b22" stroke="#d29922" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
-<path class="icon" d="M583.68 1718.5 A4.81 1.75 0 1 1 593.3 1718.5 A4.81 1.75 0 1 1 583.68 1718.5 M583.68 1718.5 L583.68 1725.5 A4.81 1.75 0 0 0 593.3 1725.5 L593.3 1718.5 M583.68 1722 A4.81 1.75 0 0 0 593.3 1722" fill="none" stroke="#8b949e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
-<text x="600.49" y="1726" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#8b949e">database</text>
-<text x="614.9" y="1747.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Ferry database</text>
-<text x="614.9" y="1766.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#8b949e" text-anchor="middle">Adds a cancellations table</text>
+<title>Museum database (database): Adds a removals table</title>
+<rect class="outline" x="548.1" y="1756" width="159" height="80" rx="10" fill="#161b22" stroke="#d29922" stroke-width="1.5" filter="url(#structa-shadow-dark)"/>
+<path class="icon" d="M596.38 1772.5 A4.81 1.75 0 1 1 606 1772.5 A4.81 1.75 0 1 1 596.38 1772.5 M596.38 1772.5 L596.38 1779.5 A4.81 1.75 0 0 0 606 1779.5 L606 1772.5 M596.38 1776 A4.81 1.75 0 0 0 606 1776" fill="none" stroke="#8b949e" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="613.19" y="1780" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#8b949e">database</text>
+<text x="627.6" y="1801.09" font-family="Structa Inter, Inter, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Museum database</text>
+<text x="627.6" y="1820.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#8b949e" text-anchor="middle">Adds a removals table</text>
 <g class="badge">
-<rect x="630.4" y="1694" width="63" height="16" rx="8" fill="#161b22"/>
-<rect x="630.4" y="1694" width="63" height="16" rx="8" fill="#d29922" fill-opacity="0.25" stroke="#d29922" stroke-width="1"/>
-<text x="661.9" y="1705.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#e3b341" text-anchor="middle">CHANGED</text>
+<rect x="632.1" y="1748" width="63" height="16" rx="8" fill="#161b22"/>
+<rect x="632.1" y="1748" width="63" height="16" rx="8" fill="#d29922" fill-opacity="0.25" stroke="#d29922" stroke-width="1"/>
+<text x="663.6" y="1759.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#e3b341" text-anchor="middle">CHANGED</text>
 </g>
 <g class="tag" data-area="data">
-<rect x="536.4" y="1694" width="58" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
-<text x="565.4" y="1705.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Database</text>
+<rect x="560.1" y="1748" width="58" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
+<text x="589.1" y="1759.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Database</text>
 </g>
 </g>
 <g class="line" data-id="edges[0]" data-kind="call" data-from="console" data-to="gateway">
-<title>Harbour admin → Ferry API: GET /sailings</title>
-<path d="M211.33 248 L211.33 348 Q211.33 356 219.33 356 L481.67 356 Q489.67 356 489.67 364 L489.67 395" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
-<path d="M489.67 404 L485.17 395 L494.17 395 Z" fill="#6e7681"/>
+<title>Curator admin → Museum API: GET /displays</title>
+<path d="M215.83 266 L215.83 366 Q215.83 374 223.83 374 L492.17 374 Q500.17 374 500.17 382 L500.17 413" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M500.17 422 L495.67 413 L504.67 413 Z" fill="#6e7681"/>
 </g>
 <g class="line" data-id="edges[1]" data-kind="call" data-from="dialog" data-to="gateway" data-status="new">
-<title>CancelSailingDialog → Ferry API: POST /sailings/{id}/cancel</title>
-<path d="M536.33 248 L536.33 387" fill="none" stroke="#3fb950" stroke-width="3" stroke-linejoin="round"/>
-<path d="M536.33 396 L531.83 387 L540.83 387 Z" fill="#3fb950"/>
+<title>TakeOffDisplayDialog → Museum API: DELETE /displays/{id}</title>
+<path d="M546.83 266 L546.83 405" fill="none" stroke="#3fb950" stroke-width="3" stroke-linejoin="round"/>
+<path d="M546.83 414 L542.33 405 L551.33 405 Z" fill="#3fb950"/>
 </g>
 <g class="line" data-id="edges[2]" data-kind="call" data-from="gateway" data-to="controller">
-<title>Ferry API → SailingsController</title>
-<path d="M513 466 L513 529" fill="none" stroke="#6e7681" stroke-width="3" stroke-linejoin="round"/>
-<path d="M513 538 L508.5 529 L517.5 529 Z" fill="#6e7681"/>
+<title>Museum API → DisplaysController</title>
+<path d="M523.5 484 L523.5 547" fill="none" stroke="#6e7681" stroke-width="3" stroke-linejoin="round"/>
+<path d="M523.5 556 L519 547 L528 547 Z" fill="#6e7681"/>
 </g>
-<g class="line" data-id="edges[3]" data-kind="call" data-from="controller" data-to="timetable" data-status="changed">
-<title>SailingsController → Timetable service: move sailing</title>
-<path d="M453 772 L453 788 Q453 796 445 796 L137 796 Q129 796 129 804 L129 961" fill="none" stroke="#d29922" stroke-width="1.5" stroke-linejoin="round"/>
-<path d="M129 970 L124.5 961 L133.5 961 Z" fill="#d29922"/>
+<g class="line" data-id="edges[3]" data-kind="call" data-from="controller" data-to="collection" data-status="changed">
+<title>DisplaysController → Collection service: move object</title>
+<path d="M463.5 808 L463.5 824 Q463.5 832 455.5 832 L145.5 832 Q137.5 832 137.5 840 L137.5 1006" fill="none" stroke="#d29922" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M137.5 1015 L133 1006 L142 1006 Z" fill="#d29922"/>
 </g>
-<g class="line" data-id="edges[4]" data-kind="call" data-from="controller" data-to="cancellations" data-status="new">
-<title>SailingsController → CancellationService: cancel</title>
-<path d="M573 772 L573 919" fill="none" stroke="#3fb950" stroke-width="3" stroke-linejoin="round"/>
-<path d="M573 928 L568.5 919 L577.5 919 Z" fill="#3fb950"/>
+<g class="line" data-id="edges[4]" data-kind="call" data-from="controller" data-to="removals" data-status="new">
+<title>DisplaysController → RemovalService: take off</title>
+<path d="M583.5 808 L583.5 955" fill="none" stroke="#3fb950" stroke-width="3" stroke-linejoin="round"/>
+<path d="M583.5 964 L579 955 L588 955 Z" fill="#3fb950"/>
 </g>
-<g class="line" data-id="edges[5]" data-kind="call" data-from="cancellations" data-to="db" data-status="new">
-<title>CancellationService → Ferry database: save cancellation</title>
-<path d="M633 1092 L633 1687.1" fill="none" stroke="#3fb950" stroke-width="3" stroke-linejoin="round"/>
-<path d="M633 1696.1 L628.5 1687.1 L637.5 1687.1 Z" fill="#3fb950"/>
+<g class="line" data-id="edges[5]" data-kind="call" data-from="removals" data-to="db" data-status="new">
+<title>RemovalService → Museum database: save removal</title>
+<path d="M643.5 1146 L643.5 1739" fill="none" stroke="#3fb950" stroke-width="3" stroke-linejoin="round"/>
+<path d="M643.5 1748 L639 1739 L648 1739 Z" fill="#3fb950"/>
 </g>
-<g class="line" data-id="edges[6]" data-kind="async" data-from="cancellations" data-to="events" data-status="new">
-<title>CancellationService → Sailing events (async): sailing cancelled</title>
-<path d="M513 1092 L513 1108 Q513 1116 505 1116 L487.67 1116 Q479.67 1116 479.67 1124 L479.67 1248" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-linejoin="round" stroke-dasharray="6 4"/>
-<path d="M475.17 1239 L479.67 1248 L484.17 1239" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<g class="line" data-id="edges[6]" data-kind="async" data-from="removals" data-to="events" data-status="new">
+<title>RemovalService → Display events (async): object removed</title>
+<path d="M523.5 1146 L523.5 1162 Q523.5 1170 515.5 1170 L478.17 1170 Q470.17 1170 470.17 1178 L470.17 1302" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-linejoin="round" stroke-dasharray="6 4"/>
+<path d="M465.67 1293 L470.17 1302 L474.67 1293" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
-<g class="line" data-id="edges[7]" data-kind="async" data-from="events" data-to="payback" data-status="new">
-<title>Sailing events → Refund service (async): refund tickets</title>
-<path d="M503 1310 L503 1466" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-linejoin="round" stroke-dasharray="6 4"/>
-<path d="M498.5 1457 L503 1466 L507.5 1457" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<g class="line" data-id="edges[7]" data-kind="async" data-from="events" data-to="stops" data-status="new">
+<title>Display events → Guide stops (async): skip its stops</title>
+<path d="M493.5 1364 L493.5 1520" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-linejoin="round" stroke-dasharray="6 4"/>
+<path d="M489 1511 L493.5 1520 L498 1511" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
-<g class="line" data-id="edges[8]" data-kind="async" data-from="events" data-to="alerts" data-status="new">
-<title>Sailing events → Passenger alerts (async): text passengers</title>
-<path d="M456.33 1310 L456.33 1326 Q456.33 1334 448.33 1334 L259.5 1334 Q251.5 1334 251.5 1342 L251.5 1466" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-linejoin="round" stroke-dasharray="6 4"/>
-<path d="M247 1457 L251.5 1466 L256 1457" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<g class="line" data-id="edges[8]" data-kind="async" data-from="events" data-to="map" data-status="new">
+<title>Display events → Floor map (async): drop its pin</title>
+<path d="M446.83 1364 L446.83 1380 Q446.83 1388 438.83 1388 L249 1388 Q241 1388 241 1396 L241 1520" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-linejoin="round" stroke-dasharray="6 4"/>
+<path d="M236.5 1511 L241 1520 L245.5 1511" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
-<g class="line" data-id="edges[9]" data-kind="call" data-from="timetable" data-to="db" data-status="unchanged">
-<title>Timetable service → Ferry database: read sailings</title>
-<path d="M129 1050 L129 1662 Q129 1670 137 1670 L552.6 1670 Q560.6 1670 560.6 1678 L560.6 1685" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
-<path d="M560.6 1694 L556.1 1685 L565.1 1685 Z" fill="#6e7681"/>
+<g class="line" data-id="edges[9]" data-kind="call" data-from="collection" data-to="db" data-status="unchanged">
+<title>Collection service → Museum database: read objects</title>
+<path d="M137.5 1095 L137.5 1716 Q137.5 1724 145.5 1724 L571.9 1724 Q579.9 1724 579.9 1732 L579.9 1739" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M579.9 1748 L575.4 1739 L584.4 1739 Z" fill="#6e7681"/>
 </g>
-<g class="line" data-id="edges[10]" data-kind="call" data-from="payback" data-to="db" data-status="changed">
-<title>Refund service → Ferry database: mark refunded</title>
-<path d="M503 1546 L503 1646 Q503 1654 511 1654 L588.8 1654 Q596.8 1654 596.8 1662 L596.8 1693" fill="none" stroke="#d29922" stroke-width="1.5" stroke-linejoin="round"/>
-<path d="M596.8 1702 L592.3 1693 L601.3 1693 Z" fill="#d29922"/>
+<g class="line" data-id="edges[10]" data-kind="call" data-from="stops" data-to="db" data-status="changed">
+<title>Guide stops → Museum database: mark skipped</title>
+<path d="M493.5 1600 L493.5 1700 Q493.5 1708 501.5 1708 L603.7 1708 Q611.7 1708 611.7 1716 L611.7 1739" fill="none" stroke="#d29922" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M611.7 1748 L607.2 1739 L616.2 1739 Z" fill="#d29922"/>
 </g>
 <g class="line" data-id="edges[11]" data-kind="call" data-from="export" data-to="db" data-status="removed">
-<title>Nightly refund export → Ferry database: read refunds</title>
+<title>Nightly guide export → Museum database: read displays</title>
 <g class="faded" opacity="0.5">
-<path d="M746.5 1546 L746.5 1646 Q746.5 1654 738.5 1654 L677.2 1654 Q669.2 1654 669.2 1662 L669.2 1685" fill="none" stroke="#f85149" stroke-width="1.5" stroke-linejoin="round"/>
-<path d="M669.2 1694 L664.7 1685 L673.7 1685 Z" fill="#f85149"/>
+<path d="M753.5 1600 L753.5 1700 Q753.5 1708 745.5 1708 L683.3 1708 Q675.3 1708 675.3 1716 L675.3 1739" fill="none" stroke="#f85149" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M675.3 1748 L670.8 1739 L679.8 1739 Z" fill="#f85149"/>
 </g>
 </g>
 <g class="line-labels">
 <g class="line-label" data-line="edges[0]">
-<title>Harbour admin → Ferry API: GET /sailings</title>
-<rect x="165.83" y="312" width="91" height="20" rx="10" fill="#161b22" stroke="#6e7681" stroke-width="1"/>
-<text x="211.33" y="326.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">GET /sailings</text>
+<title>Curator admin → Museum API: GET /displays</title>
+<rect x="168.33" y="330" width="95" height="20" rx="10" fill="#161b22" stroke="#6e7681" stroke-width="1"/>
+<text x="215.83" y="344.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">GET /displays</text>
 </g>
 <g class="line-label" data-line="edges[1]">
-<title>CancelSailingDialog → Ferry API: POST /sailings/{id}/cancel</title>
-<rect x="453.33" y="312" width="166" height="20" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
-<text x="536.33" y="326.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">POST /sailings/{id}/cancel</text>
+<title>TakeOffDisplayDialog → Museum API: DELETE /displays/{id}</title>
+<rect x="476.83" y="330" width="140" height="20" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
+<text x="546.83" y="344.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">DELETE /displays/{id}</text>
 </g>
 <g class="line-label" data-line="edges[3]">
-<title>SailingsController → Timetable service: move sailing</title>
-<rect x="85" y="836" width="88" height="20" rx="10" fill="#161b22" stroke="#d29922" stroke-width="1"/>
-<text x="129" y="850.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">move sailing</text>
+<title>DisplaysController → Collection service: move object</title>
+<rect x="94" y="872" width="87" height="20" rx="10" fill="#161b22" stroke="#d29922" stroke-width="1"/>
+<text x="137.5" y="886.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">move object</text>
 </g>
 <g class="line-label" data-line="edges[4]">
-<title>SailingsController → CancellationService: cancel</title>
-<rect x="546" y="836" width="54" height="20" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
-<text x="573" y="850.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">cancel</text>
+<title>DisplaysController → RemovalService: take off</title>
+<rect x="553.5" y="872" width="60" height="20" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
+<text x="583.5" y="886.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">take off</text>
 </g>
 <g class="line-label" data-line="edges[5]">
-<title>CancellationService → Ferry database: save cancellation</title>
-<rect x="575.5" y="1374" width="115" height="20" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
-<text x="633" y="1388.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">save cancellation</text>
+<title>RemovalService → Museum database: save removal</title>
+<rect x="597.5" y="1428" width="92" height="20" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
+<text x="643.5" y="1442.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">save removal</text>
 </g>
 <g class="line-label" data-line="edges[6]">
-<title>CancellationService → Sailing events (async): sailing cancelled</title>
-<rect x="424.17" y="1156" width="111" height="20" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
-<text x="479.67" y="1170.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">sailing cancelled</text>
+<title>RemovalService → Display events (async): object removed</title>
+<rect x="417.67" y="1210" width="105" height="20" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
+<text x="470.17" y="1224.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">object removed</text>
 </g>
 <g class="line-label" data-line="edges[7]">
-<title>Sailing events → Refund service (async): refund tickets</title>
-<rect x="455.5" y="1374" width="95" height="20" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
-<text x="503" y="1388.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">refund tickets</text>
+<title>Display events → Guide stops (async): skip its stops</title>
+<rect x="448" y="1428" width="91" height="20" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
+<text x="493.5" y="1442.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">skip its stops</text>
 </g>
 <g class="line-label" data-line="edges[8]">
-<title>Sailing events → Passenger alerts (async): text passengers</title>
-<rect x="198" y="1374" width="107" height="20" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
-<text x="251.5" y="1388.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">text passengers</text>
+<title>Display events → Floor map (async): drop its pin</title>
+<rect x="201" y="1428" width="80" height="20" rx="10" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
+<text x="241" y="1442.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">drop its pin</text>
 </g>
 <g class="line-label" data-line="edges[9]">
-<title>Timetable service → Ferry database: read sailings</title>
-<rect x="85" y="1374" width="88" height="20" rx="10" fill="#161b22" stroke="#6e7681" stroke-width="1"/>
-<text x="129" y="1388.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">read sailings</text>
+<title>Collection service → Museum database: read objects</title>
+<rect x="94" y="1428" width="87" height="20" rx="10" fill="#161b22" stroke="#6e7681" stroke-width="1"/>
+<text x="137.5" y="1442.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">read objects</text>
 </g>
 <g class="line-label" data-line="edges[10]">
-<title>Refund service → Ferry database: mark refunded</title>
-<rect x="453" y="1610" width="100" height="20" rx="10" fill="#161b22" stroke="#d29922" stroke-width="1"/>
-<text x="503" y="1624.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">mark refunded</text>
+<title>Guide stops → Museum database: mark skipped</title>
+<rect x="447" y="1664" width="93" height="20" rx="10" fill="#161b22" stroke="#d29922" stroke-width="1"/>
+<text x="493.5" y="1678.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">mark skipped</text>
 </g>
 <g class="line-label" data-line="edges[11]">
-<title>Nightly refund export → Ferry database: read refunds</title>
-<rect x="702" y="1610" width="89" height="20" rx="10" fill="#0d1117"/>
+<title>Nightly guide export → Museum database: read displays</title>
+<rect x="707.5" y="1664" width="92" height="20" rx="10" fill="#0d1117"/>
 <g class="faded" opacity="0.5">
-<rect x="702" y="1610" width="89" height="20" rx="10" fill="#161b22" stroke="#f85149" stroke-width="1"/>
-<text x="746.5" y="1624.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">read refunds</text>
-<line class="strike" x1="710.1" y1="1620.77" x2="782.9" y2="1620.77" stroke="#e6edf3" stroke-width="1.25"/>
+<rect x="707.5" y="1664" width="92" height="20" rx="10" fill="#161b22" stroke="#f85149" stroke-width="1"/>
+<text x="753.5" y="1678.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">read displays</text>
+<line class="strike" x1="715.68" y1="1674.77" x2="791.32" y2="1674.77" stroke="#e6edf3" stroke-width="1.25"/>
 </g>
 </g>
 </g>
 <g class="legend">
 <g class="legend-item" data-status="new">
-<line class="swatch" x1="32" y1="1814" x2="52" y2="1814" stroke="#3fb950" stroke-width="1.5" stroke-linecap="round"/>
+<line class="swatch" x1="32" y1="1868" x2="52" y2="1868" stroke="#3fb950" stroke-width="1.5" stroke-linecap="round"/>
 <g class="badge">
-<rect x="58" y="1806" width="37" height="16" rx="8" fill="#161b22"/>
-<rect x="58" y="1806" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
-<text x="76.5" y="1817.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
+<rect x="58" y="1860" width="37" height="16" rx="8" fill="#161b22"/>
+<rect x="58" y="1860" width="37" height="16" rx="8" fill="#3fb950" fill-opacity="0.25" stroke="#3fb950" stroke-width="1"/>
+<text x="76.5" y="1871.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#56d364" text-anchor="middle">NEW</text>
 </g>
 </g>
 <g class="legend-item" data-status="changed">
-<line class="swatch" x1="115" y1="1814" x2="135" y2="1814" stroke="#d29922" stroke-width="1.5" stroke-linecap="round"/>
+<line class="swatch" x1="115" y1="1868" x2="135" y2="1868" stroke="#d29922" stroke-width="1.5" stroke-linecap="round"/>
 <g class="badge">
-<rect x="141" y="1806" width="63" height="16" rx="8" fill="#161b22"/>
-<rect x="141" y="1806" width="63" height="16" rx="8" fill="#d29922" fill-opacity="0.25" stroke="#d29922" stroke-width="1"/>
-<text x="172.5" y="1817.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#e3b341" text-anchor="middle">CHANGED</text>
+<rect x="141" y="1860" width="63" height="16" rx="8" fill="#161b22"/>
+<rect x="141" y="1860" width="63" height="16" rx="8" fill="#d29922" fill-opacity="0.25" stroke="#d29922" stroke-width="1"/>
+<text x="172.5" y="1871.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#e3b341" text-anchor="middle">CHANGED</text>
 </g>
 </g>
 <g class="legend-item" data-status="removed">
-<line class="swatch" x1="224" y1="1814" x2="244" y2="1814" stroke="#f85149" stroke-width="1.5" stroke-linecap="round"/>
+<line class="swatch" x1="224" y1="1868" x2="244" y2="1868" stroke="#f85149" stroke-width="1.5" stroke-linecap="round"/>
 <g class="badge">
-<rect x="250" y="1806" width="63" height="16" rx="8" fill="#161b22"/>
-<rect x="250" y="1806" width="63" height="16" rx="8" fill="#f85149" fill-opacity="0.25" stroke="#f85149" stroke-width="1"/>
-<text x="281.5" y="1817.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#ff7b72" text-anchor="middle">REMOVED</text>
+<rect x="250" y="1860" width="63" height="16" rx="8" fill="#161b22"/>
+<rect x="250" y="1860" width="63" height="16" rx="8" fill="#f85149" fill-opacity="0.25" stroke="#f85149" stroke-width="1"/>
+<text x="281.5" y="1871.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#ff7b72" text-anchor="middle">REMOVED</text>
 </g>
 </g>
 <g class="legend-item" data-status="unchanged">
-<line class="swatch" x1="333" y1="1814" x2="353" y2="1814" stroke="#6e7681" stroke-width="1.5" stroke-linecap="round"/>
+<line class="swatch" x1="333" y1="1868" x2="353" y2="1868" stroke="#6e7681" stroke-width="1.5" stroke-linecap="round"/>
 <g class="badge">
-<rect x="359" y="1806" width="78" height="16" rx="8" fill="#161b22"/>
-<rect x="359" y="1806" width="78" height="16" rx="8" fill="#6e7681" fill-opacity="0.25" stroke="#6e7681" stroke-width="1"/>
-<text x="398" y="1817.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e" text-anchor="middle">UNCHANGED</text>
+<rect x="359" y="1860" width="78" height="16" rx="8" fill="#161b22"/>
+<rect x="359" y="1860" width="78" height="16" rx="8" fill="#6e7681" fill-opacity="0.25" stroke="#6e7681" stroke-width="1"/>
+<text x="398" y="1871.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#8b949e" text-anchor="middle">UNCHANGED</text>
 </g>
 </g>
 <g class="legend-item" data-area="portal">
 <g class="tag" data-area="portal">
-<rect x="457" y="1806" width="74" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
-<text x="494" y="1817.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Admin portal</text>
+<rect x="457" y="1860" width="74" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
+<text x="494" y="1871.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Admin portal</text>
 </g>
 </g>
 <g class="legend-item" data-area="api">
 <g class="tag" data-area="api">
-<rect x="551" y="1806" width="29" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
-<text x="565.5" y="1817.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">API</text>
+<rect x="551" y="1860" width="29" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
+<text x="565.5" y="1871.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">API</text>
 </g>
 </g>
 <g class="legend-item" data-area="services">
 <g class="tag" data-area="services">
-<rect x="600" y="1806" width="55" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
-<text x="627.5" y="1817.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Services</text>
+<rect x="600" y="1860" width="55" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
+<text x="627.5" y="1871.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Services</text>
 </g>
 </g>
-<g class="legend-item" data-area="refunds">
-<g class="tag" data-area="refunds">
-<rect x="675" y="1806" width="53" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
-<text x="701.5" y="1817.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Refunds</text>
+<g class="legend-item" data-area="guide">
+<g class="tag" data-area="guide">
+<rect x="675" y="1860" width="71" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
+<text x="710.5" y="1871.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Audio guide</text>
 </g>
 </g>
 <g class="legend-item" data-area="data">
 <g class="tag" data-area="data">
-<rect x="748" y="1806" width="58" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
-<text x="777" y="1817.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Database</text>
+<rect x="766" y="1860" width="58" height="16" rx="4" fill="#21262d" stroke="#3d444d" stroke-width="1"/>
+<text x="795" y="1871.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#8b949e" text-anchor="middle">Database</text>
 </g>
 </g>
 </g>
