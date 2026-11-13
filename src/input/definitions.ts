@@ -114,8 +114,20 @@ export interface Field {
   /** Shown in the schema, and in the hint when a required field is missing. */
   readonly description: string;
   readonly default?: string | boolean | readonly [];
-  /** Allowed only when the object's `field` is `value`, as "about" is only for notes. */
-  readonly onlyWhen?: { readonly field: string; readonly value: string; readonly hint: string };
+  /** Allowed only when a condition holds, as "about" is only for notes. Such a field has no default. */
+  readonly onlyWhen?: Condition;
+}
+
+/**
+ * Another field of the same object, a choice, is `value`, or, with `not`,
+ * isn't. An optional deciding field left out isn't `value`. `hint` says what
+ * to do when a field is given without its condition.
+ */
+export interface Condition {
+  readonly field: string;
+  readonly value: string;
+  readonly not?: true;
+  readonly hint: string;
 }
 
 function required(name: string, def: Def, description: string): Field {
@@ -126,6 +138,14 @@ function optional(name: string, def: Def, description: string, defaultValue?: Fi
   return defaultValue === undefined
     ? { name, def, required: false, description }
     : { name, def, required: false, description, default: defaultValue };
+}
+
+/**
+ * An optional field allowed only when `onlyWhen` holds. It has no default:
+ * filling one in would give the field where it isn't allowed.
+ */
+function conditional(name: string, def: Def, description: string, onlyWhen: Condition): Field {
+  return { ...optional(name, def, description), onlyWhen };
 }
 
 /** The diagram types implemented so far, in the spec's order. Each has an example, examples/<type>.json. */
@@ -190,8 +210,14 @@ export const NOTE_LABEL_FACE: FaceId = "inter-regular";
 export const CARD_DESCRIPTION_FACE: FaceId = "inter-regular";
 export const LINE_LABEL_FACE: FaceId = "inter-regular";
 export const CLASS_NAME_FACE: FaceId = "inter-semibold";
+/** A class's «stereotype» line. Its words are fixed, so no input is checked against it. */
+export const STEREOTYPE_FACE: FaceId = "inter-regular";
+/** An abstract class's name: real italics, as UML draws it. */
+export const ABSTRACT_CLASS_NAME_FACE: FaceId = "inter-semibold-italic";
 export const CLASS_DESCRIPTION_FACE: FaceId = "inter-regular";
 export const ROW_TEXT_FACE: FaceId = "mono-regular";
+/** An abstract member's text: real italics, as UML draws it. */
+export const ABSTRACT_ROW_TEXT_FACE: FaceId = "mono-italic";
 
 /**
  * The flowchart shapes: start and end are pills, a step a rounded box, a
@@ -214,23 +240,21 @@ const FLOW_NODE: ObjectDef = {
     ),
     optional("status", STATUS, "what the change does to this card; leave it out for no status"),
     required("shape", { kind: "choice", values: FLOW_SHAPES, later: false }, "the shape drawn"),
-    {
-      ...optional(
-        "about",
-        {
-          kind: "ref",
-          to: "node",
-          notTo: {
-            field: "shape",
-            value: "note",
-            reason: "a note can only be about a shape that isn't a note",
-            hint: "use the id of a shape that isn't a note",
-          },
+    conditional(
+      "about",
+      {
+        kind: "ref",
+        to: "node",
+        notTo: {
+          field: "shape",
+          value: "note",
+          reason: "a note can only be about a shape that isn't a note",
+          hint: "use the id of a shape that isn't a note",
         },
-        "notes only: the id of the shape the note is about, joined to it by a dotted line; without it the note floats near the chart",
-      ),
-      onlyWhen: { field: "shape", value: "note", hint: 'remove "about", or make this node a note' },
-    },
+      },
+      "notes only: the id of the shape the note is about, joined to it by a dotted line; without it the note floats near the chart",
+      { field: "shape", value: "note", hint: 'remove "about", or make this node a note' },
+    ),
   ],
 };
 
@@ -265,11 +289,26 @@ function edge(end: RefDef, endNote: string, extra: readonly Field[]): ObjectDef 
 
 const FLOW_EDGE = edge(LINE_END, ", which can't be a note", []);
 
+/** What kind of class a card is, drawn as a «…» line above its name. */
+export const STEREOTYPES = ["interface", "abstract", "enum", "record"] as const;
+
 /** Who can use a class member, drawn before its text as + - # ~. */
 export const VISIBILITIES = ["public", "private", "protected", "package"] as const;
 
-/** The two lists of a class card's rows, in the order they're drawn. */
-export const CLASS_SECTIONS = ["properties", "methods"] as const;
+/** A class's lists of members, in the order they're drawn. */
+export const MEMBER_SECTIONS = ["properties", "methods"] as const;
+
+/** An enum's one list of rows, which it has instead of members. */
+export const ENUM_SECTIONS = ["values"] as const;
+
+/** Every list of a class card's rows. A card has either members or values. */
+export const CLASS_SECTIONS = [...MEMBER_SECTIONS, ...ENUM_SECTIONS] as const;
+
+export type ClassSection = (typeof CLASS_SECTIONS)[number];
+
+/** What a field only an enum, or only a class that isn't one, may have. */
+const ENUM: Condition = { field: "stereotype", value: "enum", hint: 'add "stereotype": "enum", or list the rows in properties and methods' };
+const NOT_ENUM: Condition = { field: "stereotype", value: "enum", not: true, hint: "list an enum's rows in values" };
 
 /** The most rows one card may have, all its sections together. */
 const ROWS_PER_CARD = 100;
@@ -277,7 +316,7 @@ const ROWS_HINT = 'split the class, or leave dull members out and count them wit
 
 /** A card's rows as checked: a section that had a problem may be missing, and a row that had one is `{}`. */
 type CheckedRows = { readonly status?: Status } & {
-  readonly [section in (typeof CLASS_SECTIONS)[number]]?: readonly { readonly status?: Status }[];
+  readonly [section in ClassSection]?: readonly { readonly status?: Status }[];
 };
 
 /** What to do about a row whose status differs from its card's. A changed card can hold rows of any status. */
@@ -312,31 +351,37 @@ const rowStatusRule: Rule = (checked, given, path) => {
     .map((row) => ({ path: row.path, message: `a row in ${article} ${card.status} card can't be "${row.status}"`, hint }));
 };
 
-/** At most ROWS_PER_CARD rows in a card, every section together. A section over it alone was reported already. */
-const rowLimitRule: Rule = (_checked, given, path) => {
-  const counts = CLASS_SECTIONS.map((section) => (Array.isArray(given[section]) ? given[section].length : 0));
+/**
+ * At most ROWS_PER_CARD rows in a card, every section together. A section over
+ * it alone was reported already, and so was one the card can't have, which
+ * isn't counted.
+ */
+const rowLimitRule: Rule = (checked, _given, path) => {
+  const card = checked as CheckedRows;
+  const counts = CLASS_SECTIONS.map((section) => card[section]?.length ?? 0);
   const total = counts.reduce((sum, n) => sum + n, 0);
   if (counts.some((n) => n > ROWS_PER_CARD) || total <= ROWS_PER_CARD) return [];
   return [{ path, message: `has ${total} rows; the limit is ${ROWS_PER_CARD} per card`, hint: ROWS_HINT }];
 };
 
-/** One member of a class: a property or a method, called `noun` in messages. */
-function classRow(section: (typeof CLASS_SECTIONS)[number], noun: string): ObjectDef {
+const MEMBER_TEXT = "the member as you'd write it, such as a name and type or a signature";
+const VALUE_TEXT = "the value as you'd write it, such as a constant's name";
+
+/** One row of a class: a property, a method or an enum value, called `noun` in messages, its text described by `text`. */
+function classRow(section: ClassSection, noun: string, text: string): ObjectDef {
   return {
     kind: "object",
     noun,
     fields: [
-      required(
-        "text",
-        { kind: "text", text: ROW_TEXT, faces: [ROW_TEXT_FACE] },
-        "the member as you'd write it, such as a name and type or a signature",
-      ),
+      required("text", { kind: "text", text: ROW_TEXT, faces: [ROW_TEXT_FACE, ABSTRACT_ROW_TEXT_FACE] }, text),
       optional("id", { kind: "id", of: "row" }, `an id unique within the card; without one the row is known as ${section}[N]`),
       optional(
         "visibility",
         { kind: "choice", values: VISIBILITIES, later: false },
         "drawn before the text: + public, - private, # protected, ~ package",
       ),
+      optional("static", BOOLEAN, "true underlines the row's text", false),
+      optional("abstract", BOOLEAN, "true draws the row's text in italics", false),
       optional("status", STATUS, "what the change does to this row; leave it out for no status"),
     ],
   };
@@ -346,13 +391,14 @@ const CLASS_NODE: ObjectDef = {
   kind: "object",
   noun: "node",
   description:
-    `One class. Its rows' statuses must agree with its own: a row in a new or removed card can only have the card's status, and takes it when it has none; ` +
+    `One class. An enum (stereotype "enum") lists values instead of properties and methods, and only an enum has values. ` +
+    `Its rows' statuses must agree with its own: a row in a new or removed card can only have the card's status, and takes it when it has none; ` +
     `a row in an unchanged card can only be unchanged; and a card needs a status when any of its rows has one. ` +
-    `A card has at most ${ROWS_PER_CARD} rows, properties and methods together.`,
+    `A card has at most ${ROWS_PER_CARD} rows, all its lists together.`,
   rules: [rowStatusRule, rowLimitRule],
   fields: [
     required("id", { kind: "id", of: "node" }, "a unique id made of letters, digits and - _ . :"),
-    required("label", { kind: "text", text: LABEL, faces: [CLASS_NAME_FACE] }, "the class name"),
+    required("label", { kind: "text", text: LABEL, faces: [CLASS_NAME_FACE, ABSTRACT_CLASS_NAME_FACE] }, "the class name"),
     optional(
       "description",
       { kind: "text", text: DESCRIPTION, faces: [CLASS_DESCRIPTION_FACE] },
@@ -360,21 +406,38 @@ const CLASS_NODE: ObjectDef = {
     ),
     optional("status", STATUS, "what the change does to this card; leave it out for no status"),
     optional(
-      "properties",
-      { kind: "list", noun: "properties", items: classRow("properties", "property"), maxItems: ROWS_PER_CARD, limitHint: ROWS_HINT },
-      "the class's properties, in order",
-      [],
+      "stereotype",
+      { kind: "choice", values: STEREOTYPES, later: false },
+      "what kind of class this is, drawn as a «…» line above the name",
     ),
     optional(
+      "abstract",
+      BOOLEAN,
+      'true draws the name in italics, as stereotype "abstract" does, without the «abstract» line',
+      false,
+    ),
+    conditional(
+      "properties",
+      { kind: "list", noun: "properties", items: classRow("properties", "property", MEMBER_TEXT), maxItems: ROWS_PER_CARD, limitHint: ROWS_HINT },
+      "the class's properties, in order; leave it out for none. Not for an enum",
+      NOT_ENUM,
+    ),
+    conditional(
       "methods",
-      { kind: "list", noun: "methods", items: classRow("methods", "method"), maxItems: ROWS_PER_CARD, limitHint: ROWS_HINT },
-      "the class's methods, in order, drawn under the properties",
-      [],
+      { kind: "list", noun: "methods", items: classRow("methods", "method", MEMBER_TEXT), maxItems: ROWS_PER_CARD, limitHint: ROWS_HINT },
+      "the class's methods, in order, drawn under the properties; leave it out for none. Not for an enum",
+      NOT_ENUM,
+    ),
+    conditional(
+      "values",
+      { kind: "list", noun: "values", items: classRow("values", "value", VALUE_TEXT), maxItems: ROWS_PER_CARD, limitHint: ROWS_HINT },
+      'an enum\'s values, in order; leave it out for none. Only with "stereotype": "enum"',
+      ENUM,
     ),
     optional(
       "more",
       { kind: "count", min: 1, max: 9999 },
-      'how many members were left out on purpose, drawn as a muted "… N more" row',
+      'how many members or values were left out on purpose, drawn as a muted "… N more" row',
     ),
   ],
 };

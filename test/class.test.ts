@@ -234,6 +234,386 @@ describe("class cards", () => {
   });
 });
 
+describe("stereotypes", () => {
+  it.each([
+    ["interface", "light", "#59636e"],
+    ["abstract", "light", "#59636e"],
+    ["enum", "dark", "#8b949e"],
+    ["record", "dark", "#8b949e"],
+  ] as const)("draws stereotype %s as a muted «…» line centred above the name, in %s", async (stereotype, theme, muted) => {
+    const doc = await svgDoc(packet({ stereotype, description: "Saved seed, lent out." }), theme);
+
+    const card = cardById(doc, "packet");
+    const [line, name] = texts(card);
+    expect(textLines(card)).toEqual([`«${stereotype}»`, "SeedPacket", "Saved seed, lent out."]);
+    expect(line!.getAttribute("font-family")).toMatch(/^Structa Inter,/);
+    expect([line!.getAttribute("font-weight"), line!.getAttribute("font-style"), line!.getAttribute("fill")]).toEqual(["400", null, muted]);
+    expect(numberAttr(line!, "font-size")).toBeLessThan(numberAttr(name!, "font-size"));
+    // Centred on the card, like the name, and a line above it, inside the card.
+    expect(line!.getAttribute("text-anchor")).toBe("middle");
+    expect(numberAttr(line!, "x")).toBe(numberAttr(name!, "x"));
+    expect(numberAttr(line!, "y")).toBeLessThan(numberAttr(name!, "y") - numberAttr(line!, "font-size"));
+    expect(numberAttr(line!, "y") - numberAttr(line!, "font-size")).toBeGreaterThan(outlineBox(card).y);
+    expect(titleOf(card)).toBe(`«${stereotype}» SeedPacket: Saved seed, lent out.`);
+  });
+
+  it("draws no stereotype line without a stereotype", async () => {
+    const doc = await svgDoc(packet());
+
+    expect(textLines(cardById(doc, "packet"))).toEqual(["SeedPacket"]);
+  });
+
+  it("makes the card taller by the stereotype line", async () => {
+    const plain = outlineBox(cardById(await svgDoc(packet(MEMBERS)), "packet"));
+    const withLine = outlineBox(cardById(await svgDoc(packet({ ...MEMBERS, stereotype: "record" })), "packet"));
+
+    expect(withLine.height).toBeGreaterThan(plain.height);
+    expect(withLine.width).toBe(plain.width);
+  });
+
+  it.each(["struct", "Interface", true])("rejects the stereotype %j", async (stereotype) => {
+    expect(await problems(packet({ stereotype }))).toEqual([
+      {
+        path: "nodes[0].stereotype",
+        message: `${JSON.stringify(stereotype)} is not a valid stereotype`,
+        hint: 'use "interface", "abstract", "enum" or "record"',
+      },
+    ]);
+  });
+});
+
+/** The face a text element is drawn in, as "family weight style". */
+function faceOf(t: Element): string {
+  return `${t.getAttribute("font-family")!.split(",")[0]} ${t.getAttribute("font-weight")} ${t.getAttribute("font-style") ?? "normal"}`;
+}
+
+describe("abstract classes", () => {
+  /** The faces a card's name is drawn in, as "family weight style". */
+  function nameFaces(card: Element): string[] {
+    const other = new Set([...rows(card), ...byClassIn(card, "badge")].flatMap(texts));
+    return texts(card)
+      .filter((t) => !t.textContent!.startsWith("«") && !other.has(t))
+      .map(faceOf);
+  }
+
+  it.each([
+    ["abstract: true", { abstract: true }],
+    ["stereotype abstract", { stereotype: "abstract" }],
+    ["both", { abstract: true, stereotype: "abstract" }],
+    ["abstract: true on an interface", { abstract: true, stereotype: "interface" }],
+  ])("draws the name of a class with %s in Inter SemiBold Italic, every wrapped line", async (_name, fields) => {
+    const label = "SeasonalHeirloomVegetableSeedPacketExchangeRegistrationRequestHandlerFactory";
+    const doc = await svgDoc(packet({ label, ...fields }));
+
+    const faces = nameFaces(cardById(doc, "packet"));
+    expect(faces.length).toBeGreaterThan(1);
+    expect(new Set(faces)).toEqual(new Set(["Structa Inter 600 italic"]));
+  });
+
+  it.each([
+    ["no flags", {}],
+    ["abstract: false", { abstract: false }],
+    ["stereotype interface", { stereotype: "interface" }],
+  ])("draws the name of a class with %s upright", async (_name, fields) => {
+    const doc = await svgDoc(packet(fields));
+
+    expect(nameFaces(cardById(doc, "packet"))).toEqual(["Structa Inter 600 normal"]);
+  });
+
+  it("keeps an abstract class's description and stereotype line upright", async () => {
+    const doc = await svgDoc(packet({ stereotype: "abstract", description: "Saved seed, lent out." }));
+
+    const [line, , description] = texts(cardById(doc, "packet"));
+    expect(line!.hasAttribute("font-style")).toBe(false);
+    expect(description!.hasAttribute("font-style")).toBe(false);
+  });
+
+  it("strikes through a removed abstract class's italic name", async () => {
+    const doc = await svgDoc(packet({ abstract: true, status: "removed" }));
+
+    const card = cardById(doc, "packet");
+    expect(byClassIn(card, "strike")).toHaveLength(1);
+    expect(nameFaces(card)).toEqual(["Structa Inter 600 italic"]);
+  });
+
+  it.each(["yes", 1, null])("rejects abstract: %j", async (abstract) => {
+    expect(await problems(packet({ abstract }))).toEqual([
+      { path: "nodes[0].abstract", message: `${JSON.stringify(abstract)} is not true or false`, hint: "write true or false, without quotes" },
+    ]);
+  });
+});
+
+describe("abstract rows", () => {
+  const text = "germinate(tray: SeedTray, warmth: Celsius, light: Lux, water: Millilitres): Seedling[]";
+
+  it.each(["properties", "methods"])("draws every line of an abstract row in %s in JetBrains Mono Italic, and the other rows upright", async (section) => {
+    const doc = await svgDoc(packet({ [section]: [{ text, visibility: "public", abstract: true }, { text: "count: int", visibility: "public" }] }));
+
+    const [abstract, plain] = rows(cardById(doc, "packet"));
+    const wrapped = memberTexts(abstract!);
+    expect(wrapped.length).toBeGreaterThan(1);
+    expect(wrapped.map(faceOf)).toEqual(wrapped.map(() => "Structa JetBrains Mono 400 italic"));
+    expect(memberTexts(plain!).map(faceOf)).toEqual(["Structa JetBrains Mono 400 normal"]);
+    // The symbol is a mark in its own column, not the member's text: it stays upright, and the text still lines up.
+    expect(faceOf(symbolOf(abstract!)!)).toBe("Structa JetBrains Mono 400 normal");
+    expect(numberAttr(wrapped[0]!, "x")).toBe(numberAttr(memberTexts(plain!)[0]!, "x"));
+    expect(titleOf(abstract!)).toBe(`+ ${text}`);
+  });
+
+  it("leaves rows with abstract: false upright", async () => {
+    const doc = await svgDoc(packet({ methods: [{ text: "sow(): void", abstract: false }] }));
+
+    expect(memberTexts(rows(cardById(doc, "packet"))[0]!).map(faceOf)).toEqual(["Structa JetBrains Mono 400 normal"]);
+  });
+
+  it("strikes a removed abstract row through as wide as its italic text", async () => {
+    const doc = await svgDoc(packet({ status: "changed", methods: [{ text: "sow(): void", abstract: true, status: "removed" }] }));
+
+    const row = rows(cardById(doc, "packet"))[0]!;
+    const [t] = memberTexts(row);
+    const [strike] = byClassIn(row, "strike");
+    expect(faceOf(t!)).toBe("Structa JetBrains Mono 400 italic");
+    expect(numberAttr(strike!, "x2") - numberAttr(strike!, "x1")).toBeCloseTo(MONO_ADVANCE * numberAttr(t!, "font-size") * "sow(): void".length, 1);
+  });
+
+  it.each(["yes", 0, null])("rejects abstract: %j on a row", async (abstract) => {
+    expect(await problems(packet({ methods: [{ text: "sow(): void", abstract }] }))).toEqual([
+      { path: "nodes[0].methods[0].abstract", message: `${JSON.stringify(abstract)} is not true or false`, hint: "write true or false, without quotes" },
+    ]);
+  });
+});
+
+describe("static rows", () => {
+  const text = "fromHarvest(crop: Crop, year: int, saver: Member, notes: string): SeedPacket";
+
+  it.each([
+    ["light", "#1f2328"],
+    ["dark", "#e6edf3"],
+  ] as const)("underlines every line of a static row's text in its colour, in %s, but not its symbol", async (theme, colour) => {
+    const doc = await svgDoc(packet({ methods: [{ text, visibility: "public", static: true }, { text: "sow(): void", visibility: "public" }] }), theme);
+
+    const [stat, plain] = rows(cardById(doc, "packet"));
+    const wrapped = memberTexts(stat!);
+    expect(wrapped.length).toBeGreaterThan(1);
+    const underlines = byClassIn(stat!, "underline");
+    expect(underlines).toHaveLength(wrapped.length);
+    wrapped.forEach((t, i) => {
+      const line = underlines[i]!;
+      const baseline = numberAttr(t, "y");
+      const size = numberAttr(t, "font-size");
+      // Level, just under the letters' baseline and above the next line, from where the text starts to where it ends.
+      expect(numberAttr(line, "y1")).toBe(numberAttr(line, "y2"));
+      expect(numberAttr(line, "y1")).toBeGreaterThan(baseline);
+      expect(numberAttr(line, "y1")).toBeLessThan(baseline + size * 0.3);
+      expect(numberAttr(line, "x1")).toBeCloseTo(numberAttr(t, "x"), 5);
+      expect(numberAttr(line, "x2") - numberAttr(line, "x1")).toBeCloseTo(MONO_ADVANCE * size * t.textContent!.length, 1);
+      expect([line.getAttribute("stroke"), t.getAttribute("fill")]).toEqual([colour, colour]);
+    });
+    // The underline starts where the text does, after the symbol's column.
+    expect(numberAttr(underlines[0]!, "x1")).toBeGreaterThan(numberAttr(symbolOf(stat!)!, "x"));
+    expect(byClassIn(plain!, "underline")).toEqual([]);
+    expect(titleOf(stat!)).toBe(`+ ${text}`);
+  });
+
+  it("leaves rows with static: false plain", async () => {
+    const doc = await svgDoc(packet({ properties: [{ text: "count: int", static: false }] }));
+
+    expect(byClassIn(rows(cardById(doc, "packet"))[0]!, "underline")).toEqual([]);
+  });
+
+  it("underlines a static abstract row in italics", async () => {
+    const doc = await svgDoc(packet({ methods: [{ text: "sow(): void", static: true, abstract: true }] }));
+
+    const row = rows(cardById(doc, "packet"))[0]!;
+    expect(memberTexts(row).map(faceOf)).toEqual(["Structa JetBrains Mono 400 italic"]);
+    expect(byClassIn(row, "underline")).toHaveLength(1);
+  });
+
+  it("underlines and strikes through a removed static row, faded", async () => {
+    const doc = await svgDoc(packet({ status: "changed", methods: [{ text: "sow(): void", static: true, status: "removed" }] }));
+
+    const [faded] = byClassIn(rows(cardById(doc, "packet"))[0]!, "faded");
+    const [underline] = byClassIn(faded!, "underline");
+    const [strike] = byClassIn(faded!, "strike");
+    expect(numberAttr(underline!, "y1")).toBeGreaterThan(numberAttr(strike!, "y1"));
+    expect(numberAttr(underline!, "x1")).toBe(numberAttr(strike!, "x1"));
+    expect(numberAttr(underline!, "x2")).toBe(numberAttr(strike!, "x2"));
+  });
+
+  it.each(["yes", 1, null])("rejects static: %j", async (value) => {
+    expect(await problems(packet({ properties: [{ text: "count: int", static: value }] }))).toEqual([
+      { path: "nodes[0].properties[0].static", message: `${JSON.stringify(value)} is not true or false`, hint: "write true or false, without quotes" },
+    ]);
+  });
+});
+
+describe("enums", () => {
+  /** A season enum with whatever fields a test gives it. */
+  function season(fields: object = {}) {
+    return {
+      type: "class",
+      nodes: [{ id: "season", label: "SowingSeason", stereotype: "enum", values: [{ text: "SPRING" }, { id: "summer", text: "SUMMER" }, { text: "AUTUMN" }], ...fields }],
+    };
+  }
+
+  it("draws an enum's values as rows under one divider, after «enum» and its name", async () => {
+    const doc = await svgDoc(season());
+
+    const card = cardById(doc, "season");
+    const values = rows(card);
+    expect(values.map((row) => [row.getAttribute("data-kind"), row.getAttribute("data-id"), textLines(row)])).toEqual([
+      ["value", "values[0]", ["SPRING"]],
+      ["value", "summer", ["SUMMER"]],
+      ["value", "values[2]", ["AUTUMN"]],
+    ]);
+    expect(values.map(titleOf)).toEqual(["SPRING", "SUMMER", "AUTUMN"]);
+    const [divider, ...others] = byClassIn(card, "divider");
+    expect(others).toEqual([]);
+    const [line, name] = texts(card);
+    expect([line!.textContent, name!.textContent]).toEqual(["«enum»", "SowingSeason"]);
+    expect(numberAttr(divider!, "y1")).toBeGreaterThan(numberAttr(name!, "y"));
+    for (const row of values) {
+      const [t] = texts(row);
+      expect(faceOf(t!)).toBe("Structa JetBrains Mono 400 normal");
+      expect(numberAttr(t!, "y") - 12).toBeGreaterThan(numberAttr(divider!, "y1"));
+    }
+    // With no visibility symbols, the values start at the card's padding, as plain rows do.
+    const plain = await svgDoc(packet({ properties: [{ text: "SPRING" }] }));
+    expect(numberAttr(texts(values[0]!)[0]!, "x")).toBe(numberAttr(texts(rows(cardById(plain, "packet"))[0]!)[0]!, "x"));
+  });
+
+  it("draws an enum without values as just its name, and '… N more' in a section of its own", async () => {
+    const empty = await svgDoc(season({ values: undefined }));
+    const more = await svgDoc(season({ values: undefined, more: 4 }));
+
+    expect(byClassIn(cardById(empty, "season"), "divider")).toEqual([]);
+    expect(byClassIn(cardById(more, "season"), "divider")).toHaveLength(1);
+    expect(textLines(byClassIn(cardById(more, "season"), "more")[0]!)).toEqual(["… 4 more"]);
+  });
+
+  it("ends an enum's values with '… N more'", async () => {
+    const doc = await svgDoc(season({ more: 9 }));
+
+    const card = cardById(doc, "season");
+    const [more] = byClassIn(card, "more");
+    expect(numberAttr(texts(more!)[0]!, "y")).toBeGreaterThan(numberAttr(texts(rows(card).at(-1)!)[0]!, "y"));
+  });
+
+  it("gives values their own status, or a new card's, with a tint and badge, and strikes removed ones through", async () => {
+    const changed = await svgDoc(season({ status: "changed", values: [{ text: "SPRING", status: "new" }, { text: "WINTER", status: "removed" }, { text: "SUMMER" }] }));
+    const added = await svgDoc(season({ status: "new" }));
+
+    const [fresh, gone, plain] = rows(cardById(changed, "season"));
+    expect([fresh, gone, plain].map((row) => row!.getAttribute("data-status"))).toEqual(["new", "removed", null]);
+    expect(textLines(byClassIn(fresh!, "badge")[0]!)).toEqual(["NEW"]);
+    expect(byClassIn(gone!, "strike")).toHaveLength(1);
+    expect(rows(cardById(added, "season")).map((row) => row.getAttribute("data-status"))).toEqual(["new", "new", "new"]);
+  });
+
+  it("draws a value's visibility symbol, underlines a static value and italicises an abstract one, as on any row", async () => {
+    const doc = await svgDoc(season({ values: [{ text: "SPRING", visibility: "public", static: true }, { text: "SUMMER", abstract: true }] }));
+
+    const [spring, summer] = rows(cardById(doc, "season"));
+    expect(symbolOf(spring!)!.textContent).toBe("+");
+    expect(byClassIn(spring!, "underline")).toHaveLength(1);
+    expect(memberTexts(spring!).map(faceOf)).toEqual(["Structa JetBrains Mono 400 normal"]);
+    expect(byClassIn(summer!, "underline")).toEqual([]);
+    expect(memberTexts(summer!).map(faceOf)).toEqual(["Structa JetBrains Mono 400 italic"]);
+    // A value without a symbol still lines up after the symbol's column.
+    expect(numberAttr(memberTexts(summer!)[0]!, "x")).toBe(numberAttr(memberTexts(spring!)[0]!, "x"));
+    expect(titleOf(spring!)).toBe("+ SPRING");
+  });
+
+  it("holds an enum's values to its status like any rows", async () => {
+    expect(await problems(season({ status: "new", values: [{ text: "SPRING", status: "removed" }] }))).toEqual([
+      {
+        path: "nodes[0].values[0].status",
+        message: 'a row in a new card can\'t be "removed"',
+        hint: 'leave it out, as rows in a new card are new, or make the card "changed"',
+      },
+    ]);
+    expect(await problems(season({ values: [{ text: "SPRING", status: "new" }] }))).toEqual([
+      expect.objectContaining({ path: "nodes[0].status", message: "missing: a card needs a status when any of its rows has one" }),
+    ]);
+  });
+
+  it.each([
+    ["no stereotype", {}],
+    ["stereotype interface", { stereotype: "interface" }],
+    ["stereotype record", { stereotype: "record" }],
+  ])("rejects values on a class with %s", async (_name, fields) => {
+    expect(await problems(packet({ ...fields, values: [{ text: "SPRING" }] }))).toEqual([
+      {
+        path: "nodes[0].values",
+        message: 'only a node with "stereotype": "enum" can have "values"',
+        hint: 'add "stereotype": "enum", or list the rows in properties and methods',
+      },
+    ]);
+  });
+
+  it("reports values on a class once, whatever is in them", async () => {
+    expect(await problems(packet({ values: "SPRING" }))).toEqual([
+      expect.objectContaining({ path: "nodes[0].values", message: 'only a node with "stereotype": "enum" can have "values"' }),
+    ]);
+  });
+
+  it("rejects properties and methods on an enum, even empty ones, each at its list", async () => {
+    expect(await problems(season({ properties: [], methods: [{ text: "next(): SowingSeason" }] }))).toEqual(
+      ["properties", "methods"].map((section) => ({
+        path: `nodes[0].${section}`,
+        message: `a node with "stereotype": "enum" can't have "${section}"`,
+        hint: "list an enum's rows in values",
+      })),
+    );
+  });
+
+  it("doesn't judge values against a stereotype that isn't valid", async () => {
+    expect(await problems(season({ stereotype: "enumeration" }))).toEqual([
+      expect.objectContaining({ path: "nodes[0].stereotype", message: '"enumeration" is not a valid stereotype' }),
+    ]);
+  });
+
+  it("checks a value's own fields, and reports it all together with the enum's other problems, in order", async () => {
+    const input = season({ methods: [], values: [{ id: "spring", text: "SPRING", ordinal: 1 }, { id: "spring" }] });
+
+    expect(await problems(input)).toEqual([
+      {
+        path: "nodes[0].methods",
+        message: `a node with "stereotype": "enum" can't have "methods"`,
+        hint: "list an enum's rows in values",
+      },
+      {
+        path: "nodes[0].values[0].ordinal",
+        message: 'unknown field "ordinal"',
+        hint: "allowed fields: text, id, visibility, static, abstract, status",
+      },
+      {
+        path: "nodes[0].values[1].text",
+        message: 'missing required field "text"',
+        hint: 'add "text": the value as you\'d write it, such as a constant\'s name',
+      },
+      {
+        path: "nodes[0].values[1].id",
+        message: 'the id "spring" is already used by nodes[0].values[0]',
+        hint: "give every row in a card its own id",
+      },
+    ]);
+  });
+
+  it("allows 100 values and rejects 101", async () => {
+    const many = (n: number) => Array.from({ length: n }, (_, i) => ({ text: `SEASON_${i}` }));
+
+    await expect(render(season({ values: many(100) }), { embedFonts: false })).resolves.toHaveProperty("svg");
+    expect(await problems(season({ values: many(101) }))).toEqual([
+      {
+        path: "nodes[0].values",
+        message: "has 101 values; the limit is 100",
+        hint: 'split the class, or leave dull members out and count them with "more"',
+      },
+    ]);
+  });
+});
+
 describe("the more row", () => {
   it.each([
     ["methods", { ...MEMBERS, more: 12 }],
@@ -793,6 +1173,13 @@ describe("class limits", () => {
     ]);
   });
 
+  it.each([
+    ["an enum's properties", { stereotype: "enum", properties: many(60), values: many(60) }, "properties", 'a node with "stereotype": "enum" can\'t have "properties"'],
+    ["a class's values", { methods: many(60), values: many(60) }, "values", 'only a node with "stereotype": "enum" can have "values"'],
+  ])("doesn't count %s toward the row limit, as the card can't have them", async (_name, fields, section, message) => {
+    expect(await problems(packet(fields))).toEqual([expect.objectContaining({ path: `nodes[0].${section}`, message })]);
+  });
+
   it("reports 101 rows in one section once, at that section", async () => {
     expect(await problems(packet({ properties: many(101), methods: many(5) }))).toEqual([
       {
@@ -853,7 +1240,7 @@ describe("class input", () => {
     input.nodes[0]![section][0]!.colour = "green";
 
     expect(await problems(input)).toEqual([
-      { path: `nodes[0].${section}[0].colour`, message: 'unknown field "colour"', hint: "allowed fields: text, id, visibility, status" },
+      { path: `nodes[0].${section}[0].colour`, message: 'unknown field "colour"', hint: "allowed fields: text, id, visibility, static, abstract, status" },
     ]);
   });
 
@@ -865,7 +1252,7 @@ describe("class input", () => {
       {
         path: "nodes[0].shape",
         message: 'unknown field "shape"',
-        hint: "allowed fields: id, label, description, status, properties, methods, more",
+        hint: "allowed fields: id, label, description, status, stereotype, abstract, properties, methods, values, more",
       },
     ]);
   });

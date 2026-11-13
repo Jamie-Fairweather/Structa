@@ -1,7 +1,7 @@
 import type { Problem } from "../errors";
 import { undrawable } from "../text";
 import { describeChar } from "./chars";
-import { ID_PATTERN, type Def, type Field, type ObjectDef, type RefDef, type TextDef } from "./definitions";
+import { ID_PATTERN, type Condition, type Def, type Field, type ObjectDef, type RefDef, type TextDef } from "./definitions";
 
 type Json = { readonly [key: string]: unknown };
 
@@ -128,9 +128,9 @@ export function check(def: ObjectDef, input: unknown): { value: unknown; problem
       const at = fieldPath(path, field.name);
       const fieldValue = given(field.name);
       if (fieldValue !== undefined) {
+        // A field given without its condition is reported as a whole: what's inside it doesn't matter.
         if (field.onlyWhen && !allowedHere(def, field.onlyWhen, given(field.onlyWhen.field))) {
-          const { field: other, value: needed, hint } = field.onlyWhen;
-          report(at, `only a ${def.noun} with "${other}": "${needed}" can have "${field.name}"`, hint);
+          report(at, conditionMessage(def, field.name, field.onlyWhen), field.onlyWhen.hint);
         } else result[field.name] = walk(field.def, fieldValue, at, field);
       } else if (field.required) report(at, `missing required field "${field.name}"`, missingHint(field));
       else if (field.default !== undefined) result[field.name] = field.default;
@@ -185,14 +185,22 @@ function isNode(def: ObjectDef): boolean {
 }
 
 /**
- * Whether a field kept for when `condition.field` is `condition.value` is
- * allowed, given that field's value. Only a valid, different value rules it
- * out: a missing or unknown one is reported on its own.
+ * Whether a field that needs `condition` may be given, when the deciding
+ * field is `actual`. A deciding field that's required but missing, or given
+ * but not one of its choices, is reported on its own, so judging by it would
+ * only add noise. An optional one left out isn't the condition's value.
  */
-function allowedHere(def: ObjectDef, condition: NonNullable<Field["onlyWhen"]>, actual: unknown): boolean {
-  const other = def.fields.find((f) => f.name === condition.field)?.def;
-  const valid = other?.kind === "choice" && typeof actual === "string" && other.values.includes(actual);
-  return !valid || actual === condition.value;
+function allowedHere(def: ObjectDef, condition: Condition, actual: unknown): boolean {
+  const deciding = def.fields.find((f) => f.name === condition.field)!;
+  const known = deciding.def.kind === "choice" && typeof actual === "string" && deciding.def.values.includes(actual);
+  if (actual === undefined ? deciding.required : !known) return true;
+  return (actual === condition.value) !== (condition.not === true);
+}
+
+/** Says which objects can have `name`, such as `only a node with "shape": "note" can have "about"`. */
+function conditionMessage(def: ObjectDef, name: string, { field, value, not }: Condition): string {
+  const having = `a ${def.noun} with "${field}": "${value}"`;
+  return not ? `${having} can't have "${name}"` : `only ${having} can have "${name}"`;
 }
 
 function isObject(value: unknown): value is Json {

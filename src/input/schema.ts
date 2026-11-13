@@ -1,5 +1,15 @@
 import { drawableRanges, type FaceId } from "../text";
-import { DEFINITIONS, ID_PATTERN, SHARED, TEXT_KINDS, type Def, type Field, type ListDef, type ObjectDef } from "./definitions";
+import {
+  DEFINITIONS,
+  ID_PATTERN,
+  SHARED,
+  TEXT_KINDS,
+  type Condition,
+  type Def,
+  type Field,
+  type ListDef,
+  type ObjectDef,
+} from "./definitions";
 
 /** A JSON value; objects are built in a fixed key order. */
 type JsonSchema = { [key: string]: unknown };
@@ -41,18 +51,24 @@ function itemsSchema(def: ObjectDef, name: "nodes" | "edges"): JsonSchema {
 }
 
 function objectSchema(def: ObjectDef): JsonSchema {
-  // A field allowed only when another field has one value: when it's there, so must that value be.
-  const conditional = def.fields.flatMap((field) =>
-    field.onlyWhen ? [[field.name, { properties: { [field.onlyWhen.field]: { const: field.onlyWhen.value } } }] as const] : [],
-  );
+  const conditional = def.fields.filter((field) => field.onlyWhen !== undefined);
   return {
     ...(def.description === undefined ? {} : { description: def.description }),
     type: "object",
     properties: Object.fromEntries(def.fields.map((field) => [field.name, fieldSchema(field)])),
     required: def.fields.filter((f) => f.required).map((f) => f.name),
-    ...(conditional.length === 0 ? {} : { dependentSchemas: Object.fromEntries(conditional) }),
+    // Each field that needs a condition, given, makes the object hold it.
+    ...(conditional.length === 0
+      ? {}
+      : { dependentSchemas: Object.fromEntries(conditional.map((field) => [field.name, conditionSchema(field.onlyWhen!)])) }),
     additionalProperties: def.otherFields === "allowed",
   };
+}
+
+/** What an object must be for `condition` to hold: a field left out doesn't have the value. */
+function conditionSchema({ field, value, not }: Condition): JsonSchema {
+  const holds = { properties: { [field]: { const: value } }, required: [field] };
+  return not ? { not: holds } : holds;
 }
 
 function fieldSchema(field: Field): JsonSchema {

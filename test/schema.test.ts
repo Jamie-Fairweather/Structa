@@ -81,13 +81,14 @@ describe("node structa.mjs schema", () => {
   });
 });
 
-/** A small valid class diagram. */
+/** A small valid class diagram: two classes with members, and an enum with values. */
 function toolShed() {
   return {
     type: "class",
     nodes: [
       { id: "shed", label: "ToolShed", properties: [{ text: "floor: Area" }], methods: [{ text: "lock(key: Key): void" }] },
       { id: "rake", label: "Rake", properties: [{ text: "tines: int" }], methods: [{ text: "gather(): Leaves" }] },
+      { id: "handle", label: "HandleWood", stereotype: "enum", values: [{ text: "ASH" }, { text: "HICKORY" }] },
     ],
     edges: [{ id: "holds", from: "shed", to: "rake", kind: "association" }],
   } as Node;
@@ -119,15 +120,21 @@ describe("the JSON Schema", () => {
     edge = items("flow", "edges");
   });
 
-  /** The class card's property and method rows, as parts of the schema, in the class node at `n`. */
+  /**
+   * The class card's property and method rows, as parts of the schema, in the
+   * class node at `n`, and an enum's value rows, in the fixture's enum.
+   */
   function rowParts(n: number): Part[] {
-    return (["properties", "methods"] as const).map((section) => [
-      `a class row in ${section}`,
-      "class",
-      () => items("class", "nodes").properties[section].items,
-      (input: Node) => input.nodes[n][section][0],
-      `nodes[${n}].${section}[0].`,
-    ]);
+    return [
+      ...(["properties", "methods"] as const).map((section): Part => [
+        `a class row in ${section}`,
+        "class",
+        () => items("class", "nodes").properties[section].items,
+        (input: Node) => input.nodes[n][section][0],
+        `nodes[${n}].${section}[0].`,
+      ]),
+      ["an enum value", "class", () => items("class", "nodes").properties.values.items, (input: Node) => input.nodes[2].values[n], `nodes[2].values[${n}].`],
+    ];
   }
 
   it("offers exactly the diagram types render() accepts, each with its own nodes and edges", async () => {
@@ -195,10 +202,18 @@ describe("the JSON Schema", () => {
     }
   });
 
-  /** The first row of a class card's section: its part of the schema, and the row in the input. */
-  const classRow = (section: "properties" | "methods") => ({
+  /** The class sections that hold rows, each in the fixture's first card that has it. */
+  const ROW_SECTIONS = [
+    ["properties", 0],
+    ["methods", 0],
+    ["values", 2],
+  ] as const;
+
+  /** The first row of a class card's section: its part of the schema, its card and the row in the input. */
+  const classRow = (section: (typeof ROW_SECTIONS)[number][0], n: number) => ({
     part: () => items("class", "nodes").properties[section].items,
-    row: (input: Node) => input.nodes[0][section][0],
+    card: (input: Node) => input.nodes[n],
+    row: (input: Node) => input.nodes[n][section][0],
   });
 
   it.each<readonly [name: string, type: string, part: () => Node, set: (input: Node, value: string) => void]>([
@@ -209,9 +224,23 @@ describe("the JSON Schema", () => {
     ["node status", "flow", () => node, (input, value) => (input.nodes[0].status = value)],
     ["edge status", "flow", () => edge, (input, value) => (input.edges[0].status = value)],
     ["class node status", "class", () => items("class", "nodes"), (input, value) => (input.nodes[0].status = value)],
+    [
+      "class node stereotype",
+      "class",
+      () => items("class", "nodes"),
+      (input, value) => {
+        input.nodes[0].stereotype = value;
+        // An enum lists values, not properties and methods.
+        if (value === "enum") {
+          input.nodes[0].values = [{ text: "OPEN" }];
+          delete input.nodes[0].properties;
+          delete input.nodes[0].methods;
+        }
+      },
+    ],
     ["class edge kind", "class", () => items("class", "edges"), (input, value) => (input.edges[0].kind = value)],
-    ...(["properties", "methods"] as const).flatMap((section) => {
-      const { part, row } = classRow(section);
+    ...ROW_SECTIONS.flatMap(([section, n]) => {
+      const { part, card, row } = classRow(section, n);
       return [
         [`${section} row visibility`, "class", part, (input: Node, value: string) => (row(input).visibility = value)],
         [
@@ -220,7 +249,7 @@ describe("the JSON Schema", () => {
           part,
           (input: Node, value: string) => {
             // A row with a status needs its card to have one; a changed card's rows may have any.
-            input.nodes[0].status = "changed";
+            card(input).status = "changed";
             row(input).status = value;
           },
         ],
@@ -242,20 +271,32 @@ describe("the JSON Schema", () => {
     expect(await outcome(input)).toEqual([expect.objectContaining({ hint: `use ${choices}` })]);
   });
 
-  it.each([
-    ["legend", () => root, (input: Node, value: unknown) => (input.legend = value)],
-    ["emphasis", () => edge, (input: Node, value: unknown) => (input.edges[0].emphasis = value)],
-  ])("agrees with render() that %s is true or false", async (name, part, set) => {
-    expect(part().properties[name].type).toBe("boolean");
+  it.each<readonly [name: string, type: string, part: () => Node, set: (input: Node, value: unknown) => void]>([
+    ["legend", "flow", () => root, (input, value) => (input.legend = value)],
+    ["emphasis", "flow", () => edge, (input, value) => (input.edges[0].emphasis = value)],
+    ["class abstract", "class", () => items("class", "nodes"), (input, value) => (input.nodes[0].abstract = value)],
+    ...ROW_SECTIONS.flatMap(([section, n]) => {
+      const { part, row } = classRow(section, n);
+      return (["static", "abstract"] as const).map(
+        (flag) => [`${section} row ${flag}`, "class", part, (input: Node, value: unknown) => (row(input)[flag] = value)] as const,
+      );
+    }),
+  ])("agrees with render() that %s is true or false, and false when left out", async (name, type, part, set) => {
+    const field = part().properties[name.split(" ").at(-1)!];
+    expect(field.type).toBe("boolean");
 
     for (const value of [true, false]) {
-      const input = greenhouse();
+      const input = FIXTURES.get(type)!();
       set(input, value);
       expect(await outcome(input)).toBe("ok");
     }
-    const input = greenhouse();
+    const input = FIXTURES.get(type)!();
     set(input, "true");
     expect(await outcome(input)).not.toBe("ok");
+    // The default the schema documents draws the same as leaving the field out.
+    const given = FIXTURES.get(type)!();
+    set(given, field.default);
+    expect((await render(given, opts)).svg).toBe((await render(FIXTURES.get(type)!(), opts)).svg);
   });
 
   it("agrees with render() that only a note can be about another node", async () => {
@@ -285,6 +326,26 @@ describe("the JSON Schema", () => {
     expect((await render(withoutEdges, opts)).svg).toBe(bare.svg);
     expect((await render({ ...greenhouse(), direction: "down" }, opts)).svg).toBe((await render(greenhouse(), opts)).svg);
     expect((await render({ ...greenhouse(), theme: "light" }, opts)).svg).toBe((await render(greenhouse(), opts)).svg);
+  });
+
+  it("documents only defaults that, filled in, keep the input valid and draw the same", async () => {
+    // A tool may write out every default the schema documents, as Ajv's useDefaults does.
+    const fill = new Ajv2020({ strict: true, useDefaults: true }).compile(root);
+
+    for (const [type, fixture] of FIXTURES) {
+      const filled = fixture();
+      expect([type, fill(filled), fill.errors ?? []]).toEqual([type, true, []]);
+      expect(filled).not.toEqual(fixture());
+      expect([type, await outcome(filled)]).toEqual([type, "ok"]);
+      expect([type, (await render(filled, opts)).svg]).toEqual([type, (await render(fixture(), opts)).svg]);
+    }
+    // Only some classes may have each list, so none of them has a default.
+    const classNode = items("class", "nodes");
+    expect(["properties", "methods", "values"].map((list) => [list, classNode.properties[list].default])).toEqual([
+      ["properties", undefined],
+      ["methods", undefined],
+      ["values", undefined],
+    ]);
   });
 
   it("documents that emphasis is off unless asked for", async () => {
@@ -364,6 +425,23 @@ describe("the JSON Schema", () => {
     for (const kind of ["title", "label", "description", "lineLabel", "rowText"]) {
       expect(root.$defs[kind]).toMatchObject({ type: "string", minLength: 1, maxLength: expect.any(Number), pattern: "[^ ]" });
     }
+  });
+
+  it.each<readonly [name: string, fields: Node, accepted: boolean]>([
+    ["an enum with values", { stereotype: "enum", values: [{ text: "ASH" }] }, true],
+    ["an enum with no rows", { stereotype: "enum" }, true],
+    ["a record with members", { stereotype: "record", properties: [{ text: "length: Metres" }] }, true],
+    ["a class with values", { values: [{ text: "ASH" }] }, false],
+    ["an interface with values", { stereotype: "interface", values: [] }, false],
+    ["an enum with properties", { stereotype: "enum", properties: [] }, false],
+    ["an enum with methods and values", { stereotype: "enum", methods: [{ text: "grain(): Grain" }], values: [{ text: "ASH" }] }, false],
+    ["a stereotype that isn't one, with values", { stereotype: "struct", values: [{ text: "ASH" }] }, false],
+  ])("agrees with render() about %s: only an enum has values, and an enum has no members", async (_name, fields, accepted) => {
+    const validate = new Ajv2020({ strict: true }).compile(root);
+    const input = toolShed();
+    input.nodes[1] = { id: "rake", label: "Rake", ...fields };
+
+    expect([validate(input), (await outcome(input)) === "ok"]).toEqual([accepted, accepted]);
   });
 
   it("agrees with render() that more is a whole number from 1 to 9999", async () => {

@@ -8,6 +8,7 @@ import {
   type Connector,
   type Header,
   type Legend,
+  type LevelLine,
   type Line,
   type LineLabel,
   type Row,
@@ -297,7 +298,7 @@ function fadedIf(removed: boolean, theme: Theme, parts: string[]): string[] {
   return [open("g", [["class", "faded"], ["opacity", theme.colors.fadedOpacity]]), ...parts, "</g>"];
 }
 
-/** One line of text offset by (x, y), and the line through it when it's struck out. Records its face. */
+/** One line of text offset by (x, y), with the lines under and through it when it has them. Records its face. */
 function text(t: Omit<TextLine, "color">, x: number, y: number, fill: string, pen: Pen): string[] {
   pen.faces.add(t.face);
   const face = faceStyle(t.face);
@@ -311,20 +312,21 @@ function text(t: Omit<TextLine, "color">, x: number, y: number, fill: string, pe
     ["fill", fill],
     ...(t.anchor === "middle" ? ([["text-anchor", "middle"]] as const) : []),
   ];
-  const drawn = el("text", attrs, escapeText(t.text));
-  if (!t.strike) return [drawn];
-  const { x1, x2, y: strikeY } = t.strike;
-  return [
-    drawn,
+  const { sizes } = pen.theme;
+  const level = (name: string, { x1, x2, y: lineY }: LevelLine, width: number) =>
     el("line", [
-      ["class", "strike"],
+      ["class", name],
       ["x1", x + x1],
-      ["y1", y + strikeY],
+      ["y1", y + lineY],
       ["x2", x + x2],
-      ["y2", y + strikeY],
+      ["y2", y + lineY],
       ["stroke", fill],
-      ["stroke-width", pen.theme.sizes.strike.width],
-    ]),
+      ["stroke-width", width],
+    ]);
+  return [
+    el("text", attrs, escapeText(t.text)),
+    ...(t.underline ? [level("underline", t.underline, sizes.underline.width)] : []),
+    ...(t.strike ? [level("strike", t.strike, sizes.strike.width)] : []),
   ];
 }
 

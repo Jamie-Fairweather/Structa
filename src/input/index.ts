@@ -7,23 +7,30 @@ import {
   type CLASS_EDGE_KINDS,
   type FlowShape,
   type Status,
+  type STEREOTYPES,
   type VISIBILITIES,
 } from "./definitions";
 import { parseJson } from "./json";
 
 export {
+  ABSTRACT_CLASS_NAME_FACE,
+  ABSTRACT_ROW_TEXT_FACE,
   CARD_DESCRIPTION_FACE,
   CLASS_DESCRIPTION_FACE,
   CLASS_NAME_FACE,
   CLASS_SECTIONS,
   DESCRIPTION_FACE,
   DIAGRAM_TYPES,
+  ENUM_SECTIONS,
   LINE_LABEL_FACE,
+  MEMBER_SECTIONS,
   NOTE_LABEL_FACE,
   ROW_TEXT_FACE,
   STATUSES,
   STEP_LABEL_FACE,
+  STEREOTYPE_FACE,
   TITLE_FACE,
+  type ClassSection,
   type FlowShape,
   type Status,
 } from "./definitions";
@@ -58,12 +65,18 @@ export interface ClassEdge extends FlowEdge {
 
 export type Visibility = (typeof VISIBILITIES)[number];
 
-/** One member of a class. */
+export type Stereotype = (typeof STEREOTYPES)[number];
+
+/** One member of a class, or one value of an enum. */
 export interface ClassRow {
   /** The explicit id, or its section and position, like `methods[2]`. Unique within its card. */
   readonly id: string;
   readonly text: string;
   readonly visibility?: Visibility;
+  /** Drawn underlined. */
+  readonly static: boolean;
+  /** Drawn in italics. */
+  readonly abstract: boolean;
   /** Its own status, or, when it has none, its card's when the card is new or removed. */
   readonly status?: Status;
 }
@@ -74,9 +87,15 @@ export interface ClassNode {
   readonly label: string;
   readonly description?: string;
   readonly status?: Status;
+  readonly stereotype?: Stereotype;
+  /** Set by the flag only; a class whose stereotype is "abstract" is abstract too. */
+  readonly abstract: boolean;
+  /** A class's members. An enum has none. */
   readonly properties: readonly ClassRow[];
   readonly methods: readonly ClassRow[];
-  /** How many members were left out on purpose. */
+  /** An enum's values. Only an enum has any. */
+  readonly values: readonly ClassRow[];
+  /** How many members or values were left out on purpose. */
   readonly more?: number;
 }
 
@@ -140,22 +159,23 @@ export function parseDiagram(input: unknown): ParseResult {
   };
 }
 
-/** A class node as checked: rows may have no id yet. */
+/** A class node as checked: a list left out isn't there, and rows may have no id yet. */
 type WithoutIds<N extends ClassNode> = Omit<N, (typeof CLASS_SECTIONS)[number]> & {
-  readonly [section in (typeof CLASS_SECTIONS)[number]]: readonly (Omit<ClassRow, "id"> & { id?: string })[];
+  readonly [section in (typeof CLASS_SECTIONS)[number]]?: readonly (Omit<ClassRow, "id"> & { id?: string })[];
 };
 
 /**
- * Gives every row its id (its own, or its section and position) and its
- * status: a row without one in a new or removed card takes the card's.
+ * Gives the card every list, empty when left out, and every row its id (its
+ * own, or its section and position) and its status: a row without one in a
+ * new or removed card takes the card's.
  */
 function classNode(node: WithoutIds<ClassNode>): ClassNode {
   const inherited = node.status === "new" || node.status === "removed" ? node.status : undefined;
-  const [properties, methods] = CLASS_SECTIONS.map((section) =>
-    node[section].map((row, i): ClassRow => {
+  const [properties, methods, values] = CLASS_SECTIONS.map((section) =>
+    (node[section] ?? []).map((row, i): ClassRow => {
       const status = row.status ?? inherited;
       return { ...row, id: row.id ?? `${section}[${i}]`, ...(status === undefined ? {} : { status }) };
     }),
   );
-  return { ...node, properties: properties!, methods: methods! };
+  return { ...node, properties: properties!, methods: methods!, values: values! };
 }

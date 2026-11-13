@@ -1,6 +1,6 @@
 import { STATUSES, type Status } from "../input";
 import type { Sizes } from "../theme";
-import { badge, type Badge, type Strike } from "./frame";
+import { badge, type Badge, type LevelLine } from "./frame";
 
 /** The legend under the diagram: one item per status used, in a row. Positions are relative to its top-left corner. */
 export interface Legend {
@@ -12,7 +12,7 @@ export interface Legend {
 /** A short line in the status's line colour, then the status's badge. */
 export interface LegendItem {
   readonly status: Status;
-  readonly swatch: Strike;
+  readonly swatch: LevelLine;
   readonly badge: Badge;
 }
 
