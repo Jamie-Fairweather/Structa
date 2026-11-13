@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { render } from "../src/index";
+import { decodePng, pixel, svgSize } from "./helpers/png";
 import { badlyFormattedNumbers, passiveSvgViolations } from "./helpers/svg";
 
 // Every file in examples/ is a snapshot fixture. Snapshots are real .svg files,
@@ -142,6 +143,78 @@ describe("examples", () => {
       d.nodes.some((node) => node.kind === "class" && "values" in node);
 
     expect(architectures().some(fits)).toBe(true);
+  });
+
+  type ChangeMap = {
+    type: string;
+    groupAreas?: boolean;
+    areas?: { id: string; label: string; parent?: string }[];
+    nodes: { id: string; kind?: string; area?: string; methods?: { status?: string }[] }[];
+    edges?: { from: string; to: string; label?: string; status?: string; emphasis?: boolean }[];
+  };
+  const parsed = () => examples.map(({ name, json }) => ({ name, d: JSON.parse(json) as ChangeMap }));
+
+  /** Whether `d` is the acceptance example: an admin portal calls an API, the API calls services, the services use a database. */
+  function isChangeMap(d: ChangeMap): boolean {
+    const areas = d.areas ?? [];
+    const edges = d.edges ?? [];
+    // An area and every area inside it, at any depth.
+    const within = (id: string): string[] => [id, ...areas.filter((a) => a.parent === id).flatMap((a) => within(a.id))];
+    const cardsIn = (label: string) => {
+      const top = areas.find((a) => a.label === label && a.parent === undefined);
+      return top ? new Set(d.nodes.filter((n) => within(top.id).includes(n.area ?? "")).map((n) => n.id)) : new Set<string>();
+    };
+    const tiers = ["Admin portal", "API", "Services", "Database"].map(cardsIn);
+    const calls = (from: Set<string>, to: Set<string>) => edges.some((e) => from.has(e.from) && to.has(e.to));
+    const kinds = new Set(d.nodes.map((n) => n.kind));
+    const methodStatuses = new Set(d.nodes.filter((n) => n.kind === "class").flatMap((n) => (n.methods ?? []).map((m) => m.status)));
+    const labelled = edges.filter((e) => e.label !== undefined);
+
+    return (
+      d.type === "architecture" &&
+      areas.some((a) => a.parent !== undefined) &&
+      tiers.every((tier) => tier.size > 0) &&
+      tiers.slice(1).every((tier, i) => calls(tiers[i]!, tier)) &&
+      ["ui", "api", "service", "database", "queue"].every((kind) => kinds.has(kind)) &&
+      ["new", "changed", "removed", "unchanged"].every((s) => methodStatuses.has(s)) &&
+      new Set(labelled.map((e) => e.status ?? "none")).size >= 3 &&
+      labelled.some((e) => e.status === "removed") &&
+      edges.some((e) => e.emphasis === true)
+    );
+  }
+
+  it("includes the change map: an admin portal calling an API, calling services, using a database, in nested area boxes", () => {
+    expect(parsed().some(({ d }) => isChangeMap(d) && d.groupAreas === true)).toBe(true);
+  });
+
+  it("includes the same change map with area tags only: the same areas, cards and lines, without the boxes", () => {
+    const boxed = parsed().filter(({ d }) => isChangeMap(d) && d.groupAreas === true);
+    const tagged = parsed().filter(({ d }) => isChangeMap(d) && d.groupAreas !== true);
+    const same = (a: ChangeMap, b: ChangeMap) => JSON.stringify([a.areas, a.nodes, a.edges]) === JSON.stringify([b.areas, b.nodes, b.edges]);
+
+    expect(boxed.some(({ d }) => tagged.some((t) => same(d, t.d)))).toBe(true);
+  });
+
+  describe("the change maps as PNGs", () => {
+    const changeMaps = () => parsed().filter(({ d }) => isChangeMap(d));
+
+    it("has both", () => {
+      expect(changeMaps().map(({ d }) => d.groupAreas === true).sort()).toEqual([false, true]);
+    });
+
+    it.each([
+      ["light", "#f4f5f7"],
+      ["dark", "#0d1117"],
+    ] as const)("draws each in the %s theme: twice its SVG's size, on that theme's page colour", async (theme, page) => {
+      for (const { name, d } of changeMaps()) {
+        const { svg, png } = await render(d, { formats: ["svg", "png"], embedFonts: false, theme });
+        const picture = decodePng(png);
+        const size = svgSize(svg);
+
+        expect([name, picture.width, picture.height]).toEqual([name, size.width * 2, size.height * 2]);
+        expect(pixel(picture, 0, 0)).toEqual({ color: page, alpha: 255 });
+      }
+    });
   });
 
   // Every example in both themes. The theme option wins over any theme in the example's JSON.
