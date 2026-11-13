@@ -55,6 +55,19 @@ export const FLOW_PROFILE: LayoutProfile = {
   },
 };
 
+/**
+ * Added to every profile when area boxes are drawn: areas are compound nodes,
+ * laid out with their cards as one graph, so lines can cross from one area
+ * into another. Lines of different statuses never share a segment, and every
+ * position comes back relative to the root.
+ */
+export const GROUPED: LayoutOptions = {
+  "elk.hierarchyHandling": "INCLUDE_CHILDREN",
+  "elk.layered.mergeHierarchyEdges": "false",
+  "elk.json.shapeCoords": "ROOT",
+  "elk.json.edgeCoords": "ROOT",
+};
+
 /** Each diagram type's profile. */
 export const PROFILES: ReadonlyMap<Diagram["type"], LayoutProfile> = new Map([
   ["class", CLASS_PROFILE],

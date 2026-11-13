@@ -49,6 +49,15 @@ export interface ThemeColors {
   readonly tagFill: string;
   readonly tagBorder: string;
   readonly tagText: string;
+  /**
+   * Every area box: one see-through neutral fill, so a box inside another
+   * comes out stronger without a colour of its own, and a thin border.
+   */
+  readonly areaFill: string;
+  readonly areaFillOpacity: number;
+  readonly areaBorder: string;
+  /** The area's name at the top-left of its box. */
+  readonly areaName: string;
   readonly status: { readonly [status in Status]: StatusColors };
 }
 
@@ -72,6 +81,10 @@ const COLORS: { readonly [name in ThemeName]: ThemeColors } = {
     tagFill: "#f6f8fa",
     tagBorder: "#d1d9e0",
     tagText: "#59636e",
+    areaFill: "#818b98",
+    areaFillOpacity: 0.08,
+    areaBorder: "#d1d9e0",
+    areaName: "#59636e",
     status: {
       new: { stroke: "#1f883d", badgeFill: "#b9f0c4", badgeFillOpacity: 1, badgeText: "#116329" },
       changed: { stroke: "#bf8700", badgeFill: "#fae17d", badgeFillOpacity: 1, badgeText: "#7d4e00" },
@@ -98,6 +111,10 @@ const COLORS: { readonly [name in ThemeName]: ThemeColors } = {
     tagFill: "#21262d",
     tagBorder: "#3d444d",
     tagText: "#8b949e",
+    areaFill: "#8b949e",
+    areaFillOpacity: 0.07,
+    areaBorder: "#30363d",
+    areaName: "#8b949e",
     status: {
       new: { stroke: "#3fb950", badgeFill: "#3fb950", badgeFillOpacity: 0.25, badgeText: "#56d364" },
       changed: { stroke: "#d29922", badgeFill: "#d29922", badgeFillOpacity: 0.25, badgeText: "#e3b341" },
@@ -124,6 +141,13 @@ export const SIZES = {
    * least `gap` from the badge. Its corners are less round than the badge's.
    */
   tag: { fontSize: 10, height: 16, paddingX: 6, radius: 4, gap: 8, borderWidth: 1 },
+  /**
+   * An area box: its cards and the areas inside it `padding` in from its
+   * sides and bottom, and below its name. The name sits `nameTop` below the
+   * box's top, `padding` in from its left, with `nameGap` under it. Behind
+   * it, `nameMargin` wider each side, it covers whatever runs under it.
+   */
+  area: { radius: 12, padding: 16, nameSize: 12, nameLineHeight: 16, nameTop: 8, nameGap: 8, nameMargin: 3, borderWidth: 1 },
   /** Each legend item: a short sample of the status's line colour, then its badge. */
   legend: { swatchLength: 20, swatchGap: 6, itemGap: 20 },
   /** A line through struck-out text, `rise` font sizes above the baseline. */

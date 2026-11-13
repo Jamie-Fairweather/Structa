@@ -1,8 +1,9 @@
 import type { Status } from "../input";
-import type { PlacedCard, Point, RoutedLine, Scene } from "../layout";
+import type { PlacedArea, PlacedCard, Point, RoutedLine, Scene } from "../layout";
 import {
   entry,
   nearest,
+  type AreaBox,
   type Badge,
   type Card,
   type Connector,
@@ -22,7 +23,7 @@ import { el, escapeText, num, open, type Attrs } from "./svg";
 
 /** Everything drawn: the laid-out scene, the title above it and the legend below it. */
 export interface Drawing {
-  readonly scene: Scene<Card, Line | Connector>;
+  readonly scene: Scene<Card, Line | Connector, AreaBox>;
   readonly header?: Header;
   readonly legend?: Legend;
 }
@@ -61,10 +62,13 @@ export function paint({ scene, header, legend }: Drawing, theme: Theme, options:
   const lines = scene.lines.filter((l): l is RoutedLine<Line> => l.line.kind !== "connector");
   const content = [
     ...(header ? headerText(header, { x: pad, y: headerTop! }, pen) : []),
+    // Under everything else in the scene, each parent before the areas inside it.
+    ...scene.areas.flatMap((a) => areaBox(a, origin, pen)),
     ...scene.cards.flatMap((p) => card(p, origin, pen, ids.shadow)),
     // Under the lines: a note's connector is an aside, not part of the flow.
     ...scene.lines.flatMap(({ line: l, points }) => (l.kind === "connector" ? connector(l, routed(l, points), origin, pen) : [])),
     ...lines.flatMap(({ line: l, points }) => line(l, routed(l, points), origin, pen)),
+    ...areaNames(scene.areas, origin, pen),
     ...lineLabels(lines, origin, pen),
     ...(legend ? legendItems(legend, { x: pad, y: legendTop! }, pen) : []),
   ];
@@ -199,6 +203,79 @@ function legendItems(legend: Legend, at: Point, pen: Pen): string[] {
     ]),
     "</g>",
   ];
+}
+
+/**
+ * An area's box, offset by `at`: every box in the same see-through fill, so
+ * one inside another comes out stronger, with a thin border. Its name is
+ * drawn later, over the lines.
+ */
+function areaBox({ area, x, y, width, height }: PlacedArea<AreaBox>, at: Point, pen: Pen): string[] {
+  const { colors, sizes } = pen.theme;
+  return [
+    open("g", [["class", "area"], ["data-id", area.id], ...(area.parent === undefined ? [] : ([["data-parent", area.parent]] as const))]),
+    el("title", [], escapeText(area.tooltip)),
+    el("rect", [
+      ["class", "area-box"],
+      ["x", x + at.x],
+      ["y", y + at.y],
+      ["width", width],
+      ["height", height],
+      ["rx", sizes.area.radius],
+      ["fill", colors.areaFill],
+      ["fill-opacity", colors.areaFillOpacity],
+      ["stroke", colors.areaBorder],
+      ["stroke-width", sizes.area.borderWidth],
+    ]),
+    "</g>",
+  ];
+}
+
+/**
+ * Each area's name at the top-left of its box, offset by `at`, over the
+ * lines: behind it, a patch of exactly the colour its box shows (the canvas
+ * under one layer of the see-through fill for each box it's in), so a line
+ * running under the name stops at it rather than cutting through it.
+ */
+function areaNames(areas: readonly PlacedArea<AreaBox>[], at: Point, pen: Pen): string[] {
+  if (areas.length === 0) return [];
+  const { colors } = pen.theme;
+  // Each parent comes before the areas inside it, so its colour is known first.
+  const shown = new Map<string, Rgb>();
+  const names = areas.flatMap(({ area, x: boxX, y: boxY }) => {
+    const under = area.parent === undefined ? rgb(colors.background) : shown.get(area.parent)!;
+    const colour = over(under, rgb(colors.areaFill), colors.areaFillOpacity);
+    shown.set(area.id, colour);
+    const x = boxX + at.x;
+    const y = boxY + at.y;
+    const { nameBox } = area;
+    return [
+      open("g", [["class", "area-name"], ["data-area", area.id]]),
+      el("rect", [["x", x + nameBox.x], ["y", y + nameBox.y], ["width", nameBox.width], ["height", nameBox.height], ["fill", hex(colour)]]),
+      ...text(area.name, x, y, colors.areaName, pen),
+      "</g>",
+    ];
+  });
+  return [open("g", [["class", "area-names"]]), ...names, "</g>"];
+}
+
+/** A colour's red, green and blue, from 0 to 255, unrounded. */
+type Rgb = readonly number[];
+
+/** A theme colour written as #rrggbb. */
+function rgb(colour: string): Rgb {
+  const value = Number.parseInt(colour.slice(1), 16);
+  return [(value >> 16) & 255, (value >> 8) & 255, value & 255];
+}
+
+/** `top` laid over `under` at `opacity`. */
+function over(under: Rgb, top: Rgb, opacity: number): Rgb {
+  return under.map((part, i) => part * (1 - opacity) + top[i]! * opacity);
+}
+
+/** A colour as #rrggbb, each part rounded to the nearest whole number. */
+function hex(colour: Rgb): string {
+  return `#${colour.map((part) => Math.round(part).toString(16).padStart(2, "0")).join("")}`;
 }
 
 function card({ card, x: cardX, y: cardY }: PlacedCard<Card>, at: Point, pen: Pen, shadowId: string): string[] {

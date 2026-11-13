@@ -87,6 +87,23 @@ describe("fonts embedded in SVGs", () => {
     }
   });
 
+  it("embeds the semibold face for an area's name, on a tag or an area box", async () => {
+    // Notes are drawn in Inter Regular, so only the area's name needs Inter SemiBold.
+    const notes = {
+      type: "flow",
+      areas: [{ id: "heap", label: "Compost heap" }],
+      nodes: [{ id: "tip", label: "Turn it every month", shape: "note", area: "heap" }],
+      legend: false,
+    };
+    for (const groupAreas of [false, true]) {
+      const doc = parseSvg((await render({ ...notes, groupAreas })).svg);
+
+      const used = ["Structa Inter 400 normal", "Structa Inter 600 normal"];
+      expect([...textFaces(doc)].sort()).toEqual(used);
+      expect(fontFaceRules(doc).map((rule) => rule.face)).toEqual(used);
+    }
+  });
+
   it("embeds no font, and writes no <style>, when no text is drawn", async () => {
     const { svg } = await render({ type: "flow", nodes: [] });
 
