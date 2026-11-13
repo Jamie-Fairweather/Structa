@@ -1,17 +1,8 @@
 // Text faces come from the input definitions, which check each field's text against them.
 import { CARD_DESCRIPTION_FACE, NOTE_LABEL_FACE, STEP_LABEL_FACE, type FlowNode, type FlowShape } from "../input";
-import { baseline, measure, wrap, type FaceId } from "../text";
 import type { Sizes } from "../theme";
-import type { BorderPlace, CardBody, CardFill, TextLine } from "./frame";
+import { fit, paragraph, type BorderPlace, type CardBody, type CardFill, type TextBlock } from "./frame";
 import type { Mark, OutlineShape } from "./outline";
-
-/** A shape's text, wrapped: its lines from the top of the block, and the block's size. */
-interface TextBlock {
-  readonly width: number;
-  readonly height: number;
-  /** Baselines are relative to the top of the block; x is 0, the block's centre line. */
-  readonly lines: readonly TextLine[];
-}
 
 /** How one shape fits round its text. */
 interface Geometry {
@@ -63,28 +54,6 @@ function textBlock(node: FlowNode, sizes: Sizes, wrapWidth: number): TextBlock {
     height: top + description.height,
     lines: [...named.lines, ...description.lines.map((line) => ({ ...line, y: top + line.y }))],
   };
-}
-
-/** Text wrapped to `wrapWidth` and centred on x = 0, its baselines from y = 0 down. */
-function paragraph(
-  text: string,
-  face: FaceId,
-  { fontSize: size, lineHeight }: { readonly fontSize: number; readonly lineHeight: number },
-  color: TextLine["color"],
-  wrapWidth: number,
-): TextBlock {
-  const lines = wrap(text, face, size, wrapWidth);
-  const offset = baseline(face, size, lineHeight);
-  return {
-    width: Math.max(...lines.map((line) => measure(line, face, size))),
-    height: lines.length * lineHeight,
-    lines: lines.map((line, i) => ({ text: line, x: 0, y: i * lineHeight + offset, face, size, anchor: "middle", color })),
-  };
-}
-
-/** A width for `natural`, rounded up and kept between `min` and `max`, but never under `minWidth`. */
-function fit(natural: number, min: number, max: number, minWidth: number): number {
-  return Math.max(minWidth, Math.min(max, Math.max(min, Math.ceil(natural))));
 }
 
 const GEOMETRY = new Map<FlowShape, (sizes: Sizes) => Geometry>([

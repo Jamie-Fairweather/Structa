@@ -65,10 +65,13 @@ function objectSchema(def: ObjectDef): JsonSchema {
   };
 }
 
-/** What an object must be for `condition` to hold: a field left out doesn't have the value. */
-function conditionSchema({ field, value, not }: Condition): JsonSchema {
-  const holds = { properties: { [field]: { const: value } }, required: [field] };
-  return not ? { not: holds } : holds;
+/** What an object must be for every one of `conditions` to hold: a field left out doesn't have the value. */
+function conditionSchema(conditions: readonly Condition[]): JsonSchema {
+  const each = conditions.map(({ field, value, not }) => {
+    const holds = { properties: { [field]: { const: value } }, required: [field] };
+    return not ? { not: holds } : holds;
+  });
+  return each.length === 1 ? each[0]! : { allOf: each };
 }
 
 function fieldSchema(field: Field): JsonSchema {

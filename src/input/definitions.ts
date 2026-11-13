@@ -119,8 +119,12 @@ export interface Field {
   /** Shown in the schema, and in the hint when a required field is missing. */
   readonly description: string;
   readonly default?: string | boolean | readonly [];
-  /** Allowed only when a condition holds, as "about" is only for notes. Such a field has no default. */
-  readonly onlyWhen?: Condition;
+  /**
+   * Allowed only when every one of these conditions holds, as "about" is only
+   * for notes. Such a field has no default. When several don't hold, the first
+   * is the one reported.
+   */
+  readonly onlyWhen?: readonly Condition[];
 }
 
 /**
@@ -146,10 +150,10 @@ function optional(name: string, def: Def, description: string, defaultValue?: Fi
 }
 
 /**
- * An optional field allowed only when `onlyWhen` holds. It has no default:
- * filling one in would give the field where it isn't allowed.
+ * An optional field allowed only when every condition in `onlyWhen` holds.
+ * It has no default: filling one in would give the field where it isn't allowed.
  */
-function conditional(name: string, def: Def, description: string, onlyWhen: Condition): Field {
+function conditional(name: string, def: Def, description: string, ...onlyWhen: [Condition, ...Condition[]]): Field {
   return { ...optional(name, def, description), onlyWhen };
 }
 

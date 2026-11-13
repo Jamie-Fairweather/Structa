@@ -1,5 +1,5 @@
 import { AREA_LABEL_FACE, type FlowShape, type Status } from "../input";
-import { baseline, measure, type FaceId } from "../text";
+import { baseline, measure, wrap, type FaceId } from "../text";
 import type { Sizes, ThemeColors } from "../theme";
 import { move, placeOutline, type Mark, type Outline, type OutlineShape, type Point } from "./outline";
 
@@ -286,6 +286,36 @@ function levelLine(t: TextLine, y: number): LevelLine {
   const width = measure(t.text, t.face, t.size);
   const x1 = t.anchor === "middle" ? t.x - width / 2 : t.x;
   return { x1, x2: x1 + width, y };
+}
+
+/** A card's text, wrapped: its lines from the top of the block, and the block's size. */
+export interface TextBlock {
+  readonly width: number;
+  readonly height: number;
+  /** Baselines are relative to the top of the block; x is 0, the block's centre line. */
+  readonly lines: readonly TextLine[];
+}
+
+/** Text wrapped to `wrapWidth` and centred on x = 0, its baselines from y = 0 down. */
+export function paragraph(
+  text: string,
+  face: FaceId,
+  { fontSize: size, lineHeight }: { readonly fontSize: number; readonly lineHeight: number },
+  color: TextLine["color"],
+  wrapWidth: number,
+): TextBlock {
+  const lines = wrap(text, face, size, wrapWidth);
+  const offset = baseline(face, size, lineHeight);
+  return {
+    width: Math.max(...lines.map((line) => measure(line, face, size))),
+    height: lines.length * lineHeight,
+    lines: lines.map((line, i) => ({ text: line, x: 0, y: i * lineHeight + offset, face, size, anchor: "middle", color })),
+  };
+}
+
+/** A width for `natural`, rounded up and kept between `min` and `max`, but never under `minWidth`. */
+export function fit(natural: number, min: number, max: number, minWidth: number): number {
+  return Math.max(minWidth, Math.min(max, Math.max(min, Math.ceil(natural))));
 }
 
 function badgeWord(status: Status): string {
