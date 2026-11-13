@@ -1082,6 +1082,20 @@ describe("every example with areas", () => {
     }
     expect(areaBoxes(doc)).toHaveLength(input.groupAreas ? input.areas.length : 0);
   });
+
+  it.each(examples.flatMap((example) => (["down", "right"] as const).map((direction) => ({ ...example, direction }))))(
+    "runs no line or note's connector under an area's name, with the boxes drawn: $file, direction $direction",
+    async ({ input, direction }) => {
+      const doc = await svgDoc({ ...input, groupAreas: true, direction });
+
+      for (const { id, backing } of areaBoxes(doc)) {
+        for (const line of [...lines(doc), ...connectors(doc)]) {
+          const name = line.getAttribute("data-id") ?? `the note ${line.getAttribute("data-from")}'s connector`;
+          expect(distanceToDrawn(line, rectBox(backing)), `${name} under ${id}'s name`).toBeGreaterThan(0);
+        }
+      }
+    },
+  );
 });
 
 describe("the legend's areas", () => {
