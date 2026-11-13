@@ -229,6 +229,21 @@ describe("examples", () => {
     );
   });
 
+  type Er = {
+    type: string;
+    direction?: string;
+    groupAreas?: boolean;
+    edges?: { fromColumn?: string; toColumn?: string }[];
+  };
+  const ers = () => examples.map(({ json }) => JSON.parse(json) as Er).filter((d) => d.type === "er");
+  const namesColumns = (d: Er) => (d.edges ?? []).some((edge) => edge.fromColumn !== undefined && edge.toColumn !== undefined);
+
+  it("includes ER diagrams whose lines join columns: one top to bottom, one with area boxes, and one with a line between headers", () => {
+    expect(ers().some((d) => d.direction === "down" && namesColumns(d))).toBe(true);
+    expect(ers().some((d) => d.groupAreas === true && namesColumns(d))).toBe(true);
+    expect(ers().some((d) => (d.edges ?? []).some((edge) => edge.fromColumn === undefined && edge.toColumn === undefined))).toBe(true);
+  });
+
   // Every example in both themes. The theme option wins over any theme in the example's JSON.
   describe.each(examples)("$name", ({ name, json }) => {
     describe.each(["light", "dark"] as const)("in %s", (theme) => {

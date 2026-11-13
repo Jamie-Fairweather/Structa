@@ -1,0 +1,63 @@
+{
+  "type": "er",
+  "title": "Repair café",
+  "description": "Visitors bring broken things; volunteers fix them and note any parts they fit.",
+  "direction": "down",
+  "nodes": [
+    {
+      "id": "parts-fitted",
+      "label": "parts_fitted",
+      "columns": [
+        { "name": "id", "type": "bigint", "pk": true },
+        { "name": "repair_id", "type": "uuid", "fk": true },
+        { "name": "part", "type": "text" },
+        { "name": "cost", "type": "numeric(6,2)", "nullable": true }
+      ]
+    },
+    {
+      "id": "repairs",
+      "label": "repairs",
+      "columns": [
+        { "name": "id", "type": "uuid", "pk": true },
+        { "name": "item_id", "type": "uuid", "fk": true },
+        { "name": "fixer_id", "type": "uuid", "fk": true, "nullable": true },
+        { "name": "outcome", "type": "text" },
+        { "name": "finished_at", "type": "timestamptz", "nullable": true }
+      ]
+    },
+    {
+      "id": "items",
+      "label": "items",
+      "columns": [
+        { "name": "id", "type": "uuid", "pk": true },
+        { "name": "owner_id", "type": "uuid", "fk": true },
+        { "name": "kind", "type": "text" },
+        { "name": "fault", "type": "text" }
+      ]
+    },
+    {
+      "id": "volunteers",
+      "label": "volunteers",
+      "columns": [
+        { "name": "id", "type": "uuid", "pk": true },
+        { "name": "name", "type": "text" },
+        { "name": "skills", "type": "text[]" }
+      ]
+    },
+    {
+      "id": "visitors",
+      "label": "visitors",
+      "columns": [
+        { "name": "id", "type": "uuid", "pk": true },
+        { "name": "name", "type": "text" },
+        { "name": "email", "type": "text", "unique": true, "nullable": true }
+      ]
+    }
+  ],
+  "edges": [
+    { "from": "parts-fitted", "to": "repairs", "fromColumn": "repair_id", "toColumn": "id", "fromCardinality": "zero-or-many", "toCardinality": "one" },
+    { "from": "repairs", "to": "items", "fromColumn": "item_id", "toColumn": "id", "fromCardinality": "zero-or-many", "toCardinality": "one" },
+    { "from": "repairs", "to": "volunteers", "fromColumn": "fixer_id", "toColumn": "id", "fromCardinality": "zero-or-many", "toCardinality": "zero-or-one" },
+    { "from": "items", "to": "visitors", "fromColumn": "owner_id", "toColumn": "id", "fromCardinality": "zero-or-many", "toCardinality": "one" }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "type": "er",
+  "title": "Bike co-op",
+  "description": "Members book repairs that other members fix, with parts from the workshop's store. A refund names a fitted part by its two-column key.",
+  "groupAreas": true,
+  "areas": [
+    { "id": "people", "label": "Members" },
+    { "id": "workshop", "label": "Workshop" },
+    { "id": "store", "label": "Parts store", "parent": "workshop" }
+  ],
+  "nodes": [
+    {
+      "id": "members",
+      "label": "members",
+      "area": "people",
+      "columns": [
+        { "name": "id", "type": "uuid", "pk": true },
+        { "name": "name", "type": "text" },
+        { "name": "email", "type": "text", "unique": true }
+      ]
+    },
+    {
+      "id": "jobs",
+      "label": "jobs",
+      "area": "workshop",
+      "columns": [
+        { "name": "id", "type": "uuid", "pk": true },
+        { "name": "customer_id", "type": "uuid", "fk": true },
+        { "name": "mechanic_id", "type": "uuid", "fk": true, "nullable": true },
+        { "name": "bike", "type": "text" },
+        { "name": "booked_on", "type": "date" }
+      ]
+    },
+    {
+      "id": "job-parts",
+      "label": "job_parts",
+      "area": "store",
+      "columns": [
+        { "name": "job_id", "type": "uuid", "pk": true, "fk": true },
+        { "name": "part_code", "type": "text", "pk": true, "fk": true },
+        { "name": "quantity", "type": "int" }
+      ]
+    },
+    {
+      "id": "parts",
+      "label": "parts",
+      "area": "store",
+      "columns": [
+        { "name": "code", "type": "text", "pk": true },
+        { "name": "description", "type": "text" },
+        { "name": "price", "type": "numeric(6,2)" }
+      ]
+    },
+    {
+      "id": "refunds",
+      "label": "refunds",
+      "columns": [
+        { "name": "id", "type": "uuid", "pk": true },
+        { "name": "job_id", "type": "uuid", "fk": true },
+        { "name": "part_code", "type": "text", "fk": true },
+        { "name": "amount", "type": "numeric(6,2)" }
+      ]
+    }
+  ],
+  "edges": [
+    { "from": "jobs", "to": "members", "fromColumn": "customer_id", "toColumn": "id", "fromCardinality": "zero-or-many", "toCardinality": "one", "label": "booked by" },
+    { "from": "jobs", "to": "members", "fromColumn": "mechanic_id", "toColumn": "id", "fromCardinality": "zero-or-many", "toCardinality": "zero-or-one", "label": "fixed by" },
+    { "from": "job-parts", "to": "jobs", "fromColumn": "job_id", "toColumn": "id", "fromCardinality": "zero-or-many", "toCardinality": "one" },
+    { "from": "job-parts", "to": "parts", "fromColumn": "part_code", "toColumn": "code", "fromCardinality": "zero-or-many", "toCardinality": "one" },
+    { "from": "refunds", "to": "job-parts", "fromCardinality": "zero-or-many", "toCardinality": "one", "label": "for" }
+  ]
+}

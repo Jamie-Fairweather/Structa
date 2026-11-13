@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import type { Document, Element } from "@xmldom/xmldom";
 import { describe, expect, it } from "vitest";
 import { render, StructaError, type Problem } from "../src/index";
@@ -629,7 +629,20 @@ function schema(links: readonly (readonly [string, string])[], fields: object = 
   };
 }
 
-const EXAMPLE = (name: string) => JSON.parse(readFileSync(new URL(`../examples/${name}.json`, import.meta.url), "utf8")) as object;
+const EXAMPLES_DIR = new URL("../examples/", import.meta.url);
+const EXAMPLE = (name: string) => JSON.parse(readFileSync(new URL(`${name}.json`, EXAMPLES_DIR), "utf8")) as Json;
+
+/** Every ER example's name. */
+const ER_EXAMPLES = readdirSync(EXAMPLES_DIR)
+  .filter((file) => file.endsWith(".json"))
+  .map((file) => file.slice(0, -".json".length))
+  .filter((name) => EXAMPLE(name).type === "er")
+  .sort();
+
+/** A diagram with every line's ends at its tables' headers: the columns they name left out. */
+function atHeaders(input: Json): Json {
+  return { ...input, edges: input.edges.map(({ fromColumn: _from, toColumn: _to, ...edge }: Json) => edge) };
+}
 
 /** Every line end on each side of each table, top to bottom. */
 function sharedSides(doc: Document): Map<string, { card: Element; side: string; ys: number[] }> {
@@ -726,12 +739,12 @@ describe("where relationships attach", () => {
   });
 
   it.each([
-    ["right", EXAMPLE("er")],
-    ["down", { ...EXAMPLE("er"), direction: "down" }],
+    ["right", atHeaders(EXAMPLE("er"))],
+    ["down", { ...atHeaders(EXAMPLE("er")), direction: "down" }],
     ["right", rota()],
     ["down", rota("down")],
-    ["right", EXAMPLE("er-status")],
-  ] as const)("gives every end its own place in its table's header, spread evenly about the middle, direction %s", async (_direction, input) => {
+    ["right", atHeaders(EXAMPLE("er-status"))],
+  ] as const)("gives every end that names no column its own place in its table's header, spread evenly about the middle, direction %s", async (_direction, input) => {
     const doc = await svgDoc(input);
 
     for (const { card, side, ys } of sharedSides(doc).values()) {
@@ -939,8 +952,8 @@ function rowSpans(doc: Document): Map<string, Map<string, RowSpan>> {
 }
 
 /** Each end of each line that names a column: the column's row, and where the line meets its table. */
-function columnEnds(doc: Document, input: { edges: readonly Json[] }) {
-  const edges = new Map(input.edges.map((edge, i) => [edge.id ?? `edges[${i}]`, edge]));
+function columnEnds(doc: Document, input: Json) {
+  const edges = new Map((input.edges as Json[]).map((edge, i) => [edge.id ?? `edges[${i}]`, edge]));
   const spans = rowSpans(doc);
   return relationshipEnds(doc).flatMap(({ id, from, to, start, end }) => {
     const edge = edges.get(id)!;
@@ -1019,6 +1032,20 @@ describe("lines that name columns", () => {
       expect(Math.max(...route(self!.line).map((p) => p.x))).toBeGreaterThan(outlineBox(self!.from).x + outlineBox(self!.from).width + 20);
     },
   );
+
+  it.each(ER_EXAMPLES)("ends every line that names a column within that column's row, on the side facing the other table: %s", async (name) => {
+    const input = EXAMPLE(name);
+    const doc = parseSvg((await render(input)).svg);
+
+    const rule = new Map(sideRule(doc, input.direction ?? "right").map((line) => [line.id, line]));
+    const ends = columnEnds(doc, input);
+    expect(ends.length).toBeGreaterThan(0);
+    for (const { id, end, table, column, at, row } of ends) {
+      const { sides, expected } = rule.get(id)!;
+      const i = end === "from" ? 0 : 1;
+      expect([id, end, table, column, sides[i], at.y >= row.top && at.y <= row.bottom]).toEqual([id, end, table, column, expected[i], true]);
+    }
+  });
 
   it("attaches an end that names no column at its table's header, beside an end that names one", async () => {
     // The plot points at its site from its site_id column, but the site's end names no column.

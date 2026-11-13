@@ -1,0 +1,287 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2518" height="490" viewBox="0 0 2518 490">
+<defs>
+<pattern id="structa-grid-light" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="9" cy="9" r="1" fill="#8c959f" fill-opacity="0.5"/></pattern>
+<filter id="structa-shadow-light" x="-20%" y="-30%" width="140%" height="170%"><feDropShadow dx="0" dy="1" stdDeviation="3" flood-color="#1f2328" flood-opacity="0.1"/></filter>
+</defs>
+<rect width="2518" height="490" fill="#f4f5f7"/>
+<rect width="2518" height="490" fill="url(#structa-grid-light)"/>
+<g class="title">
+<text x="32" y="50.55" font-family="Structa Inter, Inter, sans-serif" font-size="18" font-weight="700" fill="#1f2328">Bike co-op</text>
+</g>
+<g class="description">
+<text x="32" y="73.73" font-family="Structa Inter, Inter, sans-serif" font-size="13" font-weight="400" fill="#59636e">Members book repairs that other members fix, with parts from the workshop's store. A refund names a</text>
+<text x="32" y="91.73" font-family="Structa Inter, Inter, sans-serif" font-size="13" font-weight="400" fill="#59636e">fitted part by its two-column key.</text>
+</g>
+<g class="area" data-area="people">
+<title>Members</title>
+<rect class="area-box" x="2094" y="152" width="392" height="182" rx="12" fill="#818b98" fill-opacity="0.08" stroke="#d1d9e0" stroke-width="1"/>
+</g>
+<g class="area" data-area="workshop">
+<title>Workshop</title>
+<rect class="area-box" x="561" y="120" width="1296" height="298" rx="12" fill="#818b98" fill-opacity="0.08" stroke="#d1d9e0" stroke-width="1"/>
+</g>
+<g class="area" data-area="store" data-parent="workshop">
+<title>Parts store</title>
+<rect class="area-box" x="585" y="183" width="824" height="219" rx="12" fill="#818b98" fill-opacity="0.08" stroke="#d1d9e0" stroke-width="1"/>
+</g>
+<g class="card" data-id="members" data-kind="table" data-area="people">
+<title>members</title>
+<rect class="outline" x="2110" y="184" width="360" height="134" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<line class="divider" x1="2110.5" y1="228" x2="2469.5" y2="228" stroke="#d1d9e0" stroke-width="1"/>
+<text x="2290" y="211.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">members</text>
+<g class="row" data-id="id" data-kind="column">
+<title>PK id: uuid</title>
+<g class="symbol">
+<text x="2124" y="251.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#59636e">PK</text>
+</g>
+<text x="2148" y="251.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">id</text>
+<text x="2200" y="251.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">uuid</text>
+</g>
+<g class="row" data-id="name" data-kind="column">
+<title>name: text</title>
+<text x="2148" y="277.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">name</text>
+<text x="2200" y="277.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">text</text>
+</g>
+<g class="row" data-id="email" data-kind="column">
+<title>UQ email: text</title>
+<g class="symbol">
+<text x="2124" y="303.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#59636e">UQ</text>
+</g>
+<text x="2148" y="303.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">email</text>
+<text x="2200" y="303.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">text</text>
+</g>
+</g>
+<g class="card" data-id="jobs" data-kind="table" data-area="workshop">
+<title>jobs</title>
+<rect class="outline" x="1481" y="152" width="360" height="186" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<line class="divider" x1="1481.5" y1="196" x2="1840.5" y2="196" stroke="#d1d9e0" stroke-width="1"/>
+<text x="1661" y="179.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">jobs</text>
+<g class="row" data-id="id" data-kind="column">
+<title>PK id: uuid</title>
+<g class="symbol">
+<text x="1495" y="219.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#59636e">PK</text>
+</g>
+<text x="1517" y="219.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">id</text>
+<text x="1613" y="219.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">uuid</text>
+</g>
+<g class="row" data-id="customer_id" data-kind="column">
+<title>FK customer_id: uuid</title>
+<g class="symbol">
+<text x="1495" y="245.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#59636e">FK</text>
+</g>
+<text x="1517" y="245.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">customer_id</text>
+<text x="1613" y="245.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">uuid</text>
+</g>
+<g class="row" data-id="mechanic_id" data-kind="column">
+<title>FK mechanic_id: uuid?</title>
+<g class="symbol">
+<text x="1495" y="271.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#59636e">FK</text>
+</g>
+<text x="1517" y="271.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">mechanic_id</text>
+<text x="1613" y="271.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">uuid?</text>
+</g>
+<g class="row" data-id="bike" data-kind="column">
+<title>bike: text</title>
+<text x="1517" y="297.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">bike</text>
+<text x="1613" y="297.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">text</text>
+</g>
+<g class="row" data-id="booked_on" data-kind="column">
+<title>booked_on: date</title>
+<text x="1517" y="323.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">booked_on</text>
+<text x="1613" y="323.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">date</text>
+</g>
+</g>
+<g class="card" data-id="job-parts" data-kind="table" data-area="store">
+<title>job_parts</title>
+<rect class="outline" x="601" y="226" width="360" height="134" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<line class="divider" x1="601.5" y1="270" x2="960.5" y2="270" stroke="#d1d9e0" stroke-width="1"/>
+<text x="781" y="253.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">job_parts</text>
+<g class="row" data-id="job_id" data-kind="column">
+<title>PK FK job_id: uuid</title>
+<g class="symbol">
+<text x="615" y="293.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#59636e">PK FK</text>
+</g>
+<text x="653" y="293.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">job_id</text>
+<text x="734" y="293.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">uuid</text>
+</g>
+<g class="row" data-id="part_code" data-kind="column">
+<title>PK FK part_code: text</title>
+<g class="symbol">
+<text x="615" y="319.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#59636e">PK FK</text>
+</g>
+<text x="653" y="319.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">part_code</text>
+<text x="734" y="319.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">text</text>
+</g>
+<g class="row" data-id="quantity" data-kind="column">
+<title>quantity: int</title>
+<text x="653" y="345.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">quantity</text>
+<text x="734" y="345.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">int</text>
+</g>
+</g>
+<g class="card" data-id="parts" data-kind="table" data-area="store">
+<title>parts</title>
+<rect class="outline" x="1033" y="252" width="360" height="134" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<line class="divider" x1="1033.5" y1="296" x2="1392.5" y2="296" stroke="#d1d9e0" stroke-width="1"/>
+<text x="1213" y="279.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">parts</text>
+<g class="row" data-id="code" data-kind="column">
+<title>PK code: text</title>
+<g class="symbol">
+<text x="1047" y="319.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#59636e">PK</text>
+</g>
+<text x="1069" y="319.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">code</text>
+<text x="1165" y="319.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">text</text>
+</g>
+<g class="row" data-id="description" data-kind="column">
+<title>description: text</title>
+<text x="1069" y="345.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">description</text>
+<text x="1165" y="345.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">text</text>
+</g>
+<g class="row" data-id="price" data-kind="column">
+<title>price: numeric(6,2)</title>
+<text x="1069" y="371.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">price</text>
+<text x="1165" y="371.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">numeric(6,2)</text>
+</g>
+</g>
+<g class="card" data-id="refunds" data-kind="table">
+<title>refunds</title>
+<rect class="outline" x="32" y="226" width="360" height="160" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<line class="divider" x1="32.5" y1="270" x2="391.5" y2="270" stroke="#d1d9e0" stroke-width="1"/>
+<text x="212" y="253.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">refunds</text>
+<g class="row" data-id="id" data-kind="column">
+<title>PK id: uuid</title>
+<g class="symbol">
+<text x="46" y="293.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#59636e">PK</text>
+</g>
+<text x="68" y="293.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">id</text>
+<text x="149" y="293.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">uuid</text>
+</g>
+<g class="row" data-id="job_id" data-kind="column">
+<title>FK job_id: uuid</title>
+<g class="symbol">
+<text x="46" y="319.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#59636e">FK</text>
+</g>
+<text x="68" y="319.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">job_id</text>
+<text x="149" y="319.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">uuid</text>
+</g>
+<g class="row" data-id="part_code" data-kind="column">
+<title>FK part_code: text</title>
+<g class="symbol">
+<text x="46" y="345.32" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#59636e">FK</text>
+</g>
+<text x="68" y="345.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">part_code</text>
+<text x="149" y="345.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">text</text>
+</g>
+<g class="row" data-id="amount" data-kind="column">
+<title>amount: numeric(6,2)</title>
+<text x="68" y="371.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">amount</text>
+<text x="149" y="371.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#59636e">numeric(6,2)</text>
+</g>
+</g>
+<g class="line" data-id="edges[0]" data-kind="relationship" data-from="jobs" data-to="members">
+<title>jobs (zero-or-many) – members (one): booked by</title>
+<path d="M1841 241 L2110 241" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<g class="end" data-end="from" data-cardinality="zero-or-many">
+<path d="M1841 234 L1853 241 L1841 248" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<circle cx="1862" cy="241" r="4" fill="#f4f5f7" stroke="#8c959f" stroke-width="1.5"/>
+</g>
+<g class="end" data-end="to" data-cardinality="one">
+<path d="M2104 246 L2104 236 M2099 246 L2099 236" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+</g>
+</g>
+<g class="line" data-id="edges[1]" data-kind="relationship" data-from="jobs" data-to="members">
+<title>jobs (zero-or-many) – members (zero-or-one): fixed by</title>
+<path d="M1841 267 L1895.5 267 Q1901 267 1901 272.5 L1901 272.5 Q1901 278 1906.5 278 L2042 278 Q2050 278 2050 270 L2050 261 Q2050 253 2058 253 L2110 253" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<g class="end" data-end="from" data-cardinality="zero-or-many">
+<path d="M1841 260 L1853 267 L1841 274" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<circle cx="1862" cy="267" r="4" fill="#f4f5f7" stroke="#8c959f" stroke-width="1.5"/>
+</g>
+<g class="end" data-end="to" data-cardinality="zero-or-one">
+<path d="M2104 258 L2104 248" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<circle cx="2095" cy="253" r="2.86" fill="#f4f5f7" stroke="#8c959f" stroke-width="1.5"/>
+</g>
+</g>
+<g class="line" data-id="edges[2]" data-kind="relationship" data-from="job-parts" data-to="jobs">
+<title>job_parts (zero-or-many) – jobs (one)</title>
+<path d="M961 289 L989 289 Q997 289 997 281 L997 223 Q997 215 1005 215 L1481 215" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<g class="end" data-end="from" data-cardinality="zero-or-many">
+<path d="M961 282 L973 289 L961 296" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<circle cx="982" cy="289" r="4" fill="#f4f5f7" stroke="#8c959f" stroke-width="1.5"/>
+</g>
+<g class="end" data-end="to" data-cardinality="one">
+<path d="M1475 222 L1475 208 M1470 222 L1470 208" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+</g>
+</g>
+<g class="line" data-id="edges[3]" data-kind="relationship" data-from="job-parts" data-to="parts">
+<title>job_parts (zero-or-many) – parts (one)</title>
+<path d="M961 315 L1033 315" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<g class="end" data-end="from" data-cardinality="zero-or-many">
+<path d="M961 308 L973 315 L961 322" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<circle cx="982" cy="315" r="4" fill="#f4f5f7" stroke="#8c959f" stroke-width="1.5"/>
+</g>
+<g class="end" data-end="to" data-cardinality="one">
+<path d="M1027 322 L1027 308 M1022 322 L1022 308" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+</g>
+</g>
+<g class="line" data-id="edges[4]" data-kind="relationship" data-from="refunds" data-to="job-parts">
+<title>refunds (zero-or-many) – job_parts (one): for</title>
+<path d="M392 248 L601 248" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<g class="end" data-end="from" data-cardinality="zero-or-many">
+<path d="M392 241 L404 248 L392 255" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<circle cx="413" cy="248" r="4" fill="#f4f5f7" stroke="#8c959f" stroke-width="1.5"/>
+</g>
+<g class="end" data-end="to" data-cardinality="one">
+<path d="M595 255 L595 241 M590 255 L590 241" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+</g>
+</g>
+<g class="area-names">
+<g class="area-name" data-area="people">
+<rect x="2107" y="160" width="60.91" height="16" fill="#ebedef"/>
+<text x="2110" y="172.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="600" fill="#59636e">Members</text>
+</g>
+<g class="area-name" data-area="workshop">
+<rect x="574" y="128" width="65.88" height="16" fill="#ebedef"/>
+<text x="577" y="140.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="600" fill="#59636e">Workshop</text>
+</g>
+<g class="area-name" data-area="store">
+<rect x="598" y="191" width="69.24" height="16" fill="#e2e5e8"/>
+<text x="601" y="203.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="600" fill="#59636e">Parts store</text>
+</g>
+</g>
+<g class="line-labels">
+<g class="line-label" data-line="edges[0]">
+<title>jobs (zero-or-many) – members (one): booked by</title>
+<rect x="1937" y="230.5" width="77" height="20" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1"/>
+<text x="1975.5" y="244.87" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">booked by</text>
+</g>
+<g class="line-label" data-line="edges[1]">
+<title>jobs (zero-or-many) – members (zero-or-one): fixed by</title>
+<rect x="1944.5" y="267.5" width="62" height="20" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1"/>
+<text x="1975.5" y="281.87" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">fixed by</text>
+</g>
+<g class="line-label" data-line="edges[4]">
+<title>refunds (zero-or-many) – job_parts (one): for</title>
+<rect x="456" y="237.5" width="33" height="20" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1"/>
+<text x="472.5" y="251.87" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">for</text>
+</g>
+</g>
+<g class="legend">
+<g class="legend-item" data-area="people">
+<g class="tag" data-area="people">
+<rect x="32" y="442" width="58" height="16" rx="4" fill="#f6f8fa" stroke="#d1d9e0" stroke-width="1"/>
+<text x="61" y="453.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#59636e" text-anchor="middle">Members</text>
+</g>
+</g>
+<g class="legend-item" data-area="workshop">
+<g class="tag" data-area="workshop">
+<rect x="110" y="442" width="62" height="16" rx="4" fill="#f6f8fa" stroke="#d1d9e0" stroke-width="1"/>
+<text x="141" y="453.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#59636e" text-anchor="middle">Workshop</text>
+</g>
+</g>
+<g class="legend-item" data-area="store">
+<g class="tag" data-area="store">
+<rect x="192" y="442" width="65" height="16" rx="4" fill="#f6f8fa" stroke="#d1d9e0" stroke-width="1"/>
+<text x="224.5" y="453.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="600" fill="#59636e" text-anchor="middle">Parts store</text>
+</g>
+</g>
+</g>
+</svg>

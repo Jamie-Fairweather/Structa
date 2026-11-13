@@ -48,8 +48,8 @@
     }
   ],
   "edges": [
-    { "from": "reminders", "to": "loans", "fromCardinality": "zero-or-many", "toCardinality": "one", "status": "new", "emphasis": true },
-    { "from": "loans", "to": "members", "fromCardinality": "zero-or-many", "toCardinality": "one", "status": "unchanged", "label": "borrowed by" },
-    { "from": "notice-log", "to": "members", "fromCardinality": "zero-or-many", "toCardinality": "one", "status": "removed" }
+    { "from": "reminders", "to": "loans", "fromColumn": "loan_id", "toColumn": "id", "fromCardinality": "zero-or-many", "toCardinality": "one", "status": "new", "emphasis": true },
+    { "from": "loans", "to": "members", "fromColumn": "member_id", "toColumn": "id", "fromCardinality": "zero-or-many", "toCardinality": "one", "status": "unchanged", "label": "borrowed by" },
+    { "from": "notice-log", "to": "members", "fromColumn": "member_id", "toColumn": "id", "fromCardinality": "zero-or-many", "toCardinality": "one", "status": "removed" }
   ]
 }
