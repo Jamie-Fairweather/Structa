@@ -435,8 +435,9 @@ function areaBox({ area, x, y, width, height }: PlacedArea<AreaBox>, at: Point, 
 /**
  * Each area's name at the top-left of its box, offset by `at`, over the
  * lines: behind it, a patch of exactly the colour its box shows (the canvas
- * under one layer of the see-through fill for each box it's in), so a line
- * running under the name stops at it rather than cutting through it.
+ * under one layer of the see-through fill for each box it's in). Layout runs
+ * no line under a name, but should one get there, it stops at the name
+ * rather than cutting through it.
  */
 function areaNames(areas: readonly PlacedArea<AreaBox>[], at: Point, pen: Pen): string[] {
   if (areas.length === 0) return [];

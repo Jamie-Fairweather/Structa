@@ -15,11 +15,15 @@ export interface AreaBox {
   readonly parent?: string;
   readonly tooltip: string;
   readonly minWidth: number;
-  /** The top padding holds the name and a gap under it. */
-  readonly padding: { readonly top: number; readonly side: number; readonly bottom: number };
+  /**
+   * The top padding holds the name and a gap under it. When everything in
+   * the box must go right of the name, so no line passes under it, the left
+   * padding is `beside`: the name, and as much room past it as it's in from the box's left.
+   */
+  readonly padding: { readonly top: number; readonly side: number; readonly bottom: number; readonly beside: number };
   /** The area's name at the top-left, relative to the box's top-left corner. */
   readonly name: Omit<TextLine, "color">;
-  /** Round the name, a little wider than it: covered in the box's colour, so a line under it doesn't cut through it. */
+  /** Round the name, a little wider than it: no line passes under it, and it's covered in the box's colour, so one that did wouldn't cut through it. */
   readonly nameBox: Box;
 }
 
@@ -40,12 +44,14 @@ export function buildAreaBoxes(areas: readonly Area[], sizes: Sizes): AreaBox[] 
   addInside(undefined);
   return ordered.map((area) => {
     const nameWidth = measure(area.label, AREA_LABEL_FACE, s.nameSize);
+    // The name with the padding either side of it.
+    const named = Math.ceil(nameWidth + 2 * s.padding);
     return {
       id: area.id,
       ...(area.parent === undefined ? {} : { parent: area.parent }),
       tooltip: area.label,
-      minWidth: Math.ceil(nameWidth + 2 * s.padding),
-      padding: { top: s.nameTop + s.nameLineHeight + s.nameGap, side: s.padding, bottom: s.padding },
+      minWidth: named,
+      padding: { top: s.nameTop + s.nameLineHeight + s.nameGap, side: s.padding, bottom: s.padding, beside: named },
       name: {
         text: area.label,
         x: s.padding,

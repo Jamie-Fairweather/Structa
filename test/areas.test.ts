@@ -15,6 +15,7 @@ import {
   connectors,
   depthInShape,
   depthInTag,
+  distanceToDrawn,
   distanceToShape,
   drawnTextBoxes,
   lineEnds,
@@ -863,6 +864,49 @@ describe("area boxes", () => {
     const [start, end] = connectorEnds(connectors(doc)[0]!);
     expect(distanceToShape(start, cardById(doc, "tip"))).toBeLessThanOrEqual(1);
     expect(distanceToShape(end, cardById(doc, "healthy"))).toBeLessThanOrEqual(1);
+  });
+
+  /**
+   * Three vans unloading at a cold store, every line into its one card, at
+   * the top-left of its box: inside a depot's box too, at its top-left, when `nested`.
+   */
+  function unloading(direction: "down" | "right", nested: boolean) {
+    return {
+      type: "architecture",
+      direction,
+      groupAreas: true,
+      areas: [
+        ...(nested ? [{ id: "depot", label: "Riverside depot" }] : []),
+        { id: "store", label: "Cold store", ...(nested ? { parent: "depot" } : {}) },
+      ],
+      nodes: [
+        { id: "farm", label: "Farm van", kind: "external" },
+        { id: "bakery", label: "Bakery van", kind: "external" },
+        { id: "returns", label: "Returns desk", kind: "ui" },
+        { id: "shelf", label: "Dairy shelf", kind: "database", area: "store" },
+      ],
+      edges: [
+        { from: "farm", to: "shelf", label: "milk" },
+        { from: "bakery", to: "shelf" },
+        { from: "returns", to: "shelf" },
+      ],
+    };
+  }
+
+  it.each([
+    [false, "down"],
+    [false, "right"],
+    [true, "down"],
+    [true, "right"],
+  ] as const)("keeps the lines into a card at the top-left of an area box clear of the area's name (nested %s), direction %s", async (nested, direction) => {
+    const doc = await svgDoc(unloading(direction, nested));
+
+    expect(areaBoxes(doc)).toHaveLength(nested ? 2 : 1);
+    for (const { id, backing } of areaBoxes(doc)) {
+      for (const line of lines(doc)) {
+        expect(distanceToDrawn(line, rectBox(backing)), `${line.getAttribute("data-from")} under ${id}'s name`).toBeGreaterThan(0);
+      }
+    }
   });
 
   it("puts a note about a shape in that shape's box, and a note in an area in its box", async () => {

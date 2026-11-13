@@ -158,8 +158,10 @@ export const SIZES = {
   /**
    * An area box: its cards and the areas inside it `padding` in from its
    * sides and bottom, and below its name. The name sits `nameTop` below the
-   * box's top, `padding` in from its left, with `nameGap` under it. Behind
-   * it, `nameMargin` wider each side, it covers whatever runs under it.
+   * box's top, `padding` in from its left, with `nameGap` under it. When a
+   * line would pass under the name, they start `padding` past the name
+   * instead. Behind it, `nameMargin` wider each side, it covers whatever
+   * runs under it.
    */
   area: { radius: 12, padding: 16, nameSize: 12, nameLineHeight: 16, nameTop: 8, nameGap: 8, nameMargin: 3, borderWidth: 1 },
   /**
