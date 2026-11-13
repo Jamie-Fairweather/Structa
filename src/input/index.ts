@@ -20,7 +20,6 @@ import {
   type VISIBILITIES,
 } from "./definitions";
 import { parseJson } from "./json";
-import { jsonSchema as schemaOf } from "./schema";
 
 export {
   ABSTRACT_CLASS_NAME_FACE,
@@ -56,6 +55,7 @@ export {
   type Status,
 } from "./definitions";
 export { fieldPath, type Result } from "./check";
+export { jsonSchema } from "./schema";
 
 /*
  * Every type below is derived from the shared input definitions, through
@@ -132,14 +132,8 @@ export interface DiagramNode {
   readonly status?: Status;
 }
 
-/** What every edge has, whatever its diagram's type. */
+/** What every edge has, whatever its diagram's type: a flowchart's edges have nothing more. */
 export type DiagramEdge = FlowEdge;
-
-export type FlowDiagram = DiagramModel<"flow", FlowNode, FlowEdge>;
-export type ClassDiagram = DiagramModel<"class", ClassNode, ClassEdge>;
-export type ErDiagram = DiagramModel<"er", TableNode, ErEdge>;
-export type ArchitectureDiagram = DiagramModel<"architecture", ArchitectureNode, ArchitectureEdge>;
-export type Diagram = FlowDiagram | ClassDiagram | ErDiagram | ArchitectureDiagram;
 
 /** One diagram type, as far as its input goes: its name, its definition, and how a value is checked against it and read. */
 export interface InputType<T extends string, M> {
@@ -164,29 +158,11 @@ function inputType<T extends string, D extends ObjectDef, M>(
   };
 }
 
+/** Each diagram type's input. The registry of diagram types lists them. */
 export const CLASS_INPUT = inputType(CLASS_DIAGRAM, (diagram) => model(diagram, diagram.nodes.map(classNode)));
 export const ER_INPUT = inputType(ER_DIAGRAM, (diagram) => model(diagram, diagram.nodes.map(tableNode)));
 export const FLOW_INPUT = inputType(FLOW_DIAGRAM, (diagram) => model(diagram, diagram.groupAreas ? notesInAreas(diagram.nodes) : diagram.nodes));
 export const ARCHITECTURE_INPUT = inputType(ARCHITECTURE_DIAGRAM, (diagram) => model(diagram, diagram.nodes.map(architectureNode)));
-
-const TYPES = [CLASS_INPUT, ER_INPUT, FLOW_INPUT, ARCHITECTURE_INPUT];
-
-/** The diagram types implemented so far, in the spec's order. Each has an example, examples/<type>.json. */
-export const DIAGRAM_TYPES: readonly Diagram["type"][] = TYPES.map((type) => type.type);
-
-/** The JSON Schema for every diagram type. */
-export function jsonSchema() {
-  return schemaOf(TYPES);
-}
-
-/**
- * Parses a JSON string or an already-parsed value into a diagram, or lists
- * every problem found. The checks come from the shared input definitions.
- */
-export function parseDiagram(input: unknown): Result<Diagram> {
-  const selected = selectType(input, TYPES);
-  return selected.ok ? selected.type.parse(selected.value) : selected;
-}
 
 /**
  * Reads JSON text, or takes an already-parsed value, and picks the one of

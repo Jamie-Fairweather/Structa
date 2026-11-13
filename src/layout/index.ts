@@ -5,7 +5,7 @@ import type { Direction } from "../input";
 import { createElk } from "./elk";
 import { GROUPED, type LayoutProfile } from "./profiles";
 
-export { PROFILES, type LayoutProfile } from "./profiles";
+export { ARCHITECTURE_PROFILE, CLASS_PROFILE, ER_PROFILE, FLOW_PROFILE, type LayoutProfile } from "./profiles";
 
 /**
  * What layout needs from a card: its fixed size, where on that box lines may

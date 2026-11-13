@@ -659,11 +659,12 @@ const CLASS_RULES =
  * abstract flag, its rows and its "more" count. In a class diagram every node
  * has them; in an architecture diagram only a class, so there `onlyClasses`
  * makes each one need "kind": "class" too.
+ *
+ * Each is typed as a field that may be left out, as it may be wherever it
+ * needs a condition. Only a class diagram's abstract flag, which has a
+ * default there, is in fact always there; reading a class fills it in anyway.
  */
-export type ClassCardField = ReturnType<typeof classCardFields>[number]["name"];
-
 function classCardFields(onlyClasses: boolean) {
-  // Each is typed as a field that may be left out, as it is wherever it needs a condition. A class diagram's abstract flag has a default, so it's always there.
   const field = <const N extends string, const D extends Def>(
     name: N,
     def: D,
@@ -700,6 +701,9 @@ function classCardFields(onlyClasses: boolean) {
     field("more", MORE, 'how many members or values were left out on purpose, drawn as a muted "… N more" row', []),
   ];
 }
+
+/** The names of a class card's own fields. */
+export type ClassCardField = ReturnType<typeof classCardFields>[number]["name"];
 
 const CLASS_NODE = object({
   noun: "node",

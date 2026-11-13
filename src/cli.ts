@@ -2,7 +2,7 @@ import { constants, type Stats } from "node:fs";
 import { access, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
 import { basename, extname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { DIAGRAM_TYPES, jsonSchema } from "./input";
+import { DIAGRAM_TYPES, jsonSchema, type Diagram } from "./diagrams";
 import { DEFAULT_SCALE, SCALES, type Scale } from "./raster";
 import { render, type Format } from "./render";
 import { THEME_NAMES, type ThemeName } from "./theme";
@@ -28,7 +28,7 @@ type Command =
       readonly scale?: Scale;
     }
   | { readonly kind: "schema" }
-  | { readonly kind: "example"; readonly type: string }
+  | { readonly kind: "example"; readonly type: Diagram["type"] }
   | { readonly kind: "help" };
 
 const THEMES = THEME_NAMES.join(" or ");

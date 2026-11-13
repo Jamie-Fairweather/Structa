@@ -1,10 +1,11 @@
+import { parseDiagram, type DiagramType } from "./diagrams";
 import { StructaError, type Problem } from "./errors";
-import { fieldPath, PARENT_KINDS, parseDiagram } from "./input";
-import { layout, PROFILES } from "./layout";
-import { paint } from "./painter";
+import { fieldPath, type DiagramEdge, type DiagramModel, type DiagramNode } from "./input";
+import { layout } from "./layout";
+import { paint, type Drawing } from "./painter";
 import { DEFAULT_SCALE, rasterise, SCALES, type Scale } from "./raster";
-import { buildAreaBoxes, buildCards, buildConnector, buildHeader, buildLegend, buildLine, LINE_ENDS, linePorts, type Line } from "./shapes";
-import { getTheme, THEME_NAMES, type ThemeName } from "./theme";
+import { buildAreaBoxes, buildCards, buildConnector, buildHeader, buildLegend, linePorts } from "./shapes";
+import { getTheme, THEME_NAMES, type Theme, type ThemeName } from "./theme";
 
 interface Outputs {
   svg: string;
@@ -34,60 +35,7 @@ export async function render<F extends Format = "svg">(
   const { formats, theme: themeName, embedFonts, scale } = readOptions(options);
   const parsed = parseDiagram(input);
   if (!parsed.ok) throw new StructaError("INVALID_INPUT", parsed.problems);
-  const diagram = parsed.value;
-
-  const theme = getTheme(themeName ?? diagram.theme);
-  const nodes: readonly { readonly id: string; readonly label: string }[] = diagram.nodes;
-  const index = new Map(nodes.map((node, i) => [node.id, i]));
-  const unplaced = diagram.edges.map((edge, i) => {
-    const from = index.get(edge.from)!;
-    const to = index.get(edge.to)!;
-    const line = buildLine(edge, nodes[from]!.label, nodes[to]!.label, theme.sizes);
-    // A parent class is laid out before the classes that inherit from or implement it.
-    const toFirst = "kind" in edge && PARENT_KINDS.has(edge.kind);
-    const counts: { fromLabel?: string; toLabel?: string } = "fromLabel" in edge || "toLabel" in edge ? edge : {};
-    const shareKeys = { ...shared(line, "from", counts.fromLabel), ...shared(line, "to", counts.toLabel) };
-    return {
-      ...line,
-      from,
-      to,
-      toFirst,
-      ...(Object.keys(shareKeys).length > 0 ? { shareKeys } : {}),
-      path: `edges[${i}]`,
-    };
-  });
-  // Only flowcharts have notes, each joined by a connector to the shape it's about.
-  const flowNodes = diagram.type === "flow" ? diagram.nodes : [];
-  const connectors = flowNodes.flatMap((node, i) => {
-    if (node.about === undefined) return [];
-    const to = index.get(node.about)!;
-    return [{ ...buildConnector(node, flowNodes[to]!), from: i, to, path: `nodes[${i}].about` }];
-  });
-  // Each card leaves room for the ends of the lines and connectors ELK puts on it, clear of its badge and tag.
-  const cards = buildCards(diagram, theme.sizes, [...connectors, ...unplaced]).map((card, i) => ({ ...card, path: `nodes[${i}]`, note: card.kind === "note" }));
-  const lines = unplaced.map((line, i) => {
-    const edge = diagram.edges[i]!;
-    // Only an ER line's ends can name columns.
-    const columns = "fromCardinality" in edge ? { from: edge.fromColumn, to: edge.toColumn } : {};
-    const ports = linePorts(cards[line.from]!, cards[line.to]!, columns, theme.sizes);
-    return { ...line, ...(ports ? { ports } : {}) };
-  });
-  // Area boxes only when asked for: otherwise the areas don't affect the layout at all.
-  const areaIndex = new Map(diagram.areas.map((area, i) => [area.id, i]));
-  const areas = diagram.groupAreas
-    ? buildAreaBoxes(diagram.areas, theme.sizes).map((box) => ({ ...box, path: `areas[${areaIndex.get(box.id)}]` }))
-    : [];
-  const scene = await layout({ cards, lines: [...connectors, ...lines], areas }, PROFILES.get(diagram.type)!, diagram.direction);
-  const header = buildHeader(diagram.title, diagram.description, theme.sizes);
-  // Every card's status, its rows' (taken from the card included) and every line's.
-  const statuses = [...cards.flatMap((card) => [card.status, ...card.rows.map((row) => row.status)]), ...lines.map((line) => line.status)];
-  // The areas named in the drawing: each box names its area, and each tag only its card's own.
-  const tagged = new Set(cards.map((card) => card.area));
-  const named = diagram.groupAreas ? diagram.areas : diagram.areas.filter((area) => tagged.has(area.id));
-  // The legend wraps to the diagram's width, or to the title's widest when that's wider, so it never widens the image.
-  const legendWidth = Math.max(scene.width, theme.sizes.header.maxWidth);
-  const legend = diagram.legend ? buildLegend(statuses, named, legendWidth, theme.sizes) : undefined;
-  const drawing = { scene, header, legend };
+  const { drawing, theme } = await parsed.use((diagram, type) => draw(diagram, type, themeName));
 
   const result: Partial<Outputs> = {};
   if (formats.includes("svg")) result.svg = paint(drawing, theme, { embedFonts });
@@ -100,14 +48,57 @@ export async function render<F extends Format = "svg">(
 }
 
 /**
- * The key layout shares a line's end by, at `end`, when it has a mark lines
- * share there: lines share an end only where they're drawn alike, the same
- * kind, status and weight, with the same count or none.
+ * Lays a diagram out and gets everything around it ready to paint, in the
+ * theme named, or the diagram's own: its cards and lines are built the way
+ * its type builds them, and laid out with its type's profile.
  */
-function shared(line: Line, end: "from" | "to", count: string | undefined): Partial<Record<"from" | "to", string>> {
-  const mark = line.marks[end];
-  if (mark === undefined || !LINE_ENDS[mark].shared) return {};
-  return { [end]: JSON.stringify([line.kind, line.status ?? null, line.emphasis, count ?? null]) };
+async function draw<N extends DiagramNode, E extends DiagramEdge>(
+  diagram: DiagramModel<string, N, E>,
+  type: DiagramType<N, E>,
+  themeName: ThemeName | undefined,
+): Promise<{ drawing: Drawing; theme: Theme }> {
+  const theme = getTheme(themeName ?? diagram.theme);
+  const { nodes } = diagram;
+  const index = new Map(nodes.map((node, i) => [node.id, i]));
+  const unplaced = diagram.edges.map((edge, i) => {
+    const from = index.get(edge.from)!;
+    const to = index.get(edge.to)!;
+    return { ...type.line(edge, nodes[from]!, nodes[to]!, theme.sizes), from, to, path: `edges[${i}]` };
+  });
+  // Notes, which only flowcharts have, are each joined by a connector to the shape they're about.
+  const connectors = nodes.flatMap((node, i) => {
+    const about = type.about?.(node);
+    if (about === undefined) return [];
+    const to = index.get(about)!;
+    return [{ ...buildConnector(node, nodes[to]!), from: i, to, path: `nodes[${i}].about` }];
+  });
+  // Each card leaves room for the ends of the lines and connectors ELK puts on it, clear of its badge and tag.
+  const cards = buildCards(diagram, type.card, theme.sizes, [...connectors, ...unplaced]).map((card, i) => ({
+    ...card,
+    path: `nodes[${i}]`,
+    note: card.kind === "note",
+  }));
+  // Lines whose ends attach at fixed points, as a relationship's do at its tables' columns and headers, get their ports.
+  const lines = unplaced.map((line) => {
+    const ports = line.columns ? linePorts(cards[line.from]!, cards[line.to]!, line.columns, theme.sizes) : undefined;
+    return { ...line, ...(ports ? { ports } : {}) };
+  });
+  // Area boxes only when asked for: otherwise the areas don't affect the layout at all.
+  const areaIndex = new Map(diagram.areas.map((area, i) => [area.id, i]));
+  const areas = diagram.groupAreas
+    ? buildAreaBoxes(diagram.areas, theme.sizes).map((box) => ({ ...box, path: `areas[${areaIndex.get(box.id)}]` }))
+    : [];
+  const scene = await layout({ cards, lines: [...connectors, ...lines], areas }, type.profile, diagram.direction);
+  const header = buildHeader(diagram.title, diagram.description, theme.sizes);
+  // Every card's status, its rows' (taken from the card included) and every line's.
+  const statuses = [...cards.flatMap((card) => [card.status, ...card.rows.map((row) => row.status)]), ...lines.map((line) => line.status)];
+  // The areas named in the drawing: each box names its area, and each tag only its card's own.
+  const tagged = new Set(cards.map((card) => card.area));
+  const named = diagram.groupAreas ? diagram.areas : diagram.areas.filter((area) => tagged.has(area.id));
+  // The legend wraps to the diagram's width, or to the title's widest when that's wider, so it never widens the image.
+  const legendWidth = Math.max(scene.width, theme.sizes.header.maxWidth);
+  const legend = diagram.legend ? buildLegend(statuses, named, legendWidth, theme.sizes) : undefined;
+  return { drawing: { scene, header, legend }, theme };
 }
 
 interface CheckedOptions {

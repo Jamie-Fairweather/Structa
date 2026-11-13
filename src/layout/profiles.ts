@@ -1,11 +1,10 @@
 import type { LayoutOptions } from "elkjs/lib/elk-api";
-import type { Diagram } from "../input";
 
 /**
- * A fixed ELK option profile for one diagram type, passed whole as global
- * layout options. The direction isn't part of it: it comes from the input.
- * Bump `version` whenever an option changes: every snapshot of that type must
- * then be re-reviewed.
+ * A fixed ELK option profile for one diagram type, given it by the registry
+ * of diagram types, and passed whole as global layout options. The direction
+ * isn't part of it: it comes from the input. Bump `version` whenever an
+ * option changes: every snapshot of that type must then be re-reviewed.
  */
 export interface LayoutProfile {
   readonly name: string;
@@ -104,11 +103,3 @@ export const GROUPED: LayoutOptions = {
   "elk.json.shapeCoords": "ROOT",
   "elk.json.edgeCoords": "ROOT",
 };
-
-/** Each diagram type's profile. */
-export const PROFILES: ReadonlyMap<Diagram["type"], LayoutProfile> = new Map([
-  ["class", CLASS_PROFILE],
-  ["er", ER_PROFILE],
-  ["flow", FLOW_PROFILE],
-  ["architecture", ARCHITECTURE_PROFILE],
-]);
