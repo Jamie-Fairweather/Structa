@@ -10,6 +10,8 @@ import {
   boundsOf,
   byClassIn,
   cardById,
+  cardExtent,
+  cards,
   distanceOutside,
   lines,
   outlineBox,
@@ -18,6 +20,7 @@ import {
   parseSvg,
   rectBox,
   svgDoc,
+  tagOf,
   textLines,
   titleOf,
   type Box,
@@ -456,7 +459,7 @@ describe("ER input", () => {
       {
         path: "nodes[0].properties",
         message: 'unknown field "properties"',
-        hint: "allowed fields: id, label, description, status, columns, more",
+        hint: "allowed fields: id, label, description, area, status, columns, more",
       },
     ]);
   });
@@ -871,6 +874,78 @@ describe("where relationships attach", () => {
     const marks = [split, merged].flatMap((l) => [marksBox(l!.line, "from"), marksBox(l!.line, "to")]);
     for (const [i, a] of marks.entries()) for (const b of marks.slice(i + 1)) expect(overlaps(a, b)).toBe(false);
     expect(overlaps(labelBox(doc, split!.id), labelBox(doc, merged!.id))).toBe(false);
+  });
+});
+
+/**
+ * An allotment's tables in areas: members on their own, plots in the land,
+ * beds in an area inside it, and crops in none. Members can mentor each other,
+ * and a bed's crops aren't enforced.
+ */
+function grounds(fields: object = {}) {
+  const table = (id: string, area?: string) => ({ id, label: id, ...(area ? { area } : {}), columns: [{ name: "id", type: "uuid", pk: true }] });
+  const link = (from: string, to: string, label?: string) => ({ from, to, fromCardinality: "zero-or-many", toCardinality: "one", ...(label ? { label } : {}) });
+  return {
+    type: "er",
+    areas: [
+      { id: "people", label: "People" },
+      { id: "land", label: "Land" },
+      { id: "beds", label: "Raised beds", parent: "land" },
+    ],
+    nodes: [table("members", "people"), table("plots", "land"), table("beds", "beds"), table("crops")],
+    edges: [link("plots", "members", "held by"), link("members", "members", "mentored by"), link("beds", "plots"), { ...link("beds", "crops"), enforced: false }],
+    ...fields,
+  };
+}
+
+/** Whether `inner` lies wholly inside `outer`. */
+function inside(inner: Box, outer: Box): boolean {
+  return inner.x >= outer.x && inner.y >= outer.y && inner.x + inner.width <= outer.x + outer.width && inner.y + inner.height <= outer.y + outer.height;
+}
+
+describe("ER tables in areas", () => {
+  it("checks a table's area like any card's", async () => {
+    const input = grounds();
+    input.nodes[3]!.area = "sheds";
+
+    expect(await problems(input)).toEqual([{ path: "nodes[3].area", message: 'no area with id "sheds"', hint: 'use the id of one of the areas in "areas"' }]);
+  });
+
+  it("shows a table's innermost area in a tag on its top-left border, keeping the standard width", async () => {
+    const doc = await svgDoc(grounds());
+
+    for (const [id, name] of [["members", "People"], ["plots", "Land"], ["beds", "Raised beds"]] as const) {
+      const card = cardById(doc, id);
+      const { tag, box } = tagOf(card)!;
+      const outline = outlineBox(card);
+      expect(textLines(tag)).toEqual([name]);
+      expect(box.y + box.height / 2).toBeCloseTo(outline.y, 5);
+      expect(box.x).toBeGreaterThan(outline.x);
+    }
+    expect(tagOf(cardById(doc, "crops"))).toBeUndefined();
+    expect(cards(doc).map((card) => outlineBox(card).width)).toEqual([360, 360, 360, 360]);
+  });
+
+  it.each(["right", "down"] as const)("puts each table in its area's box, and follows the side rule across the boxes, direction %s", async (direction) => {
+    const doc = await svgDoc(grounds({ groupAreas: true, direction }));
+    const holds = new Map([
+      ["people", ["members"]],
+      ["land", ["plots", "beds"]],
+      ["beds", ["beds"]],
+    ]);
+    const areas = allElements(doc).filter((el) => el.getAttribute("class") === "area");
+
+    expect(areas.map((area) => area.getAttribute("data-area"))).toEqual(["people", "land", "beds"]);
+    for (const area of areas) {
+      const id = area.getAttribute("data-area")!;
+      const box = rectBox(byClassIn(area, "area-box")[0]!);
+      for (const card of cards(doc)) {
+        const table = card.getAttribute("data-id")!;
+        const placed = holds.get(id)!.includes(table) ? inside(cardExtent(card), box) : !overlaps(cardExtent(card), box);
+        expect([id, table, placed]).toEqual([id, table, true]);
+      }
+    }
+    for (const { id, order, sides, expected } of sideRule(doc, direction)) expect([id, order, ...sides]).toEqual([id, order, ...expected]);
   });
 });
 

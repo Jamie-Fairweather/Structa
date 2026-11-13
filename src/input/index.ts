@@ -168,6 +168,8 @@ export interface TableNode {
   /** The table's name, tidied. */
   readonly label: string;
   readonly description?: string;
+  /** The id of the innermost area the card is in. */
+  readonly area?: string;
   readonly status?: Status;
   readonly columns: readonly TableColumn[];
   /** How many columns were left out on purpose. */

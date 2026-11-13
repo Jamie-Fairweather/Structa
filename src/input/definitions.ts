@@ -749,6 +749,7 @@ const TABLE_NODE: ObjectDef = {
       { kind: "text", text: DESCRIPTION, faces: [TABLE_DESCRIPTION_FACE] },
       "a short sentence drawn under the name",
     ),
+    areaField("the id of the area the table is in"),
     optional("status", STATUS, "what the change does to this card; leave it out for no status"),
     optional(
       "columns",
@@ -782,7 +783,7 @@ const ER_EDGE = edge({ kind: "ref", to: "node" }, "", [
 /** Each implemented type's definition, in DIAGRAM_TYPES order. */
 export const DEFINITIONS: ReadonlyMap<string, ObjectDef> = new Map([
   ["class", diagram(CLASS_NODE, CLASS_EDGE, "down", [areaRule])],
-  ["er", diagram(TABLE_NODE, ER_EDGE, "right", [])],
+  ["er", diagram(TABLE_NODE, ER_EDGE, "right", [areaRule])],
   ["flow", diagram(FLOW_NODE, FLOW_EDGE, "down", [areaRule, noteAreaRule])],
   ["architecture", diagram(ARCHITECTURE_NODE, ARCHITECTURE_EDGE, "down", [areaRule])],
 ]);

@@ -274,7 +274,10 @@ async function run<C extends LayoutCard, L extends LayoutLine, A extends LayoutA
   // them, and ELK moves them only as far as the lines need. With direction right,
   // the sides only depend on the layer order, which reversing lines keeps, so ELK
   // stays free to line the tables up for straight lines between their headers.
-  const seeded = from !== undefined && direction === "down";
+  // Inside area boxes ELK 0.12.1's interactive strategies scatter the cards out of
+  // their boxes, so there each pass lays out afresh, and the side rule's reruns
+  // settle the sides.
+  const seeded = from !== undefined && direction === "down" && graph.areas.length === 0;
   const elkGraph = buildGraph(graph, direction, ports.byCard, ends, seeded ? from : undefined);
   // Outside the try: a missing elk.bundled.js is a broken install, not a layout failure.
   const elk = createElk();

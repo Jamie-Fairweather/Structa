@@ -122,7 +122,7 @@ export function buildCards(diagram: Diagram, sizes: Sizes): Card[] {
   const tagOf = (node: { readonly area?: string }) =>
     diagram.groupAreas || node.area === undefined ? undefined : names.get(node.area);
   if (diagram.type === "class") return frameCards(diagram.nodes, sizes, tagOf, (node, minWidth) => classBody(node, sizes, minWidth));
-  if (diagram.type === "er") return frameCards(diagram.nodes, sizes, () => undefined, (node, minWidth) => tableBody(node, sizes, minWidth));
+  if (diagram.type === "er") return frameCards(diagram.nodes, sizes, tagOf, (node, minWidth) => tableBody(node, sizes, minWidth));
   if (diagram.type === "architecture") {
     // A class in an architecture diagram is the same class card a class diagram draws.
     return frameCards(diagram.nodes, sizes, tagOf, (node, minWidth) =>
