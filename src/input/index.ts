@@ -72,9 +72,9 @@ export interface ClassRow {
   readonly id: string;
   readonly text: string;
   readonly visibility?: Visibility;
-  /** Drawn underlined. An enum's values never are. */
+  /** Drawn underlined. */
   readonly static: boolean;
-  /** Drawn in italics. An enum's values never are. */
+  /** Drawn in italics. */
   readonly abstract: boolean;
   /** Its own status, or, when it has none, its card's when the card is new or removed. */
   readonly status?: Status;
@@ -158,23 +158,21 @@ export function parseDiagram(input: unknown): ParseResult {
   };
 }
 
-/** A class node as checked: rows may have no id yet, and an enum's values have no flags. */
+/** A class node as checked: rows may have no id yet. */
 type WithoutIds<N extends ClassNode> = Omit<N, (typeof CLASS_SECTIONS)[number]> & {
-  readonly [section in (typeof CLASS_SECTIONS)[number]]: readonly (Omit<ClassRow, "id" | "static" | "abstract"> &
-    Partial<Pick<ClassRow, "id" | "static" | "abstract">>)[];
+  readonly [section in (typeof CLASS_SECTIONS)[number]]: readonly (Omit<ClassRow, "id"> & { id?: string })[];
 };
 
 /**
  * Gives every row its id (its own, or its section and position) and its
- * status: a row without one in a new or removed card takes the card's. An
- * enum's values, which can't be static or abstract, are neither.
+ * status: a row without one in a new or removed card takes the card's.
  */
 function classNode(node: WithoutIds<ClassNode>): ClassNode {
   const inherited = node.status === "new" || node.status === "removed" ? node.status : undefined;
   const [properties, methods, values] = CLASS_SECTIONS.map((section) =>
     node[section].map((row, i): ClassRow => {
       const status = row.status ?? inherited;
-      return { static: false, abstract: false, ...row, id: row.id ?? `${section}[${i}]`, ...(status === undefined ? {} : { status }) };
+      return { ...row, id: row.id ?? `${section}[${i}]`, ...(status === undefined ? {} : { status }) };
     }),
   );
   return { ...node, properties: properties!, methods: methods!, values: values! };

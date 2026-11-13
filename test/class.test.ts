@@ -520,6 +520,20 @@ describe("enums", () => {
     expect(rows(cardById(added, "season")).map((row) => row.getAttribute("data-status"))).toEqual(["new", "new", "new"]);
   });
 
+  it("draws a value's visibility symbol, underlines a static value and italicises an abstract one, as on any row", async () => {
+    const doc = await svgDoc(season({ values: [{ text: "SPRING", visibility: "public", static: true }, { text: "SUMMER", abstract: true }] }));
+
+    const [spring, summer] = rows(cardById(doc, "season"));
+    expect(symbolOf(spring!)!.textContent).toBe("+");
+    expect(byClassIn(spring!, "underline")).toHaveLength(1);
+    expect(memberTexts(spring!).map(faceOf)).toEqual(["Structa JetBrains Mono 400 normal"]);
+    expect(byClassIn(summer!, "underline")).toEqual([]);
+    expect(memberTexts(summer!).map(faceOf)).toEqual(["Structa JetBrains Mono 400 italic"]);
+    // A value without a symbol still lines up after the symbol's column.
+    expect(numberAttr(memberTexts(summer!)[0]!, "x")).toBe(numberAttr(memberTexts(spring!)[0]!, "x"));
+    expect(titleOf(spring!)).toBe("+ SPRING");
+  });
+
   it("holds an enum's values to its status like any rows", async () => {
     expect(await problems(season({ status: "new", values: [{ text: "SPRING", status: "removed" }] }))).toEqual([
       {
@@ -564,7 +578,7 @@ describe("enums", () => {
   });
 
   it("checks a value's own fields, and reports it all together with the enum's other problems, in order", async () => {
-    const input = season({ methods: [], values: [{ id: "spring", text: "SPRING", visibility: "public" }, { id: "spring" }] });
+    const input = season({ methods: [], values: [{ id: "spring", text: "SPRING", ordinal: 1 }, { id: "spring" }] });
 
     expect(await problems(input)).toEqual([
       {
@@ -572,7 +586,11 @@ describe("enums", () => {
         message: `a node with "stereotype": "enum" can't have "methods"`,
         hint: "list an enum's rows in values",
       },
-      { path: "nodes[0].values[0].visibility", message: 'unknown field "visibility"', hint: "allowed fields: text, id, status" },
+      {
+        path: "nodes[0].values[0].ordinal",
+        message: 'unknown field "ordinal"',
+        hint: "allowed fields: text, id, visibility, static, abstract, status",
+      },
       {
         path: "nodes[0].values[1].text",
         message: 'missing required field "text"',

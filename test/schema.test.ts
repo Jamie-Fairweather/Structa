@@ -202,10 +202,18 @@ describe("the JSON Schema", () => {
     }
   });
 
-  /** The first row of a class card's section: its part of the schema, and the row in the input. */
-  const classRow = (section: "properties" | "methods") => ({
+  /** The class sections that hold rows, each in the fixture's first card that has it. */
+  const ROW_SECTIONS = [
+    ["properties", 0],
+    ["methods", 0],
+    ["values", 2],
+  ] as const;
+
+  /** The first row of a class card's section: its part of the schema, its card and the row in the input. */
+  const classRow = (section: (typeof ROW_SECTIONS)[number][0], n: number) => ({
     part: () => items("class", "nodes").properties[section].items,
-    row: (input: Node) => input.nodes[0][section][0],
+    card: (input: Node) => input.nodes[n],
+    row: (input: Node) => input.nodes[n][section][0],
   });
 
   it.each<readonly [name: string, type: string, part: () => Node, set: (input: Node, value: string) => void]>([
@@ -231,8 +239,8 @@ describe("the JSON Schema", () => {
       },
     ],
     ["class edge kind", "class", () => items("class", "edges"), (input, value) => (input.edges[0].kind = value)],
-    ...(["properties", "methods"] as const).flatMap((section) => {
-      const { part, row } = classRow(section);
+    ...ROW_SECTIONS.flatMap(([section, n]) => {
+      const { part, card, row } = classRow(section, n);
       return [
         [`${section} row visibility`, "class", part, (input: Node, value: string) => (row(input).visibility = value)],
         [
@@ -241,7 +249,7 @@ describe("the JSON Schema", () => {
           part,
           (input: Node, value: string) => {
             // A row with a status needs its card to have one; a changed card's rows may have any.
-            input.nodes[0].status = "changed";
+            card(input).status = "changed";
             row(input).status = value;
           },
         ],
@@ -267,17 +275,12 @@ describe("the JSON Schema", () => {
     ["legend", "flow", () => root, (input, value) => (input.legend = value)],
     ["emphasis", "flow", () => edge, (input, value) => (input.edges[0].emphasis = value)],
     ["class abstract", "class", () => items("class", "nodes"), (input, value) => (input.nodes[0].abstract = value)],
-    ...(["properties", "methods"] as const).flatMap((section) =>
-      (["static", "abstract"] as const).map(
-        (flag) =>
-          [
-            `${section} row ${flag}`,
-            "class",
-            () => items("class", "nodes").properties[section].items,
-            (input: Node, value: unknown) => (input.nodes[0][section][0][flag] = value),
-          ] as const,
-      ),
-    ),
+    ...ROW_SECTIONS.flatMap(([section, n]) => {
+      const { part, row } = classRow(section, n);
+      return (["static", "abstract"] as const).map(
+        (flag) => [`${section} row ${flag}`, "class", part, (input: Node, value: unknown) => (row(input)[flag] = value)] as const,
+      );
+    }),
   ])("agrees with render() that %s is true or false, and false when left out", async (name, type, part, set) => {
     const field = part().properties[name.split(" ").at(-1)!];
     expect(field.type).toBe("boolean");

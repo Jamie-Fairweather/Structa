@@ -116,10 +116,10 @@ function moreLine(count: number, top: number, textX: number, sizes: Sizes): Text
 }
 
 /**
- * One member's row, from `top` down: its text wrapped after its visibility
- * symbol and, when it has a status, clear of the badge at its right-hand end.
- * An abstract member's text is italic and a static member's is underlined;
- * its symbol, a mark in its own column, stays upright and plain.
+ * One row, a member or an enum value, from `top` down: its text wrapped after
+ * its visibility symbol and, when it has a status, clear of the badge at its
+ * right-hand end. An abstract row's text is italic and a static row's is
+ * underlined; its symbol, a mark in its own column, stays upright and plain.
  */
 function classRow(
   member: ClassRow,

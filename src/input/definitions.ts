@@ -351,40 +351,27 @@ const rowLimitRule: Rule = (_checked, given, path) => {
   return [{ path, message: `has ${total} rows; the limit is ${ROWS_PER_CARD} per card`, hint: ROWS_HINT }];
 };
 
-/** One member of a class: a property or a method, called `noun` in messages. */
-function classRow(section: (typeof MEMBER_SECTIONS)[number], noun: string): ObjectDef {
+const MEMBER_TEXT = "the member as you'd write it, such as a name and type or a signature";
+
+/** One row of a class: a property, a method or an enum value, called `noun` in messages, its text described by `text`. */
+function classRow(section: ClassSection, noun: string, text: string): ObjectDef {
   return {
     kind: "object",
     noun,
     fields: [
-      required(
-        "text",
-        { kind: "text", text: ROW_TEXT, faces: [ROW_TEXT_FACE, ABSTRACT_ROW_TEXT_FACE] },
-        "the member as you'd write it, such as a name and type or a signature",
-      ),
+      required("text", { kind: "text", text: ROW_TEXT, faces: [ROW_TEXT_FACE, ABSTRACT_ROW_TEXT_FACE] }, text),
       optional("id", { kind: "id", of: "row" }, `an id unique within the card; without one the row is known as ${section}[N]`),
       optional(
         "visibility",
         { kind: "choice", values: VISIBILITIES, later: false },
         "drawn before the text: + public, - private, # protected, ~ package",
       ),
-      optional("static", BOOLEAN, "true underlines the member's text", false),
-      optional("abstract", BOOLEAN, "true draws the member's text in italics", false),
+      optional("static", BOOLEAN, "true underlines the row's text", false),
+      optional("abstract", BOOLEAN, "true draws the row's text in italics", false),
       optional("status", STATUS, "what the change does to this row; leave it out for no status"),
     ],
   };
 }
-
-/** One value of an enum. Enum values are never static or abstract, and have no visibility. */
-const ENUM_VALUE: ObjectDef = {
-  kind: "object",
-  noun: "value",
-  fields: [
-    required("text", { kind: "text", text: ROW_TEXT, faces: [ROW_TEXT_FACE] }, "the value as you'd write it, such as a constant's name"),
-    optional("id", { kind: "id", of: "row" }, "an id unique within the card; without one the row is known as values[N]"),
-    optional("status", STATUS, "what the change does to this row; leave it out for no status"),
-  ],
-};
 
 const CLASS_NODE: ObjectDef = {
   kind: "object",
@@ -418,7 +405,7 @@ const CLASS_NODE: ObjectDef = {
     {
       ...optional(
         "properties",
-        { kind: "list", noun: "properties", items: classRow("properties", "property"), maxItems: ROWS_PER_CARD, limitHint: ROWS_HINT },
+        { kind: "list", noun: "properties", items: classRow("properties", "property", MEMBER_TEXT), maxItems: ROWS_PER_CARD, limitHint: ROWS_HINT },
         "the class's properties, in order; not for an enum",
         [],
       ),
@@ -427,7 +414,7 @@ const CLASS_NODE: ObjectDef = {
     {
       ...optional(
         "methods",
-        { kind: "list", noun: "methods", items: classRow("methods", "method"), maxItems: ROWS_PER_CARD, limitHint: ROWS_HINT },
+        { kind: "list", noun: "methods", items: classRow("methods", "method", MEMBER_TEXT), maxItems: ROWS_PER_CARD, limitHint: ROWS_HINT },
         "the class's methods, in order, drawn under the properties; not for an enum",
         [],
       ),
@@ -436,7 +423,7 @@ const CLASS_NODE: ObjectDef = {
     {
       ...optional(
         "values",
-        { kind: "list", noun: "values", items: ENUM_VALUE, maxItems: ROWS_PER_CARD, limitHint: ROWS_HINT },
+        { kind: "list", noun: "values", items: classRow("values", "value", "the value as you'd write it, such as a constant's name"), maxItems: ROWS_PER_CARD, limitHint: ROWS_HINT },
         'an enum\'s values, in order; only with "stereotype": "enum"',
         [],
       ),
