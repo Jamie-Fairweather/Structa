@@ -372,7 +372,44 @@ describe("checking areas", () => {
 
     expect(await problems(shed)).toEqual([{ path: "nodes[1].area", message: 'no area with id "garden"', hint: AREA_HINT }]);
   });
+
+  it("checks areas in architecture diagrams too, on component and class cards", async () => {
+    const hire = bikeHire();
+    hire.nodes.push(
+      { id: "repairs", label: "Repair queue", kind: "queue", area: "depot" },
+      { id: "bike", label: "Bike", kind: "class", area: "depot" },
+    );
+
+    expect(await problems(hire)).toEqual([
+      { path: "nodes[4].area", message: 'no area with id "depot"', hint: AREA_HINT },
+      { path: "nodes[5].area", message: 'no area with id "depot"', hint: AREA_HINT },
+    ]);
+  });
 });
+
+/** A bike-hire system: a kiosk inside the docking stations, a component in the cloud, and a class card. */
+function bikeHire(extra: Obj = {}): Diagram {
+  return {
+    type: "architecture",
+    ...extra,
+    areas: [
+      { id: "stations", label: "Docking stations" },
+      { id: "kiosk", label: "Kiosk", parent: "stations" },
+      { id: "cloud", label: "Hire cloud" },
+    ],
+    nodes: [
+      { id: "screen", label: "Kiosk screen", kind: "ui", area: "kiosk", status: "new" },
+      { id: "rentals", label: "Rental service", kind: "service", area: "cloud" },
+      { id: "dock", label: "Dock", kind: "class", area: "stations", properties: [{ text: "bikes: Bike[]" }] },
+      { id: "rides", label: "Ride log", kind: "database" },
+    ],
+    edges: [
+      { from: "screen", to: "rentals" },
+      { from: "rentals", to: "dock" },
+      { from: "rentals", to: "rides", kind: "async" },
+    ],
+  };
+}
 
 /** Every flowchart shape, each in the bakery's areas, with some statuses. */
 function everyShape(extra: Obj = {}) {
@@ -493,6 +530,24 @@ describe("area tags", () => {
     expect(tag.x).toBeGreaterThan(outline.x);
     expect(tag.x + tag.width).toBeLessThan(badgeBox(card)!.x);
     expect(cards(doc).map((c) => outlineBox(c).width)).toEqual([360, 360]);
+  });
+
+  it("puts tags on an architecture diagram's component and class cards, and none on a card with no area", async () => {
+    const doc = await svgDoc(bikeHire());
+
+    for (const [id, name] of [["screen", "Kiosk"], ["rentals", "Hire cloud"], ["dock", "Docking stations"]] as const) {
+      const card = cardById(doc, id);
+      const { tag, box } = tagOf(card)!;
+      const outline = outlineBox(card);
+      expect(card.getAttribute("data-area")).toBe(tag.getAttribute("data-area"));
+      expect(textLines(tag)).toEqual([name]);
+      expect(box.y + box.height / 2).toBeCloseTo(outline.y, 5);
+      expect(box.x).toBeGreaterThan(outline.x);
+      expect(box.x + box.width).toBeLessThan(outline.x + outline.width);
+    }
+    const screen = cardById(doc, "screen");
+    expect(tagBox(screen)!.x + tagBox(screen)!.width).toBeLessThan(badgeBox(screen)!.x);
+    expect(tagOf(cardById(doc, "rides"))).toBeUndefined();
   });
 
   it("widens a card to hold a long area name and its badge, never cutting the name", async () => {
@@ -934,6 +989,19 @@ describe("area boxes", () => {
     expect(inside(cardExtent(cardById(doc, "shears")), blades!.box, 1)).toBe(true);
     expect(inside(blades!.box, tools!.box, 1)).toBe(true);
     expect(overlaps(cardExtent(cardById(doc, "shed")), tools!.box)).toBe(false);
+  });
+
+  it("lays out architecture component and class cards in area boxes too", async () => {
+    const doc = await svgDoc(bikeHire({ groupAreas: true }));
+    const boxes = areaBoxes(doc);
+    const [stations, kiosk, cloud] = ["stations", "kiosk", "cloud"].map((id) => boxes.find((box) => box.id === id));
+
+    expect(inside(cardExtent(cardById(doc, "screen")), kiosk!.box, 1)).toBe(true);
+    expect(inside(cardExtent(cardById(doc, "dock")), stations!.box, 1)).toBe(true);
+    expect(inside(kiosk!.box, stations!.box, 1)).toBe(true);
+    expect(inside(cardExtent(cardById(doc, "rentals")), cloud!.box, 1)).toBe(true);
+    for (const box of [stations!, cloud!]) expect(overlaps(cardExtent(cardById(doc, "rides")), box.box)).toBe(false);
+    for (const card of cards(doc)) expect(tagOf(card)).toBeUndefined();
   });
 
   it("gives the same bytes every time", async () => {
