@@ -1,0 +1,86 @@
+{
+  "type": "class",
+  "title": "Village bakery: ordering ahead online",
+  "description": "Customers can now order bread online for collection or delivery. Each class sits in the part of the bakery it belongs to.",
+  "groupAreas": true,
+  "areas": [
+    { "id": "shop", "label": "Shop website" },
+    { "id": "bakehouse", "label": "Bakehouse" },
+    { "id": "ovens", "label": "Ovens", "parent": "bakehouse" },
+    { "id": "rounds", "label": "Delivery rounds" }
+  ],
+  "nodes": [
+    {
+      "id": "customer",
+      "label": "Customer",
+      "area": "shop",
+      "status": "changed",
+      "methods": [
+        { "text": "orders(): WebOrder[]", "visibility": "public", "status": "new" },
+        { "text": "standingOrder(): Basket", "visibility": "public", "status": "unchanged" }
+      ]
+    },
+    {
+      "id": "order",
+      "label": "WebOrder",
+      "area": "shop",
+      "status": "new",
+      "properties": [
+        { "text": "collectOn: Date", "visibility": "public" },
+        { "text": "delivered: bool", "visibility": "public" }
+      ]
+    },
+    {
+      "id": "line",
+      "label": "OrderLine",
+      "area": "shop",
+      "status": "new",
+      "properties": [{ "text": "quantity: int", "visibility": "public" }]
+    },
+    {
+      "id": "loaf",
+      "label": "Loaf",
+      "area": "bakehouse",
+      "stereotype": "abstract",
+      "properties": [{ "text": "weight: Grams", "visibility": "public" }]
+    },
+    {
+      "id": "sourdough",
+      "label": "Sourdough",
+      "area": "bakehouse",
+      "properties": [{ "text": "proofHours: int", "visibility": "public" }]
+    },
+    {
+      "id": "batch",
+      "label": "BakeBatch",
+      "area": "ovens",
+      "status": "changed",
+      "methods": [
+        { "text": "plan(orders: WebOrder[]): void", "visibility": "public", "status": "new" },
+        { "text": "plan(day: Weekday): void", "visibility": "public", "status": "removed" }
+      ]
+    },
+    {
+      "id": "oven",
+      "label": "Oven",
+      "area": "ovens",
+      "properties": [{ "text": "trays: int", "visibility": "public" }]
+    },
+    {
+      "id": "round",
+      "label": "VanRound",
+      "area": "rounds",
+      "status": "new",
+      "methods": [{ "text": "stops(): Address[]", "visibility": "public" }]
+    }
+  ],
+  "edges": [
+    { "from": "customer", "to": "order", "kind": "association", "directed": true, "fromLabel": "1", "toLabel": "0..*", "label": "places", "status": "new" },
+    { "from": "order", "to": "line", "kind": "composition", "fromLabel": "1", "toLabel": "1..*", "status": "new" },
+    { "from": "line", "to": "loaf", "kind": "association", "directed": true, "fromLabel": "0..*", "toLabel": "1", "status": "new" },
+    { "from": "order", "to": "round", "kind": "association", "fromLabel": "0..*", "toLabel": "0..1", "label": "delivered on", "status": "new" },
+    { "from": "sourdough", "to": "loaf", "kind": "inherits" },
+    { "from": "batch", "to": "loaf", "kind": "aggregation", "fromLabel": "0..1", "toLabel": "1..*", "label": "bakes" },
+    { "from": "batch", "to": "oven", "kind": "association", "directed": true, "fromLabel": "0..*", "toLabel": "1" }
+  ]
+}

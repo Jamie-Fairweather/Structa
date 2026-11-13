@@ -161,21 +161,104 @@ export function lineGeometry(line: Element): { route: PathCommand[]; arrowTip: P
   };
 }
 
+/** How long the path drawn by path data `d` is: its straight runs and its quadratic corners. */
+export function pathLength(d: string): number {
+  let length = 0;
+  let at: Point | undefined;
+  const between = (a: Point, b: Point) => Math.hypot(b.x - a.x, b.y - a.y);
+  for (const { command, points } of parsePath(d)) {
+    if (command === "M") at = points[0]!;
+    else if (command === "L") {
+      length += between(at!, points[0]!);
+      at = points[0]!;
+    } else if (command === "Q") {
+      const [control, end] = [points[0]!, points[1]!];
+      const on = (t: number) => ({
+        x: (1 - t) ** 2 * at!.x + 2 * (1 - t) * t * control.x + t ** 2 * end.x,
+        y: (1 - t) ** 2 * at!.y + 2 * (1 - t) * t * control.y + t ** 2 * end.y,
+      });
+      for (let s = 1; s <= 64; s++) length += between(on((s - 1) / 64), on(s / 64));
+      at = end;
+    } else throw new Error(`can't measure path command ${command}`);
+  }
+  return length;
+}
+
 /** The start and end of a note's connector: its one path, with no arrowhead. */
 export function connectorEnds(connector: Element): [Point, Point] {
   return pathEnds(connector.getElementsByTagName("path")[0]!);
 }
 
 /**
- * Where a line starts and where it ends: the tip of its arrowhead, or the end
- * of its route when it has none, like a class association or an ER
- * relationship, whose crow's feet are drawn after its route.
+ * What's drawn at one end of a line: a closed triangle or diamond, drawn tip
+ * first, or an open arrow, two strokes meeting at the tip in its middle.
+ */
+export interface EndMark {
+  readonly shape: "triangle" | "diamond" | "open-arrow";
+  /** The point that meets the card. */
+  readonly tip: Point;
+  readonly corners: readonly Point[];
+  readonly fill: string | null;
+  readonly stroke: string | null;
+  readonly dashed: boolean;
+  readonly element: Element;
+}
+
+/** A line as drawn: its route (its first path), and the mark at each end that has one. A relationship's crow's feet aren't marks. */
+export interface LineParts {
+  /** The route's points: its start, the corners' control points, its end. */
+  readonly route: readonly Point[];
+  readonly routeElement: Element;
+  readonly dashed: boolean;
+  readonly start?: EndMark;
+  readonly end?: EndMark;
+}
+
+export function lineParts(line: Element): LineParts {
+  const [routeElement, ...others] = Array.from(line.getElementsByTagName("path"));
+  if (!routeElement) throw new Error(`line ${line.getAttribute("data-id")} has no route`);
+  const route = parsePath(routeElement.getAttribute("d")!).flatMap((c) => c.points);
+  const crowsFoot = (path: Element) => (path.parentNode as Element | null)?.getAttribute("class") === "end";
+  const marks = others.filter((path) => !crowsFoot(path)).map((path): EndMark => {
+    const commands = parsePath(path.getAttribute("d")!);
+    const corners = commands.flatMap((c) => c.points);
+    const closed = commands.at(-1)?.command === "Z";
+    if (closed ? corners.length !== 3 && corners.length !== 4 : corners.length !== 3) {
+      throw new Error(`line ${line.getAttribute("data-id")} has an end mark of no known shape: ${path.getAttribute("d")}`);
+    }
+    return {
+      shape: !closed ? "open-arrow" : corners.length === 3 ? "triangle" : "diamond",
+      tip: closed ? corners[0]! : corners[1]!,
+      corners,
+      fill: path.getAttribute("fill"),
+      stroke: path.getAttribute("stroke"),
+      dashed: path.hasAttribute("stroke-dasharray"),
+      element: path,
+    };
+  });
+  // Each mark is at the end of the route its tip is nearer.
+  const near = (mark: EndMark, p: Point) => Math.hypot(mark.tip.x - p.x, mark.tip.y - p.y);
+  const atStart = marks.filter((mark) => near(mark, route[0]!) < near(mark, route.at(-1)!));
+  const atEnd = marks.filter((mark) => !atStart.includes(mark));
+  if (atStart.length > 1 || atEnd.length > 1) throw new Error(`line ${line.getAttribute("data-id")} has more than one mark at an end`);
+  return {
+    route,
+    routeElement,
+    dashed: routeElement.hasAttribute("stroke-dasharray"),
+    ...(atStart[0] ? { start: atStart[0] } : {}),
+    ...(atEnd[0] ? { end: atEnd[0] } : {}),
+  };
+}
+
+/**
+ * Where a line starts and where it ends: the tip of the mark at each end, or
+ * the end of its route where there's none. An ER relationship's route runs
+ * right to its tables, its crow's feet drawn over it after.
  */
 export function lineEnds(line: Element): [Point, Point] {
-  const paths = Array.from(line.getElementsByTagName("path"));
-  if (paths.every((path) => path.getAttribute("fill") === "none")) return pathEnds(paths[0]!);
-  const { route, arrowTip } = lineGeometry(line);
-  return [route[0]!.points[0]!, arrowTip];
+  if (line.getAttribute("data-kind") === "relationship") return pathEnds(line.getElementsByTagName("path")[0]!);
+  const { route, start, end } = lineParts(line);
+  return [start?.tip ?? route[0]!, end?.tip ?? route.at(-1)!];
 }
 
 function pathEnds(path: Element): [Point, Point] {

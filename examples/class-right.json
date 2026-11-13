@@ -1,0 +1,69 @@
+{
+  "type": "class",
+  "direction": "right",
+  "title": "Town bike hire",
+  "description": "The scheme runs its docks, and each dock holds bikes. E-bikes are new, and every hire is priced from the current price list.",
+  "nodes": [
+    {
+      "id": "rider",
+      "label": "Rider",
+      "properties": [{ "text": "cardNumber: string", "visibility": "private" }],
+      "methods": [{ "text": "startHire(at: Dock): Hire", "visibility": "public" }]
+    },
+    {
+      "id": "hire",
+      "label": "Hire",
+      "properties": [
+        { "text": "startedAt: DateTime", "visibility": "public" },
+        { "text": "endedAt: DateTime?", "visibility": "public" }
+      ],
+      "methods": [{ "text": "cost(): Money", "visibility": "public" }]
+    },
+    {
+      "id": "prices",
+      "label": "PriceList",
+      "methods": [{ "text": "forMinutes(minutes: int, bike: Bike): Money", "visibility": "public" }]
+    },
+    {
+      "id": "scheme",
+      "label": "HireScheme",
+      "methods": [{ "text": "nearestDock(to: Location): Dock", "visibility": "public" }]
+    },
+    {
+      "id": "dock",
+      "label": "Dock",
+      "properties": [{ "text": "location: Location", "visibility": "public" }],
+      "methods": [{ "text": "release(bike: Bike): void", "visibility": "public" }]
+    },
+    {
+      "id": "bike",
+      "label": "Bike",
+      "properties": [{ "text": "frameNumber: string", "visibility": "public" }]
+    },
+    {
+      "id": "ebike",
+      "label": "EBike",
+      "status": "new",
+      "properties": [{ "text": "charge: Percent", "visibility": "public" }],
+      "methods": [{ "text": "needsCharging(): bool", "visibility": "public" }]
+    },
+    {
+      "id": "lockable",
+      "label": "Lockable",
+      "stereotype": "interface",
+      "methods": [
+        { "text": "lock(): void", "visibility": "public", "abstract": true },
+        { "text": "unlock(code: string): bool", "visibility": "public", "abstract": true }
+      ]
+    }
+  ],
+  "edges": [
+    { "from": "rider", "to": "hire", "kind": "association", "directed": true, "fromLabel": "1", "toLabel": "0..*", "label": "takes" },
+    { "from": "hire", "to": "bike", "kind": "association", "fromLabel": "0..*", "toLabel": "1" },
+    { "from": "hire", "to": "prices", "kind": "dependency", "label": "priced by" },
+    { "from": "scheme", "to": "dock", "kind": "composition", "fromLabel": "1", "toLabel": "1..*", "label": "runs" },
+    { "from": "dock", "to": "bike", "kind": "aggregation", "fromLabel": "0..1", "toLabel": "0..*", "label": "holds" },
+    { "from": "ebike", "to": "bike", "kind": "inherits", "status": "new" },
+    { "from": "bike", "to": "lockable", "kind": "implements" }
+  ]
+}

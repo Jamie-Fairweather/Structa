@@ -375,6 +375,7 @@
           "edges": {
             "type": "array",
             "items": {
+              "description": "One relationship between two classes, drawn as UML draws it. For inherits and implements, \"from\" is the child and \"to\" the parent: a hollow triangle points at the parent, which is drawn before its children, and these lines can't go round in a loop. For composition and aggregation, \"from\" is the owner, which gets the diamond. A dependency, and a directed association, point an arrow at \"to\". Implements and dependency lines are dashed.",
               "type": "object",
               "properties": {
                 "id": {
@@ -412,8 +413,29 @@
                 "kind": {
                   "description": "the relationship the line shows",
                   "enum": [
-                    "association"
+                    "inherits",
+                    "implements",
+                    "composition",
+                    "aggregation",
+                    "association",
+                    "dependency"
                   ]
+                },
+                "fromLabel": {
+                  "description": "a count drawn beside the line where it leaves \"from\", such as 1 or 0..*",
+                  "$ref": "#/$defs/endLabel",
+                  "type": "string",
+                  "pattern": "^[\\u0020-\\u007E\\u00A0-\\u00AC\\u00AE-\\u0148\\u014A-\\u017F\\u2010-\\u2015\\u2018-\\u2022\\u2026\\u2030\\u2032-\\u2033\\u2039-\\u203A\\u20AC\\u2122\\u2190-\\u2195\\u21D0\\u21D2\\u21D4\\u2212\\u221E\\u2248\\u2260\\u2264-\\u2265]*$"
+                },
+                "toLabel": {
+                  "description": "a count drawn beside the line where it reaches \"to\", such as 1 or 0..*",
+                  "$ref": "#/$defs/endLabel",
+                  "type": "string",
+                  "pattern": "^[\\u0020-\\u007E\\u00A0-\\u00AC\\u00AE-\\u0148\\u014A-\\u017F\\u2010-\\u2015\\u2018-\\u2022\\u2026\\u2030\\u2032-\\u2033\\u2039-\\u203A\\u20AC\\u2122\\u2190-\\u2195\\u21D0\\u21D2\\u21D4\\u2212\\u221E\\u2248\\u2260\\u2264-\\u2265]*$"
+                },
+                "directed": {
+                  "description": "associations only: true draws an arrow at \"to\", the class the association is navigable to",
+                  "type": "boolean"
                 }
               },
               "required": [
@@ -421,6 +443,18 @@
                 "to",
                 "kind"
               ],
+              "dependentSchemas": {
+                "directed": {
+                  "properties": {
+                    "kind": {
+                      "const": "association"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              },
               "additionalProperties": false
             }
           }
@@ -1213,6 +1247,13 @@
       "type": "string",
       "minLength": 1,
       "maxLength": 60,
+      "pattern": "[^ ]"
+    },
+    "endLabel": {
+      "description": "a count at one end of a line, such as 1 or 0..*: plain text",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 20,
       "pattern": "[^ ]"
     },
     "rowText": {

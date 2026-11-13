@@ -19,12 +19,14 @@ const TITLE: TextKind = { name: "title", maxLength: 100, description: "the diagr
 const LABEL: TextKind = { name: "label", maxLength: 100, description: "the name shown on a card" };
 const DESCRIPTION: TextKind = { name: "description", maxLength: 300, description: "a sentence or two about a diagram or card" };
 const LINE_LABEL: TextKind = { name: "lineLabel", maxLength: 60, description: "a short label on a line" };
+/** Short, as it's drawn on one line beside a line's end. */
+const END_LABEL: TextKind = { name: "endLabel", maxLength: 20, description: "a count at one end of a line, such as 1 or 0..*" };
 const ROW_TEXT: TextKind = { name: "rowText", maxLength: 200, description: "one row of a card, such as a class member" };
 /** Short, as it's drawn on one line in a tag on a card's border. */
 const AREA_LABEL: TextKind = { name: "areaLabel", maxLength: 40, description: "an area's name, on its cards' tags or its box" };
 const COLUMN_NAME: TextKind = { name: "columnName", maxLength: 100, description: "the name of a table's column" };
 const COLUMN_TYPE: TextKind = { name: "columnType", maxLength: 100, description: "the type of a table's column, such as uuid or varchar(200)" };
-export const TEXT_KINDS: readonly TextKind[] = [TITLE, LABEL, DESCRIPTION, LINE_LABEL, ROW_TEXT, AREA_LABEL, COLUMN_NAME, COLUMN_TYPE];
+export const TEXT_KINDS: readonly TextKind[] = [TITLE, LABEL, DESCRIPTION, LINE_LABEL, END_LABEL, ROW_TEXT, AREA_LABEL, COLUMN_NAME, COLUMN_TYPE];
 
 /** What a change does to a card, row or line: the same words the badges show. */
 export const STATUSES = ["new", "changed", "removed", "unchanged"] as const;
@@ -236,6 +238,8 @@ export const NOTE_LABEL_FACE: FaceId = "inter-regular";
 /** A card's description, muted under its label. */
 export const CARD_DESCRIPTION_FACE: FaceId = "inter-regular";
 export const LINE_LABEL_FACE: FaceId = "inter-regular";
+/** A class line's counts, beside its ends. */
+export const END_LABEL_FACE: FaceId = "inter-regular";
 export const CLASS_NAME_FACE: FaceId = "inter-semibold";
 /** A class's «stereotype» line. Its words are fixed, so no input is checked against it. */
 export const STEREOTYPE_FACE: FaceId = "inter-regular";
@@ -445,11 +449,16 @@ const LINE_END: RefDef = {
   },
 };
 
-/** A line: its ends are checked by `end` and described with `endNote` after them, and `extra` fields follow the shared ones. */
-function edge(end: RefDef, endNote: string, extra: readonly Field[]): ObjectDef {
+/**
+ * A line: its ends are checked by `end` and described with `endNote` after
+ * them, and `extra` fields follow the shared ones. `description` says what
+ * the schema can't.
+ */
+function edge(end: RefDef, endNote: string, extra: readonly Field[], description?: string): ObjectDef {
   return {
     kind: "object",
     noun: "edge",
+    ...(description === undefined ? {} : { description }),
     fields: [
       optional("id", { kind: "id", of: "edge" }, "a unique id; without one the line is known as edges[N]"),
       required("from", end, `the id of the node the line starts at${endNote}`),
@@ -629,12 +638,93 @@ const CLASS_NODE: ObjectDef = {
   ],
 };
 
-/** The relationship a class line shows. Only association is drawn so far. */
-export const CLASS_EDGE_KINDS = ["association"] as const;
+/** The relationships a class line can show, as UML draws them. */
+export const CLASS_EDGE_KINDS = ["inherits", "implements", "composition", "aggregation", "association", "dependency"] as const;
 
-const CLASS_EDGE = edge({ kind: "ref", to: "node" }, "", [
-  required("kind", { kind: "choice", values: CLASS_EDGE_KINDS, later: true }, "the relationship the line shows"),
-]);
+/** The kinds of line whose `to` is the parent of its `from`: drawn before it, and never in a loop. */
+export const PARENT_KINDS: ReadonlySet<string> = new Set<(typeof CLASS_EDGE_KINDS)[number]>(["inherits", "implements"]);
+
+const CLASS_EDGE_RULES =
+  'One relationship between two classes, drawn as UML draws it. For inherits and implements, "from" is the child and "to" the parent: ' +
+  "a hollow triangle points at the parent, which is drawn before its children, and these lines can't go round in a loop. " +
+  'For composition and aggregation, "from" is the owner, which gets the diamond. A dependency, and a directed association, ' +
+  'point an arrow at "to". Implements and dependency lines are dashed.';
+
+const CLASS_EDGE = edge(
+  { kind: "ref", to: "node" },
+  "",
+  [
+    required("kind", { kind: "choice", values: CLASS_EDGE_KINDS, later: false }, "the relationship the line shows"),
+    optional(
+      "fromLabel",
+      { kind: "text", text: END_LABEL, faces: [END_LABEL_FACE] },
+      'a count drawn beside the line where it leaves "from", such as 1 or 0..*',
+    ),
+    optional(
+      "toLabel",
+      { kind: "text", text: END_LABEL, faces: [END_LABEL_FACE] },
+      'a count drawn beside the line where it reaches "to", such as 1 or 0..*',
+    ),
+    conditional(
+      "directed",
+      BOOLEAN,
+      'associations only: true draws an arrow at "to", the class the association is navigable to',
+      { field: "kind", value: "association", hint: 'remove "directed", or make the line an association' },
+    ),
+  ],
+  CLASS_EDGE_RULES,
+);
+
+/** A class line as checked, for the rule across a class diagram's lines. */
+interface CheckedClassEdge {
+  readonly from?: string;
+  readonly to?: string;
+  readonly kind?: string;
+}
+
+/**
+ * A class can't be its own parent, even through other classes: inherits and
+ * implements lines never go round in a loop. The lines are taken in the
+ * order listed, and one is reported when it closes a loop with those before
+ * it that weren't reported, so each loop is reported once, at the last of
+ * its lines, and removing every line reported leaves no loop. A line whose
+ * end names no node, or whose kind isn't valid, was reported already.
+ */
+const parentLoopRule: Rule = (checked) => {
+  const nodes = new Set(((checked.nodes ?? []) as readonly { readonly id?: unknown }[]).map((node) => node.id));
+  // Each class's parents, through the lines kept so far, in the order listed.
+  const parents = new Map<string, string[]>();
+  const found: Required<Problem>[] = [];
+  ((checked.edges ?? []) as readonly CheckedClassEdge[]).forEach(({ from, to, kind }, i) => {
+    if (kind === undefined || !PARENT_KINDS.has(kind) || from === undefined || to === undefined) return;
+    if (!nodes.has(from) || !nodes.has(to)) return;
+    const back = upTo(parents, to, from);
+    if (back === undefined) return parents.set(from, [...(parents.get(from) ?? []), to]);
+    const names = [from, ...back].map((id) => JSON.stringify(id));
+    const hint = "a class can't be its own parent, even through others: remove one of the lines in the loop";
+    found.push({ path: `edges[${i}].to`, message: `the classes' parents go round in a loop: ${names.join(" → ")}`, hint });
+  });
+  return found;
+};
+
+/** The shortest way from `start` up through `parents` to `goal`, both included, or undefined when there's none. */
+function upTo(parents: ReadonlyMap<string, readonly string[]>, start: string, goal: string): string[] | undefined {
+  const cameFrom = new Map<string, string | undefined>([[start, undefined]]);
+  const queue = [start];
+  for (let at = queue.shift(); at !== undefined; at = queue.shift()) {
+    if (at === goal) {
+      const way: string[] = [];
+      for (let step: string | undefined = at; step !== undefined; step = cameFrom.get(step)) way.unshift(step);
+      return way;
+    }
+    for (const parent of parents.get(at) ?? []) {
+      if (cameFrom.has(parent)) continue;
+      cameFrom.set(parent, at);
+      queue.push(parent);
+    }
+  }
+  return undefined;
+}
 
 /**
  * What an architecture diagram's card is: a component of one of these kinds,
@@ -851,7 +941,7 @@ const ER_EDGE = edge({ kind: "ref", to: "node" }, "", [
 
 /** Each implemented type's definition, in DIAGRAM_TYPES order. */
 export const DEFINITIONS: ReadonlyMap<string, ObjectDef> = new Map([
-  ["class", diagram(CLASS_NODE, CLASS_EDGE, "down", [areaRule])],
+  ["class", diagram(CLASS_NODE, CLASS_EDGE, "down", [areaRule, parentLoopRule])],
   ["er", diagram(TABLE_NODE, ER_EDGE, "right", [areaRule, columnEndsRule])],
   ["flow", diagram(FLOW_NODE, FLOW_EDGE, "down", [areaRule, noteAreaRule])],
   ["architecture", diagram(ARCHITECTURE_NODE, ARCHITECTURE_EDGE, "down", [areaRule])],

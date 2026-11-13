@@ -1,0 +1,276 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2742" height="607" viewBox="0 0 2742 607">
+<defs>
+<pattern id="structa-grid-light" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="9" cy="9" r="1" fill="#8c959f" fill-opacity="0.5"/></pattern>
+<filter id="structa-shadow-light" x="-20%" y="-30%" width="140%" height="170%"><feDropShadow dx="0" dy="1" stdDeviation="3" flood-color="#1f2328" flood-opacity="0.1"/></filter>
+</defs>
+<rect width="2742" height="607" fill="#f4f5f7"/>
+<rect width="2742" height="607" fill="url(#structa-grid-light)"/>
+<g class="title">
+<text x="32" y="50.55" font-family="Structa Inter, Inter, sans-serif" font-size="18" font-weight="700" fill="#1f2328">Town bike hire</text>
+</g>
+<g class="description">
+<text x="32" y="73.73" font-family="Structa Inter, Inter, sans-serif" font-size="13" font-weight="400" fill="#59636e">The scheme runs its docks, and each dock holds bikes. E-bikes are new, and every hire is priced from</text>
+<text x="32" y="91.73" font-family="Structa Inter, Inter, sans-serif" font-size="13" font-weight="400" fill="#59636e">the current price list.</text>
+</g>
+<g class="card" data-id="rider" data-kind="class">
+<title>Rider</title>
+<rect class="outline" x="488" y="141" width="360" height="120" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<line class="divider" x1="488.5" y1="185" x2="847.5" y2="185" stroke="#d1d9e0" stroke-width="1"/>
+<line class="divider" x1="488.5" y1="223" x2="847.5" y2="223" stroke="#d1d9e0" stroke-width="1"/>
+<text x="668" y="168.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">Rider</text>
+<g class="row" data-id="properties[0]" data-kind="property">
+<title>- cardNumber: string</title>
+<g class="symbol">
+<text x="502" y="208.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">-</text>
+</g>
+<text x="516.4" y="208.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">cardNumber: string</text>
+</g>
+<g class="row" data-id="methods[0]" data-kind="method">
+<title>+ startHire(at: Dock): Hire</title>
+<g class="symbol">
+<text x="502" y="246.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
+</g>
+<text x="516.4" y="246.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">startHire(at: Dock): Hire</text>
+</g>
+</g>
+<g class="card" data-id="hire" data-kind="class">
+<title>Hire</title>
+<rect class="outline" x="1452" y="128" width="360" height="146" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<line class="divider" x1="1452.5" y1="172" x2="1811.5" y2="172" stroke="#d1d9e0" stroke-width="1"/>
+<line class="divider" x1="1452.5" y1="236" x2="1811.5" y2="236" stroke="#d1d9e0" stroke-width="1"/>
+<text x="1632" y="155.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">Hire</text>
+<g class="row" data-id="properties[0]" data-kind="property">
+<title>+ startedAt: DateTime</title>
+<g class="symbol">
+<text x="1466" y="195.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
+</g>
+<text x="1480.4" y="195.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">startedAt: DateTime</text>
+</g>
+<g class="row" data-id="properties[1]" data-kind="property">
+<title>+ endedAt: DateTime?</title>
+<g class="symbol">
+<text x="1466" y="221.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
+</g>
+<text x="1480.4" y="221.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">endedAt: DateTime?</text>
+</g>
+<g class="row" data-id="methods[0]" data-kind="method">
+<title>+ cost(): Money</title>
+<g class="symbol">
+<text x="1466" y="259.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
+</g>
+<text x="1480.4" y="259.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">cost(): Money</text>
+</g>
+</g>
+<g class="card" data-id="prices" data-kind="class">
+<title>PriceList</title>
+<rect class="outline" x="2350" y="129.5" width="360" height="94" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<line class="divider" x1="2350.5" y1="173.5" x2="2709.5" y2="173.5" stroke="#d1d9e0" stroke-width="1"/>
+<line class="divider" x1="2350.5" y1="185.5" x2="2709.5" y2="185.5" stroke="#d1d9e0" stroke-width="1"/>
+<text x="2530" y="156.96" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">PriceList</text>
+<g class="row" data-id="methods[0]" data-kind="method">
+<title>+ forMinutes(minutes: int, bike: Bike): Money</title>
+<g class="symbol">
+<text x="2364" y="208.82" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
+</g>
+<text x="2378.4" y="208.82" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">forMinutes(minutes: int, bike: Bike): Money</text>
+</g>
+</g>
+<g class="card" data-id="scheme" data-kind="class">
+<title>HireScheme</title>
+<rect class="outline" x="32" y="286" width="360" height="94" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<line class="divider" x1="32.5" y1="330" x2="391.5" y2="330" stroke="#d1d9e0" stroke-width="1"/>
+<line class="divider" x1="32.5" y1="342" x2="391.5" y2="342" stroke="#d1d9e0" stroke-width="1"/>
+<text x="212" y="313.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">HireScheme</text>
+<g class="row" data-id="methods[0]" data-kind="method">
+<title>+ nearestDock(to: Location): Dock</title>
+<g class="symbol">
+<text x="46" y="365.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
+</g>
+<text x="60.4" y="365.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">nearestDock(to: Location): Dock</text>
+</g>
+</g>
+<g class="card" data-id="dock" data-kind="class">
+<title>Dock</title>
+<rect class="outline" x="946" y="273" width="360" height="120" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<line class="divider" x1="946.5" y1="317" x2="1305.5" y2="317" stroke="#d1d9e0" stroke-width="1"/>
+<line class="divider" x1="946.5" y1="355" x2="1305.5" y2="355" stroke="#d1d9e0" stroke-width="1"/>
+<text x="1126" y="300.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">Dock</text>
+<g class="row" data-id="properties[0]" data-kind="property">
+<title>+ location: Location</title>
+<g class="symbol">
+<text x="960" y="340.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
+</g>
+<text x="974.4" y="340.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">location: Location</text>
+</g>
+<g class="row" data-id="methods[0]" data-kind="method">
+<title>+ release(bike: Bike): void</title>
+<g class="symbol">
+<text x="960" y="378.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
+</g>
+<text x="974.4" y="378.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">release(bike: Bike): void</text>
+</g>
+</g>
+<g class="card" data-id="bike" data-kind="class">
+<title>Bike</title>
+<rect class="outline" x="1926" y="405.25" width="360" height="82" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<line class="divider" x1="1926.5" y1="449.25" x2="2285.5" y2="449.25" stroke="#d1d9e0" stroke-width="1"/>
+<text x="2106" y="432.71" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">Bike</text>
+<g class="row" data-id="properties[0]" data-kind="property">
+<title>+ frameNumber: string</title>
+<g class="symbol">
+<text x="1940" y="472.57" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
+</g>
+<text x="1954.4" y="472.57" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">frameNumber: string</text>
+</g>
+</g>
+<g class="card" data-id="ebike" data-kind="class" data-status="new">
+<title>EBike</title>
+<rect class="outline" x="2350" y="386.25" width="360" height="120" rx="10" fill="#ffffff" stroke="#1f883d" stroke-width="1.5" filter="url(#structa-shadow-light)"/>
+<line class="divider" x1="2350.75" y1="430.25" x2="2709.25" y2="430.25" stroke="#d1d9e0" stroke-width="1"/>
+<line class="divider" x1="2350.75" y1="468.25" x2="2709.25" y2="468.25" stroke="#d1d9e0" stroke-width="1"/>
+<text x="2530" y="413.71" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">EBike</text>
+<g class="row" data-id="properties[0]" data-kind="property" data-status="new">
+<title>+ charge: Percent</title>
+<rect x="2356" y="437.25" width="348" height="24" rx="4" fill="#b9f0c4" fill-opacity="0.45"/>
+<g class="symbol">
+<text x="2364" y="453.57" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
+</g>
+<text x="2378.4" y="453.57" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">charge: Percent</text>
+<g class="badge">
+<rect x="2659" y="441.25" width="37" height="16" rx="8" fill="#ffffff"/>
+<rect x="2659" y="441.25" width="37" height="16" rx="8" fill="#b9f0c4" stroke="#1f883d" stroke-width="1"/>
+<text x="2677.5" y="452.89" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#116329" text-anchor="middle">NEW</text>
+</g>
+</g>
+<g class="row" data-id="methods[0]" data-kind="method" data-status="new">
+<title>+ needsCharging(): bool</title>
+<rect x="2356" y="475.25" width="348" height="24" rx="4" fill="#b9f0c4" fill-opacity="0.45"/>
+<g class="symbol">
+<text x="2364" y="491.57" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
+</g>
+<text x="2378.4" y="491.57" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">needsCharging(): bool</text>
+<g class="badge">
+<rect x="2659" y="479.25" width="37" height="16" rx="8" fill="#ffffff"/>
+<rect x="2659" y="479.25" width="37" height="16" rx="8" fill="#b9f0c4" stroke="#1f883d" stroke-width="1"/>
+<text x="2677.5" y="490.89" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#116329" text-anchor="middle">NEW</text>
+</g>
+</g>
+<g class="badge">
+<rect x="2661" y="378.25" width="37" height="16" rx="8" fill="#ffffff"/>
+<rect x="2661" y="378.25" width="37" height="16" rx="8" fill="#b9f0c4" stroke="#1f883d" stroke-width="1"/>
+<text x="2679.5" y="389.89" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#116329" text-anchor="middle">NEW</text>
+</g>
+</g>
+<g class="card" data-id="lockable" data-kind="class">
+<title>«interface» Lockable</title>
+<rect class="outline" x="1452" y="399" width="360" height="136" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<line class="divider" x1="1452.5" y1="459" x2="1811.5" y2="459" stroke="#d1d9e0" stroke-width="1"/>
+<line class="divider" x1="1452.5" y1="471" x2="1811.5" y2="471" stroke="#d1d9e0" stroke-width="1"/>
+<text x="1632" y="423.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#59636e" text-anchor="middle">«interface»</text>
+<text x="1632" y="442.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">Lockable</text>
+<g class="row" data-id="methods[0]" data-kind="method">
+<title>+ lock(): void</title>
+<g class="symbol">
+<text x="1466" y="494.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
+</g>
+<text x="1480.4" y="494.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" font-style="italic" fill="#1f2328">lock(): void</text>
+</g>
+<g class="row" data-id="methods[1]" data-kind="method">
+<title>+ unlock(code: string): bool</title>
+<g class="symbol">
+<text x="1466" y="520.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
+</g>
+<text x="1480.4" y="520.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" font-style="italic" fill="#1f2328">unlock(code: string): bool</text>
+</g>
+</g>
+<g class="line" data-id="edges[0]" data-kind="association" data-from="rider" data-to="hire">
+<title>Rider (1) → Hire (0..*): takes</title>
+<path d="M848 200.5 L1452 200.5" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M1443 205 L1452 200.5 L1443 196" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<g class="end-label" data-end="from">
+<text x="854.5" y="215.5" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#1f2328" text-anchor="middle">1</text>
+</g>
+<g class="end-label" data-end="to">
+<text x="1426.5" y="215.5" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#1f2328" text-anchor="middle">0..*</text>
+</g>
+</g>
+<g class="line" data-id="edges[1]" data-kind="association" data-from="hire" data-to="bike">
+<title>Hire (0..*) – Bike (1)</title>
+<path d="M1812 225 L1869 225 Q1877 225 1877 233 L1877 417 Q1877 425 1885 425 L1926 425" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<g class="end-label" data-end="from">
+<text x="1825.5" y="240" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#1f2328" text-anchor="middle">0..*</text>
+</g>
+<g class="end-label" data-end="to">
+<text x="1919.5" y="440" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#1f2328" text-anchor="middle">1</text>
+</g>
+</g>
+<g class="line" data-id="edges[2]" data-kind="dependency" data-from="hire" data-to="prices">
+<title>Hire depends on PriceList: priced by</title>
+<path d="M1812 176 L2350 176" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round" stroke-dasharray="6 4"/>
+<path d="M2341 180.5 L2350 176 L2341 171.5" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<g class="line" data-id="edges[3]" data-kind="composition" data-from="scheme" data-to="dock">
+<title>HireScheme (1) owns Dock (1..*): runs</title>
+<path d="M410 332.5 L946 332.5" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M392 332.5 L401 327.5 L410 332.5 L401 337.5 Z" fill="#8c959f" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<g class="end-label" data-end="from">
+<text x="419.5" y="347.5" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#1f2328" text-anchor="middle">1</text>
+</g>
+<g class="end-label" data-end="to">
+<text x="933.5" y="347.5" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#1f2328" text-anchor="middle">1..*</text>
+</g>
+</g>
+<g class="line" data-id="edges[4]" data-kind="aggregation" data-from="dock" data-to="bike">
+<title>Dock (0..1) has Bike (0..*): holds</title>
+<path d="M1324 332.5 L1853 332.5 Q1861 332.5 1861 340.5 L1861 437.75 Q1861 445.75 1869 445.75 L1926 445.75" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M1306 332.5 L1315 327.5 L1324 332.5 L1315 337.5 Z" fill="#ffffff" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<g class="end-label" data-end="from">
+<text x="1340" y="347.5" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#1f2328" text-anchor="middle">0..1</text>
+</g>
+<g class="end-label" data-end="to">
+<text x="1912.5" y="460.75" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#1f2328" text-anchor="middle">0..*</text>
+</g>
+</g>
+<g class="line" data-id="edges[5]" data-kind="inherits" data-from="ebike" data-to="bike" data-status="new">
+<title>EBike inherits from Bike</title>
+<path d="M2350 445.75 L2300 445.75" fill="none" stroke="#1f883d" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M2286 445.75 L2300 438.75 L2300 452.75 Z" fill="#ffffff" stroke="#1f883d" stroke-width="1.5" stroke-linejoin="round"/>
+</g>
+<g class="line" data-id="edges[6]" data-kind="implements" data-from="bike" data-to="lockable">
+<title>Bike implements Lockable</title>
+<path d="M1926 466.5 L1826 466.5" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round" stroke-dasharray="6 4" stroke-dashoffset="6"/>
+<path d="M1812 466.5 L1826 459.5 L1826 473.5 Z" fill="#ffffff" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+</g>
+<g class="line-labels">
+<g class="line-label" data-line="edges[0]">
+<title>Rider (1) → Hire (0..*): takes</title>
+<rect x="1113.5" y="190" width="47" height="20" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1"/>
+<text x="1137" y="204.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">takes</text>
+</g>
+<g class="line-label" data-line="edges[2]">
+<title>Hire depends on PriceList: priced by</title>
+<rect x="2058.5" y="165.5" width="70" height="20" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1"/>
+<text x="2093.5" y="179.87" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">priced by</text>
+</g>
+<g class="line-label" data-line="edges[3]">
+<title>HireScheme (1) owns Dock (1..*): runs</title>
+<rect x="652.5" y="322" width="42" height="20" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1"/>
+<text x="673.5" y="336.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">runs</text>
+</g>
+<g class="line-label" data-line="edges[4]">
+<title>Dock (0..1) has Bike (0..*): holds</title>
+<rect x="1602.5" y="322" width="47" height="20" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1"/>
+<text x="1626" y="336.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">holds</text>
+</g>
+</g>
+<g class="legend">
+<g class="legend-item" data-status="new">
+<line class="swatch" x1="32" y1="567" x2="52" y2="567" stroke="#1f883d" stroke-width="1.5" stroke-linecap="round"/>
+<g class="badge">
+<rect x="58" y="559" width="37" height="16" rx="8" fill="#ffffff"/>
+<rect x="58" y="559" width="37" height="16" rx="8" fill="#b9f0c4" stroke="#1f883d" stroke-width="1"/>
+<text x="76.5" y="570.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#116329" text-anchor="middle">NEW</text>
+</g>
+</g>
+</g>
+</svg>

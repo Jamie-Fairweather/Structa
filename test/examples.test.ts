@@ -120,6 +120,51 @@ describe("examples", () => {
     ).toBe(true);
   });
 
+  type ClassLines = {
+    type: string;
+    direction?: string;
+    groupAreas?: boolean;
+    nodes: { id: string; area?: string }[];
+    edges?: { from: string; to: string; kind: string; fromLabel?: string; toLabel?: string; directed?: boolean }[];
+  };
+  const classDiagrams = () => examples.map(({ json }) => JSON.parse(json) as ClassLines).filter((d) => d.type === "class");
+
+  it("includes a class hierarchy: a parent with several children, a grandchild, and classes implementing interfaces", () => {
+    const fits = (d: ClassLines) => {
+      const edges = d.edges ?? [];
+      const children = (kind: string) => edges.filter((e) => e.kind === kind);
+      const parents = new Set(children("inherits").map((e) => e.to));
+      return (
+        [...parents].some((parent) => children("inherits").filter((e) => e.to === parent).length >= 2) &&
+        children("inherits").some((e) => parents.has(e.from)) &&
+        children("implements").length >= 2
+      );
+    };
+
+    expect(classDiagrams().some(fits)).toBe(true);
+  });
+
+  it("includes a class diagram with direction right that uses every kind of class line, with counts and a directed association", () => {
+    const kinds = ["inherits", "implements", "composition", "aggregation", "association", "dependency"];
+    const fits = (d: ClassLines) =>
+      d.direction === "right" &&
+      kinds.every((kind) => (d.edges ?? []).some((e) => e.kind === kind)) &&
+      (d.edges ?? []).some((e) => e.fromLabel !== undefined && e.toLabel !== undefined) &&
+      (d.edges ?? []).some((e) => e.directed === true);
+
+    expect(classDiagrams().some(fits)).toBe(true);
+  });
+
+  it("includes a class diagram with area boxes, its lines carrying counts from one area into another", () => {
+    const fits = (d: ClassLines) => {
+      const area = new Map(d.nodes.map((node) => [node.id, node.area]));
+      const across = (d.edges ?? []).filter((e) => area.get(e.from) !== area.get(e.to) && (e.fromLabel ?? e.toLabel) !== undefined);
+      return d.groupAreas === true && across.length >= 3;
+    };
+
+    expect(classDiagrams().some(fits)).toBe(true);
+  });
+
   type Architecture = { type: string; nodes: { kind: string; description?: string }[]; edges?: { kind?: string; label?: string }[] };
   const architectures = () => examples.map(({ json }) => JSON.parse(json) as Architecture).filter((d) => d.type === "architecture");
 

@@ -1,0 +1,227 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="954" viewBox="0 0 1240 954">
+<defs>
+<pattern id="structa-grid-light" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="9" cy="9" r="1" fill="#8c959f" fill-opacity="0.5"/></pattern>
+<filter id="structa-shadow-light" x="-20%" y="-30%" width="140%" height="170%"><feDropShadow dx="0" dy="1" stdDeviation="3" flood-color="#1f2328" flood-opacity="0.1"/></filter>
+</defs>
+<rect width="1240" height="954" fill="#f4f5f7"/>
+<rect width="1240" height="954" fill="url(#structa-grid-light)"/>
+<g class="title">
+<text x="32" y="50.55" font-family="Structa Inter, Inter, sans-serif" font-size="18" font-weight="700" fill="#1f2328">Weather station sensors</text>
+</g>
+<g class="description">
+<text x="32" y="73.73" font-family="Structa Inter, Inter, sans-serif" font-size="13" font-weight="400" fill="#59636e">Every sensor can be read, and most can be calibrated. The digital barometer is new, and the wind vane</text>
+<text x="32" y="91.73" font-family="Structa Inter, Inter, sans-serif" font-size="13" font-weight="400" fill="#59636e">only reports a direction, so it skips calibration.</text>
+</g>
+<g class="card" data-id="sensor" data-kind="class">
+<title>«interface» Sensor</title>
+<rect class="outline" x="92" y="128" width="360" height="110" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<line class="divider" x1="92.5" y1="188" x2="451.5" y2="188" stroke="#d1d9e0" stroke-width="1"/>
+<line class="divider" x1="92.5" y1="200" x2="451.5" y2="200" stroke="#d1d9e0" stroke-width="1"/>
+<text x="272" y="152.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#59636e" text-anchor="middle">«interface»</text>
+<text x="272" y="171.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">Sensor</text>
+<g class="row" data-id="methods[0]" data-kind="method">
+<title>+ read(): Reading</title>
+<g class="symbol">
+<text x="106" y="223.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
+</g>
+<text x="120.4" y="223.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" font-style="italic" fill="#1f2328">read(): Reading</text>
+</g>
+</g>
+<g class="card" data-id="calibratable" data-kind="class">
+<title>«interface» Calibratable</title>
+<rect class="outline" x="560" y="128" width="360" height="110" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<line class="divider" x1="560.5" y1="188" x2="919.5" y2="188" stroke="#d1d9e0" stroke-width="1"/>
+<line class="divider" x1="560.5" y1="200" x2="919.5" y2="200" stroke="#d1d9e0" stroke-width="1"/>
+<text x="740" y="152.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#59636e" text-anchor="middle">«interface»</text>
+<text x="740" y="171.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">Calibratable</text>
+<g class="row" data-id="methods[0]" data-kind="method">
+<title>+ calibrate(against: Reading): void</title>
+<g class="symbol">
+<text x="574" y="223.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
+</g>
+<text x="588.4" y="223.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" font-style="italic" fill="#1f2328">calibrate(against: Reading): void</text>
+</g>
+</g>
+<g class="card" data-id="analogue" data-kind="class">
+<title>«abstract» AnalogueSensor: Turns a voltage into a reading.</title>
+<rect class="outline" x="440" y="326" width="360" height="180" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<line class="divider" x1="440.5" y1="404" x2="799.5" y2="404" stroke="#d1d9e0" stroke-width="1"/>
+<line class="divider" x1="440.5" y1="442" x2="799.5" y2="442" stroke="#d1d9e0" stroke-width="1"/>
+<text x="620" y="350.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#59636e" text-anchor="middle">«abstract»</text>
+<text x="620" y="369.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" font-style="italic" fill="#1f2328" text-anchor="middle">AnalogueSensor</text>
+<text x="620" y="388.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#59636e" text-anchor="middle">Turns a voltage into a reading.</text>
+<g class="row" data-id="properties[0]" data-kind="property">
+<title># offset: float</title>
+<g class="symbol">
+<text x="454" y="427.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">#</text>
+</g>
+<text x="468.4" y="427.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">offset: float</text>
+</g>
+<g class="row" data-id="methods[0]" data-kind="method">
+<title>+ read(): Reading</title>
+<g class="symbol">
+<text x="454" y="465.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
+</g>
+<text x="468.4" y="465.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">read(): Reading</text>
+</g>
+<g class="row" data-id="methods[1]" data-kind="method">
+<title># convert(volts: float): float</title>
+<g class="symbol">
+<text x="454" y="491.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">#</text>
+</g>
+<text x="468.4" y="491.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" font-style="italic" fill="#1f2328">convert(volts: float): float</text>
+</g>
+</g>
+<g class="card" data-id="thermometer" data-kind="class">
+<title>Thermometer</title>
+<rect class="outline" x="848" y="578" width="360" height="94" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<line class="divider" x1="848.5" y1="622" x2="1207.5" y2="622" stroke="#d1d9e0" stroke-width="1"/>
+<line class="divider" x1="848.5" y1="634" x2="1207.5" y2="634" stroke="#d1d9e0" stroke-width="1"/>
+<text x="1028" y="605.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">Thermometer</text>
+<g class="row" data-id="methods[0]" data-kind="method">
+<title># convert(volts: float): float</title>
+<g class="symbol">
+<text x="862" y="657.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">#</text>
+</g>
+<text x="876.4" y="657.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">convert(volts: float): float</text>
+</g>
+</g>
+<g class="card" data-id="rain-gauge" data-kind="class">
+<title>RainGauge</title>
+<rect class="outline" x="440" y="578" width="360" height="120" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<line class="divider" x1="440.5" y1="622" x2="799.5" y2="622" stroke="#d1d9e0" stroke-width="1"/>
+<line class="divider" x1="440.5" y1="660" x2="799.5" y2="660" stroke="#d1d9e0" stroke-width="1"/>
+<text x="620" y="605.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">RainGauge</text>
+<g class="row" data-id="properties[0]" data-kind="property">
+<title>- funnelArea: SquareCentimetres</title>
+<g class="symbol">
+<text x="454" y="645.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">-</text>
+</g>
+<text x="468.4" y="645.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">funnelArea: SquareCentimetres</text>
+</g>
+<g class="row" data-id="methods[0]" data-kind="method">
+<title># convert(volts: float): float</title>
+<g class="symbol">
+<text x="454" y="683.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">#</text>
+</g>
+<text x="468.4" y="683.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">convert(volts: float): float</text>
+</g>
+</g>
+<g class="card" data-id="heated-gauge" data-kind="class">
+<title>HeatedRainGauge: Melts snow before measuring it.</title>
+<rect class="outline" x="440" y="770" width="360" height="112" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<line class="divider" x1="440.5" y1="832" x2="799.5" y2="832" stroke="#d1d9e0" stroke-width="1"/>
+<line class="divider" x1="440.5" y1="844" x2="799.5" y2="844" stroke="#d1d9e0" stroke-width="1"/>
+<text x="620" y="797.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">HeatedRainGauge</text>
+<text x="620" y="816.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#59636e" text-anchor="middle">Melts snow before measuring it.</text>
+<g class="row" data-id="methods[0]" data-kind="method">
+<title>+ heaterOn(): bool</title>
+<g class="symbol">
+<text x="454" y="867.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
+</g>
+<text x="468.4" y="867.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">heaterOn(): bool</text>
+</g>
+</g>
+<g class="card" data-id="barometer" data-kind="class" data-status="new">
+<title>DigitalBarometer</title>
+<rect class="outline" x="848" y="326" width="360" height="120" rx="10" fill="#ffffff" stroke="#1f883d" stroke-width="1.5" filter="url(#structa-shadow-light)"/>
+<line class="divider" x1="848.75" y1="370" x2="1207.25" y2="370" stroke="#d1d9e0" stroke-width="1"/>
+<line class="divider" x1="848.75" y1="382" x2="1207.25" y2="382" stroke="#d1d9e0" stroke-width="1"/>
+<text x="1028" y="353.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">DigitalBarometer</text>
+<g class="row" data-id="methods[0]" data-kind="method" data-status="new">
+<title>+ read(): Reading</title>
+<rect x="854" y="389" width="348" height="24" rx="4" fill="#b9f0c4" fill-opacity="0.45"/>
+<g class="symbol">
+<text x="862" y="405.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
+</g>
+<text x="876.4" y="405.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">read(): Reading</text>
+<g class="badge">
+<rect x="1157" y="393" width="37" height="16" rx="8" fill="#ffffff"/>
+<rect x="1157" y="393" width="37" height="16" rx="8" fill="#b9f0c4" stroke="#1f883d" stroke-width="1"/>
+<text x="1175.5" y="404.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#116329" text-anchor="middle">NEW</text>
+</g>
+</g>
+<g class="row" data-id="methods[1]" data-kind="method" data-status="new">
+<title>+ calibrate(against: Reading): void</title>
+<rect x="854" y="415" width="348" height="24" rx="4" fill="#b9f0c4" fill-opacity="0.45"/>
+<g class="symbol">
+<text x="862" y="431.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
+</g>
+<text x="876.4" y="431.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">calibrate(against: Reading): void</text>
+<g class="badge">
+<rect x="1157" y="419" width="37" height="16" rx="8" fill="#ffffff"/>
+<rect x="1157" y="419" width="37" height="16" rx="8" fill="#b9f0c4" stroke="#1f883d" stroke-width="1"/>
+<text x="1175.5" y="430.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#116329" text-anchor="middle">NEW</text>
+</g>
+</g>
+<g class="badge">
+<rect x="1159" y="318" width="37" height="16" rx="8" fill="#ffffff"/>
+<rect x="1159" y="318" width="37" height="16" rx="8" fill="#b9f0c4" stroke="#1f883d" stroke-width="1"/>
+<text x="1177.5" y="329.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#116329" text-anchor="middle">NEW</text>
+</g>
+</g>
+<g class="card" data-id="vane" data-kind="class">
+<title>WindVane</title>
+<rect class="outline" x="32" y="326" width="360" height="94" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<line class="divider" x1="32.5" y1="370" x2="391.5" y2="370" stroke="#d1d9e0" stroke-width="1"/>
+<line class="divider" x1="32.5" y1="382" x2="391.5" y2="382" stroke="#d1d9e0" stroke-width="1"/>
+<text x="212" y="353.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">WindVane</text>
+<g class="row" data-id="methods[0]" data-kind="method">
+<title>+ read(): Reading</title>
+<g class="symbol">
+<text x="46" y="405.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
+</g>
+<text x="60.4" y="405.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">read(): Reading</text>
+</g>
+</g>
+<g class="line" data-id="edges[0]" data-kind="implements" data-from="analogue" data-to="sensor">
+<title>AnalogueSensor implements Sensor</title>
+<path d="M560 326 L560 302 Q560 294 552 294 L220 294 Q212 294 212 286 L212 252" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round" stroke-dasharray="6 4" stroke-dashoffset="0.03"/>
+<path d="M212 238 L219 252 L205 252 Z" fill="#ffffff" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+</g>
+<g class="line" data-id="edges[1]" data-kind="implements" data-from="analogue" data-to="calibratable">
+<title>AnalogueSensor implements Calibratable</title>
+<path d="M680 326 L680 252" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round" stroke-dasharray="6 4" stroke-dashoffset="2"/>
+<path d="M680 238 L687 252 L673 252 Z" fill="#ffffff" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+</g>
+<g class="line" data-id="edges[2]" data-kind="inherits" data-from="thermometer" data-to="analogue">
+<title>Thermometer inherits from AnalogueSensor</title>
+<path d="M1028 578 L1028 538 Q1028 530 1020 530 L628 530 Q620 530 620 522 L620 520" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M620 506 L627 520 L613 520 Z" fill="#ffffff" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+</g>
+<g class="line" data-id="edges[3]" data-kind="inherits" data-from="rain-gauge" data-to="analogue">
+<title>RainGauge inherits from AnalogueSensor</title>
+<path d="M620 578 L620 520" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M620 506 L627 520 L613 520 Z" fill="#ffffff" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+</g>
+<g class="line" data-id="edges[4]" data-kind="inherits" data-from="heated-gauge" data-to="rain-gauge">
+<title>HeatedRainGauge inherits from RainGauge</title>
+<path d="M620 770 L620 712" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M620 698 L627 712 L613 712 Z" fill="#ffffff" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+</g>
+<g class="line" data-id="edges[5]" data-kind="implements" data-from="barometer" data-to="sensor" data-status="new">
+<title>DigitalBarometer implements Sensor</title>
+<path d="M968 326 L968 286 Q968 278 960 278 L340 278 Q332 278 332 270 L332 252" fill="none" stroke="#1f883d" stroke-width="1.5" stroke-linejoin="round" stroke-dasharray="6 4" stroke-dashoffset="2.03"/>
+<path d="M332 238 L339 252 L325 252 Z" fill="#ffffff" stroke="#1f883d" stroke-width="1.5" stroke-linejoin="round"/>
+</g>
+<g class="line" data-id="edges[6]" data-kind="implements" data-from="barometer" data-to="calibratable" data-status="new">
+<title>DigitalBarometer implements Calibratable</title>
+<path d="M1088 326 L1088 270 Q1088 262 1080 262 L808 262 Q800 262 800 254 L800 252" fill="none" stroke="#1f883d" stroke-width="1.5" stroke-linejoin="round" stroke-dasharray="6 4" stroke-dashoffset="0.03"/>
+<path d="M800 238 L807 252 L793 252 Z" fill="#ffffff" stroke="#1f883d" stroke-width="1.5" stroke-linejoin="round"/>
+</g>
+<g class="line" data-id="edges[7]" data-kind="implements" data-from="vane" data-to="sensor">
+<title>WindVane implements Sensor</title>
+<path d="M212 326 L212 252" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round" stroke-dasharray="6 4" stroke-dashoffset="2"/>
+<path d="M212 238 L219 252 L205 252 Z" fill="#ffffff" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+</g>
+<g class="legend">
+<g class="legend-item" data-status="new">
+<line class="swatch" x1="32" y1="914" x2="52" y2="914" stroke="#1f883d" stroke-width="1.5" stroke-linecap="round"/>
+<g class="badge">
+<rect x="58" y="906" width="37" height="16" rx="8" fill="#ffffff"/>
+<rect x="58" y="906" width="37" height="16" rx="8" fill="#b9f0c4" stroke="#1f883d" stroke-width="1"/>
+<text x="76.5" y="917.64" font-family="Structa Inter, Inter, sans-serif" font-size="10" font-weight="700" fill="#116329" text-anchor="middle">NEW</text>
+</g>
+</g>
+</g>
+</svg>

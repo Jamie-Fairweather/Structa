@@ -41,11 +41,44 @@ export interface LayoutArea {
   readonly path: string;
 }
 
-/** A line between two cards, given as indexes into the card list, with its label's fixed size. */
+interface Size {
+  readonly width: number;
+  readonly height: number;
+}
+
+/**
+ * A label at one end of a line: its size, and how far along the line from
+ * the card it must start, such as to be past a mark there. ELK gets a box
+ * that much longer along the line, and the label goes at its far end.
+ */
+interface EndLabelSize extends Size {
+  readonly clear: number;
+}
+
+/** A line between two cards, given as indexes into the card list, with its labels' fixed sizes. */
 export interface LayoutLine {
   readonly source: number;
   readonly target: number;
-  readonly label?: { readonly width: number; readonly height: number };
+  /** A label ELK centres on the line. */
+  readonly label?: Size;
+  /** Labels ELK puts beside the line, just off the card, where it leaves its source and where it reaches its target. */
+  readonly sourceLabel?: EndLabelSize;
+  readonly targetLabel?: EndLabelSize;
+  /**
+   * Its target is laid out before its source along the flow, as a parent
+   * class is before its child. ELK gets the line the other way round, with a
+   * high direction priority, and the rest of its part of the graph with no
+   * loops for ELK's cycle breaking to turn it back in; the route still comes
+   * back from source to target.
+   */
+  readonly targetFirst?: boolean;
+  /**
+   * Keys for ends this line may share. Two or more lines whose ends meet one
+   * card with the same key meet it at one point, and ELK routes them into it
+   * as one tree, as UML draws lines into one parent under one triangle. A
+   * count at a shared end is shown once, by the first of those lines.
+   */
+  readonly joins?: { readonly source?: string; readonly target?: string };
   /**
    * For a line whose ends attach at fixed points: where on each card's side
    * its ends may go. Layout puts each on its card's left or right side, as the
@@ -85,9 +118,23 @@ export interface RoutedLine<L> {
   readonly line: L;
   /** Start point, bend points and end point, at right angles. */
   readonly points: readonly Point[];
-  /** The top-left corner of the line's label, when it has one. */
+  /** The top-left corner of the line's label, and of the labels at its ends, when it has them. */
   readonly label?: Point;
+  readonly sourceLabel?: Point;
+  readonly targetLabel?: Point;
 }
+
+/**
+ * The labels a line can have, each with the letter its generated id starts
+ * with and, for messages, the field of the input line it shows.
+ */
+const LABELS = [
+  ["label", "l", "label"],
+  ["sourceLabel", "s", "fromLabel"],
+  ["targetLabel", "t", "toLabel"],
+] as const;
+
+type LabelName = (typeof LABELS)[number][0];
 
 export interface PlacedArea<A> {
   readonly area: A;
@@ -152,7 +199,7 @@ const MAX_PASSES = 6;
 
 /**
  * Lays the cards and lines out with ELK, inside boxes for the areas when any
- * are given. Only generated ids (n0, a0, p0_0, e0, …) reach ELK. The whole
+ * are given. Only generated ids (n0, a0, p0_0, j0_0, e0, l0, …) reach ELK. The whole
  * profile goes in as global options, plus the direction, the options for
  * area boxes when there are any and, when cards have a band, the clearance
  * that keeps lines off it.
@@ -241,6 +288,8 @@ interface Ends {
   readonly targets: string[];
   readonly reversed: boolean;
   readonly fixed?: { readonly source: Point; readonly target: Point };
+  /** Its counts that ELK isn't given, at ends it shares with an earlier line showing the same count. */
+  readonly quiet?: ReadonlySet<LabelName>;
 }
 
 /**
@@ -260,9 +309,16 @@ async function run<C extends LayoutCard, L extends LayoutLine, A extends LayoutA
   { sides = [], from }: Pass<C>,
 ): Promise<Scene<C, L, A>> {
   const ports = placePorts(graph, sides, from);
+  const against = againstFlow(graph.lines, graph.cards.length);
+  const joints = joinPorts(graph.lines, against);
   const ends = graph.lines.map((line, i): Ends => {
     const own = ports.byLine.get(i);
-    if (!own) return { sources: [`n${line.source}`], targets: [`n${line.target}`], reversed: false };
+    if (!own) {
+      const joined = joints.byLine.get(i);
+      const [source, target] = [joined?.source ?? `n${line.source}`, joined?.target ?? `n${line.target}`];
+      const quiet = joined?.quiet ? { quiet: joined.quiet } : {};
+      return against[i] ? { sources: [target], targets: [source], reversed: true, ...quiet } : { sources: [source], targets: [target], reversed: false, ...quiet };
+    }
     const { source, target } = own;
     const fixed = source.at && target.at ? { fixed: { source: source.at, target: target.at } } : {};
     return sides[i]!.reversed
@@ -278,7 +334,7 @@ async function run<C extends LayoutCard, L extends LayoutLine, A extends LayoutA
   // their boxes, so there each pass lays out afresh, and the side rule's reruns
   // settle the sides.
   const seeded = from !== undefined && direction === "down" && graph.areas.length === 0;
-  const elkGraph = buildGraph(graph, direction, ports.byCard, ends, seeded ? from : undefined);
+  const elkGraph = buildGraph(graph, direction, ports.byCard, joints.byCard, ends, seeded ? from : undefined);
   // Outside the try: a missing elk.bundled.js is a broken install, not a layout failure.
   const elk = createElk();
   let result: ElkNode;
@@ -295,7 +351,7 @@ async function run<C extends LayoutCard, L extends LayoutLine, A extends LayoutA
   } catch (error) {
     throw layoutFailed([{ path: "$", message: `the layout engine failed: ${(error as Error)?.message ?? error}` }]);
   }
-  return readScene(result, graph, ends);
+  return readScene(result, graph, ends, direction);
 }
 
 /**
@@ -303,13 +359,15 @@ async function run<C extends LayoutCard, L extends LayoutLine, A extends LayoutA
  * in the order given, then its cards, in theirs; each line sits in the
  * innermost area holding both its ends, attached as `ends` says. Without
  * areas, the root holds every card and every line. Each card has the `ports`
- * its lines use and, in a pass that keeps the arrangement of the pass
- * `from`, starts where that one put it.
+ * its lines use, and the ports where lines join it, `joints`, which ELK puts
+ * where it likes. In a pass that keeps the arrangement of the pass `from`,
+ * each card starts where that one put it.
  */
 function buildGraph(
   graph: Graph<LayoutCard, LayoutLine, LayoutArea>,
   direction: Direction,
   ports: ReadonlyMap<number, readonly Port[]>,
+  joints: ReadonlyMap<number, readonly string[]>,
   ends: readonly Ends[],
   from: Scene<unknown, unknown, unknown> | undefined,
 ): ElkNode {
@@ -331,6 +389,8 @@ function buildGraph(
   graph.areas.forEach((area, i) => chain(area.parent).at(-1)!.children.push(boxes[i]!));
   graph.cards.forEach((card, i) => {
     const own = elkPorts(ports.get(i) ?? []);
+    const joined = (joints.get(i) ?? []).map((id) => ({ id, width: 0, height: 0 }));
+    const all = [...(own.ports ?? []), ...joined];
     // Which nodes are notes, and the ports a card has, are part of the graph, not of the profile, so they go on each card.
     const layoutOptions = { ...(card.note ? { "elk.commentBox": "true" } : {}), ...own.layoutOptions };
     chains[i]!.at(-1)!.children.push({
@@ -339,22 +399,149 @@ function buildGraph(
       width: card.width,
       height: card.height,
       ...(Object.keys(layoutOptions).length > 0 ? { layoutOptions } : {}),
-      ...(own.ports ? { ports: own.ports } : {}),
+      ...(all.length > 0 ? { ports: all } : {}),
     });
   });
   graph.lines.forEach((line, i) => {
     const [from, to] = [chains[line.source]!, chains[line.target]!];
     let shared = 0;
     while (from[shared + 1] !== undefined && from[shared + 1] === to[shared + 1]) shared++;
+    const { reversed } = ends[i]!;
+    // ELK puts a tail label where its line starts and a head label where it ends: on a line it gets the other way round, they swap.
+    const placements = new Map([
+      ["label", undefined],
+      ["sourceLabel", reversed ? "HEAD" : "TAIL"],
+      ["targetLabel", reversed ? "TAIL" : "HEAD"],
+    ]);
+    const labels = LABELS.flatMap(([name, letter]) => {
+      const size = line[name];
+      if (!size || !givenToElk(line, ends[i]!, name)) return [];
+      const placement = placements.get(name);
+      // ELK skips a label with no text, so the label's generated id stands in for its text.
+      const id = `${letter}${i}`;
+      return [{ id, text: id, ...elkSize(size, direction), ...(placement ? { layoutOptions: { "elk.edgeLabels.placement": placement } } : {}) }];
+    });
     from[shared]!.edges.push({
       id: `e${i}`,
       sources: ends[i]!.sources,
       targets: ends[i]!.targets,
-      // ELK skips a label with no text, so the label's generated id stands in for its text.
-      ...(line.label ? { labels: [{ id: `l${i}`, text: `l${i}`, width: line.label.width, height: line.label.height }] } : {}),
+      ...(line.targetFirst ? { layoutOptions: TARGET_FIRST } : {}),
+      ...(labels.length > 0 ? { labels } : {}),
     });
   });
   return root;
+}
+
+/**
+ * On a parent-first line, given to ELK the other way round: ELK's greedy
+ * cycle breaking weighs each line by its direction priority. That alone
+ * doesn't keep such a line along the flow, so `againstFlow` also gives ELK
+ * its part of the graph with no loops to break. Which lines are like this
+ * is part of the graph, not of the profile.
+ */
+const TARGET_FIRST = { "elk.layered.priority.direction": "100" };
+
+/**
+ * Which lines without ports ELK gets the other way round: every parent-first
+ * line, so it runs from parent to child, and the lines that would close a
+ * loop through one.
+ *
+ * ELK's greedy cycle breaking ranks cards by how much more weight leaves them
+ * than reaches them, and turns round whatever lines then run backwards. Where
+ * a connected part of the graph has a loop, that can be any line in it, a
+ * parent's whatever its priority: a class with two children of its own
+ * outranks its parent once its children have lines back to that parent. So
+ * in each part with a parent-first line, the other lines are taken in order,
+ * and each one that would close a loop with the lines before it goes the
+ * other way round too. ELK gets that part with no loops at all, so its cycle
+ * breaking, left at its default, has nothing there to turn. Elsewhere ELK
+ * breaks loops as it would.
+ *
+ * Inside area boxes, parents in one box and children in another can need one
+ * box before the other and after it too: then ELK still turns one of their
+ * lines round.
+ */
+function againstFlow(lines: readonly LayoutLine[], cardCount: number): boolean[] {
+  const against = lines.map((line) => !line.ports && line.targetFirst === true);
+  // Each card's part of the graph, named by one card in it.
+  const part = Array.from({ length: cardCount }, (_, i) => i);
+  const root = (i: number): number => (part[i] === i ? i : (part[i] = root(part[i]!)));
+  for (const line of lines) {
+    const [a, b] = [root(line.source), root(line.target)];
+    part[Math.max(a, b)] = Math.min(a, b);
+  }
+  const ordered = new Set(lines.flatMap((line, i) => (against[i] ? [root(line.source)] : [])));
+  // The lines ELK gets, so far: the cards each card's lines run to.
+  const next = Array.from({ length: cardCount }, () => [] as number[]);
+  const reaches = (from: number, to: number): boolean => {
+    const seen = new Set([from]);
+    const stack = [from];
+    for (let card = stack.pop(); card !== undefined; card = stack.pop()) {
+      if (card === to) return true;
+      for (const n of next[card]!) {
+        if (seen.has(n)) continue;
+        seen.add(n);
+        stack.push(n);
+      }
+    }
+    return false;
+  };
+  lines.forEach((line, i) => {
+    if (against[i]) next[line.target]!.push(line.source);
+  });
+  lines.forEach((line, i) => {
+    if (against[i] || line.ports || line.source === line.target || !ordered.has(root(line.source))) return;
+    against[i] = reaches(line.target, line.source);
+    next[against[i] ? line.target : line.source]!.push(against[i] ? line.source : line.target);
+  });
+  return against;
+}
+
+/** Where the lines that join at one port go in: the port's id at each end, and the counts ELK isn't given. */
+interface Joined {
+  readonly source?: string;
+  readonly target?: string;
+  readonly quiet?: ReadonlySet<LabelName>;
+}
+
+/**
+ * The ports where lines join. Ends of two or more lines without ports that
+ * meet one card with the same `joins` key, and that ELK gets going the same
+ * way, share one port there: ELK routes them into it as one tree. Each port
+ * has a generated id, j<card>_<n>, in the order the lines use them, and ELK
+ * puts it where it likes. A count at a shared end is the same on each of
+ * its lines, so only the first of them gives it to ELK.
+ */
+function joinPorts(lines: readonly LayoutLine[], against: readonly boolean[]) {
+  const groups = new Map<string, { card: number; line: number; end: "source" | "target" }[]>();
+  lines.forEach((line, i) => {
+    if (line.ports || line.source === line.target) return;
+    for (const end of ["source", "target"] as const) {
+      const key = line.joins?.[end];
+      if (key === undefined) continue;
+      // Whether ELK gets this end as where the line starts.
+      const starts = (end === "source") !== against[i];
+      const group = JSON.stringify([line[end], starts, key]);
+      groups.set(group, [...(groups.get(group) ?? []), { card: line[end], line: i, end }]);
+    }
+  });
+  const byCard = new Map<number, string[]>();
+  const byLine = new Map<number, Joined>();
+  for (const group of groups.values()) {
+    if (group.length < 2) continue;
+    const { card } = group[0]!;
+    const ports = byCard.get(card) ?? [];
+    byCard.set(card, ports);
+    const id = `j${card}_${ports.length}`;
+    ports.push(id);
+    group.forEach(({ line, end }, k) => {
+      const joined = byLine.get(line) ?? {};
+      const label: LabelName = end === "source" ? "sourceLabel" : "targetLabel";
+      const quiet = k > 0 && lines[line]![label] ? new Set([...(joined.quiet ?? []), label]) : joined.quiet;
+      byLine.set(line, { ...joined, [end]: id, ...(quiet ? { quiet } : {}) });
+    });
+  }
+  return { byCard, byLine };
 }
 
 /**
@@ -508,6 +695,7 @@ function readScene<C extends LayoutCard, L extends LayoutLine, A extends LayoutA
   result: ElkNode,
   graph: Graph<C, L, A>,
   ends: readonly Ends[],
+  direction: Direction,
 ): Scene<C, L, A> {
   const problems: Omit<Problem, "hint">[] = [];
   const returned = new Map<string, ElkNode | ElkExtendedEdge>();
@@ -576,10 +764,17 @@ function readScene<C extends LayoutCard, L extends LayoutLine, A extends LayoutA
     const route = points.map(({ x, y }) => ({ x, y }));
     if (ends[i]!.reversed) route.reverse();
     if (!onPorts(line, route, ends[i]!.fixed)) return problems.push({ path: line.path, message: "the layout engine moved this line's ends off its ports" });
-    if (!line.label) return lines.push({ line, points: route });
-    const label = readLabel(edge, i, line.label);
-    if (typeof label === "string") return problems.push({ path: `${line.path}.label`, message: label });
-    lines.push({ line, points: route, label });
+    const labels = readLabels(edge, i, line, ends[i]!, route, direction);
+    if (Array.isArray(labels)) return problems.push(...labels);
+    // A loop's end labels go beside its own ends: ELK doesn't place them.
+    const loop =
+      line.source === line.target
+        ? {
+            ...(line.sourceLabel ? { sourceLabel: besideLoopEnd(route, line.sourceLabel) } : {}),
+            ...(line.targetLabel ? { targetLabel: besideLoopEnd([...route].reverse(), line.targetLabel) } : {}),
+          }
+        : {};
+    lines.push({ line, points: route, ...labels, ...loop });
   });
 
   for (const id of returned.keys()) {
@@ -626,7 +821,7 @@ function labelLoops<C extends LayoutCard, L extends LayoutLine, A extends Layout
         const otherBox = other.label && other.line.label ? { ...other.label, ...other.line.label } : undefined;
         return !(otherBox && overlaps(box, otherBox)) && !other.points.some((p, k) => k > 0 && overlaps(box, segmentBox(other.points[k - 1]!, p)));
       });
-    if (clear) placed[i] = { line, points, label: beside };
+    if (clear) placed[i] = { ...placed[i]!, label: beside };
   });
   return placed;
 }
@@ -654,14 +849,98 @@ function segmentBox(a: Point, b: Point): Rect {
   return { x: Math.min(a.x, b.x), y: Math.min(a.y, b.y), width: Math.abs(b.x - a.x), height: Math.abs(b.y - a.y) };
 }
 
-/** Where ELK put line `i`'s one label, or what went wrong with it. */
-function readLabel(edge: ElkExtendedEdge, i: number, size: { width: number; height: number }): Point | string {
-  const labels = edge.labels ?? [];
-  const label = labels[0];
-  if (labels.length !== 1 || label?.id !== `l${i}`) return "the layout engine dropped this label";
-  if (label.width !== size.width || label.height !== size.height) return "the layout engine changed this label's size";
-  if (!isFiniteNumber(label.x) || !isFiniteNumber(label.y)) return "the layout engine gave this label no position";
-  return { x: label.x, y: label.y };
+/**
+ * Where ELK put each of line `i`'s labels, or what went wrong with them. An
+ * end label goes at the far end of its box from the card, at `route`'s end.
+ */
+function readLabels(
+  edge: ElkExtendedEdge,
+  i: number,
+  line: LayoutLine,
+  ends: Ends,
+  route: readonly Point[],
+  direction: Direction,
+): Partial<Record<LabelName, Point>> | Omit<Problem, "hint">[] {
+  const returned = edge.labels ?? [];
+  const found: Partial<Record<LabelName, Point>> = {};
+  const problems: Omit<Problem, "hint">[] = [];
+  for (const [name, letter, field] of LABELS) {
+    const size = line[name];
+    if (!size || !givenToElk(line, ends, name)) continue;
+    const path = `${line.path}.${field}`;
+    const matches = returned.filter((label) => label.id === `${letter}${i}`);
+    const label = matches[0];
+    const given = elkSize(size, direction);
+    if (matches.length !== 1 || !label) problems.push({ path, message: "the layout engine dropped this label" });
+    else if (label.width !== given.width || label.height !== given.height) problems.push({ path, message: "the layout engine changed this label's size" });
+    else if (!isFiniteNumber(label.x) || !isFiniteNumber(label.y)) problems.push({ path, message: "the layout engine gave this label no position" });
+    else if (!("clear" in size)) found[name] = { x: label.x, y: label.y };
+    else found[name] = pastClearance({ x: label.x, y: label.y, ...given }, size.clear, name === "sourceLabel" ? route[0]! : route.at(-1)!, direction);
+  }
+  for (const label of returned) {
+    if (!LABELS.some(([name, letter]) => line[name] && givenToElk(line, ends, name) && label.id === `${letter}${i}`)) {
+      problems.push({ path: line.path, message: `the layout engine returned an unexpected label "${label.id}"` });
+    }
+  }
+  return problems.length > 0 ? problems : found;
+}
+
+/**
+ * Whether ELK is given a line's label to place. It places every label but
+ * those at the ends of a line from a card to itself: it would stack them in
+ * one block beside the loop, where neither shows which end it's at. They're
+ * put beside their own ends instead, as ELK puts other lines' end labels.
+ * Nor is it given a count at an end shared with an earlier line, which shows
+ * the same count there.
+ */
+function givenToElk(line: LayoutLine, ends: Ends, name: LabelName): boolean {
+  return name === "label" || (line.source !== line.target && !ends.quiet?.has(name));
+}
+
+/**
+ * The box ELK gets for a label: an end label's is longer along the line by
+ * how far from the card it must start. ELK ends every line that isn't a
+ * loop, and has no fixed ports, on a card's sides across the flow: its top
+ * or bottom going down, its left or right going right, so that's the way
+ * along the line. Only lines between tables have fixed ports, and they have
+ * no end labels.
+ */
+function elkSize(size: Size | EndLabelSize, direction: Direction): Size {
+  const clear = "clear" in size ? size.clear : 0;
+  return direction === "down" ? { width: size.width, height: size.height + clear } : { width: size.width + clear, height: size.height };
+}
+
+/**
+ * Where an end label goes in the box ELK put just off the card at `end`, the
+ * line's end: `clear` along from the side of the box nearer the card.
+ */
+function pastClearance(box: Point & Size, clear: number, end: Point, direction: Direction): Point {
+  if (direction === "down") return { x: box.x, y: end.y <= box.y + box.height / 2 ? box.y + clear : box.y };
+  return { x: end.x <= box.x + box.width / 2 ? box.x + clear : box.x, y: box.y };
+}
+
+/** How far ELK puts an end label from the card, and from its line. */
+const END_LABEL_SPACING = { card: 2, line: 3 };
+
+/**
+ * Where a label of `size` goes beside the end of a loop at `route[0]`: just
+ * off the card, or `clear` along from it, and beside the loop's first run,
+ * on its side away from the loop's other end, so it's clear of the loop.
+ */
+function besideLoopEnd(route: readonly Point[], size: EndLabelSize): Point {
+  const start = route[0]!;
+  const next = route.find((p) => Math.hypot(p.x - start.x, p.y - start.y) > 1e-6) ?? { x: start.x, y: start.y - 1 };
+  const length = Math.hypot(next.x - start.x, next.y - start.y);
+  // Out of the card along the run, and across it, away from the other end.
+  const out = { x: (next.x - start.x) / length, y: (next.y - start.y) / length };
+  const other = route.at(-1)!;
+  const side = (start.x - other.x) * -out.y + (start.y - other.y) * out.x < 0 ? -1 : 1;
+  const across = { x: -out.y * side, y: out.x * side };
+  const [alongSize, acrossSize] = Math.abs(out.x) > 0.5 ? [size.width, size.height] : [size.height, size.width];
+  const at = (a: number, b: number) => ({ x: start.x + out.x * a + across.x * b, y: start.y + out.y * a + across.y * b });
+  const near = at(END_LABEL_SPACING.card + size.clear, END_LABEL_SPACING.line);
+  const far = at(END_LABEL_SPACING.card + size.clear + alongSize, END_LABEL_SPACING.line + acrossSize);
+  return { x: Math.min(near.x, far.x), y: Math.min(near.y, far.y) };
 }
 
 function isFiniteNumber(value: unknown): value is number {
@@ -676,7 +955,12 @@ function normalise<C extends LayoutCard, L extends LayoutLine, A>(
   const boxes = [
     ...areas,
     ...cards.map((c) => ({ x: c.x, y: c.y, width: c.card.width, height: c.card.height })),
-    ...lines.flatMap((l) => (l.label && l.line.label ? [{ ...l.label, ...l.line.label }] : [])),
+    ...lines.flatMap((l) =>
+      LABELS.flatMap(([name]) => {
+        const [at, size] = [l[name], l.line[name]];
+        return at && size ? [{ ...at, width: size.width, height: size.height }] : [];
+      }),
+    ),
   ];
   const xs = [...boxes.flatMap((b) => [b.x, b.x + b.width]), ...lines.flatMap((l) => l.points.map((p) => p.x))];
   const ys = [...boxes.flatMap((b) => [b.y, b.y + b.height]), ...lines.flatMap((l) => l.points.map((p) => p.y))];
@@ -689,6 +973,10 @@ function normalise<C extends LayoutCard, L extends LayoutLine, A>(
     height: Math.max(...ys) - minY,
     areas: areas.map((a) => ({ ...a, ...move(a) })),
     cards: cards.map((c) => ({ card: c.card, ...move(c) })),
-    lines: lines.map((l) => ({ line: l.line, points: l.points.map(move), ...(l.label ? { label: move(l.label) } : {}) })),
+    lines: lines.map((l) => ({
+      line: l.line,
+      points: l.points.map(move),
+      ...Object.fromEntries(LABELS.flatMap(([name]) => (l[name] ? [[name, move(l[name])]] : []))),
+    })),
   };
 }

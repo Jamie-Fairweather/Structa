@@ -28,11 +28,13 @@ export {
   COMPONENT_LABEL_FACE,
   DESCRIPTION_FACE,
   DIAGRAM_TYPES,
+  END_LABEL_FACE,
   ENUM_SECTIONS,
   KIND_WORD_FACE,
   LINE_LABEL_FACE,
   MEMBER_SECTIONS,
   NOTE_LABEL_FACE,
+  PARENT_KINDS,
   ROW_TEXT_FACE,
   STATUSES,
   STEP_LABEL_FACE,
@@ -84,6 +86,12 @@ export interface FlowEdge {
 
 export interface ClassEdge extends FlowEdge {
   readonly kind: (typeof CLASS_EDGE_KINDS)[number];
+  /** Tidied, like every text field: a count beside the line where it leaves `from`. */
+  readonly fromLabel?: string;
+  /** A count beside the line where it reaches `to`. */
+  readonly toLabel?: string;
+  /** Associations only: an arrow at `to`. Left out means false. */
+  readonly directed?: boolean;
 }
 
 export type Visibility = (typeof VISIBILITIES)[number];

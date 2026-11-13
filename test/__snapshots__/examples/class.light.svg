@@ -1,10 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="424" height="810" viewBox="0 0 424 810">
+<svg xmlns="http://www.w3.org/2000/svg" width="424" height="1058" viewBox="0 0 424 1058">
 <defs>
 <pattern id="structa-grid-light" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="9" cy="9" r="1" fill="#8c959f" fill-opacity="0.5"/></pattern>
 <filter id="structa-shadow-light" x="-20%" y="-30%" width="140%" height="170%"><feDropShadow dx="0" dy="1" stdDeviation="3" flood-color="#1f2328" flood-opacity="0.1"/></filter>
 </defs>
-<rect width="424" height="810" fill="#f4f5f7"/>
-<rect width="424" height="810" fill="url(#structa-grid-light)"/>
+<rect width="424" height="1058" fill="#f4f5f7"/>
+<rect width="424" height="1058" fill="url(#structa-grid-light)"/>
 <g class="card" data-id="member" data-kind="class">
 <title>Member</title>
 <rect class="outline" x="32" y="32" width="360" height="198" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
@@ -45,81 +45,113 @@
 </g>
 <g class="card" data-id="loan" data-kind="class">
 <title>Loan: One packet lent to one member for a growing season.</title>
-<rect class="outline" x="32" y="378" width="360" height="164" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
-<line class="divider" x1="32.5" y1="440" x2="391.5" y2="440" stroke="#d1d9e0" stroke-width="1"/>
-<line class="divider" x1="32.5" y1="504" x2="391.5" y2="504" stroke="#d1d9e0" stroke-width="1"/>
-<text x="212" y="405.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">Loan</text>
-<text x="212" y="424.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#59636e" text-anchor="middle">One packet lent to one member for a growing season.</text>
+<rect class="outline" x="32" y="414" width="360" height="164" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<line class="divider" x1="32.5" y1="476" x2="391.5" y2="476" stroke="#d1d9e0" stroke-width="1"/>
+<line class="divider" x1="32.5" y1="540" x2="391.5" y2="540" stroke="#d1d9e0" stroke-width="1"/>
+<text x="212" y="441.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">Loan</text>
+<text x="212" y="460.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#59636e" text-anchor="middle">One packet lent to one member for a growing season.</text>
 <g class="row" data-id="properties[0]" data-kind="property">
 <title>+ startedOn: Date</title>
 <g class="symbol">
-<text x="46" y="463.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
+<text x="46" y="499.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
 </g>
-<text x="60.4" y="463.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">startedOn: Date</text>
+<text x="60.4" y="499.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">startedOn: Date</text>
 </g>
 <g class="row" data-id="properties[1]" data-kind="property">
 <title>+ returnedOn: Date?</title>
 <g class="symbol">
-<text x="46" y="489.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
+<text x="46" y="525.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
 </g>
-<text x="60.4" y="489.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">returnedOn: Date?</text>
+<text x="60.4" y="525.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">returnedOn: Date?</text>
 </g>
 <g class="row" data-id="methods[0]" data-kind="method">
 <title>+ close(on: Date): void</title>
 <g class="symbol">
-<text x="46" y="527.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
+<text x="46" y="563.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
 </g>
-<text x="60.4" y="527.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">close(on: Date): void</text>
+<text x="60.4" y="563.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">close(on: Date): void</text>
 </g>
 </g>
 <g class="card" data-id="packet" data-kind="class">
 <title>SeedPacket</title>
-<rect class="outline" x="32" y="606" width="360" height="172" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
-<line class="divider" x1="32.5" y1="650" x2="391.5" y2="650" stroke="#d1d9e0" stroke-width="1"/>
-<line class="divider" x1="32.5" y1="740" x2="391.5" y2="740" stroke="#d1d9e0" stroke-width="1"/>
-<text x="212" y="633.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">SeedPacket</text>
+<rect class="outline" x="32" y="690" width="360" height="172" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<line class="divider" x1="32.5" y1="734" x2="391.5" y2="734" stroke="#d1d9e0" stroke-width="1"/>
+<line class="divider" x1="32.5" y1="824" x2="391.5" y2="824" stroke="#d1d9e0" stroke-width="1"/>
+<text x="212" y="717.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">SeedPacket</text>
 <g class="row" data-id="properties[0]" data-kind="property">
 <title>+ variety: string</title>
 <g class="symbol">
-<text x="46" y="673.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
+<text x="46" y="757.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
 </g>
-<text x="60.4" y="673.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">variety: string</text>
+<text x="60.4" y="757.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">variety: string</text>
 </g>
 <g class="row" data-id="properties[1]" data-kind="property">
 <title>- seedCount: int</title>
 <g class="symbol">
-<text x="46" y="699.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">-</text>
+<text x="46" y="783.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">-</text>
 </g>
-<text x="60.4" y="699.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">seedCount: int</text>
+<text x="60.4" y="783.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">seedCount: int</text>
 </g>
 <g class="row" data-id="properties[2]" data-kind="property">
 <title># harvestYear: int</title>
 <g class="symbol">
-<text x="46" y="725.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">#</text>
+<text x="46" y="809.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">#</text>
 </g>
-<text x="60.4" y="725.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">harvestYear: int</text>
+<text x="60.4" y="809.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">harvestYear: int</text>
 </g>
 <g class="row" data-id="methods[0]" data-kind="method">
 <title>~ split(into: int): SeedPacket[]</title>
 <g class="symbol">
-<text x="46" y="763.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">~</text>
+<text x="46" y="847.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">~</text>
 </g>
-<text x="60.4" y="763.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">split(into: int): SeedPacket[]</text>
+<text x="60.4" y="847.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">split(into: int): SeedPacket[]</text>
+</g>
+</g>
+<g class="card" data-id="heirloom" data-kind="class">
+<title>HeirloomPacket: Saved by members from their own plants, year after year.</title>
+<rect class="outline" x="32" y="926" width="360" height="100" rx="10" fill="#ffffff" stroke="#d1d9e0" stroke-width="1" filter="url(#structa-shadow-light)"/>
+<line class="divider" x1="32.5" y1="988" x2="391.5" y2="988" stroke="#d1d9e0" stroke-width="1"/>
+<text x="212" y="953.46" font-family="Structa Inter, Inter, sans-serif" font-size="15" font-weight="600" fill="#1f2328" text-anchor="middle">HeirloomPacket</text>
+<text x="212" y="972.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#59636e" text-anchor="middle">Saved by members from their own plants, year after year.</text>
+<g class="row" data-id="properties[0]" data-kind="property">
+<title>+ savedSince: int</title>
+<g class="symbol">
+<text x="46" y="1011.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">+</text>
+</g>
+<text x="60.4" y="1011.32" font-family="Structa JetBrains Mono, JetBrains Mono, monospace" font-size="12" font-weight="400" fill="#1f2328">savedSince: int</text>
 </g>
 </g>
 <g class="line" data-id="edges[0]" data-kind="association" data-from="member" data-to="loan">
-<title>Member – Loan: borrows</title>
-<path d="M212 230 L212 378" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<title>Member (1) – Loan (0..*): borrows</title>
+<path d="M212 230 L212 414" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<g class="end-label" data-end="from">
+<text x="219.5" y="244" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#1f2328" text-anchor="middle">1</text>
+</g>
+<g class="end-label" data-end="to">
+<text x="226.5" y="408" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#1f2328" text-anchor="middle">0..*</text>
+</g>
 </g>
 <g class="line" data-id="edges[1]" data-kind="association" data-from="loan" data-to="packet">
-<title>Loan – SeedPacket</title>
-<path d="M212 542 L212 606" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<title>Loan (0..*) → SeedPacket (1)</title>
+<path d="M212 578 L212 690" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M207.5 681 L212 690 L216.5 681" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<g class="end-label" data-end="from">
+<text x="226.5" y="592" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#1f2328" text-anchor="middle">0..*</text>
+</g>
+<g class="end-label" data-end="to">
+<text x="219.5" y="672" font-family="Structa Inter, Inter, sans-serif" font-size="11" font-weight="400" fill="#1f2328" text-anchor="middle">1</text>
+</g>
+</g>
+<g class="line" data-id="edges[2]" data-kind="inherits" data-from="heirloom" data-to="packet">
+<title>HeirloomPacket inherits from SeedPacket</title>
+<path d="M212 926 L212 876" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M212 862 L219 876 L205 876 Z" fill="#ffffff" stroke="#8c959f" stroke-width="1.5" stroke-linejoin="round"/>
 </g>
 <g class="line-labels">
 <g class="line-label" data-line="edges[0]">
-<title>Member – Loan: borrows</title>
-<rect x="180.5" y="294" width="63" height="20" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1"/>
-<text x="212" y="308.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">borrows</text>
+<title>Member (1) – Loan (0..*): borrows</title>
+<rect x="180.5" y="312" width="63" height="20" rx="10" fill="#ffffff" stroke="#8c959f" stroke-width="1"/>
+<text x="212" y="326.37" font-family="Structa Inter, Inter, sans-serif" font-size="12" font-weight="400" fill="#1f2328" text-anchor="middle">borrows</text>
 </g>
 </g>
 </svg>

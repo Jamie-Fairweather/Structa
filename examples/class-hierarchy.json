@@ -1,0 +1,71 @@
+{
+  "type": "class",
+  "title": "Weather station sensors",
+  "description": "Every sensor can be read, and most can be calibrated. The digital barometer is new, and the wind vane only reports a direction, so it skips calibration.",
+  "nodes": [
+    {
+      "id": "sensor",
+      "label": "Sensor",
+      "stereotype": "interface",
+      "methods": [{ "text": "read(): Reading", "visibility": "public", "abstract": true }]
+    },
+    {
+      "id": "calibratable",
+      "label": "Calibratable",
+      "stereotype": "interface",
+      "methods": [{ "text": "calibrate(against: Reading): void", "visibility": "public", "abstract": true }]
+    },
+    {
+      "id": "analogue",
+      "label": "AnalogueSensor",
+      "stereotype": "abstract",
+      "description": "Turns a voltage into a reading.",
+      "properties": [{ "text": "offset: float", "visibility": "protected" }],
+      "methods": [
+        { "text": "read(): Reading", "visibility": "public" },
+        { "text": "convert(volts: float): float", "visibility": "protected", "abstract": true }
+      ]
+    },
+    {
+      "id": "thermometer",
+      "label": "Thermometer",
+      "methods": [{ "text": "convert(volts: float): float", "visibility": "protected" }]
+    },
+    {
+      "id": "rain-gauge",
+      "label": "RainGauge",
+      "properties": [{ "text": "funnelArea: SquareCentimetres", "visibility": "private" }],
+      "methods": [{ "text": "convert(volts: float): float", "visibility": "protected" }]
+    },
+    {
+      "id": "heated-gauge",
+      "label": "HeatedRainGauge",
+      "description": "Melts snow before measuring it.",
+      "methods": [{ "text": "heaterOn(): bool", "visibility": "public" }]
+    },
+    {
+      "id": "barometer",
+      "label": "DigitalBarometer",
+      "status": "new",
+      "methods": [
+        { "text": "read(): Reading", "visibility": "public" },
+        { "text": "calibrate(against: Reading): void", "visibility": "public" }
+      ]
+    },
+    {
+      "id": "vane",
+      "label": "WindVane",
+      "methods": [{ "text": "read(): Reading", "visibility": "public" }]
+    }
+  ],
+  "edges": [
+    { "from": "analogue", "to": "sensor", "kind": "implements" },
+    { "from": "analogue", "to": "calibratable", "kind": "implements" },
+    { "from": "thermometer", "to": "analogue", "kind": "inherits" },
+    { "from": "rain-gauge", "to": "analogue", "kind": "inherits" },
+    { "from": "heated-gauge", "to": "rain-gauge", "kind": "inherits" },
+    { "from": "barometer", "to": "sensor", "kind": "implements", "status": "new" },
+    { "from": "barometer", "to": "calibratable", "kind": "implements", "status": "new" },
+    { "from": "vane", "to": "sensor", "kind": "implements" }
+  ]
+}
