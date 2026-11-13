@@ -19,7 +19,7 @@ import type { Sizes } from "../theme";
 import { classBody } from "./class";
 import { componentBody } from "./component";
 import { shapeBody } from "./flow";
-import { frameCards, strikeThrough, type Card, type LineEnds, type Span, type TextLine } from "./frame";
+import { described, frameCards, strikeThrough, type Card, type LineEnds, type Span, type TextLine } from "./frame";
 import { tableBody } from "./table";
 
 export { buildAreaBoxes, type AreaBox } from "./area";
@@ -362,7 +362,7 @@ export function buildLine(edge: FlowEdge | ClassEdge | ErEdge | ArchitectureEdge
     ...(edge.label === undefined ? {} : { label: lineLabel(edge.label, removed, sizes) }),
     ...(counts.fromLabel === undefined ? {} : { fromLabel: endLabel(counts.fromLabel, removed, look.marks.from, sizes) }),
     ...(counts.toLabel === undefined ? {} : { toLabel: endLabel(counts.toLabel, removed, look.marks.to, sizes) }),
-    tooltip: edge.label === undefined ? ends : `${ends}: ${edge.label}`,
+    tooltip: described(ends, edge.label),
   };
 }
 

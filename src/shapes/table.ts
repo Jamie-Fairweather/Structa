@@ -8,7 +8,7 @@ import {
 } from "../input";
 import { baseline, measure, wrap, type FaceId } from "../text";
 import type { Sizes } from "../theme";
-import { cardHead, measureBadge, moreLine, rowBadge, rowBand, type CardBody, type Row, type TextLine } from "./frame";
+import { cardHead, described, measureBadge, rowBadge, rowBand, rowSections, type CardBody, type PlaceRow, type Row, type TextLine } from "./frame";
 
 /**
  * A table card, as wide as a class card: the table's name centred at the top,
@@ -20,31 +20,15 @@ export function tableBody(node: TableNode, sizes: Sizes, minWidth: number): Card
   const c = sizes.standardCard;
   const width = Math.max(c.width, minWidth);
   const head = cardHead(node.label, TABLE_NAME_FACE, node.description, TABLE_DESCRIPTION_FACE, width, sizes);
-  let y = head.bottom;
-  const dividers: number[] = [];
-  const rows: Row[] = [];
-  let more: TextLine | undefined;
-  // A table with no columns has no section, unless it has a "… N more" line to put in one.
-  if (node.columns.length > 0 || node.more !== undefined) {
-    dividers.push(y);
-    y += c.sectionPaddingY;
-    const columns = columnsAt(node.columns, width, sizes);
-    for (const column of node.columns) {
-      const { row, height } = columnRow(column, y, columns, sizes);
-      rows.push(row);
-      y += height;
-    }
-    if (node.more !== undefined) {
-      more = moreLine(node.more, y, columns.nameX, COLUMN_NAME_FACE, sizes);
-      y += 2 * sizes.row.paddingY + sizes.row.lineHeight;
-    }
-    y += c.sectionPaddingY;
-  }
-  const tooltip = node.description === undefined ? node.label : `${node.label}: ${node.description}`;
+  const columns = columnsAt(node.columns, width, sizes);
+  // A table with no columns has no section of them.
+  const sections = node.columns.length === 0 ? [] : [node.columns.map((column): PlaceRow => (top) => columnRow(column, top, columns, sizes))];
+  const more = node.more === undefined ? undefined : { count: node.more, x: columns.nameX, face: COLUMN_NAME_FACE };
+  const { bottom, ...rows } = rowSections(sections, more, head.bottom, sizes);
   const outline = { kind: "rounded", radius: sizes.card.radius } as const;
   // The header runs from the top of the card to its divider; without one, it's the whole card.
   const header = { top: 0, bottom: head.bottom };
-  return { kind: "table", width, height: y, outline, tooltip, texts: head.texts, dividers, rows, ...(more ? { more } : {}), header };
+  return { kind: "table", width, height: bottom, outline, tooltip: described(node.label, node.description), texts: head.texts, ...rows, header };
 }
 
 /** Key markers are fixed words, so they need no checking against the font. */
