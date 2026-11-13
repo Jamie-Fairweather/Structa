@@ -469,17 +469,6 @@ export function distanceToShape(p: Point, card: Element): number {
   return Math.min(...corners.map((a, i) => distanceToSegment(p, a, corners[(i + 1) % corners.length]!)));
 }
 
-/** How far a point is from what's drawn of a card: its outline, whatever its shape, or the badge or tag sitting on it. */
-export function distanceToDrawn(p: Point, card: Element): number {
-  const badge = badgeBox(card);
-  const tag = tagOf(card);
-  return Math.min(
-    distanceToShape(p, card),
-    badge ? Math.abs(depthInPill(p, badge)) : Infinity,
-    tag ? Math.abs(roundedRectDepth(p, tag.box, tag.radius)) : Infinity,
-  );
-}
-
 /** How far a point is inside a card's tag: positive inside, 0 on its outline, negative outside. */
 export function depthInTag(p: Point, card: Element): number {
   const tag = tagOf(card);

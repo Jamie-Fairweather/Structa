@@ -8,8 +8,9 @@ import {
   cards,
   connectorEnds,
   connectors,
-  distanceToDrawn,
+  distanceToShape,
   lines,
+  nearestBadgeOrTag,
   outlineBox,
   overlaps,
   svgDoc,
@@ -45,15 +46,16 @@ function garlic(direction: "down" | "right" = "down", extra: { nodes?: Obj[]; ed
 
 /**
  * Checks each connector runs from its note's outline to the outline of the
- * shape it's about, both ends within 1px of what's drawn, and that no two
- * cards overlap.
+ * shape it's about, both ends within 1px of them and the whole way clear of
+ * every badge and tag, and that no two cards overlap.
  */
 function expectJoinedAndClear(doc: Document) {
   for (const connector of connectors(doc)) {
     const [note, about] = [connector.getAttribute("data-from")!, connector.getAttribute("data-to")!];
     const [start, end] = connectorEnds(connector);
-    expect(distanceToDrawn(start, cardById(doc, note)), `${note} start`).toBeLessThanOrEqual(1);
-    expect(distanceToDrawn(end, cardById(doc, about)), `${note} end`).toBeLessThanOrEqual(1);
+    expect(distanceToShape(start, cardById(doc, note)), `${note} start`).toBeLessThanOrEqual(1);
+    expect(distanceToShape(end, cardById(doc, about)), `${note} end`).toBeLessThanOrEqual(1);
+    expect(nearestBadgeOrTag(doc, connector), note).toBeGreaterThan(4);
   }
   const boxes = cards(doc).map((c) => outlineBox(c));
   for (const a of boxes) for (const b of boxes) if (a !== b) expect(overlaps(a, b)).toBe(false);
@@ -81,8 +83,8 @@ describe("notes", () => {
       expect(Number(path!.getAttribute("stroke-width"))).toBeLessThan(lineWidth);
 
       const [start, end] = connectorEnds(connector!);
-      expect(distanceToDrawn(start, cardById(doc, "pointy"))).toBeLessThanOrEqual(1);
-      expect(distanceToDrawn(end, cardById(doc, "plant"))).toBeLessThanOrEqual(1);
+      expect(distanceToShape(start, cardById(doc, "pointy"))).toBeLessThanOrEqual(1);
+      expect(distanceToShape(end, cardById(doc, "plant"))).toBeLessThanOrEqual(1);
     },
   );
 
@@ -172,6 +174,32 @@ describe("notes", () => {
   const crowded = (["start", "end", "step", "decision", "io", "subprocess"] as const).flatMap((shape) =>
     (["down", "right"] as const).flatMap((direction) => [5, 6].map((count) => [count, shape, direction] as const)),
   );
+  it.each((["start", "step", "decision", "io", "subprocess"] as const).flatMap((shape) => (["down", "right"] as const).map((direction) => [shape, direction] as const)))(
+    "runs a note's connector clear of the badge and tag of the %s it's about and of its own, direction %s",
+    async (shape, direction) => {
+      // The note comes level with its shape, or above it, where the badge and the tag leave little of its top free.
+      const input = {
+        type: "flow",
+        direction,
+        areas: [{ id: "shed", label: "Potting shed" }],
+        nodes: [
+          { id: "fill", label: "Fill the trays", shape: "start" },
+          { id: "sow", label: "Sow", shape, area: "shed", status: "changed" },
+          { id: "label", label: "Label the rows", shape: "end" },
+          { id: "thin", label: "Sow thinly", shape: "note", about: "sow", area: "shed", status: "new" },
+        ],
+        edges: [
+          { from: "fill", to: "sow" },
+          { from: "sow", to: "label" },
+        ],
+      };
+      const doc = await svgDoc(input);
+
+      expect(connectors(doc)).toHaveLength(1);
+      expectJoinedAndClear(doc);
+    },
+  );
+
   it.each(crowded)("joins %i notes crowding one %s to its outline, clear of everything else, direction %s", async (count, shape, direction) => {
     const input = {
       type: "flow",
