@@ -626,7 +626,7 @@ describe("the JSON Schema", () => {
     const pattern = new RegExp(items("class", "nodes").properties.methods.items.properties.text.pattern, "u");
 
     // JetBrains Mono can draw ⇑ but not Ĳ; Inter is the other way round.
-    for (const [text, drawable] of [["climb(): ⇑", true], ["Ĳssel(): void", false]] as const) {
+    for (const [text, drawable] of [["climb(): ⇑", true], ["Ĳstaart(): void", false]] as const) {
       const input = toolShed();
       input.nodes[0].methods[0].text = text;
       expect([text, pattern.test(text), (await outcome(input)) === "ok"]).toEqual([text, drawable, drawable]);

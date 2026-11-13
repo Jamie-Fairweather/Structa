@@ -179,12 +179,12 @@ describe("text in PNGs", () => {
   const belowRows = (card: Element) => inside(card, 4, Number(byClassIn(card, "divider").at(-1)!.getAttribute("y1")) + 2);
 
   // Kerning pairs (AV, To, Wa, ff), digits, accents and symbols: drawn with no kerning, each takes exactly its advance.
-  const INTER = ["AVATAR Wave", "To do today", "Waffle office", "Mix 0-9 at 18°", "Purée über Æg", "→ ≠ … ≤ ≥ ×", "{x: 1, y: [2]}"];
+  const INTER = ["AVATAR Wave", "To do today", "Waffle office", "Mix 0-9 at 18°", "Purée über Æg", "Smørrebrød", "→ ≠ … ≤ ≥ ×", "{x: 1, y: [2]}"];
   // Slanted letters overhang their advances at both ends, by the same amount once and twice over, so the check holds.
-  const INTER_ITALIC = ["AVATAR Wave", "Waffle office", "Purée über Æg", "→ ≠ … ≤ ≥ ×"];
+  const INTER_ITALIC = ["AVATAR Wave", "Waffle office", "Purée über Æg", "Smørrebrød", "→ ≠ … ≤ ≥ ×"];
   // Code ligature pairs (-> != <= >= === www), digits, accents and symbols: drawn with no ligatures, each character takes exactly its advance.
-  const MONO = ["{x: 1, y: [2]}", "-> != <= >= === www", "→ ≠ … ≤ ≥ ×", "Mix 0-9 at 18°", "Purée über Æg", "fn(a): T[]"];
-  const MONO_ITALIC = ["{x: 1, y: [2]}", "-> != <= >= === www", "Purée über Æg", "fn(a): T[]"];
+  const MONO = ["{x: 1, y: [2]}", "-> != <= >= === www", "→ ≠ … ≤ ≥ ×", "Mix 0-9 at 18°", "Purée über Æg", "Smørrebrød", "fn(a): T[]"];
+  const MONO_ITALIC = ["{x: 1, y: [2]}", "-> != <= >= === www", "Purée über Æg", "Smørrebrød", "fn(a): T[]"];
 
   // Every face render() draws text in: the six the spec names, each with text drawn in it and samples that fit on one line twice over.
   const FACES: readonly (readonly [name: string, face: FaceName, as: string, draw: Draw, samples: readonly string[]])[] = [
